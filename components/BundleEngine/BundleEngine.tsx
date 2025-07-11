@@ -1,13 +1,16 @@
 import React from 'react';
 import { useState } from 'react';
+// @ts-ignore
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// @ts-ignore
 import { Input } from '@/components/ui/input';
+// @ts-ignore
 import { Button } from '@/components/ui/button';
 import ReactGridLayout from 'react-grid-layout';
 import { buildBundle, previewBundle, executeBundle } from '../../services/bundleService';
 
 export default React.memo(function BundleEngine() {
-  const [txs, setTxs] = useState([]);
+  const [txs, setTxs] = useState<{ memecoinAddr: string; amount: number; slippage: number; }[]>([]);
   const [memecoinAddr, setMemecoinAddr] = useState('');
   const [amount, setAmount] = useState(0);
   const [slippage, setSlippage] = useState(5);
@@ -32,9 +35,9 @@ export default React.memo(function BundleEngine() {
         <CardTitle>Bundle Engine</CardTitle>
       </CardHeader>
       <CardContent>
-        <Input value={memecoinAddr} onChange={e => setMemecoinAddr(e.target.value)} placeholder="Memecoin Address" />
-        <Input type="number" value={amount} onChange={e => setAmount(parseFloat(e.target.value))} placeholder="Amount" />
-        <Input type="number" value={slippage} onChange={e => setSlippage(parseFloat(e.target.value))} placeholder="Slippage" />
+        <Input value={memecoinAddr} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMemecoinAddr(e.target.value)} placeholder="Memecoin Address" />
+        <Input type="number" value={amount} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(parseFloat(e.target.value))} placeholder="Amount" />
+        <Input type="number" value={slippage} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlippage(parseFloat(e.target.value))} placeholder="Slippage" />
         <Button onClick={handleAddTx}>Add Transaction</Button>
         <ReactGridLayout className="layout" cols={1} rowHeight={30} width={300}>
           {txs.map((tx, i) => (
