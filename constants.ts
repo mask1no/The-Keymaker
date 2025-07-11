@@ -1,0 +1,2 @@
+export const NEXT_PUBLIC_HELIUS_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.devnet.solana.com';
+export const NEXT_PUBLIC_JITO_ENDPOINT = process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://devnet.jito.wtf'; 
