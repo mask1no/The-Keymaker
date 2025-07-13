@@ -1,19 +1,40 @@
-import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import { createMint, mintTo } from '@solana/spl-token';
-import { Liquidity } from '@raydium-io/raydium-sdk';
+import { Connection, Keypair, Transaction, PublicKey } from '@solana/web3.js';
+import { createMint, mintTo, createAssociatedTokenAccount } from '@solana/spl-token';
+import { Liquidity, LiquidityPoolKeys, LiquidityVersion, Percent, Token, TokenAmount } from '@raydium-io/raydium-sdk';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
-const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
 
-export async function createToken(name: string, ticker: string, supply: number, metadata: { image: string, telegram: string, website: string, x: string }): Promise<string> {
-  const mintAuthority = Keypair.generate();
-  const mint = await createMint(connection, mintAuthority, mintAuthority.publicKey, null, 9);
-  await mintTo(connection, mintAuthority, mint, mintAuthority.publicKey, mintAuthority, supply);
-  // Metadata handling placeholder
+type TokenMetadata = { name: string; ticker: string; supply: number };
+
+async function createToken(name: string, ticker: string, supply: number, metadata: TokenMetadata, authority: Keypair, connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')): Promise<string> {
+  const mint = await createMint(connection, authority, authority.publicKey, null, 9);
+  const ata = await createAssociatedTokenAccount(connection, authority, mint, authority.publicKey);
+  await mintTo(connection, authority, mint, ata, authority, supply * 1e9);
+  // Set metadata (use Metaplex or similar for full metadata)
   return mint.toBase58();
 }
 
-export async function createLiquidityPool(token: string, solAmount: number): Promise<string> {
-  // Placeholder for creating AMM pool with Liquidity.createPool
-  const poolId = 'dummyPoolId';
-  return poolId;
-} 
+async function createLiquidityPool(token: string, solAmount: number, authority: Keypair, connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')): Promise<string> {
+  const mint = new PublicKey(token);
+  const baseToken = new Token(mint, 9, 'TOKEN', 'TOKEN');
+  const quoteToken = Token.WSOL;
+  const baseAmount = new TokenAmount(baseToken, 1e9);
+  const quoteAmount = new TokenAmount(quoteToken, solAmount * 1e9);
+  const { poolKeys } = await Liquidity.makeCreatePoolV4InstructionV2Simple({
+    connection,
+    programId: Liquidity.getProgramId(LiquidityVersion.V4),
+    marketId: new PublicKey('marketId'), // Placeholder
+    baseMint: mint,
+    quoteMint: quoteToken.mint,
+    baseAmount,
+    quoteAmount,
+    associatedOnly: true,
+    owner: authority.publicKey,
+    feeTier: Percent.fromDecimal(0.0005),
+  });
+  // Execute tx to create pool
+  const tx = new Transaction(); // Add instructions
+  await connection.sendTransaction(tx, [authority]);
+  return poolKeys.id.toBase58();
+}
+
+export { createToken, createLiquidityPool }; 

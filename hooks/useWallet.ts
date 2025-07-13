@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { debounce } from 'lodash';
+import { useDebounce } from 'use-debounce';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
-const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
 
-export function useWallet(walletAddr: string) {
+export function useWalletBalance() {
+  const { publicKey } = useWallet();
+  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
   const [balance, setBalance] = useState(0);
-
-  const fetchBalance = debounce(async () => {
-    const bal = await connection.getBalance(new PublicKey(walletAddr));
+  const [debouncedFetch] = useDebounce(async () => {
+    if (!publicKey) return;
+    const cached = localStorage.getItem(`balance_${publicKey.toBase58()}`);
+    const timestamp = localStorage.getItem(`balance_ts_${publicKey.toBase58()}`);
+    if (cached && timestamp && Date.now() - parseInt(timestamp) < 10000) {
+      setBalance(parseFloat(cached));
+      return;
+    }
+    const bal = await connection.getBalance(publicKey);
     setBalance(bal / 1e9);
+    localStorage.setItem(`balance_${publicKey.toBase58()}`, (bal / 1e9).toString());
+    localStorage.setItem(`balance_ts_${publicKey.toBase58()}`, Date.now().toString());
   }, 500);
 
   useEffect(() => {
-    fetchBalance();
-    const interval = setInterval(fetchBalance, 10000);
-    return () => clearInterval(interval);
-  }, [walletAddr]);
+    debouncedFetch();
+  }, [publicKey]);
 
   return balance;
 } 

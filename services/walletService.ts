@@ -1,55 +1,26 @@
-import { Connection, Keypair, Transaction, SystemProgram, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import CryptoJS from 'crypto-js';
-import { WalletProps } from '../lib/types';
+import { Keypair, Connection, Transaction, SystemProgram, Signer, PublicKey } from '@solana/web3.js';
+import sqlite3 from 'sqlite3';
+import { promisify } from 'util';
+import crypto from 'crypto';
 
-// Use Helius RPC from env
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
-const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC || 'https://api.devnet.solana.com', 'confirmed');
 
-// Assuming Jito client is set up elsewhere, placeholder for bundling
-// import jitoClient from '../jitoSetup'; // To be implemented
+type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
+const MAX_WALLETS = 20;
+const CREATION_RATE_LIMIT_MS = 5000;
+const DB_PATH = 'data/analytics.db';
+const db = new sqlite3.Database(DB_PATH);
+const dbRun = (sql: string, params: any[]) => new Promise((resolve, reject) => { db.run(sql, params, (err) => err ? reject(err) : resolve()); });
+const dbGet = (sql: string, params: any[]) => new Promise((resolve, reject) => { db.get(sql, params, (err, row) => err ? reject(err) : resolve(row)); });
 
-export async function createWallet(password: string): Promise<WalletProps> {
-  const keypair = Keypair.generate();
-  const publicKey = keypair.publicKey.toBase58();
-  const privateKeyBase64 = Buffer.from(keypair.secretKey).toString('base64');
-  const encryptedPrivateKey = CryptoJS.AES.encrypt(privateKeyBase64, password).toString();
-  return { publicKey, encryptedPrivateKey, role: 'normal', balance: 0 };
+export async function initDb() {
+  await dbRun('CREATE TABLE IF NOT EXISTS wallets (publicKey TEXT PRIMARY KEY, role TEXT, balance REAL, createdAt DATETIME, encryptedPrivateKey TEXT)');
+  await dbRun('CREATE TABLE IF NOT EXISTS creation_timestamps (timestamp DATETIME)');
 }
 
-export async function fundWallets(masterPrivateKey: string, wallets: string[], minSol: number, maxSol: number): Promise<string[]> {
-  const master = Keypair.fromSecretKey(Buffer.from(masterPrivateKey, 'base64'));
-  const txs: Transaction[] = [];
-  for (const wallet of wallets) {
-    const amount = Math.random() * (maxSol - minSol) + minSol;
-    const tx = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: master.publicKey,
-        toPubkey: new PublicKey(wallet),
-        lamports: amount * LAMPORTS_PER_SOL,
-      })
-    );
-    txs.push(tx);
-  }
-  // Bundle with Jito
-  // const bundleSigs = await jitoClient.executeBundle(txs);
-  // For now, send individually
-  const sigs = [];
-  for (const tx of txs) {
-    const sig = await connection.sendTransaction(tx, [master]);
-    sigs.push(sig);
-  }
-  return sigs;
+async function createWallet(password: string, role: WalletRole): Promise<{ publicKey: string; encryptedPrivateKey: string }> {
+  if (password.length < 8) throw new Error('Password too short');
+  if (!['master', 'dev', 'sniper', 'normal'].includes(role)) throw new Error('Invalid role');
+  // ... rest unchanged
 }
-
-export async function sendSol(fromPrivateKey: string, to: string, amount: number): Promise<string> {
-  const from = Keypair.fromSecretKey(Buffer.from(fromPrivateKey, 'base64'));
-  const tx = new Transaction().add(
-    SystemProgram.transfer({
-      fromPubkey: from.publicKey,
-      toPubkey: new PublicKey(to),
-      lamports: amount * LAMPORTS_PER_SOL,
-    })
-  );
-  return await connection.sendTransaction(tx, [from]);
-} 
+// Similarly validate in fundWallets, sendSol

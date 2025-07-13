@@ -1,15 +1,11 @@
-// @ts-ignore
 import { Connection, Transaction, Signer, PublicKey, VersionedTransaction, TransactionConfirmationStrategy, TransactionMessage } from '@solana/web3.js';
-// @ts-ignore
-import { BundleClient } from 'jito-ts/dist/sdk/bundle/bundle-client';
+import bs58 from 'bs58';
+import * as Sentry from '@sentry/nextjs';
+import axios from 'axios';
+import { searcherClient, Bundle } from 'jito-ts';
 import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '../constants';
 
-type PreviewResult = {
-  success: boolean;
-  computeUnits: number;
-  logs?: string[];
-  error?: string;
-};
+type PreviewResult = { success: boolean, logs: string[], computeUnits: number, error?: string };
 
 type ExecutionResult = {
   usedJito: boolean;
@@ -20,71 +16,77 @@ type ExecutionResult = {
   metrics: { estimatedCost: number; successRate: number; executionTime: number };
 };
 
-export async function buildBundle(txs: Transaction[], options: { priorityMap?: Map<string, number>; randomizeOrder?: boolean } = {}): Promise<Transaction[]> {
-  if (txs.length > 20) {
-    txs = txs.slice(0, 20);
+async function validateToken(tokenAddress: string): Promise<boolean> {
+  try {
+    const response = await axios.get(`https://public-api.birdeye.so/token/${tokenAddress}`, {
+      headers: { 'X-API-KEY': process.env.NEXT_PUBLIC_BIRDEYE_API_KEY }
+    });
+    return response.data.liquidity > 1000 && !response.data.blacklisted;
+  } catch {
+    return false;
   }
-  if (options.priorityMap) {
-    txs.sort((a, b) => (options.priorityMap?.get(a.feePayer?.toBase58() || '') ?? 0) - (options.priorityMap?.get(b.feePayer?.toBase58() || '') ?? 0));
-  }
-  if (options.randomizeOrder) {
-    txs = txs.sort(() => Math.random() - 0.5);
-  }
-  return txs;
 }
 
-export async function previewBundle(txs: Transaction[], connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')): Promise<PreviewResult[]> {
-  return Promise.all(txs.map(async (tx) => {
+async function getBundleFees(txs: Transaction[], connection: Connection): Promise<number[]> {
+  return Promise.all(txs.map(async tx => {
+    const fee = await connection.getFeeForMessage(tx.compileMessage());
+    return fee.value || 5000;
+  }));
+}
+
+async function buildBundle(txs: Transaction[], walletRoles: { publicKey: string, role: string }[], randomizeOrder = false): Promise<Transaction[]> {
+  let sortedTxs = txs.sort((a, b) => {
+    const aPriority = walletRoles.find(w => w.publicKey === a.feePayer?.toBase58())?.role === 'sniper' ? 0 : 1;
+    const bPriority = walletRoles.find(w => w.publicKey === b.feePayer?.toBase58())?.role === 'sniper' ? 0 : 1;
+    return aPriority - bPriority;
+  });
+  if (randomizeOrder) {
+    sortedTxs = sortedTxs.sort(() => Math.random() - 0.5);
+  }
+  return sortedTxs;
+}
+
+async function previewBundle(txs: Transaction[], connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')): Promise<PreviewResult[]> {
+  return Promise.all(txs.map(async tx => {
     try {
-      const result = await connection.simulateTransaction(tx);
+      const vtx = new VersionedTransaction(tx.compileToV0Message());
+      const result = await connection.simulateTransaction(vtx);
       return {
-        success: !result.value.err,
+        success: result.value.err === null,
+        logs: result.value.logs || [],
         computeUnits: result.value.unitsConsumed || 0,
-        logs: result.value.logs ?? undefined,
+        error: result.value.err ? String(result.value.err) : undefined,
       };
     } catch (error: unknown) {
-      return { success: false, computeUnits: 0, error: error instanceof Error ? error.message : String(error) };
+      return { success: false, logs: [], computeUnits: 0, error: (error as Error).message };
     }
   }));
 }
 
-export async function executeBundle(
+async function executeBundle(
   txs: Transaction[],
-  options: { signers?: Signer[]; feePayer?: PublicKey; offset?: number; retries?: number; logger?: (msg: string) => void; connection?: Connection; bundleClient?: BundleClient } = {}
+  options: { signers?: Signer[]; feePayer?: PublicKey; offset?: number; retries?: number; logger?: (msg: string) => void; connection?: Connection; bundleClient?: JitoBundle } = {}
 ): Promise<ExecutionResult> {
   const conn = options.connection || new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
-  const client = options.bundleClient || new BundleClient(NEXT_PUBLIC_JITO_ENDPOINT, conn);
-  const { signers = [], feePayer, offset = 2, retries = 3, logger = console.log } = options;
-
-  // Sign unsigned txs
-  txs.forEach((tx, i) => {
-    if (tx.signatures.length === 0) {
-      if (feePayer) tx.feePayer = feePayer;
-      tx.sign(signers[i] || []);
-    }
-  });
-
-  // Validate all signed
-  if (txs.some(tx => tx.signatures.length === 0)) {
-    throw new Error('All transactions must be signed');
-  }
-
-  const txSignatures = txs.map(tx => tx.signatures[0].signature.toBase58());
+  const client = searcherClient(NEXT_PUBLIC_JITO_ENDPOINT);
+  const bundle = new Bundle([]).addTipTx(tipTx).addTransactions(...txs);
+  await client.sendBundle(bundle);
 
   const startTime = Date.now();
-  const currentSlot = await conn.getSlot();
-  const targetSlot = currentSlot + offset;
   let usedJito = true;
-  let signatures: string[] = txSignatures;
+  let signatures: string[] = [];
   let results: ('success' | 'failed')[] = [];
+  let slotTargeted = 0;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const bundleId = await client.sendBundle(txs);
-      logger(`Bundle sent to slot ${targetSlot} on attempt ${attempt} with ID ${bundleId}`);
-      results = await Promise.all(txSignatures.map(async (sig) => {
+      const currentSlot = await conn.getSlot('confirmed');
+      slotTargeted = currentSlot + offset;
+      signatures = await client.sendBundle(txs, { targetSlot: slotTargeted });
+      logger(`Bundle sent to slot ${slotTargeted} on attempt ${attempt}`);
+      results = await Promise.all(signatures.map(async (sig) => {
         try {
-          await conn.confirmTransaction({ signature: sig, lastValidBlockHeight: targetSlot } as TransactionConfirmationStrategy, 'confirmed');
+          await conn.confirmTransaction(sig, 'finalized');
           return 'success';
         } catch {
           return 'failed';
@@ -94,7 +96,8 @@ export async function executeBundle(
         break;
       }
     } catch (error: unknown) {
-      logger(`Jito failed attempt ${attempt}: ${error instanceof Error ? error.message : String(error)}`);
+      Sentry.captureException(error);
+      logger(`Jito failed attempt ${attempt}: ${(error as Error).message}`);
       if (attempt === retries) {
         usedJito = false;
         signatures = [];
@@ -125,19 +128,21 @@ export async function executeBundle(
               }
               const sig = await conn.sendTransaction(versionedTx);
               signatures.push(sig);
-              await conn.confirmTransaction({ signature: sig, lastValidBlockHeight: targetSlot } as TransactionConfirmationStrategy, 'confirmed');
+              await conn.confirmTransaction({ signature: sig, lastValidBlockHeight: slotTargeted } as TransactionConfirmationStrategy, 'finalized');
               results.push('success');
               break;
             } catch (fbError: unknown) {
-              logger(`Fallback failed for tx ${i} attempt ${fbAttempt}: ${fbError instanceof Error ? fbError.message : String(fbError)}`);
+              logger(`Fallback failed for tx ${i} attempt ${fbAttempt}: ${(fbError as Error).message}`);
               if (fbAttempt === 3) {
                 signatures.push('');
                 results.push('failed');
               }
-              await new Promise(resolve => setTimeout(resolve, 5000 * fbAttempt)); // Backoff
+              await new Promise(resolve => setTimeout(resolve, 5000 * fbAttempt));
             }
           }
         }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
       }
     }
   }
@@ -145,7 +150,9 @@ export async function executeBundle(
   const executionTime = Date.now() - startTime;
   const successRate = results.filter(r => r === 'success').length / results.length;
   const estimatedCost = txs.reduce((sum, tx) => sum + (tx.feePayer ? 5000 : 0), 0) / 1e9;
-  const explorerUrls = signatures.map(sig => sig ? `https://solscan.io/tx/${sig}` : '');
+  const explorerUrls = signatures.map(sig => sig ? `https://solscan.io/tx/${sig}?cluster=devnet` : '');
 
-  return { usedJito, slotTargeted: targetSlot, signatures, results, explorerUrls, metrics: { estimatedCost, successRate, executionTime } };
-} 
+  return { usedJito, slotTargeted, signatures, results, explorerUrls, metrics: { estimatedCost, successRate, executionTime } };
+}
+
+export { validateToken, getBundleFees, buildBundle, previewBundle, executeBundle }; 

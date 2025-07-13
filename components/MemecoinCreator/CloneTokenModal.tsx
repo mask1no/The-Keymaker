@@ -1,24 +1,34 @@
+'use client';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
 import { cloneToken } from '../../services/platformService';
-import { useState } from 'react';
 
-export default function CloneTokenModal({ platform }) {
+export default function CloneTokenModal({ platform }: { platform: string }) {
   const [tokenAddr, setTokenAddr] = useState('');
 
   const handleClone = async () => {
-    await cloneToken(platform, tokenAddr);
+    if (!tokenAddr || tokenAddr.length !== 44) return toast.error('Invalid token address');
+    try {
+      const metadata = await cloneToken(platform, tokenAddr);
+      toast.success(`Cloned token: ${metadata.name}`);
+    } catch (error) {
+      toast.error('Cloning failed');
+    }
   };
 
   return (
     <Dialog>
-      <DialogTrigger>Clone Token</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button>Clone Token</Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Clone Token</DialogTitle>
+          <DialogTitle>Clone Memecoin</DialogTitle>
         </DialogHeader>
-        <Input value={tokenAddr} onChange={e => setTokenAddr(e.target.value)} placeholder="Token Address" />
+        <Input value={tokenAddr} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTokenAddr(e.target.value)} placeholder="Token Address" />
         <Button onClick={handleClone}>Clone</Button>
       </DialogContent>
     </Dialog>

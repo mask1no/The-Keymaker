@@ -1,8 +1,10 @@
+'use client';
+import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function PlatformSelector({ value, onChange }) {
+export default function PlatformSelector({ onChange }: { onChange: (platform: string) => void }) {
   return (
-    <Select value={value} onValueChange={onChange}>
+    <Select onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Select Platform" />
       </SelectTrigger>

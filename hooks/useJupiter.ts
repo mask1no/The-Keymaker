@@ -1,21 +1,14 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { debounce } from 'lodash';
-import { NEXT_PUBLIC_JUPITER_API_KEY } from '../constants';
+import { useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { Jupiter } from '@jup-ag/api';
 
-export function useJupiter(token: string) {
-  const [price, setPrice] = useState(0);
-
-  const fetchPrice = debounce(async () => {
-    const response = await axios.get(`https://api.jup.ag/price/${token}`, { headers: { 'Authorization': NEXT_PUBLIC_JUPITER_API_KEY } });
-    setPrice(response.data.price);
+export function useJupiterPrices() {
+  const [prices, setPrices] = useState<{ sol: number, eth: number, btc: number, cake: number }>({ sol: 0, eth: 0, btc: 0, cake: 0 });
+  const [debouncedFetch] = useDebounce(async () => {
+    const jupiter = await Jupiter.create({ apiKey: process.env.NEXT_PUBLIC_JUPITER_API_KEY });
+    const res = await jupiter.getPrices(['SOL', 'ETH', 'BTC', 'CAKE']);
+    setPrices(res);
   }, 500);
 
-  useEffect(() => {
-    fetchPrice();
-    const interval = setInterval(fetchPrice, 30000);
-    return () => clearInterval(interval);
-  }, [token]);
-
-  return price;
+  return { prices, fetchPrices: debouncedFetch };
 } 

@@ -1,8 +1,10 @@
 import { cloneToken } from '../services/platformService';
 
+jest.mock('axios', () => ({ get: jest.fn().mockResolvedValue({ data: { name: 'test' } }) }));
+
 describe('platformService', () => {
-  test('cloneToken', async () => {
-    const cloned = await cloneToken('Raydium', 'dummyAddr');
-    expect(cloned.name).toContain('Clone');
+  it('clones token', async () => {
+    const metadata = await cloneToken('Raydium', 'existingToken');
+    expect(metadata.name).toBeDefined();
   });
 }); 

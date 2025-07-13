@@ -1,9 +1,17 @@
-import { Card, CardContent } from '@/components/ui/card';
-
-export default function GlassCard({ children }) {
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+interface GlassCardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+export function GlassCard({ children, className }: GlassCardProps) {
   return (
-    <Card className="border border-white/10 rounded-2xl shadow-xl bg-gradient-to-br from-green-900 to-black backdrop-blur-md">
-      <CardContent>{children}</CardContent>
-    </Card>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn('bg-white/5 backdrop-blur border border-white/10 rounded-2xl shadow-xl p-4', className)}
+    >
+      {children}
+    </motion.div>
   );
 } 
