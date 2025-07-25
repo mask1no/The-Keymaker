@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/UI/dialog';
+import { Input } from '@/components/UI/input';
+import { Button } from '@/components/UI/button';
 import toast from 'react-hot-toast';
 import { cloneToken } from '../../services/platformService';
 

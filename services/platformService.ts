@@ -12,7 +12,7 @@ async function cloneToken(platform: string, tokenAddress: string): Promise<Token
     // Placeholder: Deploy new token with metadata on platform
     return metadata;
   } catch (error) {
-    console.error('Failed to clone token:', error);
+    // Failed to clone token
     throw new Error('Token cloning failed');
   }
 }

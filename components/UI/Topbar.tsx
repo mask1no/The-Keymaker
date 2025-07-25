@@ -3,7 +3,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'react-hot-toast';
 import { Sun, Moon, Copy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/UI/button';
 import { useJitoStatus } from '@/hooks/useJitoStatus';
 interface TopbarProps {
   toggleTheme: () => void;
@@ -33,7 +33,7 @@ export function Topbar({ toggleTheme, theme }: TopbarProps) {
         <div className="text-sm">
           {publicKey ? (
             <div className="flex items-center">
-              <img src="/placeholder-avatar.png" alt="Avatar" className="w-6 h-6 rounded-full mr-2" />
+              <div className="w-6 h-6 rounded-full mr-2 bg-gradient-to-br from-aqua/40 to-purple-500/40" />
               <span className="truncate max-w-[80px]">{publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}</span>
               <Button variant="ghost" size="icon" onClick={copyAddress}><Copy className="w-4 h-4" /></Button>
             </div>

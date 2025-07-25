@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/UI/button';
 import { GlassCard } from '@/components/UI/GlassCard';
 export function NotificationCenter() {
   const [notifications, setNotifications] = useState<string[]>([]);
@@ -18,7 +18,7 @@ export function NotificationCenter() {
   useEffect(() => {
     if (notifications.length > 0) {
       const latest = notifications[notifications.length - 1];
-      toast.custom((t) => (
+      toast.custom(() => (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

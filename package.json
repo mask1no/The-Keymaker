@@ -1,4 +1,7 @@
 {
+  "name": "the-keymaker",
+  "version": "1.0.0",
+  "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -6,7 +9,8 @@
     "test": "jest",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
-    "clean": "rm -rf node_modules package-lock.json .next && npm cache clean --force"
+    "clean": "rm -rf node_modules package-lock.json .next && npm cache clean --force",
+    "db:init": "ts-node scripts/initDb.ts"
   },
   "dependencies": {
     "@jup-ag/api": "^6.0.0",
@@ -42,7 +46,9 @@
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.0",
     "react-hot-toast": "^2.4.0",
+    "react-hotkeys-hook": "^4.4.1",
     "recharts": "^2.10.0",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.0",

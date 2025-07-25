@@ -1,6 +1,6 @@
 import { Connection, Keypair, Transaction, PublicKey } from '@solana/web3.js';
 import { createMint, mintTo, createAssociatedTokenAccount } from '@solana/spl-token';
-import { Liquidity, LiquidityPoolKeys, LiquidityVersion, Percent, Token, TokenAmount } from '@raydium-io/raydium-sdk';
+import { Liquidity, LiquidityVersion, Percent, Token, TokenAmount } from '@raydium-io/raydium-sdk';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
 
 type TokenMetadata = { name: string; ticker: string; supply: number };
@@ -22,7 +22,7 @@ async function createLiquidityPool(token: string, solAmount: number, authority: 
   const { poolKeys } = await Liquidity.makeCreatePoolV4InstructionV2Simple({
     connection,
     programId: Liquidity.getProgramId(LiquidityVersion.V4),
-    marketId: new PublicKey('marketId'), // Placeholder
+    marketId: new PublicKey('11111111111111111111111111111111'), // TODO: Implement proper market ID discovery
     baseMint: mint,
     quoteMint: quoteToken.mint,
     baseAmount,

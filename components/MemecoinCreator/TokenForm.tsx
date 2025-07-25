@@ -1,9 +1,9 @@
 'use client';
 import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/UI/input';
+import { Button } from '@/components/UI/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import toast from 'react-hot-toast';
 import { createToken as raydiumCreate } from '../../services/raydiumService';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';

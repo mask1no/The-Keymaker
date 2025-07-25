@@ -1,4 +1,5 @@
 'use client';
+import React, { useEffect } from 'react';
 import { WalletContext } from '@/components/Wallet/WalletContext';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/UI/ErrorBoundary';
@@ -8,7 +9,7 @@ import { StatusCluster } from '@/components/UI/StatusCluster';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { verifySecrets } from '@/lib/secrets';
-import { useEffect } from 'react';
+import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();

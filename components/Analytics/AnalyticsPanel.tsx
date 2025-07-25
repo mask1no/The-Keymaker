@@ -1,12 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getLivePrices, calculatePnL, exportToCsv } from '../../services/analyticsService';
-import axios from 'axios';
-import { Trade } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
+import { Button } from '@/components/UI/button';
+import { Skeleton } from '@/components/UI/skeleton';
+import { getLivePrices, exportToCsv } from '../../services/analyticsService';
 import { useDebounce } from 'use-debounce';
 
 export default function AnalyticsPanel() {
@@ -16,23 +14,18 @@ export default function AnalyticsPanel() {
   const [marketCap, setMarketCap] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
-    setLoading(true);
-    const livePrices = await getLivePrices();
-    setPrices(livePrices);
-    setPriceHistory(prev => [...prev.slice(-10), { time: new Date().toLocaleTimeString(), sol: livePrices.sol }]);
-    // Assume wallets list
-    const wallets = ['wallet1', 'wallet2'];
-    const pnlData: { [wallet: string]: number } = {};
-    for (const w of wallets) {
-      pnlData[w] = await calculatePnL(w);
-    }
-    setPnl(pnlData);
-    // Fetch market cap from Birdeye (placeholder token)
-    const res = await axios.get('https://public-api.birdeye.so/token/some_token', { headers: { 'X-API-KEY': process.env.NEXT_PUBLIC_BIRDEYE_API_KEY } });
-    setMarketCap(res.data.marketCap);
-    setLoading(false);
-  };
+    const fetchData = async () => {
+      setLoading(true);
+      const livePrices = await getLivePrices();
+      setPrices(livePrices);
+      setPriceHistory(prev => [...prev.slice(-10), { time: new Date().toLocaleTimeString(), sol: livePrices.sol }]);
+      // TODO: Get actual wallet addresses from wallet service
+      const pnlData: { [wallet: string]: number } = {};
+      setPnl(pnlData);
+      // TODO: Implement proper market cap fetching with real token address
+      setMarketCap(0);
+      setLoading(false);
+    };
 
   // Wrap fetchData in debounce
   const [debouncedFetch] = useDebounce(fetchData, 1000);
@@ -44,8 +37,8 @@ export default function AnalyticsPanel() {
   }, [debouncedFetch]);
 
   const handleExport = async () => {
-    // Fetch trades from db
-    const trades: Trade[] = await fetchTrades(); // placeholder
+    // TODO: Implement trade fetching from database
+    const trades: any[] = [];
     await exportToCsv(trades);
   };
 

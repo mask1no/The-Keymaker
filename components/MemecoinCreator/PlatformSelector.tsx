@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 
 export default function PlatformSelector({ onChange }: { onChange: (platform: string) => void }) {
   return (

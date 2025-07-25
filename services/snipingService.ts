@@ -21,16 +21,20 @@ async function snipeToken(platform: string, tokenAddress: string, amount: number
       if (attempts === 3) throw error;
     }
   }
+  throw new Error('Max retry attempts exceeded');
 }
 
 // Helius Webhook setup (call once to register)
-export async function setupWebhook(programId = '39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg') {
+export async function setupWebhook(programId = '39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg', webhookURL: string): Promise<string> {
+  if (!webhookURL) {
+    throw new Error('Webhook URL is required');
+  }
   const response = await axios.post('https://api.helius.xyz/v0/webhooks', {
-    webhookURL: 'your_webhook_endpoint', // e.g., your server to receive events
+    webhookURL,
     transactionTypes: ['Any'],
     accountAddresses: [programId],
   }, { params: { api_key: process.env.HELIUS_API_KEY } });
-  console.log('Webhook ID:', response.data.webhookID);
+  return response.data.webhookID;
 }
 
-export { snipeToken, setupWebhook }; 
+export { snipeToken }; 

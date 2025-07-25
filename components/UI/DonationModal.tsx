@@ -1,5 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
+import { Button } from '@/components/UI/button';
 interface DonationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
