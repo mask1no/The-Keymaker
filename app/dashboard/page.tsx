@@ -103,6 +103,14 @@ export default function DashboardPage() {
       icon: Activity,
       href: '/dashboard/logs',
       color: 'from-purple-500 to-pink-500'
+    },
+    {
+      title: 'Sell Monitor',
+      description: 'Automated sell conditions and monitoring',
+      icon: TrendingUp,
+      href: '/dashboard/sell-monitor',
+      color: 'from-orange-500 to-red-500',
+      badge: 'Auto'
     }
   ];
 

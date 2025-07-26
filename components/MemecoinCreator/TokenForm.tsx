@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Keypair } from '@solana/web3.js';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Coins, Image, Globe, MessageCircle, Twitter } from 'lucide-react';
@@ -12,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
-import { createToken as raydiumCreate } from '../../services/raydiumService';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
 import { createToken as letsbonkCreate } from '../../services/letsbonkService';
 import { createToken as moonshotCreate } from '../../services/moonshotService';
@@ -98,10 +96,15 @@ export default function TokenForm() {
       
       switch (platform) {
         case 'Raydium': {
-          // For Raydium, we need a keypair (in production, decrypt from wallet)
-          const tempKeypair = Keypair.generate(); // Replace with actual wallet keypair
-          tokenAddr = await raydiumCreate(name, symbol, parseInt(supply), metadata, tempKeypair);
-          break;
+          // For Raydium, we need to prompt for wallet password
+          const password = prompt('Enter wallet password to create token:');
+          if (!password) {
+            throw new Error('Password required to create token');
+          }
+          
+          // Raydium requires a full keypair which isn't available with browser wallets
+          // Direct users to use other platforms or import a wallet
+          throw new Error('Raydium token creation requires an imported wallet with decryptable keypair. Please use Pump.fun or other platforms.');
         }
           
         case 'Pump.fun':

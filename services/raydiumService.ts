@@ -1,11 +1,7 @@
 import { Connection, Keypair, Transaction, PublicKey, SystemProgram } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createInitializeMintInstruction, createAssociatedTokenAccountInstruction, createMintToInstruction, getMint } from '@solana/spl-token';
-// import { createCreateMetadataAccountV3Instruction } from '@metaplex-foundation/mpl-token-metadata';
-// Note: Install @metaplex-foundation/mpl-token-metadata for full metadata support
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
 import { logTokenLaunch } from './executionLogService';
-
-const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
 type TokenMetadata = { 
   name: string; 
@@ -69,45 +65,8 @@ export async function createToken(
       authority.publicKey
     );
     
-    // Create metadata account
-    const metadataPDA = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('metadata'),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mint.publicKey.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    )[0];
-    
-    // Prepare metadata
-    const tokenMetadata = {
-      name: name.slice(0, 32), // Max 32 chars
-      symbol: symbol.slice(0, 10), // Max 10 chars
-      uri: metadata.image || '', // Should be uploaded to Arweave/IPFS
-      sellerFeeBasisPoints: 0,
-      creators: null,
-      collection: null,
-      uses: null
-    };
-    
-    // Create token metadata and mint supply transaction
-    const metadataAndMintTx = new Transaction().add(
-      createCreateMetadataAccountV3Instruction(
-        {
-          metadata: metadataPDA,
-          mint: mint.publicKey,
-          mintAuthority: authority.publicKey,
-          payer: authority.publicKey,
-          updateAuthority: authority.publicKey,
-        },
-        {
-          createMetadataAccountArgsV3: {
-            data: tokenMetadata,
-            isMutable: true,
-            collectionDetails: null
-          }
-        }
-      ),
+    // Create associated token account and mint supply
+    const mintTx = new Transaction().add(
       createAssociatedTokenAccountInstruction(
         authority.publicKey,
         associatedTokenAddress,
@@ -122,16 +81,16 @@ export async function createToken(
       )
     );
     
-    metadataAndMintTx.recentBlockhash = blockhash;
-    metadataAndMintTx.feePayer = authority.publicKey;
-    metadataAndMintTx.sign(authority);
+    mintTx.recentBlockhash = blockhash;
+    mintTx.feePayer = authority.publicKey;
+    mintTx.sign(authority);
     
-    const metadataAndMintSig = await connection.sendTransaction(metadataAndMintTx, [authority], {
+    const mintSig = await connection.sendTransaction(mintTx, [authority], {
       skipPreflight: false,
       preflightCommitment: 'confirmed'
     });
     
-    await connection.confirmTransaction(metadataAndMintSig, 'confirmed');
+    await connection.confirmTransaction(mintSig, 'confirmed');
     
     // Log token launch
     await logTokenLaunch({
@@ -142,8 +101,11 @@ export async function createToken(
       supply: supply.toString(),
       decimals,
       launcherWallet: authority.publicKey.toBase58(),
-      transactionSignature: metadataAndMintSig
+      transactionSignature: mintSig
     });
+    
+    console.log('Token created successfully:', mint.publicKey.toBase58());
+    console.log('Note: Metadata creation requires @metaplex-foundation/mpl-token-metadata package');
     
     return mint.publicKey.toBase58();
   } catch (error) {
@@ -155,11 +117,10 @@ export async function createToken(
 export async function createLiquidityPool(
   tokenMint: string, 
   solAmount: number, 
-  tokenAmount: number,
-  authority: Keypair
+  tokenAmount: number
 ): Promise<string> {
   // Note: Full Raydium pool creation is complex and requires:
-  // 1. Creating market on Serum
+  // 1. Creating market on Serum/OpenBook
   // 2. Creating AMM pool
   // 3. Adding initial liquidity
   // This is a simplified placeholder - use Raydium SDK for production

@@ -1,7 +1,5 @@
 import axios from 'axios';
 import { logTokenLaunch } from './executionLogService';
-import { createToken as raydiumCreate } from './raydiumService';
-import { Keypair } from '@solana/web3.js';
 
 type TokenMetadata = { 
   name: string; 
@@ -58,11 +56,13 @@ export async function createToken(
     return tokenAddress;
   } catch (error: any) {
     console.error('LetsBonk API failed:', error.message);
-    console.log('Falling back to Raydium...');
     
-    // Fallback to Raydium
-    const tempKeypair = Keypair.generate(); // In production, use actual wallet keypair
-    return raydiumCreate(name, symbol, supply, metadata, tempKeypair);
+    // Check if API key is missing
+    if (!process.env.NEXT_PUBLIC_LETSBONK_API_KEY) {
+      throw new Error('LetsBonk API key not configured. Please add your API key in settings.');
+    }
+    
+    throw new Error(`LetsBonk token creation failed: ${error.message}`);
   }
 }
 

@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, Keypair } from '@solana/web3.js';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { createWallet } from '../../services/walletService';
+import { createWallet, exportWallet, exportWalletEncrypted } from '../../services/walletService';
 import { fundWalletGroup, getWalletBalances } from '../../services/fundingService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Input } from '@/components/UI/input';
@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/UI/checkbox';
 import { Skeleton } from '@/components/UI/skeleton';
 import { Badge } from '@/components/UI/badge';
-import { Copy, Download, Key, RefreshCw, Users, Wallet } from 'lucide-react';
+import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle } from 'lucide-react';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../../constants';
 
 type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
@@ -34,7 +34,7 @@ interface WalletGroup {
   createdAt: string;
 }
 
-export default function WalletManager() {
+export function WalletManager() {
   const { publicKey: connectedWallet } = useWallet();
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
   
@@ -54,7 +54,10 @@ export default function WalletManager() {
   
   // Export dialog
   const [exportPassword, setExportPassword] = useState('');
+  const [exportNewPassword, setExportNewPassword] = useState('');
+  const [exportEncrypted, setExportEncrypted] = useState(true);
   const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
   
   // Load groups from localStorage
   useEffect(() => {
@@ -150,6 +153,7 @@ export default function WalletManager() {
       });
       
       toast.success('Wallet created successfully');
+      setPassword(''); // Clear password after creation
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -231,9 +235,21 @@ export default function WalletManager() {
     
     setLoading(true);
     try {
-      // For production, you would decrypt the master wallet's keypair
-      // Here we'll use a placeholder
-      const masterKeypair = Keypair.generate(); // Replace with actual master wallet
+      // Find master wallet in the current group
+      const masterWallet = wallets.find(w => w.role === 'master');
+      if (!masterWallet) {
+        return toast.error('No master wallet found in this group. Create one first.');
+      }
+      
+      // Prompt for password to decrypt master wallet
+      const password = prompt('Enter master wallet password:');
+      if (!password) {
+        return toast.error('Password required to decrypt master wallet');
+      }
+      
+      // Import getKeypair function
+      const { getKeypair } = await import('@/services/walletService');
+      const masterKeypair = await getKeypair(masterWallet, password);
       
       const signatures = await fundWalletGroup(
         masterKeypair,
@@ -255,37 +271,53 @@ export default function WalletManager() {
     }
   };
   
-  const handleExportKey = async (wallet: WalletData) => {
+  const handleExportKey = async () => {
+    if (!selectedWallet) return;
+    
     if (!captchaChecked) {
       return toast.error('Please complete the security check');
     }
     
     if (!exportPassword) {
-      return toast.error('Enter password to decrypt key');
+      return toast.error('Enter password to decrypt wallet');
+    }
+    
+    if (exportEncrypted && !exportNewPassword) {
+      return toast.error('Enter new password for encrypted export');
     }
     
     try {
-      // Decrypt the private key (simplified for demo)
-      const decrypted = wallet.encryptedPrivateKey; // In production, actually decrypt
+      let exportData: string;
+      
+      if (exportEncrypted) {
+        // Export with new encryption
+        exportData = await exportWalletEncrypted(
+          selectedWallet,
+          exportPassword,
+          exportNewPassword
+        );
+      } else {
+        // Export decrypted (plain text private key)
+        exportData = await exportWallet(selectedWallet, exportPassword);
+      }
       
       // Create download
-      const blob = new Blob([JSON.stringify({
-        publicKey: wallet.publicKey,
-        privateKey: decrypted,
-        role: wallet.role
-      }, null, 2)], { type: 'application/json' });
-      
+      const blob = new Blob([exportData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `wallet-${wallet.publicKey.slice(0, 8)}.json`;
+      a.download = `wallet-${selectedWallet.publicKey.slice(0, 8)}-${exportEncrypted ? 'encrypted' : 'plain'}.json`;
       a.click();
       
-      toast.success('Wallet exported');
+      toast.success(`Wallet exported ${exportEncrypted ? '(encrypted)' : '(WARNING: Plain text!)'}`);
+      
+      // Reset form
       setExportPassword('');
+      setExportNewPassword('');
       setCaptchaChecked(false);
+      setSelectedWallet(null);
     } catch (error) {
-      toast.error('Failed to export wallet');
+      toast.error('Failed to export wallet: ' + (error as Error).message);
     }
   };
   
@@ -293,14 +325,26 @@ export default function WalletManager() {
     const groupData = groups[activeGroup];
     if (!groupData) return;
     
-    const blob = new Blob([JSON.stringify(groupData, null, 2)], { type: 'application/json' });
+    // Remove keypair objects before export
+    const exportableGroup = {
+      ...groupData,
+      wallets: groupData.wallets.map((wallet) => ({
+        publicKey: wallet.publicKey,
+        encryptedPrivateKey: wallet.encryptedPrivateKey,
+        role: wallet.role,
+        balance: wallet.balance,
+        createdAt: wallet.createdAt
+      }))
+    };
+    
+    const blob = new Blob([JSON.stringify(exportableGroup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `wallet-group-${activeGroup}.json`;
     a.click();
     
-    toast.success('Group exported');
+    toast.success('Group exported (private keys encrypted)');
   };
   
   const copyAddress = (address: string) => {
@@ -474,33 +518,88 @@ export default function WalletManager() {
                           
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="ghost">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => setSelectedWallet(wallet)}
+                              >
                                 <Key className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="bg-black/90 border-aqua/30">
                               <DialogHeader>
-                                <DialogTitle>Export Private Key</DialogTitle>
+                                <DialogTitle className="flex items-center gap-2">
+                                  <Shield className="w-5 h-5" />
+                                  Export Private Key
+                                </DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
+                                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                                  <div className="flex items-start gap-2">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
+                                    <div className="text-sm">
+                                      <p className="font-semibold text-red-500">Security Warning</p>
+                                      <p className="text-gray-300 mt-1">
+                                        Exporting your private key can compromise wallet security. 
+                                        Only proceed if you understand the risks.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <label className="text-sm font-medium">Export Type</label>
+                                  <div className="flex gap-4 mt-2">
+                                    <label className="flex items-center gap-2">
+                                      <input
+                                        type="radio"
+                                        checked={exportEncrypted}
+                                        onChange={() => setExportEncrypted(true)}
+                                        className="text-aqua"
+                                      />
+                                      <span className="text-sm">Encrypted (Recommended)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                      <input
+                                        type="radio"
+                                        checked={!exportEncrypted}
+                                        onChange={() => setExportEncrypted(false)}
+                                        className="text-aqua"
+                                      />
+                                      <span className="text-sm text-red-500">Plain Text</span>
+                                    </label>
+                                  </div>
+                                </div>
+                                
                                 <Input
                                   type="password"
-                                  placeholder="Enter password"
+                                  placeholder="Enter current password"
                                   value={exportPassword}
                                   onChange={(e) => setExportPassword(e.target.value)}
                                 />
+                                
+                                {exportEncrypted && (
+                                  <Input
+                                    type="password"
+                                    placeholder="Enter new password for export"
+                                    value={exportNewPassword}
+                                    onChange={(e) => setExportNewPassword(e.target.value)}
+                                  />
+                                )}
+                                
                                 <div className="flex items-center gap-2">
                                   <Checkbox
                                     checked={captchaChecked}
                                     onCheckedChange={(checked) => setCaptchaChecked(!!checked)}
                                   />
                                   <label className="text-sm">
-                                    I understand the security risks
+                                    I understand the security risks and will keep my private key safe
                                   </label>
                                 </div>
+                                
                                 <Button
-                                  onClick={() => handleExportKey(wallet)}
-                                  disabled={!exportPassword || !captchaChecked}
+                                  onClick={handleExportKey}
+                                  disabled={!exportPassword || !captchaChecked || (exportEncrypted && !exportNewPassword)}
                                   className="w-full"
                                 >
                                   Export Key

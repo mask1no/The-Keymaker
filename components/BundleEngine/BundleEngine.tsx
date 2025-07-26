@@ -60,10 +60,19 @@ export function BundleEngine() {
   useEffect(() => {
     // Load wallets from localStorage or database
     const loadWallets = async () => {
-      const stored = localStorage.getItem(`walletGroup_${activeGroup}`);
+      const stored = localStorage.getItem('walletGroups');
       if (stored) {
-        const parsed = JSON.parse(stored);
-        setWallets(parsed.wallets || []);
+        const groups = JSON.parse(stored);
+        const activeGroupData = groups[activeGroup];
+        if (activeGroupData && activeGroupData.wallets) {
+          // Map wallets without keypairs (they're encrypted)
+          setWallets(activeGroupData.wallets.map((w: any) => ({
+            publicKey: w.publicKey,
+            role: w.role,
+            balance: w.balance || 0,
+            // Keypair will be added when needed for signing
+          })));
+        }
       }
     };
     loadWallets();
@@ -207,18 +216,24 @@ export function BundleEngine() {
       const txs = await buildTransactions();
       const legacyTxs = await convertToLegacyTransactions(txs);
       
-      // Get signers for each transaction
-      const signers = wallets
-        .filter(w => transactions.some(t => t.wallet === w.publicKey))
-        .map(w => w.keypair!)
-        .filter(Boolean);
+      // For browser wallets, we can't get keypairs directly
+      // The bundleService will need to handle signing differently
+      const signers: Keypair[] = [];
       
-      // If using connected wallet, create a pseudo-signer
-      if (!signers.length && signTransaction) {
-        // For connected wallet, we'll sign in the bundle service
+      // Check if any transactions use imported wallets
+      const usesImportedWallets = transactions.some(t => t.wallet && t.wallet !== publicKey?.toBase58());
+      
+      if (usesImportedWallets) {
+        toast.error('Bundling with imported wallets requires decrypting their private keys. Use the connected wallet for now.');
+        return;
+      }
+      
+      // For connected wallet only
+      if (publicKey && signTransaction) {
+        // Create a placeholder signer - actual signing will happen via wallet adapter
         const pseudoSigner = {
           publicKey,
-          secretKey: new Uint8Array(64) // Dummy, won't be used
+          secretKey: new Uint8Array(64) // Placeholder
         } as Keypair;
         signers.push(pseudoSigner);
       }

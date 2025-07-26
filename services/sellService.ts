@@ -1,10 +1,10 @@
-import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import { getTokenPrice, buildSwapTransaction, WSOL_MINT, convertToLamports } from './jupiterService';
 import { logSellEvent, logPnL } from './executionLogService';
-import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
+import { NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
 import axios from 'axios';
 
-interface SellConditions {
+export interface SellConditions {
   marketCapThreshold?: number;  // Sell when market cap reaches this value
   profitPercentage?: number;    // Sell when profit reaches this percentage
   lossPercentage?: number;      // Sell when loss reaches this percentage (stop loss)
@@ -12,7 +12,7 @@ interface SellConditions {
   priceTarget?: number;         // Sell when price reaches this target
 }
 
-interface TokenHolding {
+export interface TokenHolding {
   wallet: string;
   tokenAddress: string;
   amount: number;
@@ -132,8 +132,7 @@ export function checkSellConditions(
 export async function executeSell(
   holding: TokenHolding,
   slippageBps = 100, // 1% default
-  priorityFee = 10000, // 0.00001 SOL default
-  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+  priorityFee = 10000 // 0.00001 SOL default
 ): Promise<{ 
   transaction: VersionedTransaction; 
   expectedSOL: number;
@@ -203,11 +202,12 @@ export async function logSellTransaction(
   }
 }
 
-export async function monitorAndSell(
+export function monitorAndSell(
   holdings: TokenHolding[],
   conditions: SellConditions,
-  checkInterval = 30000 // Check every 30 seconds
-): Promise<void> {
+  checkInterval = 30000, // Check every 30 seconds
+  onSellSignal?: (holding: TokenHolding, reason: string) => void
+): () => void {
   console.log(`Monitoring ${holdings.length} positions for sell conditions...`);
   
   const interval = setInterval(async () => {
@@ -218,9 +218,11 @@ export async function monitorAndSell(
         
         if (shouldSell) {
           console.log(`Sell signal for ${holding.tokenAddress}: ${reason}`);
-          // In production, you would execute the sell here
-          // For now, just log it
-          clearInterval(interval);
+          
+          // Call callback if provided
+          if (onSellSignal) {
+            onSellSignal(holding, reason);
+          }
         }
       } catch (error) {
         console.error(`Error checking ${holding.tokenAddress}:`, error);
