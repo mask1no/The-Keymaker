@@ -1,29 +1,94 @@
 import axios from 'axios';
+import { logTokenLaunch } from './executionLogService';
 import { createToken as raydiumCreate } from './raydiumService';
+import { Keypair } from '@solana/web3.js';
 
-type TokenMetadata = { name: string; ticker: string; supply: number };
+type TokenMetadata = { 
+  name: string; 
+  symbol: string; 
+  description?: string;
+  image?: string;
+  telegram?: string;
+  website?: string;
+  twitter?: string;
+};
 
-async function createToken(name: string, ticker: string, supply: number, metadata: TokenMetadata): Promise<string> {
+export async function createToken(
+  name: string, 
+  symbol: string, 
+  supply: number, 
+  metadata: TokenMetadata
+): Promise<string> {
   try {
-    const response = await axios.post('https://api.letsbonk.fun/create', { name, ticker, supply, metadata }, {
-      method: 'POST', // Explicit
-      headers: { 'Authorization': `Bearer ${process.env.LETSBONK_API_KEY}` },
-      timeout: 5000
+    const response = await axios.post(
+      'https://api.letsbonk.fun/create', 
+      { 
+        name,
+        symbol,
+        supply,
+        description: metadata.description,
+        image: metadata.image,
+        telegram: metadata.telegram,
+        website: metadata.website,
+        twitter: metadata.twitter
+      }, 
+      {
+        headers: { 
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_LETSBONK_API_KEY || ''}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    
+    const tokenAddress = response.data.tokenAddress;
+    
+    // Log token launch
+    await logTokenLaunch({
+      tokenAddress,
+      name,
+      symbol,
+      platform: 'LetsBonk.fun',
+      supply: supply.toString(),
+      decimals: 9,
+      launcherWallet: '', // Would need to be passed in
+      transactionSignature: response.data.signature || ''
     });
-    return response.data.tokenAddress;
-  } catch (error) {
-    console.error('LetsBonk API failed, falling back to Raydium');
-    return raydiumCreate(name, ticker, supply, metadata);
+    
+    return tokenAddress;
+  } catch (error: any) {
+    console.error('LetsBonk API failed:', error.message);
+    console.log('Falling back to Raydium...');
+    
+    // Fallback to Raydium
+    const tempKeypair = Keypair.generate(); // In production, use actual wallet keypair
+    return raydiumCreate(name, symbol, supply, metadata, tempKeypair);
   }
 }
 
-export { createToken };
-
-export async function createLiquidityPool(token: string, solAmount: number): Promise<string> {
+export async function createLiquidityPool(
+  token: string, 
+  solAmount: number
+): Promise<string> {
   try {
-    const response = await axios.post('letsbonk.api/lp', { token, solAmount }, { headers: { 'Authorization': process.env.LETSBONK_API_KEY } });
-    return response.data.poolId;
-  } catch {
-    return raydiumCreatePool(token, solAmount);
+    const response = await axios.post(
+      'https://api.letsbonk.fun/pool/create',
+      { 
+        tokenAddress: token, 
+        solAmount 
+      },
+      { 
+        headers: { 
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_LETSBONK_API_KEY || ''}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    
+    return response.data.poolId || `letsbonk_pool_${token.slice(0, 8)}`;
+  } catch (error: any) {
+    console.error('LetsBonk pool creation failed:', error.message);
+    throw new Error(`Failed to create liquidity pool: ${error.message}`);
   }
 } 

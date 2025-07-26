@@ -1,21 +1,24 @@
-import { Connection, PublicKey, Transaction, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import axios from 'axios';
-import { createJupiterApiClient } from '@jup-ag/api';
+import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { getTokenPrice, buildSwapTransaction, WSOL_MINT, convertToLamports } from './jupiterService';
 import { logSellEvent, logPnL } from './executionLogService';
+import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
+import axios from 'axios';
 
-interface SellTrigger {
-  type: 'marketCap' | 'profitPercentage' | 'time' | 'price';
-  value: number;
-  comparison: 'gt' | 'lt' | 'eq'; // greater than, less than, equal
+interface SellConditions {
+  marketCapThreshold?: number;  // Sell when market cap reaches this value
+  profitPercentage?: number;    // Sell when profit reaches this percentage
+  lossPercentage?: number;      // Sell when loss reaches this percentage (stop loss)
+  timeDelay?: number;           // Sell after this many seconds
+  priceTarget?: number;         // Sell when price reaches this target
 }
 
-interface TokenPosition {
+interface TokenHolding {
   wallet: string;
   tokenAddress: string;
-  amount: string;
+  amount: number;
   entryPrice: number;
-  entryTime: Date;
-  solInvested: number;
+  entryTime: number;
+  entrySOL: number;
 }
 
 interface MarketData {
@@ -23,327 +26,238 @@ interface MarketData {
   marketCap: number;
   liquidity: number;
   volume24h: number;
+  priceChange24h: number;
 }
 
-interface SellOrder {
-  wallet: Keypair;
-  tokenAddress: string;
-  amount: string;
-  percentage: number; // 0-100, percentage of holdings to sell
-  minSolOutput: number;
-  slippage: number;
-}
-
-/**
- * Get current market data for a token
- */
-async function getTokenMarketData(tokenAddress: string): Promise<MarketData> {
+export async function getMarketData(
+  tokenAddress: string
+): Promise<MarketData> {
   try {
-    const response = await axios.get(
-      `https://public-api.birdeye.so/token/${tokenAddress}`,
-      {
-        headers: { 'X-API-KEY': process.env.NEXT_PUBLIC_BIRDEYE_API_KEY },
-        timeout: 5000
+    // Try Birdeye first
+    if (NEXT_PUBLIC_BIRDEYE_API_KEY) {
+      const response = await axios.get(
+        `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress}`,
+        {
+          headers: {
+            'X-API-KEY': NEXT_PUBLIC_BIRDEYE_API_KEY,
+            'Accept': 'application/json'
+          },
+          timeout: 5000
+        }
+      );
+      
+      const data = response.data?.data;
+      if (data) {
+        return {
+          price: data.price || 0,
+          marketCap: data.mc || 0,
+          liquidity: data.liquidity || 0,
+          volume24h: data.v24hUSD || 0,
+          priceChange24h: data.v24hChangePercent || 0
+        };
       }
-    );
+    }
     
+    // Fallback to Jupiter price
+    const price = await getTokenPrice(tokenAddress, 'USDC');
     return {
-      price: response.data.price || 0,
-      marketCap: response.data.mc || 0,
-      liquidity: response.data.liquidity || 0,
-      volume24h: response.data.v24hUSD || 0
+      price,
+      marketCap: 0, // Would need supply to calculate
+      liquidity: 0,
+      volume24h: 0,
+      priceChange24h: 0
     };
   } catch (error) {
-          // Failed to fetch market data
-    return { price: 0, marketCap: 0, liquidity: 0, volume24h: 0 };
+    console.error('Failed to get market data:', error);
+    throw error;
   }
 }
 
-/**
- * Check if a sell trigger has been met
- */
-export async function checkSellTrigger(
-  position: TokenPosition,
-  trigger: SellTrigger,
-  currentData?: MarketData
-): Promise<boolean> {
-  if (!currentData) {
-    currentData = await getTokenMarketData(position.tokenAddress);
+export function checkSellConditions(
+  holding: TokenHolding,
+  marketData: MarketData,
+  conditions: SellConditions
+): { shouldSell: boolean; reason: string } {
+  const currentTime = Date.now();
+  const holdTime = (currentTime - holding.entryTime) / 1000; // in seconds
+  
+  // Calculate current value and P/L
+  const currentValue = holding.amount * marketData.price;
+  const profitLoss = currentValue - holding.entrySOL;
+  const profitPercentage = (profitLoss / holding.entrySOL) * 100;
+  
+  // Check market cap threshold
+  if (conditions.marketCapThreshold && marketData.marketCap >= conditions.marketCapThreshold) {
+    return { 
+      shouldSell: true, 
+      reason: `Market cap reached ${conditions.marketCapThreshold.toLocaleString()}` 
+    };
   }
   
-  let value: number;
-  
-  switch (trigger.type) {
-    case 'marketCap':
-      value = currentData.marketCap;
-      break;
-      
-    case 'profitPercentage': {
-      const currentValue = parseFloat(position.amount) * currentData.price;
-      const profitPercentage = ((currentValue - position.solInvested) / position.solInvested) * 100;
-      value = profitPercentage;
-      break;
-    }
-      
-    case 'time': {
-      const holdTime = (Date.now() - position.entryTime.getTime()) / 1000; // seconds
-      value = holdTime;
-      break;
-    }
-      
-    case 'price':
-      value = currentData.price;
-      break;
-      
-    default:
-      return false;
+  // Check profit target
+  if (conditions.profitPercentage && profitPercentage >= conditions.profitPercentage) {
+    return { 
+      shouldSell: true, 
+      reason: `Profit target reached: ${profitPercentage.toFixed(2)}%` 
+    };
   }
   
-  switch (trigger.comparison) {
-    case 'gt': return value > trigger.value;
-    case 'lt': return value < trigger.value;
-    case 'eq': return Math.abs(value - trigger.value) < 0.001;
-    default: return false;
+  // Check stop loss
+  if (conditions.lossPercentage && profitPercentage <= -conditions.lossPercentage) {
+    return { 
+      shouldSell: true, 
+      reason: `Stop loss triggered: ${profitPercentage.toFixed(2)}%` 
+    };
   }
+  
+  // Check time delay
+  if (conditions.timeDelay && holdTime >= conditions.timeDelay) {
+    return { 
+      shouldSell: true, 
+      reason: `Time delay reached: ${holdTime.toFixed(0)}s` 
+    };
+  }
+  
+  // Check price target
+  if (conditions.priceTarget && marketData.price >= conditions.priceTarget) {
+    return { 
+      shouldSell: true, 
+      reason: `Price target reached: $${marketData.price.toFixed(6)}` 
+    };
+  }
+  
+  return { shouldSell: false, reason: '' };
 }
 
-/**
- * Execute a token sell using Jupiter
- */
 export async function executeSell(
-  order: SellOrder,
-  connection: Connection
-): Promise<string> {
-  const jupiterApi = createJupiterApiClient();
-  
-  // Calculate amount to sell
-  const sellAmount = Math.floor(
-    parseFloat(order.amount) * (order.percentage / 100)
-  );
-  
-  // Get quote from Jupiter
-  const quoteResponse = await jupiterApi.quoteGet({
-    inputMint: order.tokenAddress,
-    outputMint: 'So11111111111111111111111111111111111111112', // SOL
-    amount: sellAmount,
-    slippageBps: Math.floor(order.slippage * 100),
-    onlyDirectRoutes: false,
-    asLegacyTransaction: false
-  });
-  
-  const quotes = quoteResponse as any;
-  if (!quotes || !quotes.data || !quotes.data.length) {
-    throw new Error('No routes found for swap');
-  }
-  
-  const bestRoute = quotes.data[0];
-  const outputAmount = parseInt(bestRoute.outAmount) / LAMPORTS_PER_SOL;
-  
-  // Check minimum output
-  if (outputAmount < order.minSolOutput) {
-    throw new Error(`Output ${outputAmount} SOL is below minimum ${order.minSolOutput} SOL`);
-  }
-  
-  // Get swap transaction
-  const swapResponse = await jupiterApi.swapPost({
-    swapRequest: {
-      quoteResponse: bestRoute,
-      userPublicKey: order.wallet.publicKey.toBase58(),
-      wrapAndUnwrapSol: true,
-      dynamicComputeUnitLimit: true,
-      prioritizationFeeLamports: {
-        priorityLevelWithMaxLamports: {
-          maxLamports: 10000,
-          priorityLevel: "high"
-        }
-      }
-    }
-  });
-  
-  if (!swapResponse.swapTransaction) {
-    throw new Error('Failed to create swap transaction');
-  }
-  
-  // Deserialize and sign transaction
-  const swapTransactionBuf = Buffer.from(swapResponse.swapTransaction, 'base64');
-  const transaction = Transaction.from(swapTransactionBuf);
-  
-  transaction.sign(order.wallet);
-  
-  // Send transaction
-  const signature = await connection.sendTransaction(transaction, [order.wallet], {
-    skipPreflight: false,
-    maxRetries: 3
-  });
-  
-  // Wait for confirmation
-  await connection.confirmTransaction(signature, 'confirmed');
-  
-  // Log sell event
-  const marketData = await getTokenMarketData(order.tokenAddress);
-  await logSellEvent({
-    wallet: order.wallet.publicKey.toBase58(),
-    tokenAddress: order.tokenAddress,
-    amountSold: sellAmount.toString(),
-    solEarned: outputAmount,
-    marketCap: marketData.marketCap,
-    profitPercentage: undefined, // Calculate if position data available
-    transactionSignature: signature
-  });
-  
-  return signature;
-}
-
-/**
- * Execute multiple sell orders as a batch
- */
-export async function executeBatchSells(
-  orders: SellOrder[],
-  connection: Connection
-): Promise<string[]> {
-  const signatures: string[] = [];
-  
-  // Process in parallel batches to avoid rate limits
-  const batchSize = 3;
-  for (let i = 0; i < orders.length; i += batchSize) {
-    const batch = orders.slice(i, i + batchSize);
-    const batchResults = await Promise.allSettled(
-      batch.map(order => executeSell(order, connection))
+  holding: TokenHolding,
+  slippageBps = 100, // 1% default
+  priorityFee = 10000, // 0.00001 SOL default
+  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+): Promise<{ 
+  transaction: VersionedTransaction; 
+  expectedSOL: number;
+  signature?: string;
+}> {
+  try {
+    // Get token decimals (assuming 9 for now, should fetch from chain)
+    const decimals = 9;
+    const amountLamports = convertToLamports(holding.amount, decimals);
+    
+    // Build sell transaction
+    const swapTx = await buildSwapTransaction(
+      holding.tokenAddress,
+      WSOL_MINT,
+      amountLamports,
+      holding.wallet,
+      slippageBps,
+      priorityFee
     );
     
-    batchResults.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        signatures.push(result.value);
-      } else {
-        console.error(`Sell order ${i + index} failed:`, result.reason);
-        signatures.push('');
-      }
-    });
-  }
-  
-  return signatures;
-}
-
-/**
- * Monitor positions and execute sells based on triggers
- */
-export async function monitorAndSell(
-  positions: TokenPosition[],
-  triggers: SellTrigger[],
-  sellPercentage: number,
-  slippage: number,
-  minSolOutput: number,
-  walletKeypairs: Map<string, Keypair>,
-  connection: Connection
-): Promise<string[]> {
-  const sellOrders: SellOrder[] = [];
-  
-  // Check each position against triggers
-  for (const position of positions) {
-    const marketData = await getTokenMarketData(position.tokenAddress);
+    // Get expected output
+    const marketData = await getMarketData(holding.tokenAddress);
+    const expectedSOL = holding.amount * marketData.price;
     
-    for (const trigger of triggers) {
-      if (await checkSellTrigger(position, trigger, marketData)) {
-        const wallet = walletKeypairs.get(position.wallet);
-        if (!wallet) {
-          console.error(`No keypair found for wallet ${position.wallet}`);
-          continue;
-        }
-        
-        sellOrders.push({
-          wallet,
-          tokenAddress: position.tokenAddress,
-          amount: position.amount,
-          percentage: sellPercentage,
-          minSolOutput,
-          slippage
-        });
-        
-        break; // Only sell once per position
-      }
-    }
+    return {
+      transaction: swapTx,
+      expectedSOL
+    };
+  } catch (error) {
+    console.error('Failed to build sell transaction:', error);
+    throw error;
   }
-  
-  if (sellOrders.length === 0) {
-    return [];
-  }
-  
-  // Execute sells
-  const signatures = await executeBatchSells(sellOrders, connection);
-  
-  // Calculate and log PnL for successful sells
-  for (let i = 0; i < sellOrders.length; i++) {
-    if (signatures[i]) {
-      const order = sellOrders[i];
-      const position = positions.find(p => 
-        p.wallet === order.wallet.publicKey.toBase58() && 
-        p.tokenAddress === order.tokenAddress
-      );
-      
-      if (position) {
-        const marketData = await getTokenMarketData(position.tokenAddress);
-        const soldAmount = parseFloat(position.amount) * (order.percentage / 100);
-        const solReturned = soldAmount * marketData.price;
-        const profitLoss = solReturned - (position.solInvested * (order.percentage / 100));
-        const profitPercentage = (profitLoss / (position.solInvested * (order.percentage / 100))) * 100;
-        
-        await logPnL({
-          wallet: position.wallet,
-          tokenAddress: position.tokenAddress,
-          entryPrice: position.entryPrice,
-          exitPrice: marketData.price,
-          solInvested: position.solInvested * (order.percentage / 100),
-          solReturned,
-          profitLoss,
-          profitPercentage,
-          holdTime: Math.floor((Date.now() - position.entryTime.getTime()) / 1000)
-        });
-      }
-    }
-  }
-  
-  return signatures;
 }
 
-/**
- * Create a simple sell all function for emergency exits
- */
-export async function emergencySellAll(
-  wallets: Array<{ publicKey: string; keypair: Keypair }>,
-  tokenAddress: string,
-  connection: Connection
-): Promise<string[]> {
-  const signatures: string[] = [];
+export async function logSellTransaction(
+  holding: TokenHolding,
+  marketData: MarketData,
+  solEarned: number,
+  transactionSignature: string
+): Promise<void> {
+  try {
+    // Log sell event
+    await logSellEvent({
+      wallet: holding.wallet,
+      tokenAddress: holding.tokenAddress,
+      amountSold: holding.amount.toString(),
+      solEarned,
+      marketCap: marketData.marketCap,
+      profitPercentage: ((solEarned - holding.entrySOL) / holding.entrySOL) * 100,
+      transactionSignature
+    });
+    
+    // Log P/L
+    await logPnL({
+      wallet: holding.wallet,
+      tokenAddress: holding.tokenAddress,
+      entryPrice: holding.entryPrice,
+      exitPrice: marketData.price,
+      solInvested: holding.entrySOL,
+      solReturned: solEarned,
+      profitLoss: solEarned - holding.entrySOL,
+      profitPercentage: ((solEarned - holding.entrySOL) / holding.entrySOL) * 100,
+      holdTime: Math.floor((Date.now() - holding.entryTime) / 1000)
+    });
+  } catch (error) {
+    console.error('Failed to log sell transaction:', error);
+  }
+}
+
+export async function monitorAndSell(
+  holdings: TokenHolding[],
+  conditions: SellConditions,
+  checkInterval = 30000 // Check every 30 seconds
+): Promise<void> {
+  console.log(`Monitoring ${holdings.length} positions for sell conditions...`);
   
-  for (const wallet of wallets) {
-    try {
-      // Get token balance
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        new PublicKey(wallet.publicKey),
-        { mint: new PublicKey(tokenAddress) }
-      );
-      
-      if (tokenAccounts.value.length === 0) continue;
-      
-      const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount;
-      if (balance === '0') continue;
-      
-      // Execute sell
-      const sig = await executeSell({
-        wallet: wallet.keypair,
-        tokenAddress,
-        amount: balance,
-        percentage: 100,
-        minSolOutput: 0,
-        slippage: 50 // High slippage for emergency
-      }, connection);
-      
-      signatures.push(sig);
-    } catch (error) {
-      console.error(`Emergency sell failed for wallet ${wallet.publicKey}:`, error);
-      signatures.push('');
+  const interval = setInterval(async () => {
+    for (const holding of holdings) {
+      try {
+        const marketData = await getMarketData(holding.tokenAddress);
+        const { shouldSell, reason } = checkSellConditions(holding, marketData, conditions);
+        
+        if (shouldSell) {
+          console.log(`Sell signal for ${holding.tokenAddress}: ${reason}`);
+          // In production, you would execute the sell here
+          // For now, just log it
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error(`Error checking ${holding.tokenAddress}:`, error);
+      }
+    }
+  }, checkInterval);
+  
+  // Return cleanup function
+  return () => clearInterval(interval);
+}
+
+export function calculateOptimalSellTime(
+  priceHistory: { time: number; price: number }[],
+  volumeHistory: { time: number; volume: number }[]
+): number {
+  // Simple momentum-based sell signal
+  if (priceHistory.length < 3) return 0;
+  
+  const recentPrices = priceHistory.slice(-3);
+  const priceChange1 = (recentPrices[1].price - recentPrices[0].price) / recentPrices[0].price;
+  const priceChange2 = (recentPrices[2].price - recentPrices[1].price) / recentPrices[1].price;
+  
+  // Declining momentum
+  if (priceChange2 < priceChange1 * 0.5) {
+    return Date.now(); // Sell now
+  }
+  
+  // Volume analysis
+  if (volumeHistory.length >= 2) {
+    const recentVolume = volumeHistory[volumeHistory.length - 1].volume;
+    const avgVolume = volumeHistory.reduce((sum, v) => sum + v.volume, 0) / volumeHistory.length;
+    
+    // Declining volume
+    if (recentVolume < avgVolume * 0.5) {
+      return Date.now(); // Sell now
     }
   }
   
-  return signatures;
+  return 0; // Don't sell yet
 } 
