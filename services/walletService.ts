@@ -214,3 +214,111 @@ export async function getKeypair(
     throw new Error('Invalid password');
   }
 }
+
+/**
+ * Export wallet group to encrypted .keymaker file
+ */
+export async function exportWalletGroup(
+  groupName: string,
+  wallets: WalletData[],
+  exportPassword: string
+): Promise<string> {
+  try {
+    // Create wallet group data structure
+    const groupData = {
+      version: '1.0',
+      name: groupName,
+      wallets: wallets.map(wallet => ({
+        publicKey: wallet.publicKey,
+        encryptedPrivateKey: wallet.encryptedPrivateKey,
+        role: wallet.role
+      })),
+      exportedAt: new Date().toISOString(),
+      walletsCount: wallets.length
+    };
+    
+    // Import the crypto module dynamically to avoid build issues
+    const { encryptAES256 } = await import('@/utils/crypto');
+    
+    // Encrypt the entire group data
+    const jsonData = JSON.stringify(groupData);
+    const encrypted = encryptAES256(jsonData, exportPassword);
+    
+    // Create .keymaker file format
+    const fileData = {
+      format: 'keymaker',
+      version: '1.0',
+      encrypted: encrypted,
+      metadata: {
+        groupName: groupName,
+        walletsCount: wallets.length,
+        exportedAt: groupData.exportedAt
+      }
+    };
+    
+    return JSON.stringify(fileData);
+  } catch (error) {
+    throw new Error(`Failed to export wallet group: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Import wallet group from encrypted .keymaker file
+ */
+export async function importWalletGroup(
+  fileContent: string,
+  importPassword: string
+): Promise<{
+  name: string;
+  wallets: WalletData[];
+}> {
+  try {
+    // Parse .keymaker file
+    const fileData = JSON.parse(fileContent);
+    
+    // Validate file format
+    if (fileData.format !== 'keymaker' || !fileData.encrypted) {
+      throw new Error('Invalid .keymaker file format');
+    }
+    
+    // Import the crypto module dynamically
+    const { decryptAES256, isValidEncryptedData } = await import('@/utils/crypto');
+    
+    // Validate encrypted data
+    if (!isValidEncryptedData(fileData.encrypted)) {
+      throw new Error('Corrupted encryption data');
+    }
+    
+    // Decrypt the wallet group data
+    const decrypted = decryptAES256(fileData.encrypted, importPassword);
+    const groupData = JSON.parse(decrypted);
+    
+    // Validate group data structure
+    if (!groupData.version || !groupData.name || !Array.isArray(groupData.wallets)) {
+      throw new Error('Invalid wallet group data');
+    }
+    
+    // Validate each wallet
+    const wallets: WalletData[] = groupData.wallets.map((wallet: any) => {
+      if (!wallet.publicKey || !wallet.encryptedPrivateKey || !wallet.role) {
+        throw new Error('Invalid wallet data');
+      }
+      
+      return {
+        publicKey: wallet.publicKey,
+        encryptedPrivateKey: wallet.encryptedPrivateKey,
+        role: wallet.role
+      };
+    });
+    
+    return {
+      name: groupData.name,
+      wallets
+    };
+  } catch (error) {
+    if ((error as Error).message.includes('Invalid password')) {
+      throw new Error('Incorrect password');
+    }
+    throw new Error(`Failed to import wallet group: ${(error as Error).message}`);
+  }
+}

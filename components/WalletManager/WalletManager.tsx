@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, Keypair } from '@solana/web3.js';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { createWallet, exportWallet, exportWalletEncrypted, importWallet } from '../../services/walletService';
+import { createWallet, exportWallet, exportWalletEncrypted, importWallet, exportWalletGroup, importWalletGroup } from '../../services/walletService';
 import { fundWalletGroup, getWalletBalances } from '../../services/fundingService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Input } from '@/components/UI/input';
@@ -327,30 +327,42 @@ export function WalletManager() {
     }
   };
   
-  const exportGroup = () => {
+  const exportGroup = async () => {
     const groupData = groups[activeGroup];
     if (!groupData) return;
     
-    // Remove keypair objects before export
-    const exportableGroup = {
-      ...groupData,
-      wallets: groupData.wallets.map((wallet) => ({
-        publicKey: wallet.publicKey,
-        encryptedPrivateKey: wallet.encryptedPrivateKey,
-        role: wallet.role,
-        balance: wallet.balance,
-        createdAt: wallet.createdAt
-      }))
-    };
+    // Prompt for export password
+    const exportPassword = prompt('Enter a password to encrypt the wallet group:');
+    if (!exportPassword || exportPassword.length < 8) {
+      return toast.error('Password must be at least 8 characters');
+    }
     
-    const blob = new Blob([JSON.stringify(exportableGroup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wallet-group-${activeGroup}.json`;
-    a.click();
+    // Confirm password
+    const confirmPassword = prompt('Confirm the password:');
+    if (exportPassword !== confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
     
-    toast.success('Group exported (private keys encrypted)');
+    try {
+      // Use the new secure export function
+      const encryptedData = await exportWalletGroup(
+        activeGroup,
+        groupData.wallets,
+        exportPassword
+      );
+      
+      // Create .keymaker file
+      const blob = new Blob([encryptedData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${activeGroup}-${Date.now()}.keymaker`;
+      a.click();
+      
+      toast.success('Wallet group exported securely as .keymaker file');
+    } catch (error) {
+      toast.error(`Export failed: ${(error as Error).message}`);
+    }
   };
   
   const copyAddress = (address: string) => {
@@ -365,56 +377,98 @@ export function WalletManager() {
     
     try {
       const fileContent = await importFile.text();
-      const importData = JSON.parse(fileContent);
       
-      // Validate import data
-      if (!importData.name || !importData.wallets || !Array.isArray(importData.wallets)) {
-        throw new Error('Invalid wallet group file');
-      }
-      
-      // Check if group name already exists
-      if (groups[importData.name]) {
-        return toast.error(`Group "${importData.name}" already exists`);
-      }
-      
-      // Process encrypted wallets
-      const importedWallets: WalletData[] = [];
-      
-      for (const wallet of importData.wallets) {
-        if (wallet.encryptedPrivateKey) {
-          // Wallet is already encrypted, just add it
-          importedWallets.push({
-            publicKey: wallet.publicKey,
-            encryptedPrivateKey: wallet.encryptedPrivateKey,
-            role: wallet.role || 'normal',
-            balance: 0,
-            createdAt: wallet.createdAt || new Date().toISOString()
-          });
-        } else if (wallet.privateKey) {
-          // Wallet has plain private key, encrypt it
-          const imported = await importWallet(wallet.privateKey, importPassword, wallet.role);
-          importedWallets.push({
-            ...imported,
-            balance: 0,
-            createdAt: new Date().toISOString()
-          });
+      // Check if it's a .keymaker file
+      if (importFile.name.endsWith('.keymaker')) {
+        // Use the new secure import function
+        const importedData = await importWalletGroup(fileContent, importPassword);
+        
+        // Check if group name already exists
+        if (groups[importedData.name]) {
+          // Generate unique name
+          let uniqueName = importedData.name;
+          let counter = 1;
+          while (groups[uniqueName]) {
+            uniqueName = `${importedData.name}_${counter}`;
+            counter++;
+          }
+          importedData.name = uniqueName;
         }
+        
+        // Process wallets to add metadata
+        const processedWallets = importedData.wallets.map(wallet => ({
+          ...wallet,
+          balance: 0,
+          createdAt: new Date().toISOString()
+        }));
+        
+        // Add new group
+        const newGroup: WalletGroup = {
+          name: importedData.name,
+          wallets: processedWallets,
+          createdAt: new Date().toISOString()
+        };
+        
+        setGroups({ ...groups, [importedData.name]: newGroup });
+        setActiveGroup(importedData.name);
+        setShowImportDialog(false);
+        setImportFile(null);
+        setImportPassword('');
+        
+        toast.success(`Imported ${processedWallets.length} wallets to group "${importedData.name}"`);
+      } else {
+        // Legacy JSON import (backward compatibility)
+        const importData = JSON.parse(fileContent);
+        
+        // Validate import data
+        if (!importData.name || !importData.wallets || !Array.isArray(importData.wallets)) {
+          throw new Error('Invalid wallet group file');
+        }
+        
+        // Check if group name already exists
+        if (groups[importData.name]) {
+          return toast.error(`Group "${importData.name}" already exists`);
+        }
+        
+        // Process encrypted wallets
+        const importedWallets: WalletData[] = [];
+        
+        for (const wallet of importData.wallets) {
+          if (wallet.encryptedPrivateKey) {
+            // Wallet is already encrypted, just add it
+            importedWallets.push({
+              publicKey: wallet.publicKey,
+              encryptedPrivateKey: wallet.encryptedPrivateKey,
+              role: wallet.role || 'normal',
+              balance: 0,
+              createdAt: wallet.createdAt || new Date().toISOString()
+            });
+          } else if (wallet.privateKey) {
+            // Wallet has plain private key, encrypt it
+            const imported = await importWallet(wallet.privateKey, importPassword, wallet.role);
+            importedWallets.push({
+              ...imported,
+              balance: 0,
+              createdAt: new Date().toISOString()
+            });
+          }
+        }
+        
+        // Add new group
+        const newGroup: WalletGroup = {
+          name: importData.name,
+          wallets: importedWallets,
+          createdAt: new Date().toISOString()
+        };
+        
+        setGroups({ ...groups, [importData.name]: newGroup });
+        setActiveGroup(importData.name);
+        setShowImportDialog(false);
+        setImportFile(null);
+        setImportPassword('');
+        
+        toast.success(`Imported ${importedWallets.length} wallets to group "${importData.name}"`);
       }
-      
-      // Add new group
-      const newGroup: WalletGroup = {
-        name: importData.name,
-        wallets: importedWallets,
-        createdAt: new Date().toISOString()
-      };
-      
-      setGroups({ ...groups, [importData.name]: newGroup });
-      setActiveGroup(importData.name);
-      setShowImportDialog(false);
-      setImportFile(null);
-      setImportPassword('');
-      
-      toast.success(`Imported ${importedWallets.length} wallets to group "${importData.name}"`);
     } catch (error) {
       toast.error(`Import failed: ${(error as Error).message}`);
     }
@@ -712,12 +766,12 @@ export function WalletManager() {
               <Label>Select Wallet File</Label>
               <Input
                 type="file"
-                accept=".json"
+                accept=".keymaker,.json"
                 onChange={(e) => setImportFile(e.target.files?.[0] || null)}
                 className="bg-black/50 border-aqua/30"
               />
               <p className="text-xs text-gray-400 mt-1">
-                Upload an encrypted wallet group JSON file
+                Upload a .keymaker file or legacy JSON wallet group
               </p>
             </div>
             
