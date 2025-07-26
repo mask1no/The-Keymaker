@@ -1,6 +1,7 @@
 import { VersionedTransaction } from '@solana/web3.js';
 import { getTokenPrice, buildSwapTransaction, WSOL_MINT, convertToLamports } from './jupiterService';
 import { logSellEvent, logPnL } from './executionLogService';
+import { trackSell } from './pnlService';
 import { NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
 import axios from 'axios';
 
@@ -197,6 +198,9 @@ export async function logSellTransaction(
       profitPercentage: ((solEarned - holding.entrySOL) / holding.entrySOL) * 100,
       holdTime: Math.floor((Date.now() - holding.entryTime) / 1000)
     });
+    
+    // Track in PnL service
+    await trackSell(holding.wallet, holding.tokenAddress, solEarned, holding.amount);
   } catch (error) {
     console.error('Failed to log sell transaction:', error);
   }

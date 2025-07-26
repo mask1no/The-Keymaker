@@ -9,6 +9,7 @@ import { StatusCluster } from '@/components/UI/StatusCluster';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { verifySecrets } from '@/lib/secrets';
+import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys';
 import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-gradient-to-br from-green-900 to-black text-white/90 font-mono">
         <WalletContext>
           <Toaster position="top-right" />
+          <GlobalHotkeys />
           <ErrorBoundary>
             <div className="flex min-h-screen">
               <Sidebar />

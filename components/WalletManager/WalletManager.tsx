@@ -4,17 +4,18 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, Keypair } from '@solana/web3.js';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { createWallet, exportWallet, exportWalletEncrypted } from '../../services/walletService';
+import { createWallet, exportWallet, exportWalletEncrypted, importWallet } from '../../services/walletService';
 import { fundWalletGroup, getWalletBalances } from '../../services/fundingService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Input } from '@/components/UI/input';
 import { Button } from '@/components/UI/button';
+import { Label } from '@/components/UI/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/UI/dialog';
 import { Checkbox } from '@/components/UI/checkbox';
 import { Skeleton } from '@/components/UI/skeleton';
 import { Badge } from '@/components/UI/badge';
-import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle } from 'lucide-react';
+import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle, Upload } from 'lucide-react';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../../constants';
 
 type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
@@ -58,6 +59,11 @@ export function WalletManager() {
   const [exportEncrypted, setExportEncrypted] = useState(true);
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
+  
+  // Import dialog state
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPassword, setImportPassword] = useState('');
   
   // Load groups from localStorage
   useEffect(() => {
@@ -352,6 +358,68 @@ export function WalletManager() {
     toast.success('Address copied');
   };
   
+  const handleImportGroup = async () => {
+    if (!importFile || !importPassword) {
+      return toast.error('Please select a file and enter password');
+    }
+    
+    try {
+      const fileContent = await importFile.text();
+      const importData = JSON.parse(fileContent);
+      
+      // Validate import data
+      if (!importData.name || !importData.wallets || !Array.isArray(importData.wallets)) {
+        throw new Error('Invalid wallet group file');
+      }
+      
+      // Check if group name already exists
+      if (groups[importData.name]) {
+        return toast.error(`Group "${importData.name}" already exists`);
+      }
+      
+      // Process encrypted wallets
+      const importedWallets: WalletData[] = [];
+      
+      for (const wallet of importData.wallets) {
+        if (wallet.encryptedPrivateKey) {
+          // Wallet is already encrypted, just add it
+          importedWallets.push({
+            publicKey: wallet.publicKey,
+            encryptedPrivateKey: wallet.encryptedPrivateKey,
+            role: wallet.role || 'normal',
+            balance: 0,
+            createdAt: wallet.createdAt || new Date().toISOString()
+          });
+        } else if (wallet.privateKey) {
+          // Wallet has plain private key, encrypt it
+          const imported = await importWallet(wallet.privateKey, importPassword, wallet.role);
+          importedWallets.push({
+            ...imported,
+            balance: 0,
+            createdAt: new Date().toISOString()
+          });
+        }
+      }
+      
+      // Add new group
+      const newGroup: WalletGroup = {
+        name: importData.name,
+        wallets: importedWallets,
+        createdAt: new Date().toISOString()
+      };
+      
+      setGroups({ ...groups, [importData.name]: newGroup });
+      setActiveGroup(importData.name);
+      setShowImportDialog(false);
+      setImportFile(null);
+      setImportPassword('');
+      
+      toast.success(`Imported ${importedWallets.length} wallets to group "${importData.name}"`);
+    } catch (error) {
+      toast.error(`Import failed: ${(error as Error).message}`);
+    }
+  };
+  
   const getRoleBadgeColor = (role: WalletRole) => {
     switch (role) {
       case 'master': return 'bg-purple-500';
@@ -389,6 +457,9 @@ export function WalletManager() {
               </Select>
               <Button size="sm" variant="outline" onClick={exportGroup}>
                 <Download className="w-4 h-4" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowImportDialog(true)}>
+                <Upload className="w-4 h-4" />
               </Button>
             </div>
           </CardTitle>
@@ -626,6 +697,79 @@ export function WalletManager() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Import Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="bg-black/90 border-aqua/30">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Import Wallet Group
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Select Wallet File</Label>
+              <Input
+                type="file"
+                accept=".json"
+                onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                className="bg-black/50 border-aqua/30"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Upload an encrypted wallet group JSON file
+              </p>
+            </div>
+            
+            <div>
+              <Label>Decryption Password</Label>
+              <Input
+                type="password"
+                placeholder="Enter password to decrypt wallets"
+                value={importPassword}
+                onChange={(e) => setImportPassword(e.target.value)}
+                className="bg-black/50 border-aqua/30"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Password used when exporting the wallet group
+              </p>
+            </div>
+            
+            <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-semibold text-yellow-500">Security Notice</p>
+                  <p className="text-gray-300 mt-1">
+                    Only import wallet files from trusted sources. 
+                    Imported wallets will be re-encrypted with your password.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                onClick={handleImportGroup}
+                disabled={!importFile || !importPassword}
+                className="flex-1"
+              >
+                Import Wallets
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowImportDialog(false);
+                  setImportFile(null);
+                  setImportPassword('');
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 } 

@@ -15,7 +15,8 @@ import {
   Users,
   Package,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -111,6 +112,14 @@ export default function DashboardPage() {
       href: '/dashboard/sell-monitor',
       color: 'from-orange-500 to-red-500',
       badge: 'Auto'
+    },
+    {
+      title: 'P&L Tracking',
+      description: 'Real-time profit and loss analysis',
+      icon: BarChart3,
+      href: '/dashboard/pnl',
+      color: 'from-teal-500 to-cyan-500',
+      badge: 'Live'
     }
   ];
 

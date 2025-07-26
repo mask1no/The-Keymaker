@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { previewBundle, executeBundle, type PreviewResult, type ExecutionResult } from '@/services/bundleService';
 import { exportExecutionLog } from '@/services/executionLogService';
 import { buildSwapTransaction, WSOL_MINT, convertToLamports } from '@/services/jupiterService';
+import { trackBuy, trackSell } from '@/services/pnlService';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 
 interface TransactionInput {
@@ -211,6 +212,18 @@ export function BundleEngine() {
     if (!publicKey) return toast.error('Connect wallet first');
     if (transactions.length === 0) return toast.error('Add transactions to execute');
     
+    // Check if wallet has sufficient balance
+    const balance = await connection.getBalance(publicKey);
+    if (balance === 0) {
+      return toast.error('Wallet has 0 SOL. Please fund your wallet first.');
+    }
+    
+    // Check if balance is sufficient for fees (rough estimate)
+    const estimatedFees = (transactions.length + 1) * 0.001 * 1e9; // 0.001 SOL per tx + tip
+    if (balance < estimatedFees) {
+      return toast.error(`Insufficient balance. Need at least ${(estimatedFees / 1e9).toFixed(4)} SOL for fees.`);
+    }
+    
     setLoading(true);
     try {
       const txs = await buildTransactions();
@@ -261,6 +274,26 @@ export function BundleEngine() {
         toast.error(`Bundle partially executed: ${successCount}/${result.results.length} succeeded`);
       } else {
         toast.error('Bundle execution failed');
+      }
+      
+      // Track PnL for successful transactions
+      for (let i = 0; i < transactions.length; i++) {
+        if (result.results[i] === 'success') {
+          const tx = transactions[i];
+          const wallet = tx.wallet || publicKey.toBase58();
+          
+          try {
+            if (tx.action === 'buy') {
+              // For buys, amount is SOL spent
+              await trackBuy(wallet, tx.tokenAddress, tx.amount, 0); // Token amount would need to be calculated
+            } else {
+              // For sells, amount is tokens sold
+              await trackSell(wallet, tx.tokenAddress, 0, tx.amount); // SOL received would need to be calculated
+            }
+          } catch (error) {
+            console.error('Failed to track PnL:', error);
+          }
+        }
       }
       
     } catch (error) {
