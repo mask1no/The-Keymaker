@@ -69,17 +69,17 @@ export function SellMonitor() {
     );
     
     // Store cleanup function
-    (window as any).__sellMonitorCleanup = cleanup;
+    (window as Window & { __sellMonitorCleanup?: () => void }).__sellMonitorCleanup = cleanup;
   };
   
   const stopMonitoring = () => {
     setIsMonitoring(false);
     
     // Call cleanup function if exists
-    const cleanup = (window as any).__sellMonitorCleanup;
+    const cleanup = (window as Window & { __sellMonitorCleanup?: () => void }).__sellMonitorCleanup;
     if (cleanup) {
       cleanup();
-      delete (window as any).__sellMonitorCleanup;
+      delete (window as Window & { __sellMonitorCleanup?: () => void }).__sellMonitorCleanup;
     }
     
     toast.success('Sell monitoring stopped');

@@ -6,9 +6,10 @@ import { Button } from '@/components/UI/button';
 import { Skeleton } from '@/components/UI/skeleton';
 import { getLivePrices, exportToCsv } from '../../services/analyticsService';
 import { useDebounce } from 'use-debounce';
+import { Trade, PriceData } from '@/lib/types';
 
 export default function AnalyticsPanel() {
-  const [prices, setPrices] = useState<{ sol: number, eth: number, btc: number, cake: number }>({ sol: 0, eth: 0, btc: 0, cake: 0 });
+  const [prices, setPrices] = useState<PriceData>({ sol: 0, eth: 0, btc: 0, cake: 0 });
   const [priceHistory, setPriceHistory] = useState<{ time: string, sol: number }[]>([]);
   const [pnl, setPnl] = useState<{ [wallet: string]: number }>({});
   const [marketCap, setMarketCap] = useState(0);
@@ -38,7 +39,7 @@ export default function AnalyticsPanel() {
 
   const handleExport = async () => {
     // TODO: Implement trade fetching from database
-    const trades: any[] = [];
+    const trades: Trade[] = [];
     await exportToCsv(trades);
   };
 

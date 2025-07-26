@@ -1,27 +1,7 @@
 import { VersionedTransaction } from '@solana/web3.js';
 import axios from 'axios';
 import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants';
-
-interface QuoteResponse {
-  inputMint: string;
-  inAmount: string;
-  outputMint: string;
-  outAmount: string;
-  otherAmountThreshold: string;
-  swapMode: string;
-  slippageBps: number;
-  platformFee: null;
-  priceImpactPct: string;
-  routePlan: any[];
-  contextSlot?: number;
-  timeTaken?: number;
-}
-
-interface SwapResponse {
-  swapTransaction: string;
-  lastValidBlockHeight: number;
-  prioritizationFeeLamports?: number;
-}
+import { QuoteResponse, SwapResponse } from '@/lib/types';
 
 const WSOL_MINT = 'So11111111111111111111111111111111111111112';
 
@@ -51,9 +31,10 @@ export async function getQuote(
     });
 
     return response.data;
-  } catch (error: any) {
-    console.error('Jupiter quote error:', error.response?.data || error.message);
-    throw new Error(`Failed to get quote: ${error.response?.data?.error || error.message}`);
+  } catch (error) {
+    const err = error as { response?: { data?: { error?: string } }; message?: string };
+    console.error('Jupiter quote error:', err.response?.data || err.message);
+    throw new Error(`Failed to get quote: ${err.response?.data?.error || err.message}`);
   }
 }
 
