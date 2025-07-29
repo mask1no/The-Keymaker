@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, Transaction, PublicKey, Keypair, VersionedTransaction } from '@solana/web3.js';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { ChevronDown, ChevronUp, Copy, Download, Zap, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Download, Zap, Plus, Trash2, AlertCircle, Lock } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
@@ -14,11 +14,14 @@ import { Skeleton } from '@/components/UI/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
 import { Badge } from '@/components/UI/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { previewBundle, executeBundle, type PreviewResult, type ExecutionResult } from '@/services/bundleService';
 import { exportExecutionLog } from '@/services/executionLogService';
 import { buildSwapTransaction, WSOL_MINT, convertToLamports } from '@/services/jupiterService';
 import { trackBuy, trackSell } from '@/services/pnlService';
+import { getKeypair } from '@/services/walletService';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
+import { useKeymakerStore } from '@/lib/store';
 
 interface TransactionInput {
   tokenAddress: string;
@@ -40,6 +43,9 @@ export function BundleEngine() {
   const { publicKey, signTransaction } = useWallet();
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
   
+  // Zustand store
+  const { wallets: globalWallets, jitoEnabled, tipAmount } = useKeymakerStore();
+  
   const [transactions, setTransactions] = useState<TransactionInput[]>([]);
   const [preview, setPreview] = useState<PreviewResult[]>([]);
   const [results, setResults] = useState<ExecutionResult | null>(null);
@@ -58,26 +64,41 @@ export function BundleEngine() {
   const [wallets, setWallets] = useState<WalletWithRole[]>([]);
   const [activeGroup] = useState('default');
   
+  // Password dialog
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [walletPassword, setWalletPassword] = useState('');
+  const [passwordCallback, setPasswordCallback] = useState<((password: string) => void) | null>(null);
+
   useEffect(() => {
-    // Load wallets from localStorage or database
-    const loadWallets = async () => {
-      const stored = localStorage.getItem('walletGroups');
-      if (stored) {
-        const groups = JSON.parse(stored);
-        const activeGroupData = groups[activeGroup];
-        if (activeGroupData && activeGroupData.wallets) {
-          // Map wallets without keypairs (they're encrypted)
-          setWallets(activeGroupData.wallets.map((w: any) => ({
-            publicKey: w.publicKey,
-            role: w.role,
-            balance: w.balance || 0,
-            // Keypair will be added when needed for signing
-          })));
+    // Load wallets from global store instead of localStorage
+    if (globalWallets && globalWallets.length > 0) {
+      setWallets(globalWallets.map(w => ({
+        publicKey: w.publicKey,
+        role: w.role,
+        balance: w.balance || 0,
+        // Keypair will be added when needed for signing
+      })));
+    } else {
+      // Fallback to localStorage if store is empty
+      const loadWallets = async () => {
+        const stored = localStorage.getItem('walletGroups');
+        if (stored) {
+          const groups = JSON.parse(stored);
+          const activeGroupData = groups[activeGroup];
+          if (activeGroupData && activeGroupData.wallets) {
+            // Map wallets without keypairs (they're encrypted)
+            setWallets(activeGroupData.wallets.map((w: any) => ({
+              publicKey: w.publicKey,
+              role: w.role,
+              balance: w.balance || 0,
+              // Keypair will be added when needed for signing
+            })));
+          }
         }
-      }
-    };
-    loadWallets();
-  }, [activeGroup]);
+      };
+      loadWallets();
+    }
+  }, [activeGroup, globalWallets]);
   
   const addTransaction = () => {
     if (!tokenAddress || !amount || !slippage) {
@@ -229,77 +250,154 @@ export function BundleEngine() {
       const txs = await buildTransactions();
       const legacyTxs = await convertToLegacyTransactions(txs);
       
-      // For browser wallets, we can't get keypairs directly
-      // The bundleService will need to handle signing differently
-      const signers: Keypair[] = [];
-      
       // Check if any transactions use imported wallets
       const usesImportedWallets = transactions.some(t => t.wallet && t.wallet !== publicKey?.toBase58());
       
+      let executionResult: ExecutionResult | null = null;
+      
       if (usesImportedWallets) {
-        toast.error('Bundling with imported wallets requires decrypting their private keys. Use the connected wallet for now.');
-        return;
-      }
-      
-      // For connected wallet only
-      if (publicKey && signTransaction) {
-        // Create a placeholder signer - actual signing will happen via wallet adapter
-        const pseudoSigner = {
-          publicKey,
-          secretKey: new Uint8Array(64) // Placeholder
-        } as Keypair;
-        signers.push(pseudoSigner);
-      }
-      
-      // Execute bundle
-      const result = await executeBundle(
-        legacyTxs,
-        wallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
-        signers,
-        {
-          feePayer: publicKey,
-          tipAmount: 10000, // 0.00001 SOL tip
-          logger: (msg: string) => console.log(`[Bundle] ${msg}`),
-          connection
+        // Request password for decrypting wallets
+        const password = await requestWalletPassword();
+        if (!password) {
+          setLoading(false);
+          return;
         }
-      );
-      
-      setResults(result);
-      
-      // Show results
-      const successCount = result.results.filter(r => r === 'success').length;
-      if (successCount === result.results.length) {
-        toast.success(`Bundle executed successfully! All ${successCount} transactions confirmed`);
-      } else if (successCount > 0) {
-        toast.error(`Bundle partially executed: ${successCount}/${result.results.length} succeeded`);
-      } else {
-        toast.error('Bundle execution failed');
-      }
-      
-      // Track PnL for successful transactions
-      for (let i = 0; i < transactions.length; i++) {
-        if (result.results[i] === 'success') {
-          const tx = transactions[i];
-          const wallet = tx.wallet || publicKey.toBase58();
-          
-          try {
-            if (tx.action === 'buy') {
-              // For buys, amount is SOL spent
-              await trackBuy(wallet, tx.tokenAddress, tx.amount, 0); // Token amount would need to be calculated
-            } else {
-              // For sells, amount is tokens sold
-              await trackSell(wallet, tx.tokenAddress, 0, tx.amount); // SOL received would need to be calculated
+        
+        // Build signers array with decrypted keypairs
+        const signers: Keypair[] = [];
+        
+        // Add tip transaction signer (connected wallet)
+        if (publicKey) {
+          // For connected wallet, we'll handle signing differently
+          signers.push(null as any); // Placeholder for tip tx
+        }
+        
+        // Add signers for each transaction
+        for (const tx of transactions) {
+          if (tx.wallet && tx.wallet !== publicKey?.toBase58()) {
+            // Find wallet data
+            const walletData = wallets.find(w => w.publicKey === tx.wallet);
+            if (!walletData) {
+              throw new Error(`Wallet ${tx.wallet} not found`);
             }
-          } catch (error) {
-            console.error('Failed to track PnL:', error);
+            
+            // Get encrypted private key from localStorage
+            const stored = localStorage.getItem('walletGroups');
+            if (!stored) throw new Error('No wallet groups found');
+            
+            const groups = JSON.parse(stored);
+            const activeGroupData = groups[activeGroup];
+            const encryptedWallet = activeGroupData.wallets.find((w: any) => w.publicKey === tx.wallet);
+            
+            if (!encryptedWallet || !encryptedWallet.encryptedPrivateKey) {
+              throw new Error(`Encrypted data not found for wallet ${tx.wallet}`);
+            }
+            
+            try {
+              const keypair = await getKeypair(encryptedWallet, password);
+              signers.push(keypair);
+            } catch (error) {
+              throw new Error(`Failed to decrypt wallet ${tx.wallet}: Invalid password`);
+            }
+          } else {
+            // Connected wallet transaction
+            signers.push(null as any); // Will be signed by wallet adapter
           }
         }
+        
+        // Execute bundle with proper signers
+        executionResult = await executeBundle(
+          legacyTxs,
+          wallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+          signers,
+          {
+            feePayer: publicKey,
+            tipAmount: jitoEnabled ? tipAmount * 1e9 : 0, // Convert SOL to lamports
+            logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+            connection,
+            walletAdapter: {
+              publicKey,
+              signTransaction: signTransaction!
+            }
+          }
+        );
+        
+      } else {
+        // Only connected wallet transactions
+        const signers: Keypair[] = [];
+        
+        // Execute bundle
+        executionResult = await executeBundle(
+          legacyTxs,
+          wallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+          signers,
+          {
+            feePayer: publicKey,
+            tipAmount: jitoEnabled ? tipAmount * 1e9 : 0, // Convert SOL to lamports
+            logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+            connection,
+            walletAdapter: {
+              publicKey,
+              signTransaction: signTransaction!
+            }
+          }
+        );
       }
+      
+      // Set results and show success/error messages
+      if (executionResult) {
+        setResults(executionResult);
+        
+        const successCount = executionResult.results.filter((r: string) => r === 'success').length;
+        if (successCount === executionResult.results.length) {
+          toast.success(`Bundle executed successfully! All ${successCount} transactions confirmed`);
+        } else if (successCount > 0) {
+          toast.error(`Bundle partially executed: ${successCount}/${executionResult.results.length} succeeded`);
+        } else {
+          toast.error('Bundle execution failed');
+        }
+      }
+      
+        // Track PnL for successful transactions
+        for (let i = 0; i < transactions.length; i++) {
+          if (executionResult.results[i] === 'success') {
+            const tx = transactions[i];
+            const wallet = tx.wallet || publicKey.toBase58();
+            
+            try {
+              if (tx.action === 'buy') {
+                // For buys, amount is SOL spent
+                await trackBuy(wallet, tx.tokenAddress, tx.amount, 0); // Token amount would need to be calculated
+              } else {
+                // For sells, amount is tokens sold
+                await trackSell(wallet, tx.tokenAddress, 0, tx.amount); // SOL received would need to be calculated
+              }
+            } catch (error) {
+              console.error('Failed to track PnL:', error);
+            }
+          }
+        }
       
     } catch (error) {
       toast.error(`Execution failed: ${(error as Error).message}`);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const requestWalletPassword = (): Promise<string> => {
+    return new Promise((resolve) => {
+      setPasswordCallback(() => resolve);
+      setShowPasswordDialog(true);
+    });
+  };
+  
+  const handlePasswordSubmit = () => {
+    if (passwordCallback && walletPassword) {
+      passwordCallback(walletPassword);
+      setShowPasswordDialog(false);
+      setWalletPassword('');
+      setPasswordCallback(null);
     }
   };
   
@@ -661,6 +759,56 @@ export function BundleEngine() {
           </div>
         </motion.div>
       )}
+      
+      {/* Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              Wallet Password Required
+            </DialogTitle>
+            <DialogDescription>
+              Enter your wallet password to decrypt imported wallets for bundle execution.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={walletPassword}
+                onChange={(e) => setWalletPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                className="col-span-3"
+                placeholder="Enter wallet password"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPasswordDialog(false);
+                setWalletPassword('');
+                if (passwordCallback) {
+                  passwordCallback('');
+                  setPasswordCallback(null);
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handlePasswordSubmit} disabled={!walletPassword}>
+              Unlock Wallets
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 } 

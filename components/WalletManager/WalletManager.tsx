@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/UI/skeleton';
 import { Badge } from '@/components/UI/badge';
 import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle, Upload } from 'lucide-react';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../../constants';
+import { useKeymakerStore } from '@/lib/store';
 
 type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
 
@@ -38,6 +39,9 @@ interface WalletGroup {
 export function WalletManager() {
   const { publicKey: connectedWallet } = useWallet();
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+  
+  // Zustand store
+  const { setWallets: setGlobalWallets, setSelectedGroup } = useKeymakerStore();
   
   const [groups, setGroups] = useState<{ [key: string]: WalletGroup }>({});
   const [activeGroup, setActiveGroup] = useState('default');
@@ -100,6 +104,19 @@ export function WalletManager() {
       setWallets(groups[activeGroup].wallets);
     }
   }, [activeGroup, groups]);
+  
+  // Sync with global store whenever wallets or active group changes
+  useEffect(() => {
+    // Update global store with current wallets
+    const walletsWithKeypairs = wallets.map(w => ({
+      publicKey: w.publicKey,
+      role: w.role,
+      balance: w.balance,
+      encryptedPrivateKey: w.encryptedPrivateKey
+    }));
+    setGlobalWallets(walletsWithKeypairs);
+    setSelectedGroup(activeGroup);
+  }, [wallets, activeGroup, setGlobalWallets, setSelectedGroup]);
   
   // Save groups to localStorage
   useEffect(() => {

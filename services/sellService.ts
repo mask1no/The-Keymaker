@@ -4,6 +4,7 @@ import { logSellEvent, logPnL } from './executionLogService';
 import { trackSell } from './pnlService';
 import { NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
 import axios from 'axios';
+import { Keypair, PublicKey, Connection } from '@solana/web3.js';
 
 export interface SellConditions {
   marketCapThreshold?: number;  // Sell when market cap reaches this value
@@ -266,4 +267,95 @@ export function calculateOptimalSellTime(
   }
   
   return 0; // Don't sell yet
+} 
+
+export interface ExecuteSellPlanParams {
+  wallets: Keypair[];
+  tokenMint: string;
+  connection: Connection;
+  sellCondition: SellConditions; // Assuming SellCondition is the same as SellConditions
+}
+
+export interface ExecuteSellPlanResult {
+  success: boolean;
+  successCount: number;
+  failedCount: number;
+  totalSold: number;
+  totalSOL: number;
+  transactions: string[];
+}
+
+export async function executeSellPlan(params: ExecuteSellPlanParams): Promise<ExecuteSellPlanResult> {
+  const { wallets, tokenMint, connection } = params;
+  
+  let successCount = 0;
+  let failedCount = 0;
+  let totalSold = 0;
+  let totalSOL = 0;
+  const transactions: string[] = [];
+  
+  for (const wallet of wallets) {
+    try {
+      // Get token balance
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+        wallet.publicKey,
+        { mint: new PublicKey(tokenMint) }
+      );
+      
+      if (tokenAccounts.value.length === 0) {
+        console.log(`No token balance found for wallet ${wallet.publicKey.toString()}`);
+        continue;
+      }
+      
+      const tokenAccount = tokenAccounts.value[0];
+      const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount;
+      
+      if (balance > 0) {
+        // Get market data for the token
+        const marketData = await getMarketData(tokenMint);
+        
+        // Create holding object
+        const holding: TokenHolding = {
+          wallet: wallet.publicKey.toString(),
+          tokenAddress: tokenMint,
+          amount: balance,
+          entryPrice: 0, // We don't have this data right now
+          entryTime: Date.now() - 60000, // Assume bought 1 minute ago
+          entrySOL: 0 // We don't have this data
+        };
+        
+        // Execute sell
+        const sellResult = await executeSell(holding, 1000, 10000); // 10% slippage, 0.00001 SOL priority
+        
+        // Send the transaction
+        const signature = await connection.sendRawTransaction(sellResult.transaction.serialize());
+        await connection.confirmTransaction(signature, 'confirmed');
+        
+        successCount++;
+        totalSold += balance;
+        totalSOL += sellResult.expectedSOL;
+        transactions.push(signature);
+        
+        // Log the sell
+        await logSellTransaction(
+          holding,
+          marketData,
+          sellResult.expectedSOL,
+          signature
+        );
+      }
+    } catch (error) {
+      console.error(`Failed to sell from wallet ${wallet.publicKey.toString()}:`, error);
+      failedCount++;
+    }
+  }
+  
+  return {
+    success: successCount > 0,
+    successCount,
+    failedCount,
+    totalSold,
+    totalSOL,
+    transactions
+  };
 } 

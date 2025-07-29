@@ -14,12 +14,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/U
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
 import { createToken as letsbonkCreate } from '../../services/letsbonkService';
 import { createToken as moonshotCreate } from '../../services/moonshotService';
+import { useKeymakerStore } from '@/lib/store';
 
 export default function TokenForm() {
   const { publicKey } = useWallet();
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [deployedToken, setDeployedToken] = useState<string | null>(null);
+  
+  // Zustand store
+  const { setTokenLaunchData } = useKeymakerStore();
   
   // Form fields
   const [name, setName] = useState('');
@@ -93,6 +97,17 @@ export default function TokenForm() {
     setLoading(true);
     try {
       let tokenAddr: string;
+      
+      // Update global store with token launch data
+      setTokenLaunchData({
+        name,
+        symbol,
+        decimals: parseInt(decimals),
+        supply: parseInt(supply),
+        platform: platform.toLowerCase().replace('.', '') as any,
+        lpAmount: 1, // Default LP amount
+        walletPublicKey: publicKey.toString()
+      });
       
       switch (platform) {
         case 'Raydium': {
