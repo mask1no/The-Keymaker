@@ -8,16 +8,26 @@ import { Label } from '@/components/UI/label';
 import { Badge } from '@/components/UI/badge';
 import { TrendingUp, TrendingDown, Clock, DollarSign, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { monitorAndSell, type TokenHolding, type SellConditions } from '@/services/sellService';
+import { type SellConditions, checkSellConditions } from '@/services/sellService';
+import { logger } from '@/lib/logger';
+
+interface TokenHolding {
+  tokenAddress: string;
+  tokenName: string;
+  amount: number;
+  entryPrice: number;
+  currentPrice: number;
+  pnl: number;
+  marketCap: number;
+}
 
 export function SellMonitor() {
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [holdings, setHoldings] = useState<TokenHolding[]>([]);
   const [conditions, setConditions] = useState<SellConditions>({
-    marketCapThreshold: 1000000, // $1M
-    profitPercentage: 100, // 100% gain
-    lossPercentage: 50, // 50% loss
-    timeDelay: 180, // 3 minutes
+    minPnlPercent: 100, // 100% gain
+    maxLossPercent: -50, // 50% loss
+    minHoldTime: 180, // 3 minutes
   });
   
   const [marketCapInput, setMarketCapInput] = useState('1000000');
@@ -41,12 +51,12 @@ export function SellMonitor() {
       return toast.error('No holdings to monitor');
     }
     
-    setConditions({
-      marketCapThreshold: parseFloat(marketCapInput) || undefined,
-      profitPercentage: parseFloat(profitInput) || undefined,
-      lossPercentage: parseFloat(lossInput) || undefined,
-      timeDelay: parseFloat(timeDelayInput) || undefined,
-    });
+    const updatedConditions: SellConditions = {
+      minPnlPercent: parseFloat(profitInput) || undefined,
+      maxLossPercent: parseFloat(lossInput) ? -parseFloat(lossInput) : undefined,
+      minHoldTime: parseFloat(timeDelayInput) || undefined,
+    };
+    setConditions(updatedConditions);
     
     setIsMonitoring(true);
     toast.success('Sell monitoring started');
@@ -64,7 +74,7 @@ export function SellMonitor() {
         
         // Here you would trigger the actual sell
         // For now, just log it
-        console.log('Sell signal triggered:', holding, reason);
+        logger.info('Sell signal triggered', { holding, reason });
       }
     );
     

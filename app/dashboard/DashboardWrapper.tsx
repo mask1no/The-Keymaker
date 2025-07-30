@@ -3,10 +3,10 @@ import { Skeleton } from '@/components/UI/skeleton';
 import ReactGridLayout from 'react-grid-layout';
 import { motion } from 'framer-motion';
 
-import WalletManager from '@/components/WalletManager/WalletManager';
-import BundleEngine from '@/components/BundleEngine/BundleEngine';
+import { WalletManager } from '@/components/WalletManager/WalletManager';
+import { BundleEngine } from '@/components/BundleEngine/BundleEngine';
 import MemecoinCreator from '@/components/MemecoinCreator/MemecoinCreator';
-import NotificationCenter from '@/components/Notifications/NotificationCenter';
+import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel';
 
 const DashboardWrapper = () => {
