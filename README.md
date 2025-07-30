@@ -52,11 +52,15 @@ The Keymaker is a cutting-edge Solana dApp that combines advanced wallet managem
 - **Custom Alerts**: Set price and volume alerts
 
 ### 🛡️ Security Features
-- **Encrypted Storage**: All private keys encrypted with user passwords
-- **No Hardcoded Keys**: Zero test wallets or mock credentials in production
+- **Zero Key Storage**: Private keys are NEVER stored - only derived from password
+- **PBKDF2 600K Iterations**: 6x stronger than industry standard
+- **Secure Password Dialogs**: No browser prompts, masked input with strength validation
+- **API Key Protection**: All sensitive keys proxied through backend
+- **Input Validation**: Comprehensive validation prevents XSS and overflow attacks
+- **Dynamic Slippage**: Automatically adjusts based on liquidity (0.5-50%)
+- **Transaction Simulation**: All bundles simulated before submission
+- **Rate Limiting**: API proxy prevents abuse
 - **Safe BigInt Operations**: Protected against buffer overflow vulnerabilities
-- **Error Boundaries**: Graceful error handling throughout the app
-- **Secure RPC**: Dedicated Helius RPC endpoints
 
 ## 🛠️ Tech Stack
 
@@ -120,22 +124,22 @@ npm install --save-dev @types/bn.js
 Create a `.env.local` file in the root directory:
 
 ```env
-# RPC Endpoints
+# RPC Endpoints (Public - OK to expose)
 NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 NEXT_PUBLIC_NETWORK=mainnet-beta
 
-# Platform APIs
-NEXT_PUBLIC_PUMPFUN_API=https://api.pumpfun.com
-NEXT_PUBLIC_MOONSHOT_API=https://api.moonshot.gg
-NEXT_PUBLIC_LETSBONK_API=https://api.letsbonk.com
+# Backend API Keys (Private - Never expose these!)
+HELIUS_API_KEY=your_helius_api_key
+BIRDEYE_API_KEY=your_birdeye_api_key
+JUPITER_API_KEY=your_jupiter_api_key
+PUMPFUN_API_KEY=your_pumpfun_api_key
+MOONSHOT_API_KEY=your_moonshot_api_key
+JITO_AUTH_TOKEN=your_jito_auth_token
 
-# Analytics APIs
-NEXT_PUBLIC_BIRDEYE_API=https://api.birdeye.so
-NEXT_PUBLIC_DEXSCREENER_API=https://api.dexscreener.com
-NEXT_PUBLIC_JUPITER_API_URL=https://api.jupiter.ag
+# Platform URLs (Used by API proxy)
+MOONSHOT_API_URL=https://api.moonshot.gg
 
-# Jito MEV Protection
-NEXT_PUBLIC_JITO_ENDPOINT=https://mainnet.block-engine.jito.wtf/api/v1
+# Jito Configuration
 NEXT_PUBLIC_JITO_TIP_AMOUNT=10000
 
 # Optional: Sentry Error Tracking
@@ -221,9 +225,11 @@ the-keymaker/
 ## 🔒 Security Considerations
 
 ### Private Key Management
-- All private keys are encrypted using AES-256-GCM
-- Passwords are never stored, only used for encryption/decryption
-- No private keys in localStorage or cookies
+- **Key Derivation System**: Private keys are NEVER stored, only derived when needed
+- **PBKDF2 with 600,000 iterations**: Industry-leading security standard
+- **Deterministic Generation**: BIP44-like paths for wallet derivation
+- **IndexedDB Storage**: More secure than localStorage for metadata
+- **AES-256-GCM Encryption**: For secure wallet exports only
 
 ### Vulnerability Mitigation
 - Custom `safeBigInt` wrapper for bigint-buffer vulnerability

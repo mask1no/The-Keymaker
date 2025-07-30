@@ -2,9 +2,9 @@ import { Component, ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import * as Sentry from '@sentry/nextjs';
 interface Props { children: ReactNode }
-interface State { hasError: boolean; error?: Error }
+interface State { hasError: boolean; error?: Error | null }
 export class ErrorBoundary extends Component<Props, State> {
-  state = { hasError: false, error: undefined };
+  state: State = { hasError: false, error: null };
   static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });

@@ -1,7 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import { useKeymakerStore, ExecutionStep } from '@/lib/store';
-import { Connection, LAMPORTS_PER_SOL, Keypair } from '@solana/web3.js';
+import { 
+  Connection, 
+  LAMPORTS_PER_SOL, 
+  Keypair, 
+  PublicKey,
+  Transaction
+} from '@solana/web3.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
@@ -15,9 +21,10 @@ import toast from 'react-hot-toast';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { fundWalletGroup } from '@/services/fundingService';
 import { executeBundle } from '@/services/bundleService';
-import { executeSellPlan } from '@/services/sellService';
-import { createToken } from '@/services/platformService';
-import { getKeypair } from '@/services/walletService';
+import { batchSellTokens, SellConditions } from '@/services/sellService';
+import { launchToken } from '@/services/platformService';
+import { getKeypairs } from '@/services/walletService';
+import { buildSwapTransaction } from '@/services/jupiterService';
 
 export function ControlCenter() {
   const {
@@ -40,6 +47,7 @@ export function ControlCenter() {
   const [walletPassword, setWalletPassword] = useState('');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [decryptedWallets, setDecryptedWallets] = useState<Map<string, Keypair>>(new Map());
+  const [mintAddress, setMintAddress] = useState<string>('');
 
   // Get wallets by role
   const masterWallet = wallets.find(w => w.role === 'master');
@@ -54,20 +62,19 @@ export function ControlCenter() {
   const decryptWallets = async (password: string) => {
     const decrypted = new Map<string, Keypair>();
     
-    for (const wallet of wallets) {
-      if (wallet.encryptedPrivateKey) {
-        try {
-          const keypair = await getKeypair({
-            ...wallet,
-            encryptedPrivateKey: wallet.encryptedPrivateKey
-          } as any, password);
-          if (keypair) {
-            decrypted.set(wallet.publicKey, keypair);
-          }
-        } catch (error) {
-          console.error(`Failed to decrypt wallet ${wallet.publicKey}:`, error);
+    try {
+      // Decrypt all wallets at once
+      const walletsToDecrypt = wallets.filter(w => w.encryptedPrivateKey);
+      const keypairs = await getKeypairs(walletsToDecrypt as any[], password);
+      
+      walletsToDecrypt.forEach((wallet, index) => {
+        if (keypairs[index]) {
+          decrypted.set(wallet.publicKey, keypairs[index]);
         }
-      }
+      });
+    } catch (error) {
+      console.error('Failed to decrypt wallets:', error);
+      throw error;
     }
     
     return decrypted;
@@ -112,19 +119,15 @@ export function ControlCenter() {
 
   const runExecution = async () => {
     // Get wallets with decrypted keypairs
-    const getWalletWithKeypair = (publicKey: string) => {
-      const wallet = wallets.find(w => w.publicKey === publicKey);
-      if (!wallet) return null;
-      
-      const keypair = decryptedWallets.get(publicKey) || wallet.keypair;
-      return { ...wallet, keypair };
+    const getWalletWithKeypair = (publicKey: string): Keypair | null => {
+      return decryptedWallets.get(publicKey) || null;
     };
     
     const masterWallet = wallets.find(w => w.role === 'master');
-    const masterWithKeypair = masterWallet ? getWalletWithKeypair(masterWallet.publicKey) : null;
+    const masterKeypair = masterWallet ? getWalletWithKeypair(masterWallet.publicKey) : null;
     
-    if (!masterWithKeypair?.keypair) {
-      toast.error('No master wallet with keypair available');
+    if (!masterKeypair) {
+      toast.error('No master wallet keypair available');
       return;
     }
 
@@ -133,13 +136,13 @@ export function ControlCenter() {
       return;
     }
 
-    const sniperWallets = wallets
+    const sniperKeypairs = wallets
       .filter(w => w.role === 'sniper')
       .map(w => getWalletWithKeypair(w.publicKey))
-      .filter(w => w && w.keypair) as any[];
+      .filter(kp => kp !== null) as Keypair[];
 
-    if (sniperWallets.length === 0) {
-      toast.error('No sniper wallets with keypairs available');
+    if (sniperKeypairs.length === 0) {
+      toast.error('No sniper wallet keypairs available');
       return;
     }
 
@@ -147,38 +150,41 @@ export function ControlCenter() {
     setCurrentStep(0);
 
     try {
-      // Step 1: Deploy Token
-      updateStepStatus('deploy', 'running', 'Deploying token...');
+      // Step 1: Deploy Token with Liquidity
+      updateStepStatus('deploy', 'running', 'Deploying token and creating liquidity...');
       
-      const launchWallet = wallets.find(w => w.publicKey === tokenLaunchData.walletPublicKey);
-      if (!launchWallet?.keypair) {
-        throw new Error('Launch wallet not found');
+      const launchWalletPubkey = tokenLaunchData.walletPublicKey;
+      const launchKeypair = getWalletWithKeypair(launchWalletPubkey);
+      if (!launchKeypair) {
+        throw new Error('Launch wallet keypair not found');
       }
 
-      const tokenResult = await createToken({
-        creator: launchWallet.keypair,
-        name: tokenLaunchData.name,
-        symbol: tokenLaunchData.symbol,
-        decimals: tokenLaunchData.decimals,
-        supply: tokenLaunchData.supply,
-        platform: tokenLaunchData.platform,
-        lpAmount: tokenLaunchData.lpAmount,
-        description: `${tokenLaunchData.name} - Created with The Keymaker`,
-        socials: {}
-      });
+      const tokenResult = await launchToken(
+        connection,
+        launchKeypair,
+        {
+          name: tokenLaunchData.name,
+          symbol: tokenLaunchData.symbol,
+          decimals: tokenLaunchData.decimals,
+          supply: tokenLaunchData.supply,
+          description: `${tokenLaunchData.name} - Created with The Keymaker`,
+        },
+        {
+          platform: tokenLaunchData.platform === 'pump.fun' ? 'pump.fun' : 'raydium',
+          solAmount: tokenLaunchData.lpAmount,
+          tokenAmount: tokenLaunchData.supply * 0.8, // 80% of supply to liquidity
+        }
+      );
 
-      if (!tokenResult.success) {
-        throw new Error(tokenResult.error || 'Token creation failed');
-      }
-
-      updateStepStatus('deploy', 'completed', `Token deployed: ${tokenResult.mintAddress}`);
+      setMintAddress(tokenResult.token.mintAddress);
+      updateStepStatus('deploy', 'completed', `Token deployed: ${tokenResult.token.mintAddress}`);
       setCurrentStep(1);
 
       // Step 2: Fund Wallets
       updateStepStatus('fund', 'running', 'Funding sniper wallets...');
       
       const fundingResult = await fundWalletGroup(
-        masterWithKeypair.keypair,
+        masterKeypair,
         sniperWallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
         10,  // total funding
         0.5, // min SOL
@@ -200,21 +206,46 @@ export function ControlCenter() {
       setCurrentStep(3);
 
       // Step 4: Bundle Buys
-      updateStepStatus('bundle', 'running', 'Executing bundle buys...');
+      updateStepStatus('bundle', 'running', 'Creating and executing bundle buys...');
       
-      // TODO: Create actual swap transactions here
-      // For now, we'll simulate bundle execution
-      const transactions: any[] = []; // Would be populated with actual swap transactions
-      const signers = sniperWallets.map(w => w.keypair!).filter(Boolean);
-      const walletRoles = sniperWallets.map(w => ({ 
-        publicKey: w.publicKey, 
-        role: w.role 
-      }));
+      // Create swap transactions for each sniper wallet
+      const transactions: Transaction[] = [];
+      const mintPubkey = new PublicKey(tokenResult.token.mintAddress);
+      
+      for (let i = 0; i < sniperKeypairs.length; i++) {
+        const keypair = sniperKeypairs[i];
+        const wallet = sniperWallets[i];
+        
+        // Calculate buy amount (use part of the funded amount)
+        const buyAmountSol = wallet.balance * 0.8 / LAMPORTS_PER_SOL; // Use 80% of balance
+        
+        try {
+          // Build swap transaction (SOL -> Token)
+          const swapTx = await buildSwapTransaction(
+            'So11111111111111111111111111111111111111112', // SOL
+            mintPubkey.toBase58(),
+            buyAmountSol * LAMPORTS_PER_SOL,
+            keypair.publicKey.toBase58(),
+            100, // 1% slippage
+            10000 // priority fee
+          );
+          
+          // Convert versioned transaction to legacy transaction for bundle
+          const legacyTx = Transaction.from(swapTx.serialize());
+          transactions.push(legacyTx);
+        } catch (error) {
+          console.error(`Failed to create swap transaction for wallet ${i}:`, error);
+        }
+      }
+
+      if (transactions.length === 0) {
+        throw new Error('No swap transactions created');
+      }
 
       const bundleResult = await executeBundle(
         transactions,
-        walletRoles,
-        signers,
+        sniperWallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+        sniperKeypairs,
         {
           connection,
           tipAmount: tipAmount * LAMPORTS_PER_SOL,
@@ -238,14 +269,26 @@ export function ControlCenter() {
         // Step 6: Sell
         updateStepStatus('sell', 'running', 'Executing sells from sniper wallets...');
         
-        const sellResult = await executeSellPlan({
-          wallets: sniperWallets.map(w => w.keypair!).filter(Boolean),
-          tokenMint: tokenResult.mintAddress!,
-          connection,
-          sellCondition: { timeDelay: 0 }
-        });
+        // Define sell conditions based on strategy
+        const sellConditions: SellConditions = {
+          minPnlPercent: executionStrategy === 'flash' ? 50 : 100, // 50% for flash, 100% for stealth
+          maxLossPercent: 20, // 20% stop loss
+          minHoldTime: 0,
+          maxHoldTime: 600, // 10 minutes max
+        };
 
-        updateStepStatus('sell', 'completed', `Sold from ${sellResult.successCount} wallets`);
+        const sellResults = await batchSellTokens(
+          connection,
+          sniperKeypairs,
+          mintPubkey,
+          sellConditions,
+          100 // 1% slippage
+        );
+
+        const successCount = sellResults.filter(r => r.success).length;
+        const totalProceeds = sellResults.reduce((sum, r) => sum + r.outputAmount, 0);
+
+        updateStepStatus('sell', 'completed', `Sold from ${successCount} wallets, ${totalProceeds.toFixed(2)} SOL earned`);
       } else {
         updateStepStatus('wait-sells', 'completed', 'Manual mode - skipping auto-sell');
         updateStepStatus('sell', 'completed', 'Manual mode - user controls sells');
@@ -358,6 +401,23 @@ export function ControlCenter() {
               </>
             )}
           </Button>
+
+          {/* Show mint address if token is deployed */}
+          {mintAddress && (
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm">
+                <strong>Token Mint:</strong>{' '}
+                <a 
+                  href={`https://solscan.io/token/${mintAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  {mintAddress.slice(0, 8)}...{mintAddress.slice(-8)}
+                </a>
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

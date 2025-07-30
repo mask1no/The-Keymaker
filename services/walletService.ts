@@ -216,6 +216,66 @@ export async function getKeypair(
 }
 
 /**
+ * Get multiple keypairs for bundle signing
+ */
+export async function getKeypairs(
+  walletsData: WalletData[],
+  password: string
+): Promise<Keypair[]> {
+  try {
+    return Promise.all(
+      walletsData.map(wallet => getKeypair(wallet, password))
+    );
+  } catch (error) {
+    throw new Error('Failed to decrypt wallets: Invalid password');
+  }
+}
+
+/**
+ * Get keypairs for specific roles
+ */
+export async function getKeypairsByRole(
+  walletsData: WalletData[],
+  password: string,
+  roles: ('master' | 'dev' | 'sniper' | 'normal')[]
+): Promise<{ wallet: WalletData; keypair: Keypair }[]> {
+  const filteredWallets = walletsData.filter(w => roles.includes(w.role));
+  const keypairs = await getKeypairs(filteredWallets, password);
+  
+  return filteredWallets.map((wallet, index) => ({
+    wallet,
+    keypair: keypairs[index]
+  }));
+}
+
+/**
+ * Create multiple wallets at once
+ */
+export async function createWalletBatch(
+  password: string,
+  count: number,
+  roles: ('master' | 'dev' | 'sniper' | 'normal')[]
+): Promise<WalletData[]> {
+  if (!password || password.length < 8) {
+    throw new Error('Password must be at least 8 characters');
+  }
+  
+  if (count > 20) {
+    throw new Error('Cannot create more than 20 wallets at once');
+  }
+  
+  const wallets: WalletData[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const role = roles[i % roles.length];
+    const wallet = await createWallet(password, role);
+    wallets.push(wallet);
+  }
+  
+  return wallets;
+}
+
+/**
  * Export wallet group to encrypted .keymaker file
  */
 export async function exportWalletGroup(

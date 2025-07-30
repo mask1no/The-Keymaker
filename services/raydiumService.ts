@@ -104,8 +104,7 @@ export async function createToken(
       transactionSignature: mintSig
     });
     
-    console.log('Token created successfully:', mint.publicKey.toBase58());
-    console.log('Note: Metadata creation requires @metaplex-foundation/mpl-token-metadata package');
+    // Token created successfully - metadata requires @metaplex-foundation/mpl-token-metadata package
     
     return mint.publicKey.toBase58();
   } catch (error) {

@@ -1,21 +1,34 @@
-import { Connection, Transaction, Signer, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { 
+  Connection, 
+  Transaction, 
+  Signer, 
+  PublicKey, 
+  SystemProgram, 
+  LAMPORTS_PER_SOL,
+  Keypair,
+  VersionedTransaction,
+  TransactionMessage,
+  TransactionInstruction
+} from '@solana/web3.js';
 import * as Sentry from '@sentry/nextjs';
 import axios from 'axios';
-import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT, JITO_TIP_ACCOUNTS, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
-import { logBundleExecution } from './executionLogService';
 import bs58 from 'bs58';
+// jito-ts imports - using REST API approach instead
+// import { 
+//   SearcherClient,
+//   searcherClient,
+//   Bundle,
+//   bundleStatusesURL,
+//   JitoAuthKeypair
+// } from 'jito-ts';
+import { 
+  NEXT_PUBLIC_HELIUS_RPC, 
+  JITO_TIP_ACCOUNTS, 
+  NEXT_PUBLIC_BIRDEYE_API_KEY 
+} from '../constants';
+import { logBundleExecution } from './executionLogService';
 
 // Jito types
-interface JitoResponse {
-  jsonrpc: string;
-  id: number;
-  result?: string;
-  error?: {
-    code: number;
-    message: string;
-  };
-}
-
 interface JitoBundleStatus {
   bundle_id: string;
   status: 'pending' | 'landed' | 'failed' | 'invalid';
@@ -42,6 +55,26 @@ type ExecutionResult = {
     executionTime: number;
   };
 };
+
+// Jito REST API configuration
+const JITO_API_URL = 'https://mainnet.block-engine.jito.wtf/api/v1';
+
+/**
+ * Get Jito API headers
+ */
+function getJitoHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Add auth token if available
+  const authToken = process.env.JITO_AUTH_TOKEN;
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  
+  return headers;
+}
 
 // Select random Jito tip account
 function getRandomTipAccount(): PublicKey {
@@ -156,91 +189,143 @@ async function previewBundle(
   }));
 }
 
-async function createTipTransaction(
+/**
+ * Create a tip instruction
+ */
+function createTipInstruction(
   payer: PublicKey,
-  blockhash: string,
   tipAmount = 10000 // 0.00001 SOL default
-): Promise<Transaction> {
-  const tipTx = new Transaction();
-  tipTx.recentBlockhash = blockhash;
-  tipTx.feePayer = payer;
-  
-  tipTx.add(
-    SystemProgram.transfer({
-      fromPubkey: payer,
-      toPubkey: getRandomTipAccount(),
-      lamports: tipAmount,
-    })
-  );
-  
-  return tipTx;
+): TransactionInstruction {
+  return SystemProgram.transfer({
+    fromPubkey: payer,
+    toPubkey: getRandomTipAccount(),
+    lamports: tipAmount,
+  });
 }
 
+/**
+ * Convert legacy transactions to versioned transactions
+ */
+async function convertToVersionedTransactions(
+  txs: Transaction[],
+  connection: Connection,
+  tipAmount?: number,
+  feePayer?: PublicKey
+): Promise<VersionedTransaction[]> {
+  const { blockhash } = await connection.getLatestBlockhash('confirmed');
+  const versionedTxs: VersionedTransaction[] = [];
+  
+  for (let i = 0; i < txs.length; i++) {
+    const tx = txs[i];
+    const instructions = [...tx.instructions];
+    
+    // Add tip instruction to the last transaction
+    if (i === txs.length - 1 && tipAmount) {
+      instructions.push(createTipInstruction(feePayer || tx.feePayer!, tipAmount));
+    }
+    
+    const messageV0 = new TransactionMessage({
+      payerKey: tx.feePayer!,
+      recentBlockhash: blockhash,
+      instructions,
+    }).compileToV0Message();
+    
+    versionedTxs.push(new VersionedTransaction(messageV0));
+  }
+  
+  return versionedTxs;
+}
+
+/**
+ * Submit bundle using Jito REST API
+ */
 async function submitBundleToJito(
-  bundle: string[], // Base64 encoded transactions
-  endpoint: string
-): Promise<JitoResponse> {
+  transactions: VersionedTransaction[]
+): Promise<string> {
   try {
+    // Serialize transactions
+    const serializedTransactions = transactions.map(tx => 
+      bs58.encode(tx.serialize())
+    );
+    
+    // Submit bundle via REST API
     const response = await axios.post(
-      `${endpoint}/api/v1/bundles`,
+      `${JITO_API_URL}/bundles`,
       {
         jsonrpc: '2.0',
         id: 1,
         method: 'sendBundle',
-        params: [bundle]
+        params: [serializedTransactions]
       },
       {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getJitoHeaders(),
         timeout: 10000
       }
     );
     
-    return response.data;
+    if (response.data.error) {
+      throw new Error(`Jito error: ${response.data.error.message}`);
+    }
+    
+    const bundleId = response.data.result;
+    if (!bundleId) {
+      throw new Error('No bundle ID returned from Jito');
+    }
+    
+    return bundleId;
   } catch (error: any) {
     console.error('Jito submission error:', error.response?.data || error.message);
     throw error;
   }
 }
 
-async function getBundleStatus(
+/**
+ * Monitor bundle status
+ */
+async function monitorBundleStatus(
   bundleId: string,
-  endpoint: string
-): Promise<JitoBundleStatus | null> {
-  try {
-    const response = await axios.post(
-      `${endpoint}/api/v1/bundles`,
-      {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getBundleStatus',
-        params: [bundleId]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 5000
+  timeout = 30000
+): Promise<JitoBundleStatus> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < timeout) {
+    try {
+      const response = await axios.get(
+        `${JITO_API_URL}/bundles/${bundleId}`,
+        {
+          headers: getJitoHeaders(),
+          timeout: 5000
+        }
+      );
+      const status = response.data;
+      
+      if (status.status === 'landed' || status.status === 'failed' || status.status === 'invalid') {
+        return status;
       }
-    );
+    } catch (error) {
+      console.error('Error checking bundle status:', error);
+    }
     
-    return response.data.result;
-  } catch {
-    return null;
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
+  
+  return { bundle_id: bundleId, status: 'pending' };
 }
 
 async function executeBundle(
   txs: Transaction[],
   walletRoles: { publicKey: string; role: string }[],
-  signers: Signer[],
+  signers: (Signer | Keypair | null)[],
   options: { 
     feePayer?: PublicKey;
     tipAmount?: number;
     retries?: number;
     logger?: (msg: string) => void;
     connection?: Connection;
+    walletAdapter?: {
+      publicKey: PublicKey;
+      signTransaction: (tx: Transaction) => Promise<Transaction>;
+    };
   } = {}
 ): Promise<ExecutionResult> {
   const conn = options.connection || new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
@@ -253,8 +338,8 @@ async function executeBundle(
     throw new Error('No transactions to bundle');
   }
   
-  if (txs.length > 20) {
-    throw new Error('Bundle size exceeds maximum of 20 transactions');
+  if (txs.length > 5) {
+    throw new Error('Bundle size exceeds maximum of 5 transactions');
   }
   
   const startTime = Date.now();
@@ -273,72 +358,92 @@ async function executeBundle(
     // Sort transactions by role priority
     const sortedTxs = await buildBundle(txs, walletRoles);
     
-    // Create tip transaction
-    const tipTx = await createTipTransaction(
-      options.feePayer || sortedTxs[0].feePayer!,
-      blockhash,
-      tipAmount
+    // Convert to versioned transactions with tip
+    const versionedTxs = await convertToVersionedTransactions(
+      sortedTxs,
+      conn,
+      tipAmount,
+      options.feePayer
     );
     
-    // Update all transactions with latest blockhash
-    const allTxs = [tipTx, ...sortedTxs];
-    allTxs.forEach(tx => {
-      tx.recentBlockhash = blockhash;
-    });
-    
     // Sign all transactions
-    allTxs.forEach((tx, i) => {
-      if (signers[i]) {
-        tx.sign(signers[i]);
+    for (let i = 0; i < versionedTxs.length; i++) {
+      const vTx = versionedTxs[i];
+      const signer = signers[i];
+      
+      if (signer === null && options.walletAdapter) {
+        // Use wallet adapter for signing
+        const legacyTx = Transaction.from(vTx.serialize());
+        const signedTx = await options.walletAdapter.signTransaction(legacyTx);
+        versionedTxs[i] = VersionedTransaction.deserialize(signedTx.serialize());
+      } else if (signer) {
+        // Sign with keypair
+        vTx.sign([signer as Keypair]);
       }
-    });
+    }
     
     // Get signatures before submission
-    signatures = allTxs.map(tx => bs58.encode(tx.signature || new Uint8Array()));
+    signatures = versionedTxs.map(tx => bs58.encode(tx.signatures[0] || new Uint8Array()));
     
-    // Try Jito submission
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        logger(`Attempt ${attempt}: Submitting bundle to Jito for slot ${slotTargeted}`);
-        
-        // Serialize transactions
-        const serializedTxs = allTxs.map(tx => tx.serialize().toString('base64'));
-        
-        // Submit to Jito
-        const jitoEndpoint = NEXT_PUBLIC_JITO_ENDPOINT;
-        const response = await submitBundleToJito(serializedTxs, jitoEndpoint);
-        
-        if (response.error) {
-          throw new Error(`Jito error: ${response.error.message}`);
-        }
-        
-        bundleId = response.result;
-        if (!bundleId) {
-          throw new Error('No bundle ID returned from Jito');
-        }
-        logger(`Bundle submitted with ID: ${bundleId}`);
-        
-        // Wait for bundle to land (with timeout)
-        const timeout = 30000; // 30 seconds
-        const startWait = Date.now();
-        let landed = false;
-        
-        while (Date.now() - startWait < timeout) {
-          const status = await getBundleStatus(bundleId, jitoEndpoint);
+    // Simulate transactions before submission
+    logger('Simulating bundle transactions...');
+    const simulationResults = await Promise.all(
+      versionedTxs.map(async (tx, index) => {
+        try {
+          const result = await conn.simulateTransaction(tx, {
+            commitment: 'processed',
+            replaceRecentBlockhash: false,
+          });
           
-          if (status?.status === 'landed') {
-            landed = true;
-            slotTargeted = status.landed_slot || slotTargeted;
-            logger(`Bundle landed in slot ${slotTargeted}`);
-            break;
-          } else if (status?.status === 'failed' || status?.status === 'invalid') {
-            throw new Error(`Bundle ${status.status}`);
+          if (result.value.err) {
+            logger(`Transaction ${index} simulation failed: ${JSON.stringify(result.value.err)}`);
+            return { success: false, error: result.value.err, logs: result.value.logs };
           }
           
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Check for warnings in logs
+          const logs = result.value.logs || [];
+          const warnings = logs.filter(log => 
+            log.includes('warning') || 
+            log.includes('insufficient') ||
+            log.includes('failed')
+          );
+          
+          if (warnings.length > 0) {
+            logger(`Transaction ${index} simulation warnings: ${warnings.join(', ')}`);
+          }
+          
+          return { success: true, logs };
+        } catch (error) {
+          logger(`Transaction ${index} simulation error: ${(error as Error).message}`);
+          return { success: false, error: (error as Error).message };
         }
+      })
+    );
+    
+    // Check if all simulations passed
+    const failedSimulations = simulationResults.filter(r => !r.success);
+    if (failedSimulations.length > 0) {
+      throw new Error(`${failedSimulations.length} transactions failed simulation. Bundle not submitted.`);
+    }
+    
+    logger('All transactions simulated successfully');
+    
+    // Try Jito submission with retries
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        logger(`Attempt ${attempt}: Submitting bundle to Jito`);
         
-        if (landed) {
+        // Submit bundle using Jito REST API
+        bundleId = await submitBundleToJito(versionedTxs);
+        logger(`Bundle submitted with ID: ${bundleId}`);
+        
+        // Monitor bundle status
+        const status = await monitorBundleStatus(bundleId);
+        
+        if (status.status === 'landed') {
+          slotTargeted = status.landed_slot || slotTargeted;
+          logger(`Bundle landed in slot ${slotTargeted}`);
+          
           // Check transaction confirmations
           const confirmPromises = signatures.map(async (sig) => {
             try {
@@ -357,6 +462,8 @@ async function executeBundle(
             logger(`Bundle executed successfully: ${successCount}/${results.length} confirmed`);
             break;
           }
+        } else if (status.status === 'failed' || status.status === 'invalid') {
+          throw new Error(`Bundle ${status.status}`);
         }
         
         if (attempt < retries) {
@@ -379,7 +486,7 @@ async function executeBundle(
           for (let i = 0; i < sortedTxs.length; i++) {
             for (let fbAttempt = 1; fbAttempt <= 3; fbAttempt++) {
               try {
-                const sig = await conn.sendTransaction(sortedTxs[i], [signers[i]], {
+                const sig = await conn.sendTransaction(sortedTxs[i], [signers[i] as Signer], {
                   skipPreflight: false,
                   maxRetries: 2,
                   preflightCommitment: 'confirmed'

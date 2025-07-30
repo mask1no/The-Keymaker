@@ -1,361 +1,523 @@
-import { VersionedTransaction } from '@solana/web3.js';
-import { getTokenPrice, buildSwapTransaction, WSOL_MINT, convertToLamports } from './jupiterService';
-import { logSellEvent, logPnL } from './executionLogService';
-import { trackSell } from './pnlService';
-import { NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  VersionedTransaction,
+} from '@solana/web3.js';
+import {
+  getAccount,
+  getAssociatedTokenAddress,
+} from '@solana/spl-token';
 import axios from 'axios';
-import { Keypair, PublicKey, Connection } from '@solana/web3.js';
+import * as Sentry from '@sentry/nextjs';
+import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants';
+import { logSellEvent } from './executionLogService';
 
 export interface SellConditions {
-  marketCapThreshold?: number;  // Sell when market cap reaches this value
-  profitPercentage?: number;    // Sell when profit reaches this percentage
-  lossPercentage?: number;      // Sell when loss reaches this percentage (stop loss)
-  timeDelay?: number;           // Sell after this many seconds
-  priceTarget?: number;         // Sell when price reaches this target
+  // PnL conditions
+  minPnlPercent?: number;     // Minimum profit percentage before selling
+  maxLossPercent?: number;    // Maximum loss percentage (stop loss)
+  
+  // Market cap conditions
+  targetMarketCap?: number;   // Target market cap in USD
+  minMarketCap?: number;      // Minimum market cap before selling
+  
+  // Time conditions
+  minHoldTime?: number;       // Minimum time to hold in seconds
+  maxHoldTime?: number;       // Maximum time to hold in seconds
+  
+  // Price conditions
+  targetPrice?: number;       // Target token price in USD
+  stopLossPrice?: number;     // Stop loss price in USD
+  
+  // Volume conditions
+  minVolume24h?: number;      // Minimum 24h volume in USD
+  
+  // Manual trigger
+  manualSell?: boolean;       // Force sell regardless of conditions
 }
 
-export interface TokenHolding {
-  wallet: string;
-  tokenAddress: string;
-  amount: number;
-  entryPrice: number;
-  entryTime: number;
-  entrySOL: number;
+export interface SellParams {
+  wallet: Keypair;
+  tokenMint: PublicKey;
+  amount: number;             // Amount of tokens to sell
+  slippage?: number;          // Slippage tolerance (default 1%)
+  conditions: SellConditions;
+  priority?: 'low' | 'medium' | 'high' | 'veryHigh';
 }
 
-interface MarketData {
+export interface SellResult {
+  success: boolean;
+  txSignature?: string;
+  inputAmount: number;
+  outputAmount: number;       // SOL received
+  priceImpact: number;
+  pnlPercent?: number;
+  executionPrice: number;
+  error?: string;
+}
+
+export interface TokenPriceInfo {
   price: number;
   marketCap: number;
-  liquidity: number;
   volume24h: number;
   priceChange24h: number;
 }
 
-export async function getMarketData(
-  tokenAddress: string
-): Promise<MarketData> {
+/**
+ * Get token price information from Jupiter
+ */
+export async function getTokenPrice(
+  tokenMint: string
+): Promise<TokenPriceInfo | null> {
   try {
-    // Try Birdeye first
-    if (NEXT_PUBLIC_BIRDEYE_API_KEY) {
-      const response = await axios.get(
-        `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress}`,
-        {
-          headers: {
-            'X-API-KEY': NEXT_PUBLIC_BIRDEYE_API_KEY,
-            'Accept': 'application/json'
-          },
-          timeout: 5000
-        }
-      );
-      
-      const data = response.data?.data;
-      if (data) {
-        return {
-          price: data.price || 0,
-          marketCap: data.mc || 0,
-          liquidity: data.liquidity || 0,
-          volume24h: data.v24hUSD || 0,
-          priceChange24h: data.v24hChangePercent || 0
-        };
-      }
-    }
-    
-    // Fallback to Jupiter price
-    const price = await getTokenPrice(tokenAddress, 'USDC');
-    return {
-      price,
-      marketCap: 0, // Would need supply to calculate
-      liquidity: 0,
-      volume24h: 0,
-      priceChange24h: 0
-    };
-  } catch (error) {
-    console.error('Failed to get market data:', error);
-    throw error;
-  }
-}
-
-export function checkSellConditions(
-  holding: TokenHolding,
-  marketData: MarketData,
-  conditions: SellConditions
-): { shouldSell: boolean; reason: string } {
-  const currentTime = Date.now();
-  const holdTime = (currentTime - holding.entryTime) / 1000; // in seconds
-  
-  // Calculate current value and P/L
-  const currentValue = holding.amount * marketData.price;
-  const profitLoss = currentValue - holding.entrySOL;
-  const profitPercentage = (profitLoss / holding.entrySOL) * 100;
-  
-  // Check market cap threshold
-  if (conditions.marketCapThreshold && marketData.marketCap >= conditions.marketCapThreshold) {
-    return { 
-      shouldSell: true, 
-      reason: `Market cap reached ${conditions.marketCapThreshold.toLocaleString()}` 
-    };
-  }
-  
-  // Check profit target
-  if (conditions.profitPercentage && profitPercentage >= conditions.profitPercentage) {
-    return { 
-      shouldSell: true, 
-      reason: `Profit target reached: ${profitPercentage.toFixed(2)}%` 
-    };
-  }
-  
-  // Check stop loss
-  if (conditions.lossPercentage && profitPercentage <= -conditions.lossPercentage) {
-    return { 
-      shouldSell: true, 
-      reason: `Stop loss triggered: ${profitPercentage.toFixed(2)}%` 
-    };
-  }
-  
-  // Check time delay
-  if (conditions.timeDelay && holdTime >= conditions.timeDelay) {
-    return { 
-      shouldSell: true, 
-      reason: `Time delay reached: ${holdTime.toFixed(0)}s` 
-    };
-  }
-  
-  // Check price target
-  if (conditions.priceTarget && marketData.price >= conditions.priceTarget) {
-    return { 
-      shouldSell: true, 
-      reason: `Price target reached: $${marketData.price.toFixed(6)}` 
-    };
-  }
-  
-  return { shouldSell: false, reason: '' };
-}
-
-export async function executeSell(
-  holding: TokenHolding,
-  slippageBps = 100, // 1% default
-  priorityFee = 10000 // 0.00001 SOL default
-): Promise<{ 
-  transaction: VersionedTransaction; 
-  expectedSOL: number;
-  signature?: string;
-}> {
-  try {
-    // Get token decimals (assuming 9 for now, should fetch from chain)
-    const decimals = 9;
-    const amountLamports = convertToLamports(holding.amount, decimals);
-    
-    // Build sell transaction
-    const swapTx = await buildSwapTransaction(
-      holding.tokenAddress,
-      WSOL_MINT,
-      amountLamports,
-      holding.wallet,
-      slippageBps,
-      priorityFee
+    const response = await axios.get(
+      `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}`
     );
     
-    // Get expected output
-    const marketData = await getMarketData(holding.tokenAddress);
-    const expectedSOL = holding.amount * marketData.price;
+    const data = response.data?.data?.[tokenMint];
+    if (!data) return null;
     
     return {
-      transaction: swapTx,
-      expectedSOL
+      price: data.price || 0,
+      marketCap: data.marketCap || 0,
+      volume24h: data.volume24h || 0,
+      priceChange24h: data.priceChange24h || 0,
     };
   } catch (error) {
-    console.error('Failed to build sell transaction:', error);
+    console.error('Failed to get token price:', error);
+    return null;
+  }
+}
+
+/**
+ * Calculate PnL percentage based on current price vs entry price
+ */
+export function calculatePnL(
+  entryPrice: number,
+  currentPrice: number,
+  amount: number
+): number {
+  if (entryPrice === 0) return 0;
+  const currentValue = currentPrice * amount;
+  const entryValue = entryPrice * amount;
+  return ((currentValue - entryValue) / entryValue) * 100;
+}
+
+/**
+ * Check if sell conditions are met
+ */
+export async function checkSellConditions(
+  tokenMint: string,
+  conditions: SellConditions,
+  entryPrice?: number,
+  entryTime?: number
+): Promise<{ shouldSell: boolean; reason?: string }> {
+  // Manual sell overrides all conditions
+  if (conditions.manualSell) {
+    return { shouldSell: true, reason: 'Manual sell triggered' };
+  }
+  
+  // Get current token info
+  const tokenInfo = await getTokenPrice(tokenMint);
+  if (!tokenInfo) {
+    return { shouldSell: false, reason: 'Unable to fetch token price' };
+  }
+  
+  // Check time conditions
+  if (entryTime) {
+    const holdTime = (Date.now() - entryTime) / 1000; // Convert to seconds
+    
+    if (conditions.minHoldTime && holdTime < conditions.minHoldTime) {
+      return { shouldSell: false, reason: `Minimum hold time not met (${holdTime}s < ${conditions.minHoldTime}s)` };
+    }
+    
+    if (conditions.maxHoldTime && holdTime >= conditions.maxHoldTime) {
+      return { shouldSell: true, reason: `Maximum hold time reached (${holdTime}s)` };
+    }
+  }
+  
+  // Check PnL conditions
+  if (entryPrice && (conditions.minPnlPercent || conditions.maxLossPercent)) {
+    const pnl = calculatePnL(entryPrice, tokenInfo.price, 1);
+    
+    if (conditions.minPnlPercent && pnl >= conditions.minPnlPercent) {
+      return { shouldSell: true, reason: `Target profit reached (${pnl.toFixed(2)}%)` };
+    }
+    
+    if (conditions.maxLossPercent && pnl <= -conditions.maxLossPercent) {
+      return { shouldSell: true, reason: `Stop loss triggered (${pnl.toFixed(2)}%)` };
+    }
+  }
+  
+  // Check market cap conditions
+  if (conditions.targetMarketCap && tokenInfo.marketCap >= conditions.targetMarketCap) {
+    return { shouldSell: true, reason: `Target market cap reached ($${tokenInfo.marketCap.toLocaleString()})` };
+  }
+  
+  if (conditions.minMarketCap && tokenInfo.marketCap < conditions.minMarketCap) {
+    return { shouldSell: false, reason: `Minimum market cap not met ($${tokenInfo.marketCap.toLocaleString()})` };
+  }
+  
+  // Check price conditions
+  if (conditions.targetPrice && tokenInfo.price >= conditions.targetPrice) {
+    return { shouldSell: true, reason: `Target price reached ($${tokenInfo.price})` };
+  }
+  
+  if (conditions.stopLossPrice && tokenInfo.price <= conditions.stopLossPrice) {
+    return { shouldSell: true, reason: `Stop loss price triggered ($${tokenInfo.price})` };
+  }
+  
+  // Check volume conditions
+  if (conditions.minVolume24h && tokenInfo.volume24h < conditions.minVolume24h) {
+    return { shouldSell: false, reason: `Minimum 24h volume not met ($${tokenInfo.volume24h.toLocaleString()})` };
+  }
+  
+  return { shouldSell: false, reason: 'No sell conditions met' };
+}
+
+/**
+ * Calculate dynamic slippage based on liquidity and amount
+ */
+async function calculateDynamicSlippage(
+  inputMint: string,
+  outputMint: string,
+  amount: number
+): Promise<number> {
+  try {
+    // Get initial quote to assess liquidity
+    const testResponse = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote`, {
+      params: {
+        inputMint,
+        outputMint,
+        amount: Math.floor(amount).toString(),
+        slippageBps: 100, // 1% for test
+        onlyDirectRoutes: false,
+        asLegacyTransaction: false,
+      },
+    });
+    
+    const quote = testResponse.data;
+    const priceImpact = parseFloat(quote.priceImpactPct) || 0;
+    
+    // Calculate slippage based on price impact
+    let slippageBps: number;
+    
+    if (priceImpact < 0.1) {
+      // Very liquid, low impact
+      slippageBps = 50; // 0.5%
+    } else if (priceImpact < 0.5) {
+      // Good liquidity
+      slippageBps = 100; // 1%
+    } else if (priceImpact < 1) {
+      // Moderate liquidity
+      slippageBps = 200; // 2%
+    } else if (priceImpact < 3) {
+      // Low liquidity
+      slippageBps = 300; // 3%
+    } else if (priceImpact < 5) {
+      // Very low liquidity
+      slippageBps = 500; // 5%
+    } else {
+      // Extremely low liquidity
+      slippageBps = Math.min(1000, Math.ceil(priceImpact * 100 + 200)); // Up to 10%
+    }
+    
+    // Add extra buffer for volatile tokens
+    if (priceImpact > 1) {
+      slippageBps = Math.min(5000, slippageBps * 1.5); // Max 50%
+    }
+    
+    console.log(`Dynamic slippage for ${amount} tokens: ${slippageBps} bps (price impact: ${priceImpact}%)`);
+    return slippageBps;
+  } catch (error) {
+    console.error('Error calculating dynamic slippage:', error);
+    // Fallback to conservative default
+    return 300; // 3% default
+  }
+}
+
+/**
+ * Get Jupiter swap quote
+ */
+async function getSwapQuote(
+  inputMint: string,
+  outputMint: string,
+  amount: number,
+  slippage?: number // Optional, will calculate dynamically if not provided
+) {
+  try {
+    // Calculate dynamic slippage if not provided
+    const slippageBps = slippage ?? await calculateDynamicSlippage(inputMint, outputMint, amount);
+    
+    const response = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote`, {
+      params: {
+        inputMint,
+        outputMint,
+        amount: Math.floor(amount).toString(),
+        slippageBps,
+        onlyDirectRoutes: false,
+        asLegacyTransaction: false,
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get swap quote:', error);
     throw error;
   }
 }
 
-export async function logSellTransaction(
-  holding: TokenHolding,
-  marketData: MarketData,
-  solEarned: number,
-  transactionSignature: string
-): Promise<void> {
+/**
+ * Execute swap transaction via Jupiter
+ */
+async function executeSwap(
+  connection: Connection,
+  wallet: Keypair,
+  quoteResponse: any,
+  priorityLevel?: 'low' | 'medium' | 'high' | 'veryHigh'
+): Promise<string> {
   try {
-    // Log sell event
-    await logSellEvent({
-      wallet: holding.wallet,
-      tokenAddress: holding.tokenAddress,
-      amountSold: holding.amount.toString(),
-      solEarned,
-      marketCap: marketData.marketCap,
-      profitPercentage: ((solEarned - holding.entrySOL) / holding.entrySOL) * 100,
-      transactionSignature
+    // Get serialized transaction from Jupiter
+    const { data } = await axios.post(
+      `${NEXT_PUBLIC_JUPITER_API_URL}/swap`,
+      {
+        quoteResponse,
+        userPublicKey: wallet.publicKey.toBase58(),
+        wrapAndUnwrapSol: true,
+        prioritizationFeeLamports: priorityLevel === 'veryHigh' ? 1000000 : 
+                                   priorityLevel === 'high' ? 500000 :
+                                   priorityLevel === 'medium' ? 100000 : 10000,
+      }
+    );
+    
+    const { swapTransaction } = data;
+    
+    // Deserialize and sign transaction
+    const transactionBuf = Buffer.from(swapTransaction, 'base64');
+    const transaction = VersionedTransaction.deserialize(transactionBuf);
+    transaction.sign([wallet]);
+    
+    // Send transaction
+    const latestBlockhash = await connection.getLatestBlockhash();
+    const rawTransaction = transaction.serialize();
+    const txSignature = await connection.sendRawTransaction(rawTransaction, {
+      skipPreflight: false,
+      maxRetries: 2,
     });
     
-    // Log P/L
-    await logPnL({
-      wallet: holding.wallet,
-      tokenAddress: holding.tokenAddress,
-      entryPrice: holding.entryPrice,
-      exitPrice: marketData.price,
-      solInvested: holding.entrySOL,
-      solReturned: solEarned,
-      profitLoss: solEarned - holding.entrySOL,
-      profitPercentage: ((solEarned - holding.entrySOL) / holding.entrySOL) * 100,
-      holdTime: Math.floor((Date.now() - holding.entryTime) / 1000)
-    });
+    // Confirm transaction
+    await connection.confirmTransaction({
+      signature: txSignature,
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    }, 'confirmed');
     
-    // Track in PnL service
-    await trackSell(holding.wallet, holding.tokenAddress, solEarned, holding.amount);
+    return txSignature;
   } catch (error) {
-    console.error('Failed to log sell transaction:', error);
+    console.error('Swap execution failed:', error);
+    throw error;
   }
 }
 
-export function monitorAndSell(
-  holdings: TokenHolding[],
-  conditions: SellConditions,
-  checkInterval = 30000, // Check every 30 seconds
-  onSellSignal?: (holding: TokenHolding, reason: string) => void
-): () => void {
-  console.log(`Monitoring ${holdings.length} positions for sell conditions...`);
-  
-  const interval = setInterval(async () => {
-    for (const holding of holdings) {
-      try {
-        const marketData = await getMarketData(holding.tokenAddress);
-        const { shouldSell, reason } = checkSellConditions(holding, marketData, conditions);
-        
-        if (shouldSell) {
-          console.log(`Sell signal for ${holding.tokenAddress}: ${reason}`);
-          
-          // Call callback if provided
-          if (onSellSignal) {
-            onSellSignal(holding, reason);
-          }
-        }
-      } catch (error) {
-        console.error(`Error checking ${holding.tokenAddress}:`, error);
-      }
-    }
-  }, checkInterval);
-  
-  // Return cleanup function
-  return () => clearInterval(interval);
-}
-
-export function calculateOptimalSellTime(
-  priceHistory: { time: number; price: number }[],
-  volumeHistory: { time: number; volume: number }[]
-): number {
-  // Simple momentum-based sell signal
-  if (priceHistory.length < 3) return 0;
-  
-  const recentPrices = priceHistory.slice(-3);
-  const priceChange1 = (recentPrices[1].price - recentPrices[0].price) / recentPrices[0].price;
-  const priceChange2 = (recentPrices[2].price - recentPrices[1].price) / recentPrices[1].price;
-  
-  // Declining momentum
-  if (priceChange2 < priceChange1 * 0.5) {
-    return Date.now(); // Sell now
-  }
-  
-  // Volume analysis
-  if (volumeHistory.length >= 2) {
-    const recentVolume = volumeHistory[volumeHistory.length - 1].volume;
-    const avgVolume = volumeHistory.reduce((sum, v) => sum + v.volume, 0) / volumeHistory.length;
+/**
+ * Execute token sell with conditions
+ */
+export async function sellToken(
+  connection: Connection,
+  params: SellParams
+): Promise<SellResult> {
+  try {
+    // Check if conditions are met
+    const conditionCheck = await checkSellConditions(
+      params.tokenMint.toBase58(),
+      params.conditions
+    );
     
-    // Declining volume
-    if (recentVolume < avgVolume * 0.5) {
-      return Date.now(); // Sell now
+    if (!conditionCheck.shouldSell && !params.conditions.manualSell) {
+      return {
+        success: false,
+        inputAmount: params.amount,
+        outputAmount: 0,
+        priceImpact: 0,
+        executionPrice: 0,
+        error: conditionCheck.reason || 'Sell conditions not met',
+      };
     }
+    
+    // Get wallet token account
+    const tokenAccount = await getAssociatedTokenAddress(
+      params.tokenMint,
+      params.wallet.publicKey
+    );
+    
+    // Get actual token balance
+    const account = await getAccount(connection, tokenAccount);
+    const actualAmount = Math.min(params.amount, Number(account.amount));
+    
+    if (actualAmount === 0) {
+      return {
+        success: false,
+        inputAmount: 0,
+        outputAmount: 0,
+        priceImpact: 0,
+        executionPrice: 0,
+        error: 'No tokens to sell',
+      };
+    }
+    
+    // Get swap quote (selling tokens for SOL)
+    const quote = await getSwapQuote(
+      params.tokenMint.toBase58(),
+      'So11111111111111111111111111111111111111112', // SOL mint
+      actualAmount,
+      (params.slippage || 1) * 100 // Convert to basis points
+    );
+    
+    if (!quote) {
+      return {
+        success: false,
+        inputAmount: actualAmount,
+        outputAmount: 0,
+        priceImpact: 0,
+        executionPrice: 0,
+        error: 'Unable to get swap quote',
+      };
+    }
+    
+    // Execute swap
+    const txSignature = await executeSwap(
+      connection,
+      params.wallet,
+      quote,
+      params.priority
+    );
+    
+    // Calculate results
+    const outputAmount = parseInt(quote.outAmount) / 1e9; // Convert lamports to SOL
+    const priceImpact = parseFloat(quote.priceImpactPct) || 0;
+    const executionPrice = outputAmount / (actualAmount / Math.pow(10, quote.inputDecimals || 9));
+    
+    // Log execution
+    await logSellEvent({
+      wallet: params.wallet.publicKey.toBase58(),
+      tokenAddress: params.tokenMint.toBase58(),
+      amountSold: actualAmount.toString(),
+      solEarned: outputAmount,
+      marketCap: 0, // Would need to fetch this
+      profitPercentage: 0, // Would need entry price to calculate
+      transactionSignature: txSignature,
+    });
+    
+    return {
+      success: true,
+      txSignature,
+      inputAmount: actualAmount,
+      outputAmount,
+      priceImpact,
+      executionPrice,
+    };
+    
+  } catch (error) {
+    Sentry.captureException(error);
+    return {
+      success: false,
+      inputAmount: params.amount,
+      outputAmount: 0,
+      priceImpact: 0,
+      executionPrice: 0,
+      error: `Sell failed: ${(error as Error).message}`,
+    };
+  }
+}
+
+/**
+ * Batch sell tokens from multiple wallets
+ */
+export async function batchSellTokens(
+  connection: Connection,
+  wallets: Keypair[],
+  tokenMint: PublicKey,
+  conditions: SellConditions,
+  slippage?: number
+): Promise<SellResult[]> {
+  const results: SellResult[] = [];
+  
+  // Check conditions once for all wallets
+  const conditionCheck = await checkSellConditions(
+    tokenMint.toBase58(),
+    conditions
+  );
+  
+  if (!conditionCheck.shouldSell && !conditions.manualSell) {
+    return wallets.map(() => ({
+      success: false,
+      inputAmount: 0,
+      outputAmount: 0,
+      priceImpact: 0,
+      executionPrice: 0,
+      error: conditionCheck.reason || 'Sell conditions not met',
+    }));
   }
   
-  return 0; // Don't sell yet
-} 
-
-export interface ExecuteSellPlanParams {
-  wallets: Keypair[];
-  tokenMint: string;
-  connection: Connection;
-  sellCondition: SellConditions; // Assuming SellCondition is the same as SellConditions
-}
-
-export interface ExecuteSellPlanResult {
-  success: boolean;
-  successCount: number;
-  failedCount: number;
-  totalSold: number;
-  totalSOL: number;
-  transactions: string[];
-}
-
-export async function executeSellPlan(params: ExecuteSellPlanParams): Promise<ExecuteSellPlanResult> {
-  const { wallets, tokenMint, connection } = params;
-  
-  let successCount = 0;
-  let failedCount = 0;
-  let totalSold = 0;
-  let totalSOL = 0;
-  const transactions: string[] = [];
-  
-  for (const wallet of wallets) {
-    try {
-      // Get token balance
-      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        wallet.publicKey,
-        { mint: new PublicKey(tokenMint) }
-      );
-      
-      if (tokenAccounts.value.length === 0) {
-        console.log(`No token balance found for wallet ${wallet.publicKey.toString()}`);
-        continue;
-      }
-      
-      const tokenAccount = tokenAccounts.value[0];
-      const balance = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount;
-      
-      if (balance > 0) {
-        // Get market data for the token
-        const marketData = await getMarketData(tokenMint);
+  // Execute sells in parallel batches to avoid rate limits
+  const batchSize = 3;
+  for (let i = 0; i < wallets.length; i += batchSize) {
+    const batch = wallets.slice(i, i + batchSize);
+    const batchPromises = batch.map(async (wallet) => {
+      try {
+        // Get wallet balance
+        const tokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
+        const account = await getAccount(connection, tokenAccount);
+        const balance = Number(account.amount);
         
-        // Create holding object
-        const holding: TokenHolding = {
-          wallet: wallet.publicKey.toString(),
-          tokenAddress: tokenMint,
+        if (balance === 0) {
+          return {
+            success: false,
+            inputAmount: 0,
+            outputAmount: 0,
+            priceImpact: 0,
+            executionPrice: 0,
+            error: 'No balance',
+          };
+        }
+        
+        return sellToken(connection, {
+          wallet,
+          tokenMint,
           amount: balance,
-          entryPrice: 0, // We don't have this data right now
-          entryTime: Date.now() - 60000, // Assume bought 1 minute ago
-          entrySOL: 0 // We don't have this data
+          slippage,
+          conditions,
+          priority: 'high', // Use high priority for sniper sells
+        });
+      } catch (error) {
+        return {
+          success: false,
+          inputAmount: 0,
+          outputAmount: 0,
+          priceImpact: 0,
+          executionPrice: 0,
+          error: (error as Error).message,
         };
-        
-        // Execute sell
-        const sellResult = await executeSell(holding, 1000, 10000); // 10% slippage, 0.00001 SOL priority
-        
-        // Send the transaction
-        const signature = await connection.sendRawTransaction(sellResult.transaction.serialize());
-        await connection.confirmTransaction(signature, 'confirmed');
-        
-        successCount++;
-        totalSold += balance;
-        totalSOL += sellResult.expectedSOL;
-        transactions.push(signature);
-        
-        // Log the sell
-        await logSellTransaction(
-          holding,
-          marketData,
-          sellResult.expectedSOL,
-          signature
-        );
       }
-    } catch (error) {
-      console.error(`Failed to sell from wallet ${wallet.publicKey.toString()}:`, error);
-      failedCount++;
+    });
+    
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+    
+    // Small delay between batches to avoid rate limits
+    if (i + batchSize < wallets.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
   
-  return {
-    success: successCount > 0,
-    successCount,
-    failedCount,
-    totalSold,
-    totalSOL,
-    transactions
-  };
-} 
+  return results;
+}
+
+export default {
+  getTokenPrice,
+  calculatePnL,
+  checkSellConditions,
+  sellToken,
+  batchSellTokens,
+}; 
