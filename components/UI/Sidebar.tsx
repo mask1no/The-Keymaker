@@ -24,7 +24,6 @@ const navItems: NavItem[] = [
     name: 'Bundle Engine', 
     href: '/dashboard/bundle', 
     icon: Zap,
-    badge: 'Pro',
     tooltip: 'Create and execute token bundles (⌘+Enter)'
   },
   { 

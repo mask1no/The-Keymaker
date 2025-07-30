@@ -312,7 +312,7 @@ async function monitorBundleStatus(
   return { bundle_id: bundleId, status: 'pending' };
 }
 
-async function executeBundle(
+export async function executeBundle(
   txs: Transaction[],
   walletRoles: { publicKey: string; role: string }[],
   signers: (Signer | Keypair | null)[],
@@ -561,8 +561,7 @@ export {
   validateToken, 
   getBundleFees, 
   buildBundle, 
-  previewBundle, 
-  executeBundle,
+  previewBundle,
   type PreviewResult,
   type ExecutionResult
 }; 

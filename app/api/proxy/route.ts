@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validatePublicKey, sanitizeString } from '@/lib/validation';
+import { spawn } from 'child_process';
+import path from 'path';
 
 // Supported API services
 const API_SERVICES = {
@@ -107,6 +109,51 @@ function validateRequest(
   return { valid: true };
 }
 
+/**
+ * Execute Python MCP command
+ */
+async function executePythonMCP(method: string, params: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const mcpPath = path.join(process.cwd(), 'bonk-mcp');
+    const pythonProcess = spawn('python', [
+      path.join(mcpPath, 'src', 'bonk_mcp', 'cli_wrapper.py'),
+      '--method', method,
+      '--params', JSON.stringify(params)
+    ], {
+      cwd: mcpPath,
+      env: {
+        ...process.env,
+        KEYPAIR: params.keypair || process.env.SOLANA_KEYPAIR,
+        RPC_URL: process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
+      }
+    });
+
+    let output = '';
+    let error = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(error || 'Python process failed'));
+      } else {
+        try {
+          const result = JSON.parse(output);
+          resolve(result);
+        } catch (e) {
+          reject(new Error('Failed to parse Python output'));
+        }
+      }
+    });
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Get client IP for rate limiting
@@ -125,6 +172,19 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
     const { service, path, params, method = 'GET' } = body;
+    
+    // Handle Python MCP calls
+    if (body.method && ['launch-token', 'buy-token'].includes(body.method)) {
+      try {
+        const result = await executePythonMCP(body.method, body.params);
+        return NextResponse.json(result);
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message, success: false },
+          { status: 500 }
+        );
+      }
+    }
     
     // Validate request
     const validation = validateRequest(service, path, params);

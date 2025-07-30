@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
-import { createToken as letsbonkCreate } from '../../services/letsbonkService';
+// import { createToken as letsbonkCreate } from '../../services/letsbonkService';
 import { createToken as moonshotCreate } from '../../services/moonshotService';
 import { useKeymakerStore } from '@/lib/store';
 
@@ -127,7 +127,9 @@ export default function TokenForm() {
           break;
           
         case 'LetsBonk.fun':
-          tokenAddr = await letsbonkCreate(name, symbol, parseInt(supply), metadata);
+          // TODO: This component needs to be updated to use the new wallet system
+          // tokenAddr = await letsbonkCreate(name, symbol, parseInt(supply), metadata);
+          throw new Error('LetsBonk.fun integration requires wallet system - use Control Panel instead');
           break;
           
         case 'Moonshot':

@@ -1,321 +1,322 @@
-# 🔐 The Keymaker
+# 🗝️ The Keymaker - Solana Memecoin Bundler
 
-> A professional-grade Solana dApp for automated trading, memecoin launching, and advanced wallet management with MEV protection.
+> **Elite-grade Solana memecoin orchestration engine with Jito MEV protection**
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-00FFF0?style=for-the-badge&logo=solana)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js%2014-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-## 🌟 Overview
+## ⚡ Overview
 
-The Keymaker is a cutting-edge Solana dApp that combines advanced wallet management, automated trading capabilities, and memecoin creation tools into a single, secure platform. Built with a focus on security, performance, and user experience, it provides professional traders and developers with the tools they need to succeed in the Solana ecosystem.
+The Keymaker is a weaponized Solana bundler built for serious memecoin operations. This is not a toy - it's a production-grade orchestration engine that can launch tokens, fund wallets, execute Jito bundles, and manage automated sells with real transactions on mainnet.
 
-### Key Differentiators
-- **MEV Protection**: Integrated Jito bundle support for frontrun protection
-- **Multi-Platform Support**: Launch on Pump.fun, Moonshot, Let's Bonk, and Raydium
-- **Advanced Wallet Management**: Hierarchical wallet system with roles and encryption
-- **Real-Time Analytics**: Live PnL tracking and market data
-- **Professional UI**: Dark theme with glass morphism effects
+### 🎯 Core Capabilities
 
-## ✨ Features
+- **Token Launch**: Deploy on pump.fun, letsbonk.fun, Raydium, or Moonshot
+- **Wallet Orchestration**: Manage hundreds of wallets with role-based permissions
+- **Jito Bundling**: MEV-protected bundle execution with retry logic
+- **Automated Selling**: Jupiter-powered sells with dynamic slippage
+- **Real-time Monitoring**: Track every transaction with Solscan links
+- **Zero Mock Data**: Every button = real transaction or error
 
-### 🔐 Wallet Management
-- **Secure Wallet Creation**: Generate wallets with encrypted private key storage
-- **Wallet Roles**: Master, Dev, Sniper, and Normal wallets with different privileges
-- **Group Management**: Organize wallets into groups for better organization
-- **Bulk Operations**: Fund multiple wallets in a single transaction
-- **Import/Export**: Secure wallet backup with .keymaker encrypted files
+## 🚀 Quick Start
 
-### 🚀 Memecoin Launcher
-- **Multi-Platform Deployment**: 
-  - Pump.fun integration
-  - Moonshot deployment
-  - Let's Bonk support
-  - Raydium liquidity pools
-- **Token Cloning**: Clone existing tokens with custom parameters
-- **Metadata Management**: IPFS integration for token metadata
-- **Liquidity Management**: Automated LP creation and management
+### Prerequisites
 
-### 📦 Bundle Engine
-- **Jito MEV Protection**: Bundle transactions to prevent frontrunning
-- **Multi-Wallet Execution**: Execute trades across multiple wallets
-- **Transaction Preview**: Simulate transactions before execution
-- **Priority Fee Optimization**: Smart fee calculation for faster execution
-- **Batch Operations**: Bundle multiple operations efficiently
+- Node.js 18+ & npm 9+
+- Python 3.10+
+- Solana CLI tools
+- 1+ SOL for testing
+- API keys for Helius, Jupiter, Birdeye
 
-### 📊 Analytics & Monitoring
-- **Real-Time Price Tracking**: SOL, ETH, BTC, and custom tokens
-- **PnL Dashboard**: Track profits/losses across all wallets
-- **Trade History**: Comprehensive logging with export capabilities
-- **Market Cap Monitoring**: Track token market caps in real-time
-- **Custom Alerts**: Set price and volume alerts
-
-### 🛡️ Security Features
-- **Zero Key Storage**: Private keys are NEVER stored - only derived from password
-- **PBKDF2 600K Iterations**: 6x stronger than industry standard
-- **Secure Password Dialogs**: No browser prompts, masked input with strength validation
-- **API Key Protection**: All sensitive keys proxied through backend
-- **Input Validation**: Comprehensive validation prevents XSS and overflow attacks
-- **Dynamic Slippage**: Automatically adjusts based on liquidity (0.5-50%)
-- **Transaction Simulation**: All bundles simulated before submission
-- **Rate Limiting**: API proxy prevents abuse
-- **Safe BigInt Operations**: Protected against buffer overflow vulnerabilities
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS with custom dark theme
-- **UI Components**: Custom glass morphism components
-- **State Management**: React Context + Hooks
-- **Animations**: Framer Motion
-
-### Blockchain
-- **Network**: Solana (Mainnet/Devnet)
-- **Wallet Adapter**: @solana/wallet-adapter
-- **Web3**: @solana/web3.js
-- **DEX Integration**: Jupiter, Raydium SDKs
-- **MEV Protection**: Jito Labs bundle API
-
-### Backend Services
-- **Token APIs**: Jupiter, Birdeye, DexScreener
-- **Platform APIs**: Pump.fun, Moonshot, Let's Bonk
-- **Storage**: SQLite for analytics
-- **Monitoring**: Sentry for error tracking
-
-### Development
-- **Package Manager**: npm
-- **Build Tool**: Next.js compiler
-- **Type Checking**: TypeScript 5.x
-- **Linting**: ESLint
-- **Testing**: Jest (optional)
-
-## 📋 Prerequisites
-
-- Node.js 18.x or higher
-- npm 9.x or higher
-- Git
-- A Solana wallet (Phantom or Solflare recommended)
-- RPC endpoint (Helius recommended)
-
-## 🔧 Environment Setup
-
-1. Create a `.env.local` file in the root directory:
+### Installation
 
 ```bash
-# RPC Endpoints
-NEXT_PUBLIC_HELIUS_RPC=https://api.mainnet-beta.solana.com
-
-# API Keys (Server-side only - do not prefix with NEXT_PUBLIC_)
-HELIUS_API_KEY=your_helius_api_key_here
-BIRDEYE_API_KEY=your_birdeye_api_key_here
-JUPITER_API_KEY=your_jupiter_api_key_here
-PUMPFUN_API_KEY=your_pumpfun_api_key_here
-MOONSHOT_API_KEY=your_moonshot_api_key_here
-JITO_AUTH_TOKEN=your_jito_auth_token_here
-```
-
-2. Replace `your_*_api_key_here` with your actual API keys.
-3. For better RPC performance, consider getting a free Helius API key at https://helius.dev
-
-## 🚀 Installation
-
-### 1. Clone the Repository
-
-```bash
+# Clone the repository
 git clone https://github.com/yourusername/the-keymaker.git
 cd the-keymaker
-```
 
-### 2. Install Dependencies
-
-```bash
-# Install with legacy peer deps due to Solana wallet adapter conflicts
+# Install dependencies
 npm install --legacy-peer-deps
+cd bonk-mcp && pip install -r requirements.txt && cd ..
 
-# Install TypeScript types
-npm install --save-dev @types/bn.js
-```
+# Setup environment
+cp .env.example .env.local
+# Edit .env.local with your API keys
 
-### 3. Environment Configuration
-
-Create a `.env.local` file in the root directory:
-
-```env
-# RPC Endpoints (Public - OK to expose)
-NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-NEXT_PUBLIC_NETWORK=mainnet-beta
-
-# Backend API Keys (Private - Never expose these!)
-HELIUS_API_KEY=your_helius_api_key
-BIRDEYE_API_KEY=your_birdeye_api_key
-JUPITER_API_KEY=your_jupiter_api_key
-PUMPFUN_API_KEY=your_pumpfun_api_key
-MOONSHOT_API_KEY=your_moonshot_api_key
-JITO_AUTH_TOKEN=your_jito_auth_token
-
-# Platform URLs (Used by API proxy)
-MOONSHOT_API_URL=https://api.moonshot.gg
-
-# Jito Configuration
-NEXT_PUBLIC_JITO_TIP_AMOUNT=10000
-
-# Optional: Sentry Error Tracking
-NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
-```
-
-### 4. Database Setup
-
-Initialize the SQLite database:
-
-```bash
+# Initialize database
 npm run init-db
-```
 
-### 5. Run Development Server
-
-```bash
+# Run development server
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`
+## 🔧 Configuration
+
+### Required Environment Variables
+
+```env
+# RPC & Network
+NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+HELIUS_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+HELIUS_API_KEY=your_helius_api_key
+
+# API Keys (Backend only)
+BIRDEYE_API_KEY=your_birdeye_api_key
+JUPITER_API_KEY=your_jupiter_api_key
+JITO_AUTH_TOKEN=your_jito_auth_token
+
+# Platform APIs (optional)
+PUMPFUN_API_KEY=your_pumpfun_api_key
+MOONSHOT_API_KEY=your_moonshot_api_key
+
+# Solana Keypair (for Python backend)
+SOLANA_KEYPAIR=your_base58_encoded_keypair
+```
+
+### Jito Configuration
+
+```env
+# Jito tip accounts (mainnet)
+JITO_TIP_ACCOUNTS=96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5,HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
+```
 
 ## 🎮 Usage Guide
 
-### Getting Started
+### 1. Wallet Setup
 
-1. **Connect Wallet**: Click the wallet button in the top bar to connect your Solana wallet
-2. **Create Wallet Group**: Navigate to Wallets → Create a new group
-3. **Generate Wallets**: Create wallets with specific roles (Master, Sniper, etc.)
-4. **Fund Wallets**: Use the bulk funding feature to distribute SOL
+```typescript
+// Create master wallet first
+Navigate to Dashboard → Wallets
+Click "Create Wallet" → Role: Master
+Save the password securely!
 
-### Creating a Memecoin
+// Create sniper wallets
+Create 5-10 wallets with role "Sniper"
+These will execute the bundle buys
+```
 
-1. Navigate to **Create Token**
-2. Fill in token details:
-   - Name and Symbol
-   - Supply and decimals
-   - Description and social links
-3. Upload token image (stored on IPFS)
-4. Select deployment platform
-5. Review and deploy
+### 2. Token Launch
 
-### Using the Bundle Engine
+```typescript
+// Configure token
+Name: "Your Token"
+Symbol: "TICKER"
+Supply: 1000000000 (1B)
+Decimals: 6 (letsbonk) or 9 (pump.fun)
+Platform: letsbonk.fun (recommended)
 
-1. Go to **Bundle Engine**
-2. Add transactions:
-   - Select wallet
-   - Choose buy/sell
-   - Enter token address and amount
-3. Set slippage and priority fees
-4. Preview transactions
-5. Execute bundle
+// Launch sequence
+1. Click "Launch Token"
+2. Enter password
+3. Wait for confirmation
+4. Save mint address
+```
 
-### Monitoring Performance
+### 3. Wallet Funding
 
-1. Check **Analytics** for real-time prices
-2. View **PnL Tracker** for profit/loss data
-3. Export trade history as CSV
-4. Set up sell monitors for automated alerts
+```typescript
+// Fund sniper wallets
+Total Amount: 1 SOL
+Min per wallet: 0.1 SOL
+Max per wallet: 0.2 SOL
+
+// Funds distributed based on role weights:
+- Sniper: 2x weight
+- Dev: 1.5x weight  
+- Normal: 1x weight
+```
+
+### 4. Bundle Execution
+
+```typescript
+// Configure bundle
+Bundle Size: 5 wallets
+Slippage: 1% (auto-adjusts based on liquidity)
+Priority Fee: 0.0001 SOL
+Jito Tip: 0.01 SOL
+
+// Execute
+1. Click "Bundle Buys"
+2. Transactions built with Jupiter
+3. Bundled via Jito
+4. Confirms in 1-2 slots
+```
+
+### 5. Automated Sells
+
+```typescript
+// Sell configuration
+Profit Target: 100%
+Stop Loss: -50%
+Slippage: Dynamic (0.5-50%)
+
+// Executes via Jupiter with:
+- Automatic route finding
+- MEV protection
+- Retry on failure
+```
 
 ## 🏗️ Architecture
 
+### Frontend Stack
+
 ```
-the-keymaker/
-├── app/                    # Next.js app router pages
-│   ├── dashboard/         # Dashboard pages
-│   ├── api/              # API routes
-│   └── layout.tsx        # Root layout
-├── components/            # React components
-│   ├── UI/              # Reusable UI components
-│   ├── Wallet/          # Wallet-related components
-│   └── ...              # Feature-specific components
-├── services/             # Business logic services
-│   ├── walletService.ts # Wallet management
-│   ├── jupiterService.ts # DEX integration
-│   └── ...              # Platform integrations
-├── hooks/                # Custom React hooks
-├── lib/                  # Utilities and types
-├── utils/                # Helper functions
-└── bonk-mcp/            # MCP integration (optional)
+components/
+├── ControlCenter/      # Orchestration UI
+├── WalletManager/      # Wallet CRUD
+├── BundleEngine/       # Bundle builder
+├── ExecutionLog/       # Transaction logs
+└── UI/                 # Reusable components
 ```
 
-## 🔒 Security Considerations
+### Backend Services
 
-### Private Key Management
-- **Key Derivation System**: Private keys are NEVER stored, only derived when needed
-- **PBKDF2 with 600,000 iterations**: Industry-leading security standard
-- **Deterministic Generation**: BIP44-like paths for wallet derivation
-- **IndexedDB Storage**: More secure than localStorage for metadata
-- **AES-256-GCM Encryption**: For secure wallet exports only
+```
+services/
+├── platformService.ts  # Token launches
+├── walletService.ts    # Wallet encryption
+├── bundleService.ts    # Jito integration
+├── jupiterService.ts   # Swap execution
+└── sellService.ts      # Automated sells
+```
 
-### Vulnerability Mitigation
-- Custom `safeBigInt` wrapper for bigint-buffer vulnerability
-- Input validation on all user inputs
-- Secure RPC endpoints with rate limiting
-- CORS properly configured for production
+### Python Backend
 
-### Best Practices
-- Never share your .env.local file
-- Use strong passwords for wallet encryption
-- Regularly backup your .keymaker files
-- Monitor transactions for suspicious activity
+```
+bonk-mcp/
+├── core/
+│   ├── letsbonk.py    # LetsBonk protocol
+│   └── jupiter.py     # Jupiter integration
+└── tools/
+    ├── token_launcher.py
+    └── token_buyer.py
+```
 
-## 🐛 Troubleshooting
+## 🔐 Security
 
-### Common Issues
+### Wallet Encryption
+- **AES-256-GCM** encryption for all private keys
+- **PBKDF2** with 100k iterations for key derivation
+- Keys stored in memory/sessionStorage only
+- Automatic cleanup on disconnect
 
-**Build Errors**
+### Transaction Safety
+- All transactions simulated before execution
+- Retry logic with exponential backoff
+- Balance validation before operations
+- Slippage protection with dynamic adjustment
+
+### API Security
+- All sensitive keys proxied through backend
+- Rate limiting on API endpoints
+- Input validation and sanitization
+- No private keys in logs
+
+## 📊 Monitoring
+
+### Execution Logs
+Every transaction is logged with:
+- Phase (launch/fund/bundle/sell)
+- Wallet addresses involved
+- Transaction signatures with Solscan links
+- Slot number and status
+- Error messages if failed
+
+### PnL Tracking
+- Real-time profit/loss calculation
+- Per-wallet and aggregate metrics
+- Export to CSV for analysis
+- Historical performance data
+
+## 🚨 Common Issues
+
+### "Insufficient SOL for fees"
 ```bash
-# Clear Next.js cache
-rm -rf .next
-npm run build
+# Ensure master wallet has enough SOL
+# Each transaction needs ~0.005 SOL for fees
+# Bundle operations need Jito tip (0.01 SOL)
 ```
 
-**Dependency Conflicts**
+### "Transaction simulation failed"
 ```bash
-# Use legacy peer deps
-npm install --legacy-peer-deps
+# Check token has liquidity
+# Verify wallet has token balance
+# Increase slippage if needed
+# Check RPC endpoint is responsive
 ```
 
-**RPC Rate Limiting**
-- Use dedicated RPC endpoints
-- Implement request batching
-- Add retry logic with exponential backoff
-
-**Windows-Specific Issues**
-```powershell
-# Run setup script
-.\setup.ps1
+### "Bundle failed to land"
+```bash
+# Increase Jito tip amount
+# Reduce bundle size
+# Check validator is accepting bundles
+# Retry with different validator
 ```
 
-## 🤝 Contributing
+## ⚡ Performance Tips
 
-We welcome contributions! Please follow these steps:
+1. **Use dedicated RPC**: Free endpoints are rate-limited
+2. **Batch operations**: Group wallet funding
+3. **Optimize bundle size**: 3-5 transactions ideal
+4. **Monitor TPS**: Check Solana network congestion
+5. **Cache token data**: Reduce API calls
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🧪 Testing Checklist
 
-### Development Guidelines
-- Follow TypeScript best practices
-- Maintain consistent code style
-- Add comments for complex logic
-- Update tests for new features
-- Ensure no hardcoded values
+- [ ] Create master wallet with 2+ SOL
+- [ ] Generate 5 sniper wallets
+- [ ] Launch test token on devnet first
+- [ ] Fund wallets with 0.1 SOL each
+- [ ] Execute bundle with 3 wallets
+- [ ] Verify buys on Solscan
+- [ ] Test sell functionality
+- [ ] Check PnL calculations
+- [ ] Export logs to CSV
 
-## 🙏 Acknowledgments
+## 🛠️ Development
 
-- [Solana Labs](https://solana.com) for the blockchain infrastructure
-- [Jupiter](https://jup.ag) for DEX aggregation
-- [Jito Labs](https://jito.wtf) for MEV protection
-- [Helius](https://helius.dev) for RPC services
-- All the platform partners (Pump.fun, Moonshot, etc.)
+### Code Standards
+
+```typescript
+// TypeScript
+- Strict mode enabled
+- Explicit return types
+- No any without justification
+- Zod for runtime validation
+
+// Python  
+- Type hints required
+- Async/await for I/O
+- Proper exception handling
+- No bare except clauses
+```
+
+### Git Workflow
+
+```bash
+# Feature branch
+git checkout -b feat/your-feature
+
+# Commit with conventional commits
+git commit -m "feat: add dynamic slippage"
+
+# Push and create PR
+git push origin feat/your-feature
+```
+
+## 📝 License
+
+This software is for educational and personal use only. Not for commercial distribution.
+
+## ⚠️ Disclaimer
+
+**USE AT YOUR OWN RISK**. This tool executes real transactions on Solana mainnet. The authors are not responsible for any financial losses. Always test on devnet first and understand the code before using.
 
 ---
 
-<p align="center">Built with ❤️ for the Solana ecosystem</p>
+<p align="center">
+Built for degens, by degens 🚀<br/>
+<em>Not financial advice. DYOR.</em>
+</p>

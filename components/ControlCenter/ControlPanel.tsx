@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useKeymakerStore, type WalletData } from '@/lib/store';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { launchToken } from '@/services/platformService';
 import { fundWalletGroup } from '@/services/fundingService';
@@ -29,6 +29,8 @@ import { logEvent } from '@/services/executionLogService';
 import { getKeypairs } from '@/services/walletService';
 import { logger } from '@/lib/logger';
 import { PasswordDialog } from '@/components/UI/PasswordDialog';
+import { executeBundle } from '@/services/bundleService';
+import { buildSwapTransaction } from '@/services/jupiterService';
 
 type Phase = 'idle' | 'launching' | 'funding' | 'bundling' | 'selling' | 'complete' | 'error';
 
@@ -93,7 +95,8 @@ export function ControlPanel() {
   const [bundleConfig, setBundleConfig] = useState({
     bundleSize: 5,
     jitoTip: tipAmount || 0.01,
-    priorityFee: 0.0001
+    priorityFee: 0.0001,
+    slippage: 1 // 1% default slippage
   });
 
   const [sellConfig, setSellConfig] = useState({
@@ -172,7 +175,7 @@ export function ControlPanel() {
           telegram: ''
         },
         {
-          platform: tokenConfig.platform as 'pump.fun' | 'raydium',
+          platform: tokenConfig.platform as 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot',
           solAmount: tokenConfig.solAmount,
           tokenAmount: tokenConfig.tokenAmount
         }
@@ -195,7 +198,11 @@ export function ControlPanel() {
         mint: result.token.mintAddress,
         pool: result.liquidity?.poolAddress,
         platform: tokenConfig.platform,
-        signature: result.token.txSignature
+        signature: result.token.txSignature,
+        name: tokenConfig.name,
+        symbol: tokenConfig.symbol,
+        supply: tokenConfig.supply,
+        decimals: result.token.decimals
       });
 
       toast.success(`Token launched! Mint: ${result.token.mintAddress.slice(0, 8)}...`);
@@ -273,28 +280,99 @@ export function ControlPanel() {
       }
 
       const sniperWallets = wallets.filter(w => w.role === 'sniper');
-      const walletsWithKeys = prepareWalletsForKeypairs(sniperWallets.slice(0, bundleConfig.bundleSize));
+      const bundleWallets = sniperWallets.slice(0, bundleConfig.bundleSize);
+      const walletsWithKeys = prepareWalletsForKeypairs(bundleWallets);
       const keypairs = await getKeypairs(walletsWithKeys, password);
 
-      // For now, create a simple bundle result
-      // TODO: Integrate with proper executeBundle function
-      const bundleResult = {
-        bundleId: `bundle_${Date.now()}`,
-        status: 'success' as const
-      };
+      logger.info('Building swap transactions for bundle', {
+        tokenMint: state.tokenMint,
+        walletCount: keypairs.length
+      });
+
+      // Build swap transactions for each wallet
+      const transactions: Transaction[] = [];
+      const walletRoles: { publicKey: string; role: string }[] = [];
+      
+      for (let i = 0; i < keypairs.length; i++) {
+        const keypair = keypairs[i];
+        const wallet = bundleWallets[i];
+        
+        // Calculate buy amount (use most of the funded balance, keeping some for fees)
+        const balance = wallet.balance || 0;
+        const buyAmountLamports = Math.floor(balance * 0.9 * LAMPORTS_PER_SOL); // Use 90% of balance
+        
+        if (buyAmountLamports < 0.01 * LAMPORTS_PER_SOL) {
+          logger.warn(`Wallet ${i} has insufficient balance for swap`, { balance });
+          continue;
+        }
+        
+        try {
+          // Build swap transaction (SOL -> Token)
+          const swapTx = await buildSwapTransaction(
+            'So11111111111111111111111111111111111111112', // SOL
+            state.tokenMint,
+            buyAmountLamports,
+            keypair.publicKey.toBase58(),
+            bundleConfig.slippage * 100, // Convert to basis points
+            bundleConfig.priorityFee * LAMPORTS_PER_SOL
+          );
+          
+          // Convert VersionedTransaction to Transaction for bundle execution
+          // Note: executeBundle will convert back to VersionedTransaction internally
+          const legacyTx = Transaction.from(swapTx.serialize());
+          transactions.push(legacyTx);
+          walletRoles.push({
+            publicKey: keypair.publicKey.toBase58(),
+            role: wallet.role
+          });
+        } catch (error) {
+          logger.error(`Failed to build swap for wallet ${i}`, { error });
+        }
+      }
+
+      if (transactions.length === 0) {
+        throw new Error('No valid swap transactions created');
+      }
+
+      logger.info('Executing bundle with Jito', {
+        transactionCount: transactions.length,
+        tipAmount: tipAmount * LAMPORTS_PER_SOL
+      });
+
+      // Execute bundle with Jito
+      const bundleResult = await executeBundle(
+        transactions,
+        walletRoles,
+        keypairs,
+        {
+          connection,
+          tipAmount: tipAmount * LAMPORTS_PER_SOL,
+          retries: 3,
+          logger: (msg) => logger.info(`[Bundle] ${msg}`)
+        }
+      );
 
       setState(prev => ({
         ...prev,
-        txSignatures: [...prev.txSignatures, bundleResult.bundleId || '']
+        txSignatures: [...prev.txSignatures, ...(bundleResult.signatures || [])]
       }));
 
       await logEvent('bundle_executed', {
         bundleId: bundleResult.bundleId,
-        walletCount: keypairs.length,
-        status: 'success'
+        walletCount: transactions.length,
+        status: bundleResult.results.filter(r => r === 'success').length > 0 ? 'success' : 'failed',
+        successCount: bundleResult.results.filter(r => r === 'success').length,
+        signatures: bundleResult.signatures,
+        slotTargeted: bundleResult.slotTargeted,
+        usedJito: bundleResult.usedJito
       });
 
-      toast.success(`Bundle executed! ID: ${bundleResult.bundleId?.slice(0, 8)}...`);
+      const successCount = bundleResult.results.filter(r => r === 'success').length;
+      if (successCount > 0) {
+        toast.success(`Bundle executed! ${successCount}/${transactions.length} succeeded`);
+      } else {
+        throw new Error('All transactions in bundle failed');
+      }
       
     } catch (error) {
       logger.error('Bundle execution failed', { error });

@@ -41,7 +41,7 @@ export interface LiquidityPoolParams {
   tokenMint: PublicKey;
   solAmount: number;
   tokenAmount: number;
-  platform: 'pump.fun' | 'raydium';
+  platform: 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot';
 }
 
 export interface LiquidityPoolResult {
@@ -51,7 +51,153 @@ export interface LiquidityPoolResult {
 }
 
 /**
- * Create SPL token (without metadata for now)
+ * Launch a token on the specified platform
+ */
+export async function launchToken(
+  connection: Connection,
+  payer: Keypair,
+  tokenParams: TokenCreationParams,
+  liquidityParams: {
+    platform: 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot';
+    solAmount: number;
+    tokenAmount: number;
+  }
+): Promise<{
+  token: {
+    mintAddress: string;
+    txSignature: string;
+    decimals: number;
+    supply: number;
+  };
+  liquidity: LiquidityPoolResult;
+}> {
+  try {
+    // Validate parameters
+    const validation = validateTokenParams(tokenParams);
+    if (!validation.valid) {
+      throw new Error(`Invalid token parameters: ${validation.errors.join(', ')}`);
+    }
+
+    logger.info(`Launching token on ${liquidityParams.platform}...`, { 
+      name: tokenParams.name,
+      symbol: tokenParams.symbol,
+      platform: liquidityParams.platform 
+    });
+
+    const metadata = {
+      name: tokenParams.name,
+      symbol: tokenParams.symbol,
+      description: tokenParams.description || `${tokenParams.name} - Created with The Keymaker`,
+      image: tokenParams.imageUrl,
+      telegram: tokenParams.telegram,
+      website: tokenParams.website,
+      twitter: tokenParams.twitter
+    };
+
+    let tokenAddress: string;
+    let txSignature: string;
+    let decimals: number;
+    let supply: number;
+
+    // Launch token based on platform
+    switch (liquidityParams.platform) {
+      case 'letsbonk.fun': {
+        const letsbonkService = await import('./letsbonkService');
+        tokenAddress = await letsbonkService.createToken(
+          tokenParams.name,
+          tokenParams.symbol,
+          tokenParams.supply,
+          metadata,
+          payer
+        );
+        txSignature = tokenAddress; // LetsBonk returns address as signature
+        decimals = tokenParams.decimals || 6;
+        supply = tokenParams.supply;
+        break;
+      }
+
+      case 'pump.fun': {
+        const pumpfunService = await import('./pumpfunService');
+        tokenAddress = await pumpfunService.createToken(
+          tokenParams.name,
+          tokenParams.symbol,
+          tokenParams.supply,
+          metadata
+        );
+        txSignature = tokenAddress;
+        decimals = 9; // Pump.fun uses 9 decimals
+        supply = tokenParams.supply;
+        break;
+      }
+
+      case 'moonshot': {
+        const moonshotService = await import('./moonshotService');
+        tokenAddress = await moonshotService.createToken(
+          tokenParams.name,
+          tokenParams.symbol,
+          tokenParams.supply,
+          metadata
+        );
+        txSignature = tokenAddress;
+        decimals = 9;
+        supply = tokenParams.supply;
+        break;
+      }
+
+      case 'raydium': {
+        // For Raydium, we create the token manually then add liquidity
+        const result = await createToken(connection, payer, tokenParams);
+        tokenAddress = result.mintAddress;
+        txSignature = result.txSignature;
+        decimals = result.decimals;
+        supply = result.supply;
+        
+        // Wait for confirmation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Add liquidity on Raydium
+        const raydiumService = await import('./raydiumService');
+        const poolTx = await raydiumService.createLiquidityPool(
+          tokenAddress,
+          liquidityParams.solAmount,
+          liquidityParams.tokenAmount
+        );
+        
+        logger.info(`Raydium liquidity pool created`, { poolTx });
+        break;
+      }
+
+      default:
+        throw new Error(`Unsupported platform: ${liquidityParams.platform}`);
+    }
+
+    logger.info(`Token launched successfully: ${tokenAddress}`, {
+      mintAddress: tokenAddress,
+      platform: liquidityParams.platform,
+      txSignature
+    });
+
+    return {
+      token: {
+        mintAddress: tokenAddress,
+        txSignature,
+        decimals,
+        supply
+      },
+      liquidity: {
+        poolAddress: tokenAddress, // Most platforms return token address as pool address
+        txSignature
+      }
+    };
+  } catch (error) {
+    Sentry.captureException(error);
+    logger.error('Token launch failed', { error });
+    throw new Error(`Token launch failed: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Create SPL token (for Raydium manual creation)
  */
 export async function createToken(
   connection: Connection,
@@ -153,152 +299,7 @@ export async function createToken(
   }
 }
 
-/**
- * Create liquidity pool on pump.fun
- */
-export async function createPumpFunLiquidity(
-  connection: Connection,
-  payer: Keypair,
-  params: LiquidityPoolParams
-): Promise<LiquidityPoolResult> {
-  try {
-    // Import pump.fun service
-    const pumpfunService = await import('./pumpfunService');
-    
-    // For now, return a placeholder - the actual implementation depends on pump.fun's API
-    const result = await pumpfunService.createToken(
-      'Token', // You should fetch this from metadata
-      'TKN',  // You should fetch this from metadata
-      params.tokenAmount,
-      {
-        name: 'Token',
-        symbol: 'TKN',
-        description: '',
-        image: '',
-        telegram: '',
-        website: '',
-        twitter: ''
-      }
-    );
-    
-    return {
-      poolAddress: params.tokenMint.toBase58(), // Placeholder
-      txSignature: result,
-    };
-  } catch (error) {
-    Sentry.captureException(error);
-    throw new Error(`Pump.fun liquidity creation failed: ${(error as Error).message}`);
-  }
-}
-
-/**
- * Create liquidity pool on Raydium
- */
-export async function createRaydiumLiquidity(
-  connection: Connection,
-  payer: Keypair,
-  params: LiquidityPoolParams
-): Promise<LiquidityPoolResult> {
-  try {
-    // Import raydium service
-    const raydiumService = await import('./raydiumService');
-    
-    // For now, use the existing raydium service method
-    const result = await raydiumService.createToken(
-      'Token',
-      'TKN',
-      params.tokenAmount,
-      {
-        name: 'Token',
-        symbol: 'TKN',
-        description: '',
-        image: '',
-        telegram: '',
-        website: '',
-        twitter: ''
-      },
-      payer
-    );
-    
-    return {
-      poolAddress: params.tokenMint.toBase58(), // Placeholder
-      txSignature: result,
-    };
-  } catch (error) {
-    Sentry.captureException(error);
-    throw new Error(`Raydium liquidity creation failed: ${(error as Error).message}`);
-  }
-}
-
-/**
- * Full token launch with liquidity
- */
-export async function launchToken(
-  connection: Connection,
-  payer: Keypair,
-  tokenParams: TokenCreationParams,
-  liquidityParams: {
-    platform: 'pump.fun' | 'raydium';
-    solAmount: number;
-    tokenAmount: number;
-  }
-): Promise<{
-  token: TokenCreationResult;
-  liquidity: LiquidityPoolResult;
-}> {
-  try {
-    // Step 1: Create token
-    logger.info('Creating token...', { params: tokenParams });
-    const tokenResult = await createToken(connection, payer, tokenParams);
-    logger.info(`Token created: ${tokenResult.mintAddress}`, { mintAddress: tokenResult.mintAddress });
-    
-    // Wait a bit for token to be fully confirmed
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Step 2: Create liquidity pool
-    logger.info(`Creating liquidity pool on ${liquidityParams.platform}...`, { 
-      platform: liquidityParams.platform,
-      solAmount: liquidityParams.solAmount,
-      tokenAmount: liquidityParams.tokenAmount 
-    });
-    const mintPubkey = new PublicKey(tokenResult.mintAddress);
-    
-    let liquidityResult: LiquidityPoolResult;
-    
-    if (liquidityParams.platform === 'pump.fun') {
-      liquidityResult = await createPumpFunLiquidity(connection, payer, {
-        tokenMint: mintPubkey,
-        solAmount: liquidityParams.solAmount,
-        tokenAmount: liquidityParams.tokenAmount,
-        platform: 'pump.fun',
-      });
-    } else {
-      liquidityResult = await createRaydiumLiquidity(connection, payer, {
-        tokenMint: mintPubkey,
-        solAmount: liquidityParams.solAmount,
-        tokenAmount: liquidityParams.tokenAmount,
-        platform: 'raydium',
-      });
-    }
-    
-    logger.info(`Liquidity pool created: ${liquidityResult.poolAddress}`, {
-      poolAddress: liquidityResult.poolAddress,
-      platform: liquidityParams.platform
-    });
-    
-    return {
-      token: tokenResult,
-      liquidity: liquidityResult,
-    };
-  } catch (error) {
-    Sentry.captureException(error);
-    throw new Error(`Token launch failed: ${(error as Error).message}`);
-  }
-}
-
 export default {
   createToken,
-  createPumpFunLiquidity,
-  createRaydiumLiquidity,
   launchToken,
 }; 

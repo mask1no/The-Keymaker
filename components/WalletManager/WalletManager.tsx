@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/UI/checkbox';
 import { Skeleton } from '@/components/UI/skeleton';
 import { Badge } from '@/components/UI/badge';
-import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle, Upload } from 'lucide-react';
+import { Copy, Download, Key, RefreshCw, Users, Wallet, Shield, AlertTriangle, Upload, Loader2 } from 'lucide-react';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../../constants';
 import { useKeymakerStore } from '@/lib/store';
 
@@ -109,6 +109,7 @@ export function WalletManager() {
   useEffect(() => {
     // Update global store with current wallets
     const walletsWithKeypairs = wallets.map(w => ({
+      id: `wallet_${w.publicKey.slice(0, 8)}_${Date.now()}`,
       publicKey: w.publicKey,
       role: w.role,
       balance: w.balance,
@@ -570,7 +571,14 @@ export function WalletManager() {
               </SelectContent>
             </Select>
             <Button onClick={handleCreateWallet} disabled={loading}>
-              Create Wallet
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Creating...
+                </>
+              ) : (
+                'Create Wallet'
+              )}
             </Button>
           </div>
           
@@ -597,7 +605,14 @@ export function WalletManager() {
                 onChange={(e) => setMaxSol(e.target.value)}
               />
               <Button onClick={handleFundGroup} disabled={loading || !connectedWallet}>
-                Fund Wallets
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Funding...
+                  </>
+                ) : (
+                  'Fund Wallets'
+                )}
               </Button>
             </div>
           </div>
