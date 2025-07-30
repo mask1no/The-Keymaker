@@ -5,11 +5,19 @@ import { Keypair } from '@solana/web3.js';
 export type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
 
 export interface WalletData {
+  id: string;
   publicKey: string;
   role: WalletRole;
   balance: number;
   keypair?: Keypair;
   encryptedPrivateKey?: string;
+  groupId?: string;
+}
+
+export interface WalletGroup {
+  id: string;
+  name: string;
+  walletIds: string[];
 }
 
 export interface TokenLaunchData {
@@ -37,8 +45,11 @@ export interface ExecutionStep {
 interface KeymakerStore {
   // Wallet Management
   wallets: WalletData[];
+  walletGroups: WalletGroup[];
   selectedGroup: string;
   setWallets: (wallets: WalletData[]) => void;
+  addWallet: (wallet: Omit<WalletData, 'id' | 'balance'>) => void;
+  setWalletGroups: (groups: WalletGroup[]) => void;
   setSelectedGroup: (group: string) => void;
   updateWalletBalance: (publicKey: string, balance: number) => void;
   
@@ -54,6 +65,7 @@ interface KeymakerStore {
   
   // Control Functions
   startExecution: () => void;
+  stopExecution: () => void;
   updateStepStatus: (stepId: string, status: ExecutionStep['status'], message?: string) => void;
   resetExecution: () => void;
   
@@ -86,6 +98,7 @@ export const useKeymakerStore = create<KeymakerStore>()(
     (set) => ({
       // Initial state
       wallets: [],
+      walletGroups: [{ id: 'default', name: 'Default Group', walletIds: [] }],
       selectedGroup: 'default',
       tokenLaunchData: null,
       executionStrategy: 'flash',
@@ -99,6 +112,16 @@ export const useKeymakerStore = create<KeymakerStore>()(
       
       // Actions
       setWallets: (wallets) => set({ wallets }),
+      addWallet: (wallet) => 
+        set((state) => {
+          const newWallet: WalletData = {
+            ...wallet,
+            id: `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            balance: 0
+          };
+          return { wallets: [...state.wallets, newWallet] };
+        }),
+      setWalletGroups: (groups) => set({ walletGroups: groups }),
       setSelectedGroup: (group) => set({ selectedGroup: group }),
       updateWalletBalance: (publicKey, balance) => 
         set((state) => ({
@@ -116,6 +139,10 @@ export const useKeymakerStore = create<KeymakerStore>()(
           isExecuting: true, 
           executionSteps: [...defaultExecutionSteps] 
         });
+      },
+      
+      stopExecution: () => {
+        set({ isExecuting: false });
       },
       
       updateStepStatus: (stepId, status, message) => 

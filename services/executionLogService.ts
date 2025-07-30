@@ -143,6 +143,19 @@ async function initializeTables() {
     )
   `);
   
+  // Execution logs table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS execution_logs (
+      id TEXT PRIMARY KEY,
+      timestamp INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      status TEXT,
+      details TEXT,
+      error TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  
   await db.close();
 }
 
@@ -284,6 +297,45 @@ export async function getPnLHistory(wallet?: string, limit = 100) {
   
   await db.close();
   return records;
+}
+
+// New types and functions for LogsPanel
+export interface ExecutionLog {
+  id: string;
+  timestamp: number;
+  action: string;
+  status?: 'success' | 'failed' | 'pending';
+  details?: any;
+  error?: string;
+}
+
+export async function logEvent(action: string, details?: any) {
+  const db = await getDb();
+  const timestamp = Date.now();
+  const id = `${action}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  await db.run(
+    'INSERT INTO execution_logs (id, timestamp, action, status, details) VALUES (?, ?, ?, ?, ?)',
+    [id, timestamp, action, details?.status || 'success', JSON.stringify(details)]
+  );
+}
+
+export async function getExecutionLogs(): Promise<ExecutionLog[]> {
+  const db = await getDb();
+  
+  const logs = await db.all(
+    'SELECT * FROM execution_logs ORDER BY timestamp DESC LIMIT 1000'
+  );
+  
+  return logs.map((log: any) => ({
+    ...log,
+    details: log.details ? JSON.parse(log.details) : undefined
+  }));
+}
+
+export async function clearLogs() {
+  const db = await getDb();
+  await db.run('DELETE FROM execution_logs');
 }
 
 export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
