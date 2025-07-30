@@ -100,6 +100,26 @@ The Keymaker is a cutting-edge Solana dApp that combines advanced wallet managem
 - A Solana wallet (Phantom or Solflare recommended)
 - RPC endpoint (Helius recommended)
 
+## 🔧 Environment Setup
+
+1. Create a `.env.local` file in the root directory:
+
+```bash
+# RPC Endpoints
+NEXT_PUBLIC_HELIUS_RPC=https://api.mainnet-beta.solana.com
+
+# API Keys (Server-side only - do not prefix with NEXT_PUBLIC_)
+HELIUS_API_KEY=your_helius_api_key_here
+BIRDEYE_API_KEY=your_birdeye_api_key_here
+JUPITER_API_KEY=your_jupiter_api_key_here
+PUMPFUN_API_KEY=your_pumpfun_api_key_here
+MOONSHOT_API_KEY=your_moonshot_api_key_here
+JITO_AUTH_TOKEN=your_jito_auth_token_here
+```
+
+2. Replace `your_*_api_key_here` with your actual API keys.
+3. For better RPC performance, consider getting a free Helius API key at https://helius.dev
+
 ## 🚀 Installation
 
 ### 1. Clone the Repository

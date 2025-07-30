@@ -42,7 +42,7 @@ export function ExecutionLog() {
   const [pnlRecords, setPnlRecords] = useState<PnLRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'executions' | 'pnl'>('executions');
-  const [selectedWallet, setSelectedWallet] = useState<string>('');
+  const [selectedWallet] = useState<string>('');
 
   const loadData = async () => {
     setLoading(true);
@@ -244,7 +244,6 @@ export function ExecutionLog() {
                 </TableHeader>
                 <TableBody>
                   {executions.map((execution) => {
-                    const signatures = JSON.parse(execution.signatures);
                     const total = execution.success_count + execution.failure_count;
                     
                     return (

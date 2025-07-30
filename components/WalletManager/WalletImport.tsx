@@ -108,7 +108,10 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
 
   const processWallet = async (privateKeyInput: string, role: WalletRole): Promise<ImportedWallet | null> => {
     try {
-      const wallet = await importWallet(privateKeyInput);
+      // For preview, we'll use a temporary password
+      // The actual encryption will happen when the user confirms the import
+      const tempPassword = 'preview_' + Date.now();
+      const wallet = await importWallet(privateKeyInput, tempPassword, role);
       const balance = await getBalance(wallet.publicKey);
       
       return {
