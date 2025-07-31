@@ -9,7 +9,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "clean": "rm -rf node_modules package-lock.json .next && npm cache clean --force",
-    "db:init": "ts-node scripts/initDb.ts"
+    "db:init": "ts-node --project tsconfig.node.json scripts/initDb.ts",
+    "test:production": "ts-node --project tsconfig.node.json scripts/testProduction.ts"
   },
   "dependencies": {
     "@jup-ag/api": "^6.0.0",

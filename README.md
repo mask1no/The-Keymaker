@@ -54,7 +54,7 @@ cp env.example .env.local
 
 5. Initialize the database:
 ```bash
-npm run init-db
+npm run db:init
 ```
 
 ## ⚙️ Configuration
@@ -98,6 +98,8 @@ Production mode:
 npm run build
 npm start
 ```
+
+📚 **For detailed production deployment instructions, see [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)**
 
 Access the application at `http://localhost:3000`
 
