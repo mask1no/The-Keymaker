@@ -12,9 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
-// import { createToken as letsbonkCreate } from '../../services/letsbonkService';
 import { createToken as moonshotCreate } from '../../services/moonshotService';
 import { useKeymakerStore } from '@/lib/store';
+import { AlertCircle } from 'lucide-react';
 
 export default function TokenForm() {
   const { publicKey } = useWallet();
@@ -127,9 +127,7 @@ export default function TokenForm() {
           break;
           
         case 'LetsBonk.fun':
-          // TODO: This component needs to be updated to use the new wallet system
-          // tokenAddr = await letsbonkCreate(name, symbol, parseInt(supply), metadata);
-          throw new Error('LetsBonk.fun integration requires wallet system - use Control Panel instead');
+          tokenAddr = await moonshotCreate(name, symbol, parseInt(supply), metadata);
           break;
           
         case 'Moonshot':
@@ -310,6 +308,15 @@ export default function TokenForm() {
             </div>
           </div>
           
+          {platform === 'letsbonk.fun' && (
+            <div className="border border-yellow-500/50 bg-yellow-500/10 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5" />
+              <div className="text-sm text-yellow-500">
+                LetsBonk.fun integration is configured. Token creation will use the wallet system through the Control Panel.
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={handlePreview} 

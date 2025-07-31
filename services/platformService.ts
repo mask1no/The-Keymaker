@@ -16,6 +16,7 @@ import {
 import * as Sentry from '@sentry/nextjs';
 import { validateTokenParams } from '@/lib/validation';
 import { logger } from '@/lib/logger';
+import { useKeymakerStore } from '@/lib/store';
 
 export interface TokenCreationParams {
   name: string;
@@ -82,6 +83,14 @@ export async function launchToken(
       name: tokenParams.name,
       symbol: tokenParams.symbol,
       platform: liquidityParams.platform 
+    });
+
+    // Add notification
+    const { addNotification } = useKeymakerStore.getState();
+    addNotification({
+      type: 'info',
+      title: 'Token Launch Started',
+      message: `Launching ${tokenParams.symbol} on ${liquidityParams.platform}`
     });
 
     const metadata = {
@@ -177,6 +186,13 @@ export async function launchToken(
       txSignature
     });
 
+    // Add success notification
+    addNotification({
+      type: 'success',
+      title: 'Token Launched Successfully',
+      message: `${tokenParams.symbol} deployed at ${tokenAddress.slice(0, 8)}...`
+    });
+
     return {
       token: {
         mintAddress: tokenAddress,
@@ -192,6 +208,15 @@ export async function launchToken(
   } catch (error) {
     Sentry.captureException(error);
     logger.error('Token launch failed', { error });
+    
+    // Add error notification
+    const { addNotification } = useKeymakerStore.getState();
+    addNotification({
+      type: 'error',
+      title: 'Token Launch Failed',
+      message: (error as Error).message
+    });
+    
     throw new Error(`Token launch failed: ${(error as Error).message}`);
   }
 }

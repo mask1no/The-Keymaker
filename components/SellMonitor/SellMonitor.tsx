@@ -109,18 +109,13 @@ export function SellMonitor() {
     toast.success('Sell monitoring stopped');
   };
   
-  // TODO: Implement addHolding and removeHolding when needed for UI
-  // const addHolding = (holding: TokenHolding) => {
-  //   const updated = [...holdings, holding];
-  //   setHoldings(updated);
-  //   localStorage.setItem('tokenHoldings', JSON.stringify(updated));
-  // };
-  
-  // const removeHolding = (tokenAddress: string) => {
-  //   const updated = holdings.filter(h => h.tokenAddress !== tokenAddress);
-  //   setHoldings(updated);
-  //   localStorage.setItem('tokenHoldings', JSON.stringify(updated));
-  // };
+  const removeHolding = (tokenAddress: string) => {
+    setHoldings((prev) => prev.filter((h) => h.tokenAddress !== tokenAddress));
+  };
+
+  const addHolding = (holding: TokenHolding) => {
+    setHoldings((prev) => [...prev, holding]);
+  };
   
   return (
     <motion.div

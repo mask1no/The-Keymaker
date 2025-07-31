@@ -1,322 +1,245 @@
-# 🗝️ The Keymaker - Solana Memecoin Bundler
+# The Keymaker - Solana Memecoin Bundler
 
-> **Elite-grade Solana memecoin orchestration engine with Jito MEV protection**
+A powerful, production-ready Solana token bundler for launching and sniping memecoins with multi-wallet support and atomic execution via Jito bundles.
 
-![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-00FFF0?style=for-the-badge&logo=solana)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js%2014-000000?style=for-the-badge&logo=next.js&logoColor=white)
+## 🔑 Features
 
-## ⚡ Overview
+- **Multi-Platform Token Launch**: Deploy tokens on Pump.fun, LetsBonk.fun, or Raydium
+- **Multi-Wallet Bundling**: Manage up to 20 wallets with role-based permissions (Master, Dev, Sniper)
+- **Atomic Execution**: Use Jito bundles for same-slot execution or choose alternative strategies
+- **4 Execution Modes**:
+  - **Flash (Jito)**: Atomic bundle execution in the same slot
+  - **Regular**: Fast sequential execution without bundling
+  - **Stealth**: Delayed execution with random timing (2-5s between transactions)
+  - **Manual**: Prepare transactions for user-controlled execution
+- **Advanced Features**:
+  - Real-time activity monitor with WebSocket transaction stream
+  - Rug pull functionality for Raydium pools (freeze & withdraw liquidity)
+  - Automated selling with configurable conditions
+  - PnL tracking and analytics
+  - Local wallet encryption (AES-256-GCM)
+  - Dark theme with green Matrix-style aesthetics
 
-The Keymaker is a weaponized Solana bundler built for serious memecoin operations. This is not a toy - it's a production-grade orchestration engine that can launch tokens, fund wallets, execute Jito bundles, and manage automated sells with real transactions on mainnet.
+## 🚀 Prerequisites
 
-### 🎯 Core Capabilities
+- Node.js 18+ and npm
+- Python 3.8+ (for LetsBonk.fun integration)
+- A funded Solana wallet for operations
+- API keys for external services (see Configuration)
 
-- **Token Launch**: Deploy on pump.fun, letsbonk.fun, Raydium, or Moonshot
-- **Wallet Orchestration**: Manage hundreds of wallets with role-based permissions
-- **Jito Bundling**: MEV-protected bundle execution with retry logic
-- **Automated Selling**: Jupiter-powered sells with dynamic slippage
-- **Real-time Monitoring**: Track every transaction with Solscan links
-- **Zero Mock Data**: Every button = real transaction or error
+## 📦 Installation
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ & npm 9+
-- Python 3.10+
-- Solana CLI tools
-- 1+ SOL for testing
-- API keys for Helius, Jupiter, Birdeye
-
-### Installation
-
+1. Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/the-keymaker.git
 cd the-keymaker
+```
 
-# Install dependencies
-npm install --legacy-peer-deps
-cd bonk-mcp && pip install -r requirements.txt && cd ..
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Setup environment
-cp .env.example .env.local
-# Edit .env.local with your API keys
+3. Install Python dependencies (for LetsBonk.fun):
+```bash
+cd bonk-mcp
+pip install -r requirements.txt
+cd ..
+```
 
-# Initialize database
+4. Set up environment variables:
+```bash
+cp env.example .env.local
+```
+
+5. Initialize the database:
+```bash
 npm run init-db
+```
 
-# Run development server
+## ⚙️ Configuration
+
+Edit `.env.local` with your configuration:
+
+### Required API Keys
+
+- **Helius RPC**: Get from [helius.xyz](https://helius.xyz)
+  - `NEXT_PUBLIC_HELIUS_RPC`: Your Helius RPC endpoint
+  - `HELIUS_API_KEY`: Your Helius API key
+
+- **Jito**: Get from [jito.wtf](https://jito.wtf)
+  - `JITO_AUTH_TOKEN`: Your Jito authentication token
+
+- **Platform APIs** (as needed):
+  - `PUMPFUN_API_KEY`: For Pump.fun deployments
+  - `BIRDEYE_API_KEY`: For price data and token info
+  - `LETSBONK_API_KEY`: For LetsBonk.fun (if required)
+
+### Master Wallet
+
+Set your master wallet's private key (base58 format):
+```
+SOLANA_KEYPAIR=YOUR_MASTER_WALLET_PRIVATE_KEY_BASE58
+```
+
+⚠️ **Security Note**: Keep your private keys secure and never commit them to version control.
+
+## 🎮 Usage
+
+### 1. Start the Application
+
+Development mode:
+```bash
 npm run dev
 ```
 
-## 🔧 Configuration
-
-### Required Environment Variables
-
-```env
-# RPC & Network
-NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-HELIUS_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-HELIUS_API_KEY=your_helius_api_key
-
-# API Keys (Backend only)
-BIRDEYE_API_KEY=your_birdeye_api_key
-JUPITER_API_KEY=your_jupiter_api_key
-JITO_AUTH_TOKEN=your_jito_auth_token
-
-# Platform APIs (optional)
-PUMPFUN_API_KEY=your_pumpfun_api_key
-MOONSHOT_API_KEY=your_moonshot_api_key
-
-# Solana Keypair (for Python backend)
-SOLANA_KEYPAIR=your_base58_encoded_keypair
+Production mode:
+```bash
+npm run build
+npm start
 ```
 
-### Jito Configuration
+Access the application at `http://localhost:3000`
 
-```env
-# Jito tip accounts (mainnet)
-JITO_TIP_ACCOUNTS=96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5,HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
-```
+### 2. Initial Setup
 
-## 🎮 Usage Guide
+1. **Configure API Keys**: Go to Settings and enter your API keys
+2. **Create Wallets**: 
+   - Navigate to Wallets
+   - Create a new wallet group (e.g., 10 wallets)
+   - Assign roles: 1 Master, 1 Dev, 8 Snipers
+   - Set a strong password for wallet encryption
 
-### 1. Wallet Setup
+3. **Fund Wallets**:
+   - Ensure your Master wallet has sufficient SOL
+   - Use the "Fund" button to distribute SOL to sniper wallets
+   - The app will randomly distribute the specified amount
 
-```typescript
-// Create master wallet first
-Navigate to Dashboard → Wallets
-Click "Create Wallet" → Role: Master
-Save the password securely!
+### 3. Launch a Token
 
-// Create sniper wallets
-Create 5-10 wallets with role "Sniper"
-These will execute the bundle buys
-```
+1. **Configure Token**:
+   - Name, Symbol, Supply, Decimals
+   - Choose platform (Pump.fun, LetsBonk, or Raydium)
+   - Set initial liquidity amount
 
-### 2. Token Launch
+2. **Select Execution Mode**:
+   - **Flash**: Best for competitive launches (uses Jito)
+   - **Regular**: Standard fast execution
+   - **Stealth**: Avoid detection with delays
+   - **Manual**: Full control over timing
 
-```typescript
-// Configure token
-Name: "Your Token"
-Symbol: "TICKER"
-Supply: 1000000000 (1B)
-Decimals: 6 (letsbonk) or 9 (pump.fun)
-Platform: letsbonk.fun (recommended)
+3. **Execute**:
+   - Click "🔑 Execute Keymaker"
+   - Monitor progress through the step indicator
+   - Watch the live activity feed
 
-// Launch sequence
-1. Click "Launch Token"
-2. Enter password
-3. Wait for confirmation
-4. Save mint address
-```
+### 4. Monitor & Manage
 
-### 3. Wallet Funding
+- **Activity Monitor**: See real-time buys/sells
+- **Notifications**: Track all actions via the bell icon
+- **Analytics**: View PnL, market cap, and performance
+- **Sell Monitor**: Manage exits with configurable conditions
 
-```typescript
-// Fund sniper wallets
-Total Amount: 1 SOL
-Min per wallet: 0.1 SOL
-Max per wallet: 0.2 SOL
+### 5. Exit Strategies
 
-// Funds distributed based on role weights:
-- Sniper: 2x weight
-- Dev: 1.5x weight  
-- Normal: 1x weight
-```
+- **Auto-Sell**: Configure conditions (profit %, time, market cap)
+- **Manual Sell**: Control individual wallet sells
+- **Rug Pull** (Raydium only): Emergency exit with liquidity withdrawal
 
-### 4. Bundle Execution
+## 🛡️ Security
 
-```typescript
-// Configure bundle
-Bundle Size: 5 wallets
-Slippage: 1% (auto-adjusts based on liquidity)
-Priority Fee: 0.0001 SOL
-Jito Tip: 0.01 SOL
-
-// Execute
-1. Click "Bundle Buys"
-2. Transactions built with Jupiter
-3. Bundled via Jito
-4. Confirms in 1-2 slots
-```
-
-### 5. Automated Sells
-
-```typescript
-// Sell configuration
-Profit Target: 100%
-Stop Loss: -50%
-Slippage: Dynamic (0.5-50%)
-
-// Executes via Jupiter with:
-- Automatic route finding
-- MEV protection
-- Retry on failure
-```
+- All private keys are encrypted locally using AES-256-GCM
+- No external telemetry or analytics
+- Keys never leave your machine
+- Password required for wallet operations
+- Sentry and other tracking disabled by default
 
 ## 🏗️ Architecture
 
-### Frontend Stack
-
 ```
-components/
-├── ControlCenter/      # Orchestration UI
-├── WalletManager/      # Wallet CRUD
-├── BundleEngine/       # Bundle builder
-├── ExecutionLog/       # Transaction logs
-└── UI/                 # Reusable components
-```
-
-### Backend Services
-
-```
-services/
-├── platformService.ts  # Token launches
-├── walletService.ts    # Wallet encryption
-├── bundleService.ts    # Jito integration
-├── jupiterService.ts   # Swap execution
-└── sellService.ts      # Automated sells
+the-keymaker/
+├── app/              # Next.js app directory
+├── components/       # React components
+├── services/         # Core business logic
+├── lib/             # Utilities and store
+├── bonk-mcp/        # Python backend for LetsBonk
+└── data/            # Local SQLite database
 ```
 
-### Python Backend
+### Key Services
 
-```
-bonk-mcp/
-├── core/
-│   ├── letsbonk.py    # LetsBonk protocol
-│   └── jupiter.py     # Jupiter integration
-└── tools/
-    ├── token_launcher.py
-    └── token_buyer.py
-```
+- `bundleService`: Jito bundle execution
+- `platformService`: Multi-platform token launches
+- `walletService`: Secure wallet management
+- `sellService`: Jupiter-powered token selling
+- `rugService`: Raydium pool manipulation
 
-## 🔐 Security
+## 🔧 Advanced Configuration
 
-### Wallet Encryption
-- **AES-256-GCM** encryption for all private keys
-- **PBKDF2** with 100k iterations for key derivation
-- Keys stored in memory/sessionStorage only
-- Automatic cleanup on disconnect
+### Bundle Limits
 
-### Transaction Safety
-- All transactions simulated before execution
-- Retry logic with exponential backoff
-- Balance validation before operations
-- Slippage protection with dynamic adjustment
+- Maximum 20 wallets per session
+- Jito bundles limited to 5 transactions (will batch if needed)
+- Rate limits apply to RPC endpoints
 
-### API Security
-- All sensitive keys proxied through backend
-- Rate limiting on API endpoints
-- Input validation and sanitization
-- No private keys in logs
+### Custom RPC
 
-## 📊 Monitoring
-
-### Execution Logs
-Every transaction is logged with:
-- Phase (launch/fund/bundle/sell)
-- Wallet addresses involved
-- Transaction signatures with Solscan links
-- Slot number and status
-- Error messages if failed
-
-### PnL Tracking
-- Real-time profit/loss calculation
-- Per-wallet and aggregate metrics
-- Export to CSV for analysis
-- Historical performance data
-
-## 🚨 Common Issues
-
-### "Insufficient SOL for fees"
-```bash
-# Ensure master wallet has enough SOL
-# Each transaction needs ~0.005 SOL for fees
-# Bundle operations need Jito tip (0.01 SOL)
+You can use any Solana RPC by updating:
+```env
+NEXT_PUBLIC_HELIUS_RPC=https://your-rpc-endpoint.com
 ```
 
-### "Transaction simulation failed"
-```bash
-# Check token has liquidity
-# Verify wallet has token balance
-# Increase slippage if needed
-# Check RPC endpoint is responsive
+### Platform-Specific Notes
+
+- **Pump.fun**: Requires API key, handles liquidity automatically
+- **LetsBonk**: Uses Python backend, ensure Python environment is set up
+- **Raydium**: Most complex but offers full control including rug functionality
+
+## ⚠️ Risks & Disclaimers
+
+- This tool is powerful and can result in financial loss if misused
+- Rug pulling is unethical and may have legal consequences
+- Always test on devnet first
+- The authors are not responsible for any losses or misuse
+- Use at your own risk
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **"No token launched yet"**: Ensure token creation completed successfully
+2. **"Insufficient balance"**: Check Master wallet has enough SOL
+3. **Bundle failures**: Verify Jito auth token and endpoint
+4. **Python errors**: Check Python dependencies and SOLANA_KEYPAIR env
+
+### Debug Mode
+
+Enable debug logging:
+```env
+DEBUG=true
 ```
 
-### "Bundle failed to land"
-```bash
-# Increase Jito tip amount
-# Reduce bundle size
-# Check validator is accepting bundles
-# Retry with different validator
-```
-
-## ⚡ Performance Tips
-
-1. **Use dedicated RPC**: Free endpoints are rate-limited
-2. **Batch operations**: Group wallet funding
-3. **Optimize bundle size**: 3-5 transactions ideal
-4. **Monitor TPS**: Check Solana network congestion
-5. **Cache token data**: Reduce API calls
-
-## 🧪 Testing Checklist
-
-- [ ] Create master wallet with 2+ SOL
-- [ ] Generate 5 sniper wallets
-- [ ] Launch test token on devnet first
-- [ ] Fund wallets with 0.1 SOL each
-- [ ] Execute bundle with 3 wallets
-- [ ] Verify buys on Solscan
-- [ ] Test sell functionality
-- [ ] Check PnL calculations
-- [ ] Export logs to CSV
-
-## 🛠️ Development
-
-### Code Standards
-
-```typescript
-// TypeScript
-- Strict mode enabled
-- Explicit return types
-- No any without justification
-- Zod for runtime validation
-
-// Python  
-- Type hints required
-- Async/await for I/O
-- Proper exception handling
-- No bare except clauses
-```
-
-### Git Workflow
+### Reset Database
 
 ```bash
-# Feature branch
-git checkout -b feat/your-feature
-
-# Commit with conventional commits
-git commit -m "feat: add dynamic slippage"
-
-# Push and create PR
-git push origin feat/your-feature
+rm data/analytics.db
+npm run init-db
 ```
 
-## 📝 License
+## 📚 Additional Resources
 
-This software is for educational and personal use only. Not for commercial distribution.
+- [Jito Documentation](https://docs.jito.wtf)
+- [Jupiter API Docs](https://docs.jup.ag)
+- [Solana Cookbook](https://solanacookbook.com)
 
-## ⚠️ Disclaimer
+## 🤝 Support
 
-**USE AT YOUR OWN RISK**. This tool executes real transactions on Solana mainnet. The authors are not responsible for any financial losses. Always test on devnet first and understand the code before using.
+For issues or questions:
+1. Check existing documentation
+2. Review error messages in the UI
+3. Check browser console for detailed errors
+4. Ensure all prerequisites are met
 
 ---
 
-<p align="center">
-Built for degens, by degens 🚀<br/>
-<em>Not financial advice. DYOR.</em>
-</p>
+Built with ❤️ for the Solana ecosystem. Use responsibly.

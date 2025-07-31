@@ -13,4 +13,7 @@ export const JITO_TIP_ACCOUNTS = [
   'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
   'DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL',
   '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT'
-]; 
+];
+
+// Solana native mint (SOL)
+export const SOL_MINT_ADDRESS = 'So11111111111111111111111111111111111111112'; 

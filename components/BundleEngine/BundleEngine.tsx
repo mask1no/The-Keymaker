@@ -264,13 +264,10 @@ export function BundleEngine() {
         }
         
         // Build signers array with decrypted keypairs
-        const signers: Keypair[] = [];
+        const signers: (Keypair | null)[] = [];
         
-        // Add tip transaction signer (connected wallet)
-        if (publicKey) {
-          // For connected wallet, we'll handle signing differently
-          signers.push(null as any); // Placeholder for tip tx
-        }
+        // Note: The signers array must match the length of transactions array
+        // Use null for transactions that will be signed by the wallet adapter
         
         // Add signers for each transaction
         for (const tx of transactions) {
@@ -300,8 +297,8 @@ export function BundleEngine() {
               throw new Error(`Failed to decrypt wallet ${tx.wallet}: Invalid password`);
             }
           } else {
-            // Connected wallet transaction
-            signers.push(null as any); // Will be signed by wallet adapter
+            // Connected wallet transaction - will be signed by wallet adapter
+            signers.push(null);
           }
         }
         
@@ -324,7 +321,7 @@ export function BundleEngine() {
         
       } else {
         // Only connected wallet transactions
-        const signers: Keypair[] = [];
+        const signers: (Keypair | null)[] = new Array(transactions.length).fill(null);
         
         // Execute bundle
         executionResult = await executeBundle(

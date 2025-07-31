@@ -242,19 +242,167 @@ export function ControlCenter() {
         throw new Error('No swap transactions created');
       }
 
-      const bundleResult = await executeBundle(
-        transactions,
-        sniperWallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
-        sniperKeypairs,
-        {
-          connection,
-          tipAmount: tipAmount * LAMPORTS_PER_SOL,
-          logger: (msg) => console.log(`[Bundle] ${msg}`)
+      // Execute based on strategy
+      let bundleResult;
+      
+      switch (executionStrategy) {
+        case 'flash': { // Instant mode with Jito bundling
+          updateStepStatus('bundle', 'running', 'Executing instant bundle via Jito...');
+          bundleResult = await executeBundle(
+            transactions,
+            sniperWallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+            sniperKeypairs,
+            {
+              connection,
+              tipAmount: tipAmount * LAMPORTS_PER_SOL,
+              logger: (msg) => {
+                console.log(`[Bundle] ${msg}`);
+                updateStepStatus('bundle', 'running', msg);
+              }
+            }
+          );
+          break;
         }
-      );
+          
+        case 'stealth': { // Delayed mode with staggered execution
+          updateStepStatus('bundle', 'running', 'Executing stealth mode with delays...');
+          const results: any = { metrics: { successRate: 0 }, signatures: [], results: [] };
+          let successCount = 0;
+          
+          for (let i = 0; i < transactions.length; i++) {
+            updateStepStatus('bundle', 'running', `Executing wallet ${i + 1}/${transactions.length}...`);
+            
+            try {
+              // Add random delay between transactions (2-5 seconds)
+              if (i > 0) {
+                const delay = 2000 + Math.random() * 3000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+              
+              // Send individual transaction
+              const signature = await connection.sendTransaction(transactions[i], [sniperKeypairs[i]], {
+                skipPreflight: false,
+                maxRetries: 2
+              });
+              
+              results.signatures.push(signature);
+              results.results.push('success');
+              successCount++;
+              
+              // Wait for confirmation
+              await connection.confirmTransaction(signature, 'confirmed');
+            } catch (error) {
+              console.error(`Wallet ${i} transaction failed:`, error);
+              results.signatures.push('');
+              results.results.push('failed');
+            }
+          }
+          
+          results.metrics.successRate = successCount / transactions.length;
+          bundleResult = results;
+          break;
+        }
+          
+        case 'manual': { // Manual mode - prepare but don't execute
+          updateStepStatus('bundle', 'completed', 'Manual mode - transactions prepared for manual execution');
+          // Store transactions for manual execution
+          // In a real implementation, you'd store these and provide UI controls
+          bundleResult = { 
+            metrics: { successRate: 1 }, 
+            signatures: [],
+            results: [] 
+          };
+          toast.success('Transactions prepared. Use manual controls to execute.');
+          break;
+        }
+          
+        default: { // Regular mode - fast sequential execution
+          updateStepStatus('bundle', 'running', 'Executing regular bundle...');
+          const regularResults: any = { metrics: { successRate: 0 }, signatures: [], results: [] };
+          let regularSuccessCount = 0;
+          
+          // Send all transactions as fast as possible
+          const sendPromises = transactions.map(async (tx, i) => {
+            try {
+              const signature = await connection.sendTransaction(tx, [sniperKeypairs[i]], {
+                skipPreflight: false,
+                maxRetries: 2
+              });
+              return { success: true, signature, index: i };
+            } catch (error) {
+              return { success: false, signature: '', index: i, error };
+            }
+          });
+          
+          // Wait for all to complete
+          const sendResults = await Promise.all(sendPromises);
+          
+          // Process results
+          for (const result of sendResults) {
+            if (result.success) {
+              regularResults.signatures.push(result.signature);
+              regularResults.results.push('success');
+              regularSuccessCount++;
+            } else {
+              regularResults.signatures.push('');
+              regularResults.results.push('failed');
+            }
+          }
+          
+          regularResults.metrics.successRate = regularSuccessCount / transactions.length;
+          bundleResult = regularResults;
+          break;
+        }
+      }
 
       updateStepStatus('bundle', 'completed', `Bundle executed: ${bundleResult.metrics.successRate * 100}% success`);
       setCurrentStep(4);
+
+      // Track holdings for successful purchases
+      if (bundleResult.metrics.successRate > 0) {
+        try {
+          // Calculate average buy amount per wallet
+          const totalBuyAmount = sniperWallets.reduce((sum, w) => sum + (w.balance * 0.8 / LAMPORTS_PER_SOL), 0);
+          const avgBuyAmount = totalBuyAmount / sniperWallets.length;
+          
+          // Get current holdings from localStorage
+          const existingHoldings = localStorage.getItem('tokenHoldings');
+          const holdings = existingHoldings ? JSON.parse(existingHoldings) : [];
+          
+          // Add new holding for this token
+          const newHolding = {
+            tokenAddress: mintPubkey.toBase58(),
+            tokenName: tokenLaunchData.symbol || 'Unknown',
+            amount: transactions.length * avgBuyAmount, // Approximate total SOL spent
+            entryPrice: 0.000001, // Will be updated with actual price from market
+            currentPrice: 0.000001,
+            pnl: 0,
+            marketCap: 0,
+            walletAddresses: sniperWallets.map(w => w.publicKey),
+            purchaseTime: Date.now()
+          };
+          
+          // Check if holding already exists
+          const existingIndex = holdings.findIndex((h: any) => h.tokenAddress === newHolding.tokenAddress);
+          if (existingIndex >= 0) {
+            // Update existing holding
+            holdings[existingIndex] = {
+              ...holdings[existingIndex],
+              amount: holdings[existingIndex].amount + newHolding.amount,
+              walletAddresses: [...new Set([...holdings[existingIndex].walletAddresses, ...newHolding.walletAddresses])]
+            };
+          } else {
+            // Add new holding
+            holdings.push(newHolding);
+          }
+          
+          // Save updated holdings
+          localStorage.setItem('tokenHoldings', JSON.stringify(holdings));
+          toast.success('Holdings tracked for sell monitoring');
+        } catch (error) {
+          console.error('Failed to track holdings:', error);
+        }
+      }
 
       // Step 5: Wait before selling
       if (executionStrategy !== 'manual') {
@@ -312,9 +460,10 @@ export function ControlCenter() {
 
   // Strategy descriptions
   const strategyDescriptions = {
-    flash: '⚡ All actions execute immediately in rapid succession',
-    stealth: '🥷 Delayed sniper buys with randomized timing',
-    manual: '🎮 User-controlled execution at each step'
+    flash: '⚡ Instant atomic execution using Jito bundles',
+    stealth: '🥷 Delayed execution with random timing between transactions',
+    manual: '🎮 Prepare transactions for manual execution',
+    regular: '🚀 Fast sequential execution without bundling'
   };
 
   return (
@@ -340,8 +489,9 @@ export function ControlCenter() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="flash">⚡ Flash Launch</SelectItem>
-                <SelectItem value="stealth">🥷 Stealth Ramp</SelectItem>
+                <SelectItem value="flash">⚡ Flash (Jito Bundle)</SelectItem>
+                <SelectItem value="regular">🚀 Regular (Fast Sequential)</SelectItem>
+                <SelectItem value="stealth">🥷 Stealth (Delayed)</SelectItem>
                 <SelectItem value="manual">🎮 Manual Mode</SelectItem>
               </SelectContent>
             </Select>

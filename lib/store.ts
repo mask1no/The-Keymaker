@@ -32,7 +32,7 @@ export interface TokenLaunchData {
   txSignature?: string;
 }
 
-export type ExecutionStrategy = 'flash' | 'stealth' | 'manual';
+export type ExecutionStrategy = 'flash' | 'stealth' | 'manual' | 'regular';
 
 export interface ExecutionStep {
   id: string;
@@ -40,6 +40,15 @@ export interface ExecutionStep {
   status: 'pending' | 'running' | 'completed' | 'failed';
   message?: string;
   timestamp?: number;
+}
+
+export interface Notification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message?: string;
+  timestamp: number;
+  read?: boolean;
 }
 
 interface KeymakerStore {
@@ -81,6 +90,13 @@ interface KeymakerStore {
   totalInvested: number;
   totalReturned: number;
   updatePnL: (invested: number, returned: number) => void;
+  
+  // Notifications
+  notifications: Notification[];
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
+  removeNotification: (id: string) => void;
+  clearNotifications: () => void;
+  markNotificationAsRead: (id: string) => void;
 }
 
 const defaultExecutionSteps: ExecutionStep[] = [
@@ -109,6 +125,7 @@ export const useKeymakerStore = create<KeymakerStore>()(
       autoSellDelay: 60,
       totalInvested: 0,
       totalReturned: 0,
+      notifications: [],
       
       // Actions
       setWallets: (wallets) => set({ wallets }),
@@ -168,7 +185,31 @@ export const useKeymakerStore = create<KeymakerStore>()(
         set((state) => ({
           totalInvested: state.totalInvested + invested,
           totalReturned: state.totalReturned + returned
-        }))
+        })),
+        
+      addNotification: (notification) =>
+        set((state) => ({
+          notifications: [
+            {
+              ...notification,
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+              read: false,
+            },
+            ...state.notifications,
+          ].slice(0, 100), // Keep max 100 notifications
+        })),
+      removeNotification: (id) =>
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        })),
+      clearNotifications: () => set({ notifications: [] }),
+      markNotificationAsRead: (id) =>
+        set((state) => ({
+          notifications: state.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          ),
+        })),
     }),
     {
       name: 'keymaker-store'

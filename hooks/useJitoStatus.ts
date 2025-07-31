@@ -4,7 +4,7 @@ export function useJitoStatus() {
   useEffect(() => {
     const checkJito = async () => {
       try {
-        const response = await fetch(process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://devnet.jito.wtf');
+        const response = await fetch(process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://mainnet.block-engine.jito.wtf');
         setJitoStatus(response.ok ? 'Connected' : 'Fallback');
       } catch {
         setJitoStatus('Disconnected');

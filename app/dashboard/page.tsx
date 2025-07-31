@@ -13,7 +13,8 @@ import {
   Users,
   FileText,
   BarChart3,
-  Home
+  Home,
+  Activity
 } from 'lucide-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
@@ -23,8 +24,9 @@ import { WalletManager } from '@/components/WalletManager/WalletManager';
 import { LogsPanel } from '@/components/ExecutionLog/LogsPanel';
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel';
 import MemecoinCreator from '@/components/MemecoinCreator/MemecoinCreator';
+import { ActivityMonitor } from '@/components/ActivityMonitor/ActivityMonitor';
 
-type TabView = 'overview' | 'control' | 'wallets' | 'create' | 'logs' | 'analytics';
+type TabView = 'overview' | 'control' | 'wallets' | 'create' | 'logs' | 'analytics' | 'activity';
 
 export default function DashboardPage() {
   const { wallets, totalInvested, totalReturned, tokenLaunchData } = useKeymakerStore();
@@ -74,7 +76,8 @@ export default function DashboardPage() {
     { id: 'wallets' as TabView, label: 'Wallets', icon: <Wallet className="h-4 w-4" /> },
     { id: 'create' as TabView, label: 'Create Token', icon: <Rocket className="h-4 w-4" /> },
     { id: 'logs' as TabView, label: 'Logs', icon: <FileText className="h-4 w-4" /> },
-    { id: 'analytics' as TabView, label: 'Analytics', icon: <BarChart3 className="h-4 w-4" /> }
+    { id: 'analytics' as TabView, label: 'Analytics', icon: <BarChart3 className="h-4 w-4" /> },
+    { id: 'activity' as TabView, label: 'Activity', icon: <Activity className="h-4 w-4" /> }
   ];
 
   return (
@@ -297,6 +300,17 @@ export default function DashboardPage() {
               exit={{ opacity: 0, y: -20 }}
             >
               <AnalyticsPanel />
+            </motion.div>
+          )}
+
+          {activeTab === 'activity' && (
+            <motion.div
+              key="activity"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <ActivityMonitor />
             </motion.div>
           )}
         </AnimatePresence>

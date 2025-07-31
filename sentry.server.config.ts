@@ -2,14 +2,18 @@
 // The config you add here will be used whenever the server handles a request.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
 
-Sentry.init({
-  dsn: "https://3eedeb156a3264579e2731a39568a310@o4509656578785280.ingest.de.sentry.io/4509656585797712",
-
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
-
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
-});
+// Only initialize Sentry if DSN is provided
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    enabled: false, // Disable for local-only operation
+    tracesSampleRate: 0,
+    debug: false,
+    beforeSend() {
+      // Never send events
+      return null;
+    },
+  });
+}
