@@ -9,7 +9,7 @@ import { useDebounce } from 'use-debounce';
 import { Trade, PriceData } from '@/lib/types';
 import { useKeymakerStore } from '@/lib/store';
 import { getTokenPrice } from '@/services/sellService';
-import { getPnLHistory } from '@/services/executionLogService';
+import { getPnLHistory } from '@/lib/clientLogger';
 
 export default function AnalyticsPanel() {
   const [prices, setPrices] = useState<PriceData>({ sol: 0, eth: 0, btc: 0, cake: 0 });

@@ -25,7 +25,7 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { launchToken } from '@/services/platformService';
 import { fundWalletGroup } from '@/services/fundingService';
 import { batchSellTokens } from '@/services/sellService';
-import { logEvent } from '@/services/executionLogService';
+import { logEvent } from '@/lib/clientLogger';
 import { getKeypairs } from '@/services/walletService';
 import { logger } from '@/lib/logger';
 import { PasswordDialog } from '@/components/UI/PasswordDialog';

@@ -16,7 +16,7 @@ import { Badge } from '@/components/UI/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { previewBundle, executeBundle, type PreviewResult, type ExecutionResult } from '@/services/bundleService';
-import { exportExecutionLog } from '@/services/executionLogService';
+import { exportExecutionLog } from '@/lib/clientLogger';
 import { buildSwapTransaction, WSOL_MINT, convertToLamports } from '@/services/jupiterService';
 import { trackBuy, trackSell } from '@/services/pnlService';
 import { getKeypair } from '@/services/walletService';

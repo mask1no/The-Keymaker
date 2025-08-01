@@ -21,7 +21,7 @@ import {
   X
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { getExecutionLogs, clearLogs, ExecutionLog } from '@/services/executionLogService';
+import { getExecutionLogs, clearLogs, type ExecutionLog } from '@/lib/clientLogger';
 import { logger } from '@/lib/logger';
 import toast from 'react-hot-toast';
 

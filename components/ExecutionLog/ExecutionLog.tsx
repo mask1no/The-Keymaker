@@ -7,35 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/UI/badge';
 import { Skeleton } from '@/components/UI/skeleton';
 import { Download, RefreshCw, Activity, TrendingUp, Package, DollarSign } from 'lucide-react';
-import { getExecutionHistory, getPnLHistory, exportExecutionLog } from '@/services/executionLogService';
+import { 
+  getExecutionHistory, 
+  getPnLHistory, 
+  exportExecutionLog,
+  type ExecutionRecord,
+  type PnLRecord 
+} from '@/lib/clientLogger';
 import toast from 'react-hot-toast';
-
-interface ExecutionRecord {
-  id: number;
-  bundle_id?: string;
-  slot: number;
-  signatures: string;
-  status: string;
-  success_count: number;
-  failure_count: number;
-  used_jito: boolean;
-  execution_time: number;
-  created_at: string;
-}
-
-interface PnLRecord {
-  id: number;
-  wallet: string;
-  token_address: string;
-  entry_price: number;
-  exit_price: number;
-  sol_invested: number;
-  sol_returned: number;
-  profit_loss: number;
-  profit_percentage: number;
-  hold_time: number;
-  created_at: string;
-}
 
 export function ExecutionLog() {
   const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
@@ -48,8 +27,8 @@ export function ExecutionLog() {
     setLoading(true);
     try {
       const [executionData, pnlData] = await Promise.all([
-        getExecutionHistory(50),
-        getPnLHistory(selectedWallet || undefined, 50)
+        getExecutionHistory(undefined, 50),
+        getPnLHistory()
       ]);
       
       setExecutions(executionData as ExecutionRecord[]);
@@ -67,8 +46,10 @@ export function ExecutionLog() {
 
   const handleExport = async (format: 'json' | 'txt') => {
     try {
-      const data = await exportExecutionLog(format);
-      const blob = new Blob([data], { type: format === 'json' ? 'application/json' : 'text/plain' });
+      const data = await exportExecutionLog();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { 
+        type: format === 'json' ? 'application/json' : 'text/plain' 
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
