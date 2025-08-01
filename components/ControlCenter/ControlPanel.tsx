@@ -194,15 +194,12 @@ export function ControlPanel() {
         txSignature: result.token.txSignature
       });
 
-      await logEvent('token_launch', {
-        mint: result.token.mintAddress,
-        pool: result.liquidity?.poolAddress,
-        platform: tokenConfig.platform,
-        signature: result.token.txSignature,
-        name: tokenConfig.name,
-        symbol: tokenConfig.symbol,
-        supply: tokenConfig.supply,
-        decimals: result.token.decimals
+      await logEvent({
+        phase: 'token_launch',
+        action: 'create_token',
+        token_address: result.token.mintAddress,
+        wallet_address: masterWallet.publicKey,
+        status: 'success'
       });
 
       toast.success(`Token launched! Mint: ${result.token.mintAddress.slice(0, 8)}...`);
@@ -257,10 +254,11 @@ export function ControlPanel() {
         txSignatures: [...prev.txSignatures, ...result]
       }));
 
-      await logEvent('wallets_funded', {
-        groupId: currentGroup.id,
-        count: result.length,
-        signatures: result
+      await logEvent({
+        phase: 'funding',
+        action: 'fund_wallets',
+        wallet_address: currentGroup.id,
+        status: 'success'
       });
 
       toast.success(`Funded ${result.length} wallets!`);
@@ -357,14 +355,11 @@ export function ControlPanel() {
         txSignatures: [...prev.txSignatures, ...(bundleResult.signatures || [])]
       }));
 
-      await logEvent('bundle_executed', {
-        bundleId: bundleResult.bundleId,
-        walletCount: transactions.length,
+      await logEvent({
+        phase: 'bundle_execution',
+        action: 'execute_bundle',
         status: bundleResult.results.filter(r => r === 'success').length > 0 ? 'success' : 'failed',
-        successCount: bundleResult.results.filter(r => r === 'success').length,
-        signatures: bundleResult.signatures,
-        slotTargeted: bundleResult.slotTargeted,
-        usedJito: bundleResult.usedJito
+        slot: bundleResult.slotTargeted
       });
 
       const successCount = bundleResult.results.filter(r => r === 'success').length;
@@ -409,11 +404,11 @@ export function ControlPanel() {
         txSignatures: [...prev.txSignatures, ...signatures]
       }));
 
-      await logEvent('batch_sell_executed', {
-        tokenMint: state.tokenMint,
-        successCount,
-        totalCount: results.length,
-        signatures
+      await logEvent({
+        phase: 'batch_sell',
+        action: 'sell_tokens',
+        token_address: state.tokenMint,
+        status: successCount > 0 ? 'success' : 'failed'
       });
 
       toast.success(`Sold from ${successCount}/${results.length} wallets!`);

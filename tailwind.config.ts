@@ -9,6 +9,11 @@ export default {
         aqua: '#00ffff',
         violet: '#9d79f2',
         'matrix-green': '#00ff00',
+        cyan: {
+          400: '#22d3ee',
+          500: '#06b6d4',
+          600: '#0891b2',
+        },
         glass: 'rgba(0, 0, 0, 0.4)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -45,11 +50,14 @@ export default {
         },
       },
       fontFamily: {
+        sans: ['Fira Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-green': 'linear-gradient(to right, #16a34a, #22c55e)',
+        'gradient-cyan': 'linear-gradient(to right, #06b6d4, #22d3ee)',
       },
       animation: {
         'matrix-rain': 'matrix-rain 10s linear infinite',

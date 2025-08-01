@@ -5,11 +5,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transform active:scale-95",
   {
     variants: {
       variant: {
-        default: "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow-md hover:shadow-lg hover:shadow-green-500/20",
+        default: "bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-600 hover:to-cyan-500 shadow-md hover:shadow-lg hover:shadow-green-500/25 focus-visible:ring-green-400",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
         outline:
@@ -18,6 +18,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-green-500/10 hover:text-green-400",
         link: "text-green-500 underline-offset-4 hover:underline hover:text-green-400",
+        gradient: "bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-600 hover:to-cyan-500 shadow-lg hover:shadow-xl hover:shadow-green-500/30 transform hover:-translate-y-0.5 focus-visible:ring-green-400",
       },
       size: {
         default: "h-10 px-4 py-2",

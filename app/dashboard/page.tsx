@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useKeymakerStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
-import {
+import { 
   DollarSign,
-  Wallet,
-  Rocket,
-  TrendingUp,
+  Wallet, 
+  Rocket, 
+  TrendingUp, 
   PlayCircle,
   Users,
   FileText,
@@ -18,6 +18,7 @@ import {
   Home,
   Activity
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 // Import all required components
@@ -33,6 +34,7 @@ type TabView = 'overview' | 'control' | 'wallets' | 'create' | 'logs' | 'analyti
 export default function DashboardPage() {
   const { wallets, totalInvested, totalReturned, tokenLaunchData } = useKeymakerStore();
   const [activeTab, setActiveTab] = useState<TabView>('overview');
+  const router = useRouter();
   
   // Calculate stats
   const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0) / LAMPORTS_PER_SOL;
@@ -86,26 +88,35 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="border-b border-white/10 bg-black/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-5xl font-black bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent hover:from-green-400 hover:to-cyan-500 transition-all duration-500 cursor-default">
                 The Keymaker
               </h1>
-              <p className="text-sm text-white/60">Solana Memecoin Orchestration Platform</p>
-            </div>
-            <div className="flex items-center gap-4">
+              <p className="text-lg text-white/60 mt-2 tracking-wider">Solana Memecoin Orchestration Platform</p>
+            </motion.div>
+            <motion.div 
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
               {tokenLaunchData?.mintAddress && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 px-4 py-1.5">
                   Token: {tokenLaunchData.symbol}
                 </Badge>
               )}
               {masterWallet && (
-                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
+                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20 px-4 py-1.5">
                   Master: {masterWallet.publicKey.slice(0, 8)}...
                 </Badge>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -146,28 +157,41 @@ export default function DashboardPage() {
               className="space-y-6"
             >
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {stats.map((stat, index) => (
                   <motion.div
                     key={stat.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ 
+                      delay: index * 0.05,
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30
+                    }}
+                    whileHover={{ 
+                      scale: 1.03,
+                      transition: { duration: 0.2 }
+                    }}
+                    className="group"
                   >
-                    <Card className="bg-black/40 backdrop-blur-md border-white/10">
+                    <Card className="bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 h-full">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-white/80">
+                        <CardTitle className="text-xs font-medium text-white/60 group-hover:text-white/80 transition-colors">
                           {stat.title}
                         </CardTitle>
-                        <div className={stat.color}>
+                        <motion.div 
+                          className={`${stat.color} group-hover:scale-110 transition-transform`}
+                          whileHover={{ rotate: 15 }}
+                        >
                           {stat.icon}
-                        </div>
+                        </motion.div>
                       </CardHeader>
                       <CardContent>
-                        <div className={`text-2xl font-bold ${stat.color}`}>
+                        <div className={`text-2xl font-bold ${stat.color} group-hover:scale-105 transition-transform origin-left`}>
                           {stat.value}
                         </div>
-                        <p className="text-xs text-white/60 mt-1">
+                        <p className="text-xs text-white/50 mt-1">
                           {stat.description}
                         </p>
                       </CardContent>
@@ -184,7 +208,7 @@ export default function DashboardPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
-                      onClick={() => setActiveTab('control')}
+                      onClick={() => router.push('/dashboard/bundle')}
                       className="p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all"
                     >
                       <PlayCircle className="h-8 w-8 mb-3 text-purple-400" />
@@ -195,7 +219,7 @@ export default function DashboardPage() {
                     </button>
                     
                     <button
-                      onClick={() => setActiveTab('wallets')}
+                      onClick={() => router.push('/dashboard/wallets')}
                       className="p-6 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-lg border border-green-500/20 hover:border-green-500/40 transition-all"
                     >
                       <Wallet className="h-8 w-8 mb-3 text-green-400" />
@@ -206,7 +230,7 @@ export default function DashboardPage() {
                     </button>
                     
                     <button
-                      onClick={() => setActiveTab('create')}
+                      onClick={() => router.push('/dashboard/create')}
                       className="p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-lg border border-blue-500/20 hover:border-blue-500/40 transition-all"
                     >
                       <Rocket className="h-8 w-8 mb-3 text-blue-400" />

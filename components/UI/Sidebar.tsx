@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
+import { useKeymakerStore } from '@/lib/store';
 
 interface NavItem {
   name: string;
@@ -48,97 +49,169 @@ const navItems: NavItem[] = [
     name: 'Analytics', 
     href: '/dashboard/analytics', 
     icon: BarChart2,
-    tooltip: 'Performance metrics and insights'
+    tooltip: 'Market insights and performance metrics'
   },
   { 
     name: 'Settings', 
     href: '/dashboard/settings', 
     icon: Settings,
     tooltip: 'Configure API keys and preferences'
-  }
+  },
+];
+
+const bottomNavItems: NavItem[] = [
+  { 
+    name: 'Help', 
+    href: '/dashboard/help', 
+    icon: HelpCircle,
+    tooltip: 'Documentation and support'
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  
+  const { isExecuting } = useKeymakerStore();
+
   return (
-    <motion.aside
-      initial={{ x: -250 }}
-      animate={{ x: 0 }}
-      className="hidden md:flex flex-col w-64 bg-black/40 backdrop-blur-xl border-r border-aqua/20"
-    >
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-8">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg"
-          />
-          <h2 className="text-xl font-bold bg-gradient-to-r from-aqua to-purple-500 bg-clip-text text-transparent">
-            The Keymaker
-          </h2>
-        </div>
-        
-        <nav className="space-y-1">
-          <TooltipProvider delayDuration={300}>
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              
-              return (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    <Link
-                      href={item.href}
-                      className={`
-                        flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200
-                        ${isActive 
-                          ? 'bg-aqua/20 text-aqua border border-aqua/30' 
-                          : 'hover:bg-aqua/10 text-gray-300 hover:text-aqua border border-transparent'
-                        }
-                      `}
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className={`w-5 h-5 ${isActive ? 'text-aqua' : ''}`} />
-                        <span className="font-medium">{item.name}</span>
-                      </div>
-                      {item.badge && (
-                        <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  {item.tooltip && (
-                    <TooltipContent side="right">
-                      <p>{item.tooltip}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
-        </nav>
-      </div>
-      
-      <div className="mt-auto p-6">
-        <div className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
-          <h3 className="font-semibold text-sm mb-1">Need Help?</h3>
-          <p className="text-xs text-gray-400 mb-3">
-            Check our docs for guides and API references
-          </p>
-          <Link
-            href="/docs"
-            className="flex items-center gap-2 text-sm text-aqua hover:underline"
-          >
-            <HelpCircle className="w-4 h-4" />
-            Documentation
+    <TooltipProvider delayDuration={0}>
+      <aside className="w-16 h-screen bg-black/40 backdrop-blur-md border-r border-white/10 flex flex-col justify-between py-6 transition-all duration-300 hover:w-64 group">
+        {/* Logo */}
+        <div className="px-3 mb-8">
+          <Link href="/dashboard">
+            <motion.div 
+              className="flex items-center justify-center h-10"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-xl">K</span>
+              </div>
+              <span className="ml-3 text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                Keymaker
+              </span>
+            </motion.div>
           </Link>
         </div>
-        
-        <div className="mt-4 text-xs text-gray-500 text-center">
-          v1.0.0 • Mainnet
-        </div>
-      </div>
-    </motion.aside>
+
+        {/* Main Navigation */}
+        <nav className="flex-1 px-3">
+          <ul className="space-y-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+
+              return (
+                <li key={item.name}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={item.href}>
+                        <motion.div
+                          className={`
+                            relative flex items-center h-10 px-3 rounded-lg transition-all
+                            ${isActive 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }
+                          `}
+                          whileHover={{ x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Icon className="w-5 h-5 flex-shrink-0" />
+                          <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          
+                          {/* Live badge for Bundle Engine when executing */}
+                          {item.href === '/dashboard/bundle' && isExecuting && (
+                            <div className="absolute -top-1 -right-1 group-hover:right-2">
+                              <span className="flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                              </span>
+                            </div>
+                          )}
+                          
+                          {isActive && (
+                            <motion.div
+                              className="absolute left-0 top-0 h-full w-1 bg-green-400 rounded-r"
+                              layoutId="activeTab"
+                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            />
+                          )}
+                        </motion.div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="group-hover:hidden">
+                      <p className="font-medium">{item.name}</p>
+                      {item.tooltip && (
+                        <p className="text-xs text-white/60 mt-1">{item.tooltip}</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Live Status Badge */}
+        {isExecuting && (
+          <div className="px-3 mb-4">
+            <div className="flex items-center justify-center h-10 px-3 bg-green-500/20 border border-green-500/40 rounded-lg">
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="ml-2 text-xs font-medium text-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                LIVE
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Navigation */}
+        <nav className="px-3">
+          <ul className="space-y-2">
+            {bottomNavItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+
+              return (
+                <li key={item.name}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href={item.href}>
+                        <motion.div
+                          className={`
+                            relative flex items-center h-10 px-3 rounded-lg transition-all
+                            ${isActive 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }
+                          `}
+                          whileHover={{ x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Icon className="w-5 h-5 flex-shrink-0" />
+                          <span className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                        </motion.div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="group-hover:hidden">
+                      <p className="font-medium">{item.name}</p>
+                      {item.tooltip && (
+                        <p className="text-xs text-white/60 mt-1">{item.tooltip}</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
+    </TooltipProvider>
   );
 } 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 import { useDebounce } from 'use-debounce';
 import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
 

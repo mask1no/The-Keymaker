@@ -1,155 +1,82 @@
+import fs from 'fs';
+import path from 'path';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
-import path from 'path';
-import fs from 'fs';
 
 async function initializeDatabase() {
+  console.log('🗄️  Initializing database...');
+  
   // Ensure data directory exists
   const dataDir = path.join(process.cwd(), 'data');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
+    console.log('✅ Created data directory');
   }
 
   // Open database connection
   const db = await open({
-    filename: path.join(dataDir, 'analytics.db'),
+    filename: path.join(dataDir, 'keymaker.db'),
     driver: sqlite3.Database
   });
 
-  console.log('Initializing database...');
-
-  // Create wallets table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS wallets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      publicKey TEXT UNIQUE NOT NULL,
-      encryptedPrivateKey TEXT NOT NULL,
-      role TEXT NOT NULL,
-      balance REAL DEFAULT 0,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create tokens table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS tokens (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      address TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      ticker TEXT NOT NULL,
-      platform TEXT NOT NULL,
-      supply TEXT NOT NULL,
-      decimals INTEGER NOT NULL,
-      metadata JSON,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create bundles table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS bundles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      executedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      status TEXT NOT NULL,
-      fees REAL,
-      outcomes JSON
-    )
-  `);
-
-  // Create bundle executions table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS bundle_executions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      bundle_id TEXT,
-      slot INTEGER NOT NULL,
-      signatures TEXT NOT NULL,
-      status TEXT NOT NULL,
-      success_count INTEGER NOT NULL,
-      failure_count INTEGER NOT NULL,
-      used_jito BOOLEAN NOT NULL,
-      execution_time INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create token launches table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS token_launches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      token_address TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      symbol TEXT NOT NULL,
-      platform TEXT NOT NULL,
-      supply TEXT NOT NULL,
-      decimals INTEGER NOT NULL,
-      launcher_wallet TEXT NOT NULL,
-      transaction_signature TEXT NOT NULL,
-      liquidity_pool_address TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create funding events table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS funding_events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      from_wallet TEXT NOT NULL,
-      to_wallets TEXT NOT NULL,
-      amounts TEXT NOT NULL,
-      total_amount REAL NOT NULL,
-      transaction_signatures TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create sell events table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS sell_events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      wallet TEXT NOT NULL,
-      token_address TEXT NOT NULL,
-      amount_sold TEXT NOT NULL,
-      sol_earned REAL NOT NULL,
-      market_cap REAL,
-      profit_percentage REAL,
-      transaction_signature TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create PnL records table
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS pnl_records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      wallet TEXT NOT NULL,
-      token_address TEXT NOT NULL,
-      entry_price REAL NOT NULL,
-      exit_price REAL NOT NULL,
-      sol_invested REAL NOT NULL,
-      sol_returned REAL NOT NULL,
-      profit_loss REAL NOT NULL,
-      profit_percentage REAL NOT NULL,
-      hold_time INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Create indices for better performance
-  await db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_wallets_role ON wallets(role);
-    CREATE INDEX IF NOT EXISTS idx_bundle_executions_created ON bundle_executions(created_at);
-    CREATE INDEX IF NOT EXISTS idx_pnl_records_wallet ON pnl_records(wallet);
-    CREATE INDEX IF NOT EXISTS idx_pnl_records_created ON pnl_records(created_at);
-    CREATE INDEX IF NOT EXISTS idx_token_launches_platform ON token_launches(platform);
-  `);
-
-  console.log('Database initialized successfully!');
+  // Check if tables exist
+  const tables = await db.all(
+    "SELECT name FROM sqlite_master WHERE type='table'"
+  );
   
+  const tableNames = tables.map(t => t.name);
+  const requiredTables = ['wallets', 'logs', 'execution_logs', 'pnl_records'];
+  const missingTables = requiredTables.filter(t => !tableNames.includes(t));
+
+  if (missingTables.length === 0) {
+    console.log('✅ All tables already exist');
+    await db.close();
+    return;
+  }
+
+  console.log(`📝 Creating ${missingTables.length} missing tables...`);
+
+  // Read and execute init.sql
+  const initSqlPath = path.join(process.cwd(), 'init.sql');
+  if (!fs.existsSync(initSqlPath)) {
+    console.error('❌ init.sql file not found!');
+    process.exit(1);
+  }
+
+  const initSql = fs.readFileSync(initSqlPath, 'utf-8');
+  
+  // Split SQL statements and execute them
+  const statements = initSql
+    .split(';')
+    .filter(stmt => stmt.trim())
+    .map(stmt => stmt.trim() + ';');
+
+  for (const statement of statements) {
+    try {
+      await db.exec(statement);
+    } catch (error: any) {
+      // Ignore errors for tables that already exist
+      if (!error.message.includes('already exists')) {
+        console.error(`❌ Error executing SQL: ${error.message}`);
+        console.error(`Statement: ${statement.substring(0, 100)}...`);
+      }
+    }
+  }
+
+  // Verify tables were created
+  const newTables = await db.all(
+    "SELECT name FROM sqlite_master WHERE type='table'"
+  );
+  
+  console.log('✅ Database initialized successfully');
+  console.log(`📊 Tables: ${newTables.map(t => t.name).join(', ')}`);
+
   await db.close();
 }
 
-// Run initialization
-initializeDatabase().catch((error) => {
-  console.error('Failed to initialize database:', error);
-  process.exit(1);
-}); 
+// Run if called directly
+if (require.main === module) {
+  initializeDatabase().catch(console.error);
+}
+
+export { initializeDatabase }; 

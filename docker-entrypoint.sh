@@ -17,5 +17,13 @@ fi
 # Mask sensitive environment variables in logs
 export NODE_OPTIONS="--max-old-space-size=4096"
 
+# Handle signals for graceful shutdown
+trap 'echo "Received SIGTERM, shutting down gracefully..."; kill -TERM $PID; wait $PID' SIGTERM
+trap 'echo "Received SIGINT, shutting down gracefully..."; kill -INT $PID; wait $PID' SIGINT
+
 # Start the Next.js standalone server
-exec node server.js 
+node server.js &
+PID=$!
+
+# Wait for the process
+wait $PID 

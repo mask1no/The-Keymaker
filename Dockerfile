@@ -28,8 +28,8 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install sqlite3 for database initialization
-RUN apk add --no-cache sqlite
+# Install sqlite and curl for health checks
+RUN apk add --no-cache sqlite curl
 
 # Create app user
 RUN addgroup --system --gid 1001 nodejs
@@ -46,8 +46,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy public files if they exist
 COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
 
-# Copy database init script and entrypoint for runtime use
+# Create data directory with correct permissions
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
+# Copy database init script for runtime use
 COPY --chown=nextjs:nodejs init.sql ./init.sql
+
+# Copy entrypoint script
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
@@ -57,5 +62,9 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -fs http://localhost:3000/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"] 

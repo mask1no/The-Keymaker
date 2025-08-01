@@ -403,7 +403,7 @@ export function BundleEngine() {
   
   const handleExportLog = async () => {
     try {
-      const log = await exportExecutionLog('json');
+      const log = await exportExecutionLog();
       const blob = new Blob([log], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

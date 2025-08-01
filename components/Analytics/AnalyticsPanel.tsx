@@ -30,8 +30,9 @@ export default function AnalyticsPanel() {
       
       // Get actual wallet PnL data
       const pnlData: { [wallet: string]: number } = {};
+      const allPnL = await getPnLHistory();
       for (const wallet of wallets) {
-        const walletPnL = await getPnLHistory(wallet.publicKey, 1);
+        const walletPnL = allPnL.filter(p => p.wallet === wallet.publicKey);
         if (walletPnL.length > 0) {
           pnlData[wallet.publicKey] = walletPnL[0].profit_loss;
         }
