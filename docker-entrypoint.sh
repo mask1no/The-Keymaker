@@ -17,5 +17,5 @@ fi
 # Mask sensitive environment variables in logs
 export NODE_OPTIONS="--max-old-space-size=4096"
 
-# Start the Next.js application
-exec npm start 
+# Start the Next.js standalone server
+exec node server.js 

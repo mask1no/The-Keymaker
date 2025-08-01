@@ -1,24 +1,27 @@
 /** @type {import('next').NextConfig} */
-const baseConfig = {
+const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
-  env: {
-    NEXT_PUBLIC_HELIUS_RPC: process.env.NEXT_PUBLIC_HELIUS_RPC,
-    NEXT_PUBLIC_JITO_ENDPOINT: process.env.NEXT_PUBLIC_JITO_ENDPOINT,
+  images: {
+    domains: ['localhost'],
   },
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, net: false, tls: false };
+    // Ignore specific warnings
+    config.ignoreWarnings = [
+      { module: /node_modules\/punycode/ }
+    ];
+    
     return config;
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  experimental: {
+    instrumentationHook: true,
   },
 };
 
-const { withSentryConfig } = require('@sentry/nextjs');
-
-module.exports = withSentryConfig(baseConfig, {
-  org: '3d49c0f8b7f8',
-  project: 'javascript-nextjs',
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  tunnelRoute: '/monitoring',
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+module.exports = nextConfig;

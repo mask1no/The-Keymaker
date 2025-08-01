@@ -35,16 +35,16 @@ RUN apk add --no-cache sqlite
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-# Remove the copy of data from builder since we didn't create it there
-# COPY --from=builder --chown=nextjs:nodejs /app/data ./data
+# Create necessary directories
+RUN mkdir -p /app/public /app/data && chown -R nextjs:nodejs /app
 
-# Create data directory with correct permissions
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+# Copy built application (only if directories exist)
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy public files if they exist
+COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
 
 # Copy database init script and entrypoint for runtime use
 COPY --chown=nextjs:nodejs init.sql ./init.sql
@@ -56,5 +56,6 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
 ENTRYPOINT ["./docker-entrypoint.sh"] 
