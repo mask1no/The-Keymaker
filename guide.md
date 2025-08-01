@@ -1,337 +1,556 @@
-# The Keymaker - User Guide
+# The Keymaker - Comprehensive User Guide
 
-This guide walks you through using The Keymaker bundler from start to finish.
+This guide walks you through using The Keymaker bundler from initial setup to advanced features, including 24/7 Docker deployment.
 
 ## Table of Contents
 
-1. [Initial Setup](#initial-setup)
-2. [Wallet Management](#wallet-management)
-3. [Token Launch](#token-launch)
-4. [Bundle Execution](#bundle-execution)
-5. [Monitoring & Selling](#monitoring--selling)
-6. [Advanced Features](#advanced-features)
-7. [Best Practices](#best-practices)
+1. [Quick Start with Docker](#quick-start-with-docker)
+2. [Initial Setup](#initial-setup)
+3. [Wallet Management](#wallet-management)
+4. [Token Launch](#token-launch)
+5. [Bundle Execution](#bundle-execution)
+6. [Monitoring & Selling](#monitoring--selling)
+7. [Advanced Features](#advanced-features)
+8. [Docker Management](#docker-management)
+9. [Troubleshooting](#troubleshooting)
+10. [Best Practices](#best-practices)
+
+## Quick Start with Docker
+
+### Prerequisites
+- Docker Desktop installed
+- Git for cloning the repository
+- API keys from required services
+
+### Step 1: Clone and Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/the-keymaker.git
+cd the-keymaker
+
+# Copy environment example
+cp env.example .env.local
+```
+
+### Step 2: Configure API Keys
+
+Edit `docker-compose.override.yml`:
+
+```yaml
+services:
+  keymaker:
+    environment:
+      # Your Helius RPC endpoint with API key
+      NEXT_PUBLIC_HELIUS_RPC: https://mainnet.helius-rpc.com/?api-key=YOUR_KEY_HERE
+      RPC_URL: https://mainnet.helius-rpc.com/?api-key=YOUR_KEY_HERE
+      
+      # Birdeye API for token data
+      NEXT_PUBLIC_BIRDEYE_API_KEY: YOUR_BIRDEYE_KEY
+      BIRDEYE_API_KEY: YOUR_BIRDEYE_KEY
+      
+      # Pump.fun API for token launches
+      NEXT_PUBLIC_PUMPFUN_API_KEY: YOUR_PUMPFUN_KEY
+      PUMPFUN_API_KEY: YOUR_PUMPFUN_KEY
+```
+
+### Step 3: Launch the Bundler
+
+```bash
+# Build and start in background
+docker-compose up -d
+
+# Wait for startup (check logs)
+docker-compose logs -f keymaker
+
+# Access at http://localhost:3000
+```
+
+Your bundler is now running 24/7!
 
 ## Initial Setup
 
-### Step 1: Configure API Keys
+### Step 1: Access the Application
 
-After starting the application, navigate to **Settings** in the sidebar.
+Open your browser and navigate to:
+- **Docker**: http://localhost:3000
+- **Local Dev**: http://localhost:3000
 
-Enter your API keys:
-- **Helius RPC URL**: Full URL including API key
-- **Birdeye API Key**: For token price data
-- **Pump.fun API Key**: If using Pump.fun platform
-- **Other APIs**: As needed
+### Step 2: Configure Settings
 
-Click **Save Settings**.
+1. Click **Settings** in the sidebar
+2. Verify your API keys are loaded
+3. Configure any additional settings:
+   - Default slippage (recommended: 1-2%)
+   - Priority fees (recommended: 0.0005 SOL)
+   - Bundle preferences
 
-### Step 2: Import or Create Master Wallet
+### Step 3: Import Master Wallet
 
-Go to **Wallets** in the sidebar.
+1. Navigate to **Wallets** in the sidebar
+2. Click **Import Wallet**
+3. Enter your wallet details:
+   - **Private Key**: Base58 format (starts with numbers/letters)
+   - **Role**: Select "Master"
+   - **Password**: Strong password for encryption
+4. Click **Import**
 
-**Option A: Import Existing Wallet**
-1. Click "Import Wallet"
-2. Enter your private key (base58 format)
-3. Set role as "Master"
-4. Enter a strong password
+⚠️ **Security Note**: Your private key is encrypted locally with AES-256-GCM
 
-**Option B: Create New Wallet**
-1. Click "Create Wallet"
-2. Set role as "Master"
-3. Save the generated private key securely
-4. Enter a strong password
+### Step 4: Fund Master Wallet
 
-The Master wallet needs SOL for:
-- Creating tokens (~0.01-0.1 SOL)
-- Funding sniper wallets
-- Transaction fees
-
-### Step 3: Create Sniper Wallets
-
-1. Click "Create Wallet Group"
-2. Enter number of wallets (e.g., 10)
-3. Enter password for encryption
-4. Click "Create"
-
-The app will generate wallets with roles:
-- First wallet: Master (if not already exists)
-- Rest: Sniper wallets for bundle execution
+Ensure your Master wallet has sufficient SOL:
+- **Token Creation**: 0.1-1 SOL per platform
+- **Sniper Funding**: 0.3-0.7 SOL per wallet
+- **Transaction Fees**: 0.05 SOL buffer
+- **Jito Tips**: 0.001-0.01 SOL per bundle
 
 ## Wallet Management
 
+### Creating Sniper Wallets
+
+1. Click **Create Wallet Group**
+2. Configure the group:
+   - **Number of Wallets**: 5-20 (recommended: 10)
+   - **Password**: Same or different from master
+3. Click **Create**
+
+The system will:
+- Generate secure keypairs
+- Encrypt private keys
+- Assign "Sniper" role automatically
+- Display public keys for funding
+
 ### Funding Wallets
 
-1. Ensure Master wallet has sufficient SOL
-2. Select wallets to fund (usually all snipers)
-3. Click "Fund Selected"
-4. Enter total SOL to distribute (e.g., 5 SOL)
-5. Set min/max per wallet (e.g., 0.3-0.7 SOL)
-6. Click "Fund Wallets"
+1. Select wallets to fund (checkboxes)
+2. Click **Fund Selected**
+3. Configure funding:
+   - **Total Amount**: e.g., 5 SOL
+   - **Min per Wallet**: e.g., 0.3 SOL
+   - **Max per Wallet**: e.g., 0.7 SOL
+4. Click **Fund Wallets**
 
-The app randomly distributes SOL to make wallets look organic.
+The system randomly distributes SOL to appear organic.
 
-### Managing Roles
+### Managing Wallets
 
-- **Master**: Pays for operations, holds main funds
-- **Dev**: Can hold dev allocation tokens
-- **Sniper**: Executes bundle buys
-- **Normal**: Standard wallet for misc operations
-
-Click the role badge next to any wallet to change it.
+- **Export**: Click wallet address to copy
+- **View Balance**: Real-time SOL balance
+- **Delete**: Remove wallet (requires password)
+- **Roles**:
+  - **Master**: Pays for token creation
+  - **Dev**: Optional dev wallet
+  - **Sniper**: Executes bundle buys
 
 ## Token Launch
 
-### Step 1: Configure Token
+### Step 1: Navigate to Create
 
-Go to **Create** in the sidebar.
+Click **Create** in the sidebar to access the token launcher.
+
+### Step 2: Select Platform
+
+Choose your launch platform:
+
+#### Pump.fun
+- **Pros**: Easy, automatic liquidity, built-in bonding curve
+- **Cons**: Requires API key, limited customization
+- **Cost**: ~0.02 SOL
+
+#### LetsBonk.fun
+- **Pros**: Lower fees, Python backend
+- **Cons**: Less popular, requires Python setup
+- **Cost**: ~0.01 SOL
+
+#### Raydium
+- **Pros**: Full control, rug capability, high volume
+- **Cons**: Complex, higher cost
+- **Cost**: ~0.1-0.5 SOL
+
+### Step 3: Configure Token
 
 Fill in token details:
-- **Name**: Full token name
-- **Symbol**: 3-10 character ticker
-- **Supply**: Total supply (e.g., 1,000,000,000)
-- **Decimals**: 6 for LetsBonk, 9 for others
-- **Platform**: Choose your launch platform
 
-### Step 2: Choose Platform
+```
+Name: My Token
+Symbol: MTK
+Supply: 1000000000 (1 billion)
+Decimals: 9 (standard)
+Initial Buy: 1 SOL
+```
 
-**Pump.fun**
-- Easiest setup
-- Automatic liquidity
-- Requires API key
-- Good for quick launches
+Platform-specific options:
+- **Pump.fun**: Nothing extra needed
+- **LetsBonk**: Python backend must be running
+- **Raydium**: LP tokens, freeze authority options
 
-**LetsBonk.fun**
-- Python backend required
-- Lower fees
-- Good liquidity
-- Recommended for most users
+### Step 4: Preview
 
-**Raydium**
-- Full control
-- Can rug (freeze/withdraw liquidity)
-- More complex
-- For advanced users
-
-### Step 3: Set Liquidity
-
-Enter initial SOL for liquidity pool:
-- Pump.fun: Handled automatically
-- LetsBonk: 1-5 SOL typical
-- Raydium: 5-20 SOL for good liquidity
-
-### Step 4: Launch Token
-
-1. Review all details
-2. Click "Launch Token"
-3. Enter wallet password
-4. Wait for confirmation
-5. Save the token mint address!
+Click **Preview** to see:
+- Token configuration
+- Estimated costs
+- Selected wallets
+- Bundle structure
 
 ## Bundle Execution
 
-### Step 1: Choose Execution Mode
+### Understanding Execution Modes
 
-In **Control Center**:
+#### Flash Mode (Jito)
+```
+Speed: ⚡⚡⚡⚡⚡
+Security: High
+Cost: Higher (Jito tips)
+Use: Competitive launches
+```
+- Atomic execution in same slot
+- MEV protection
+- Requires Jito tips (0.001-0.01 SOL)
 
-**Flash Mode (Jito)**
-- All transactions in one slot
-- Atomic execution
-- Best for competitive launches
-- Costs 0.01 SOL tip to Jito
+#### Regular Mode
+```
+Speed: ⚡⚡⚡⚡
+Security: Medium
+Cost: Standard
+Use: General purpose
+```
+- Sequential fast execution
+- No bundling overhead
+- Good for less competitive scenarios
 
-**Regular Mode**
-- Fast sequential execution
-- No Jito fees
-- Good for less competitive tokens
+#### Stealth Mode
+```
+Speed: ⚡⚡
+Security: High
+Cost: Standard
+Use: Avoid detection
+```
+- Random 2-5 second delays
+- Mimics organic buying
+- Good for established tokens
 
-**Stealth Mode**
-- 2-5 second delays between transactions
-- Avoids detection
-- Good for organic-looking buys
+#### Manual Mode
+```
+Speed: User controlled
+Security: Highest
+Cost: Standard
+Use: Full control
+```
+- Prepare transactions only
+- Execute when ready
+- Maximum flexibility
 
-**Manual Mode**
-- Prepares transactions only
-- You control timing
-- Best for chart painting
+### Executing the Bundle
 
-### Step 2: Configure Bundle
+1. Select your execution mode
+2. Review the bundle preview
+3. Click **🔑 Execute Keymaker**
+4. Monitor progress:
+   - Token Creation ✓
+   - Wallet Funding ✓
+   - Bundle Execution ✓
+   - Completion ✓
 
-Check pre-flight:
-- ✅ Master wallet funded
-- ✅ Sniper wallets funded
-- ✅ Token launched
-- ✅ Jito enabled (for Flash mode)
+### Monitoring Execution
 
-### Step 3: Execute
-
-1. Click "🔑 Execute Keymaker"
-2. Enter password if prompted
-3. Monitor progress:
-   - 🚀 Deploy Token
-   - 💰 Fund Wallets
-   - ⏱️ Wait for settlement
-   - 📦 Bundle Buys
-   - ⏱️ Wait period
-   - 💸 Sell (if auto-sell enabled)
-
-### Step 4: Monitor Execution
-
-Watch the step-by-step progress:
-- Green checkmarks = success
-- Red X = failure
-- View transaction links in activity
+Watch real-time updates:
+- **Step Indicator**: Visual progress
+- **Activity Feed**: Live transactions
+- **Notifications**: Success/failure alerts
+- **Console**: Detailed logs
 
 ## Monitoring & Selling
 
 ### Activity Monitor
 
-Click **Activity** button to see live transactions:
-- Green up arrow = buys
-- Red down arrow = sells
-- "OURS" badge = your wallets
-- Others' trades show in grey
+Access via **Activity** in sidebar:
+- Real-time buy/sell feed
+- Transaction details
+- Wallet performance
+- Volume tracking
 
-### Notifications
+### PnL Dashboard
 
-Click the bell icon (🔔) to see:
-- Token launch confirmations
-- Funding completions
-- Bundle execution results
-- Errors and warnings
+Track your profits:
+- Entry/exit prices
+- Total invested/returned
+- Percentage gains
+- Hold time analytics
 
 ### Sell Monitor
 
-Go to **Sell Monitor** to manage exits:
+Configure auto-sell conditions:
 
-**Auto-Sell Conditions**
-- Profit target: e.g., 100% gain
-- Stop loss: e.g., -50% loss
-- Time limit: e.g., sell after 10 minutes
-- Market cap target: e.g., $1M
+1. **Profit Target**
+   ```
+   Target: 200% (2x)
+   Action: Sell 50% of holdings
+   ```
 
-**Manual Selling**
-1. View each wallet's holdings
-2. Check current price/profit
-3. Click "Sell" on individual wallets
-4. Or use "Sell All" for quick exit
+2. **Stop Loss**
+   ```
+   Trigger: -30%
+   Action: Sell all
+   ```
 
-### PnL Tracking
+3. **Time-based**
+   ```
+   After: 24 hours
+   Action: Gradual sell 20% per hour
+   ```
 
-View **Analytics** for:
-- Total invested vs returned
-- Per-wallet profit/loss
-- Historical performance
-- Export data as CSV
+### Manual Selling
+
+1. Navigate to **Sell Monitor**
+2. Select token and wallets
+3. Choose sell strategy:
+   - Market sell (immediate)
+   - Limit sell (price target)
+   - Gradual (time-based)
+4. Execute sells
 
 ## Advanced Features
 
 ### Rug Pull (Raydium Only)
 
-⚠️ **Warning**: Unethical and potentially illegal. Use only on your own test tokens.
+⚠️ **Warning**: Use responsibly
 
-1. Ensure you have freeze authority
-2. Go to token details
-3. Click "Rug" button
-4. Confirm action
-5. Pool is frozen and liquidity withdrawn
-
-### Custom Slippage
-
-For volatile tokens:
-1. Go to Settings
-2. Adjust default slippage (1-50%)
-3. Higher slippage = more likely to succeed
-4. Lower slippage = better price
+1. Ensure you have LP tokens
+2. Navigate to **Rug** section
+3. Select options:
+   - Freeze trading
+   - Withdraw liquidity
+   - Burn LP tokens
+4. Execute rug
 
 ### Bundle Optimization
 
-For best results:
-- Use 5-10 wallets per bundle
-- Fund wallets with varying amounts
-- Use different execution modes
-- Monitor gas prices
+Tips for better execution:
+- Use 10-15 wallets for optimal distribution
+- Vary buy amounts (0.5-2 SOL)
+- Add priority fees in congested times
+- Use Flash mode for competitive launches
+
+### Analytics
+
+Access detailed metrics:
+- Success rates by mode
+- Average slippage
+- Gas optimization
+- Wallet performance
+
+## Docker Management
+
+### Basic Commands
+
+```bash
+# Start bundler
+docker-compose up -d
+
+# Stop bundler
+docker-compose down
+
+# View logs
+docker-compose logs -f keymaker
+
+# Restart
+docker-compose restart
+
+# Check status
+docker-compose ps
+```
+
+### Updating the Bundler
+
+```bash
+# Stop current instance
+docker-compose down
+
+# Pull latest changes
+git pull origin main
+
+# Rebuild
+docker-compose build --no-cache
+
+# Start updated version
+docker-compose up -d
+```
+
+### Backup and Restore
+
+#### Backup
+```bash
+# Backup database and wallets
+cp -r data/ backup_$(date +%Y%m%d)/
+```
+
+#### Restore
+```bash
+# Stop bundler
+docker-compose down
+
+# Restore data
+cp -r backup_20250801/* data/
+
+# Start bundler
+docker-compose up -d
+```
+
+### Resource Management
+
+Monitor resource usage:
+```bash
+# Check container stats
+docker stats keymaker-prod
+
+# View disk usage
+docker system df
+
+# Clean up old images
+docker system prune -a
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Container Unhealthy"
+- **Cause**: Health endpoint returns 503
+- **Solution**: Normal - check logs instead
+- **Command**: `docker-compose logs keymaker`
+
+#### "Transaction Failed"
+- **Causes**:
+  - Insufficient SOL
+  - Slippage too low
+  - Network congestion
+- **Solutions**:
+  - Add more SOL to wallets
+  - Increase slippage to 2-5%
+  - Increase priority fees
+
+#### "API Rate Limited"
+- **Cause**: Too many requests
+- **Solutions**:
+  - Upgrade to premium tier
+  - Add delays between operations
+  - Use different RPC endpoint
+
+#### "Module Not Found"
+- **Cause**: Dependencies issue
+- **Solution**: Rebuild container
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Debug Mode
+
+Enable detailed logging:
+1. Edit `docker-compose.override.yml`
+2. Add `DEBUG: "true"` to environment
+3. Restart container
+
+### Database Issues
+
+Reset database:
+```bash
+# Stop container
+docker-compose down
+
+# Remove database
+rm data/keymaker.db
+
+# Start (will auto-create)
+docker-compose up -d
+```
 
 ## Best Practices
 
 ### Security
+1. **Never share private keys**
+2. **Use strong passwords**
+3. **Keep Docker updated**
+4. **Regular backups**
+5. **Monitor logs for anomalies**
 
-1. **Never share your password**
-2. **Keep private keys offline**
-3. **Use a dedicated computer**
-4. **Don't log into public WiFi**
-5. **Clear browser data after use**
+### Performance
+1. **Use Helius RPC for reliability**
+2. **10-15 wallets optimal**
+3. **Vary transaction amounts**
+4. **Monitor gas prices**
+5. **Use Flash mode wisely**
 
-### Token Launch Tips
+### Trading
+1. **Start with small amounts**
+2. **Test strategies first**
+3. **Set stop losses**
+4. **Take profits gradually**
+5. **Monitor market conditions**
 
-1. **Test on devnet first**
-2. **Have extra SOL for fees**
-3. **Launch during active hours**
-4. **Monitor initial price action**
-5. **Have exit strategy ready**
+### Maintenance
+1. **Weekly backups**
+2. **Update dependencies monthly**
+3. **Clean Docker images**
+4. **Review logs regularly**
+5. **Update API keys as needed**
 
-### Bundle Execution
+## Advanced Configuration
 
-1. **Start small** - Test with 3-5 wallets
-2. **Vary amounts** - Don't use round numbers
-3. **Time it right** - Avoid network congestion
-4. **Monitor closely** - Be ready to sell
-5. **Take profits** - Don't be greedy
+### Custom RPC Endpoints
 
-### Risk Management
+Add multiple RPCs for failover:
+```yaml
+environment:
+  RPC_PRIMARY: https://your-primary-rpc.com
+  RPC_BACKUP: https://your-backup-rpc.com
+```
 
-1. **Only invest what you can lose**
-2. **Set stop losses**
-3. **Take partial profits**
-4. **Don't chase pumps**
-5. **Keep records for taxes**
+### Performance Tuning
 
-## Troubleshooting
+Optimize for your needs:
+```yaml
+deploy:
+  resources:
+    limits:
+      cpus: '4.0'    # Increase for more power
+      memory: 8G     # Increase for large operations
+```
 
-### "Transaction Failed"
-- Check wallet balances
-- Increase slippage
-- Try smaller amounts
-- Wait and retry
+### Network Configuration
 
-### "No Route Found"
-- Token may have no liquidity
-- Try different amount
-- Check if pool exists
+For remote access:
+```yaml
+ports:
+  - "0.0.0.0:3000:3000"  # Allow external access
+```
 
-### "Insufficient SOL"
-- Each transaction needs ~0.001-0.005 SOL
-- Jito bundles need 0.01 SOL tip
-- Keep extra for fees
-
-### "Bundle Not Landing"
-- Increase Jito tip
-- Reduce bundle size
-- Try different time
-- Check Jito status
-
-## Example Workflow
-
-1. **Setup** (One time)
-   - Configure API keys
-   - Create master wallet
-   - Generate 10 sniper wallets
-
-2. **Launch Day**
-   - Fund master with 20 SOL
-   - Distribute 10 SOL to snipers
-   - Launch token with 5 SOL liquidity
-   - Execute Flash bundle
-   - Monitor for 5 minutes
-   - Take 50% profits
-   - Let rest ride with stop loss
-
-3. **Exit**
-   - Set 10-minute timer
-   - Sell remaining positions
-   - Consolidate SOL to master
-   - Export PnL report
+Then access via: `http://your-server-ip:3000`
 
 ---
 
-Remember: This is a powerful tool. Use responsibly and understand the risks. Always test with small amounts first. 
+## 🎯 Quick Reference
+
+### Minimum SOL Requirements
+- **Master Wallet**: 2-5 SOL
+- **Per Sniper**: 0.3-0.7 SOL
+- **Token Creation**: 0.01-0.5 SOL
+- **Buffer**: 0.1 SOL
+
+### Recommended Settings
+- **Wallets**: 10-15
+- **Slippage**: 1-2%
+- **Priority Fee**: 0.0005 SOL
+- **Jito Tip**: 0.001-0.01 SOL
+
+### Time Estimates
+- **Docker Build**: 4-5 minutes
+- **Token Launch**: 1-2 minutes
+- **Bundle Execution**: 5-30 seconds
+- **Selling**: Variable
+
+---
+
+**Need Help?** Check [SUMMARY.md](./SUMMARY.md) for technical details or [README.md](./README.md) for quick setup. 
