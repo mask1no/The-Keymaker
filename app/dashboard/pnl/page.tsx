@@ -1,4 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
+
 import { PnLPanel } from '@/components/PnL/PnLPanel';
 import { StatusCluster } from '@/components/UI/StatusCluster';
 

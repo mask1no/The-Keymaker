@@ -1,4 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
+
 import { BundleEngine } from '@/components/BundleEngine/BundleEngine';
 import { StatusCluster } from '@/components/UI/StatusCluster';
 

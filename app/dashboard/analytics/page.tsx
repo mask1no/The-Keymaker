@@ -1,8 +1,10 @@
 'use client';
-import dynamic from 'next/dynamic';
+export const dynamic = 'force-dynamic';
+
+import dynamicImport from 'next/dynamic';
 import { Skeleton } from '@/components/UI/skeleton';
 
-const AnalyticsPanel = dynamic(() => import('@/components/Analytics/AnalyticsPanel'), {
+const AnalyticsPanel = dynamicImport(() => import('@/components/Analytics/AnalyticsPanel'), {
   loading: () => <Skeleton className="h-96 w-full" />,
   ssr: false
 });

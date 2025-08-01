@@ -109,14 +109,6 @@ export function SellMonitor() {
     toast.success('Sell monitoring stopped');
   };
   
-  const removeHolding = (tokenAddress: string) => {
-    setHoldings((prev) => prev.filter((h) => h.tokenAddress !== tokenAddress));
-  };
-
-  const addHolding = (holding: TokenHolding) => {
-    setHoldings((prev) => [...prev, holding]);
-  };
-  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

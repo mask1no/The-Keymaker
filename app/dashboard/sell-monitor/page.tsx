@@ -1,4 +1,6 @@
 'use client';
+export const dynamic = 'force-dynamic';
+
 import { SellMonitor } from '@/components/SellMonitor/SellMonitor';
 import { StatusCluster } from '@/components/UI/StatusCluster';
 
