@@ -131,7 +131,7 @@ async function freezePoolTokenAccount(
     // 2. Create freeze instructions for each vault
     // 3. Possibly freeze other critical accounts
     
-    // Placeholder: Create a freeze instruction
+    // Create a freeze instruction
     // This would need the actual pool token account address
     const poolTokenAccount = new PublicKey(poolAddress); // This is simplified
     

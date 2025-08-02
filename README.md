@@ -1,235 +1,319 @@
-# The Keymaker - Solana Memecoin Bundler
+# The Keymaker v1.0.0 - Production-Grade Solana Bundler
 
-A powerful, production-ready Solana token bundler for launching and sniping memecoins with multi-wallet support and atomic execution via Jito bundles. Now with 24/7 Docker deployment!
+![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.0-orange)
 
-## 🚀 Features
+## 🚀 Overview
 
-### Core Capabilities
-- **Multi-Platform Token Launch**: Deploy tokens on Pump.fun, LetsBonk.fun, or Raydium
-- **Multi-Wallet Bundling**: Manage up to 20 wallets with role-based permissions (Master, Dev, Sniper)
-- **Atomic Execution**: Use Jito bundles for same-slot execution or choose alternative strategies
-- **24/7 Operation**: Docker containerized for continuous operation
+The Keymaker is a production-ready Solana bundler application built for high-performance token operations on mainnet. It provides a complete suite of tools for SPL token creation, Jito bundle execution, wallet management, and real-time PnL tracking.
 
-### Execution Modes
-- **Flash (Jito)**: Atomic bundle execution in the same slot
-- **Regular**: Fast sequential execution without bundling  
-- **Stealth**: Delayed execution with random timing (2-5s between transactions)
-- **Manual**: Prepare transactions for user-controlled execution
+**Key Features:**
+- 🪙 SPL Token Creation & Deployment
+- 📦 Jito Bundle Execution (Stealth & Manual)
+- 👛 Secure Wallet Management
+- 📊 Real-Time PnL Tracking
+- 🔄 Live WebSocket Monitoring
+- 🔐 AES-256-GCM Encryption
 
-### Advanced Features
-- Real-time activity monitor with WebSocket transaction stream
-- Rug pull functionality for Raydium pools (freeze & withdraw liquidity)
-- Automated selling with configurable conditions
-- PnL tracking and analytics
-- Local wallet encryption (AES-256-GCM)
-- Dark theme with green Matrix-style aesthetics
-- Docker deployment with auto-restart
-- Server-side database operations for reliability
+## 🏗️ Architecture
 
-## 🔧 Prerequisites
+### Tech Stack
 
-- Docker and Docker Compose (for 24/7 deployment)
-- Node.js 20+ and npm (for local development)
-- Python 3.10+ (for LetsBonk.fun integration)
-- A funded Solana wallet for operations
-- API keys for external services (see Configuration)
+- **Frontend**: Next.js 14.2.30, React 18, TypeScript
+- **UI**: Tailwind CSS, shadcn/ui components
+- **Blockchain**: @solana/web3.js, @solana/spl-token
+- **State Management**: Zustand
+- **Database**: SQLite (local persistence)
+- **Security**: AES-256-GCM encryption, PBKDF2 key derivation
+- **Monitoring**: Sentry integration
+- **Container**: Docker with Alpine Linux
 
-## 🐳 Quick Start (Docker - Recommended)
+### Core Services
 
-### 1. Clone and Configure
+#### 1. **Bundle Service** (`services/bundleService.ts`)
+- Executes bundles via Jito Block Engine
+- Supports up to 5 transactions per bundle
+- Implements retry logic with exponential backoff
+- Monitors bundle status in real-time
 
+#### 2. **Wallet Service** (`services/walletService.ts`)
+- Encrypts private keys using AES-256-GCM
+- PBKDF2 key derivation (100,000 iterations)
+- Supports batch wallet creation
+- Import/export with encrypted .keymaker files
+
+#### 3. **Platform Service** (`services/platformService.ts`)
+- Creates SPL tokens on mainnet
+- Integrates with pump.fun, Raydium, letsbonk.fun, Moonshot
+- Handles liquidity pool creation
+- Validates token parameters
+
+#### 4. **PnL Service** (`services/pnlService.ts`)
+- Tracks buy/sell transactions in SQLite
+- Calculates real-time profit/loss
+- Provides wallet and token-specific analytics
+- Exports data in JSON/CSV formats
+
+### Security Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Security Layers                          │
+├─────────────────────────────────────────────────────────────┤
+│  1. Wallet Encryption                                        │
+│     └─ AES-256-GCM with PBKDF2 (100k iterations)           │
+│                                                             │
+│  2. API Key Protection                                      │
+│     └─ Environment variables + localStorage                 │
+│                                                             │
+│  3. Transaction Signing                                     │
+│     └─ Local keypair management                            │
+│                                                             │
+│  4. Network Security                                        │
+│     └─ HTTPS only, rate limiting, CORS protection         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- Node.js 20+
+- Docker Desktop
+- Git
+
+### Setup
+
+1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/the-keymaker.git
 cd the-keymaker
-
-# Create environment configuration
-cp env.example .env.local
 ```
 
-### 2. Configure API Keys
+2. Create `.env.local` file:
+```env
+# Required
+NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+NEXT_PUBLIC_BIRDEYE_API_KEY=your_birdeye_api_key
+BIRDEYE_API_KEY=your_birdeye_api_key
 
-Edit `docker-compose.override.yml` with your API keys:
-```yaml
-environment:
-  NEXT_PUBLIC_HELIUS_RPC: https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-  NEXT_PUBLIC_BIRDEYE_API_KEY: YOUR_BIRDEYE_KEY
-  NEXT_PUBLIC_PUMPFUN_API_KEY: YOUR_PUMPFUN_KEY
+# Optional
+NEXT_PUBLIC_PUMPFUN_API_KEY=your_pumpfun_key
+PUMPFUN_API_KEY=your_pumpfun_key
+NEXT_PUBLIC_MOONSHOT_API_KEY=your_moonshot_key
+MOONSHOT_API_KEY=your_moonshot_key
+JITO_AUTH_TOKEN=your_jito_token
 ```
 
-### 3. Run 24/7 with Docker
-
+3. Build and run with Docker:
 ```bash
-# Build and start the bundler
-docker-compose up -d
-
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f keymaker
-
-# Stop
-docker-compose down
+docker compose build
+docker compose up -d
 ```
 
-Your bundler is now running at http://localhost:3000 and will restart automatically!
+4. Access the app at http://localhost:3000
 
-## 💻 Local Development Setup
+## 📋 Features
 
-### 1. Install Dependencies
+### Home (`/home`)
+- Overview dashboard with system stats
+- Wallet balances and counts
+- PnL summary
+- Quick navigation tiles
 
+### Bundle (`/bundle`)
+- Execute Jito bundles with real wallets
+- Stealth mode for private transactions
+- Manual mode for custom operations
+- Real-time transaction preview
+- Bundle result tracking
+
+### Wallets (`/wallets`)
+- Create/import wallets (Phantom or keypair)
+- Role assignment (Master, Dev, Sniper)
+- Encrypted storage
+- Batch operations
+- Balance management
+
+### SPL Creator (`/spl-creator`)
+- Deploy SPL tokens on mainnet
+- Multi-platform launch (pump.fun, Raydium, etc.)
+- Configurable token parameters
+- Liquidity pool creation
+- Metadata management
+
+### Trade History (`/logs`)
+- Complete transaction history
+- Filter by status, type, wallet
+- Export functionality
+- Real-time updates
+- Detailed bundle breakdowns
+
+### PNL (`/pnl`)
+- Real-time profit/loss tracking
+- Per-wallet analytics
+- Per-token performance
+- Session statistics
+- Export reports
+
+### Settings (`/settings`)
+- API key management
+- Connection status monitoring (2x2 grid)
+- Trading preferences
+- Security settings
+- Database management
+
+## 🔧 API Endpoints
+
+### Health Check
+```
+GET /api/health
+Response: { "ok": true }
+```
+
+### Proxy API
+```
+POST /api/proxy
+Body: {
+  service: "jupiter" | "birdeye" | "helius" | "pumpfun",
+  endpoint: string,
+  params?: object,
+  method?: "GET" | "POST"
+}
+```
+
+### Bundle Operations
+```
+POST /api/bundle/execute
+Body: {
+  transactions: Transaction[],
+  wallets: WalletData[],
+  tipAmount: number
+}
+```
+
+## 🏃‍♂️ Development
+
+### Local Development
 ```bash
-# Install Node.js dependencies
 npm install
-
-# Install Python dependencies for LetsBonk
-cd bonk-mcp
-pip install -r requirements.txt
-cd ..
+npm run dev
 ```
 
-### 2. Initialize Database
-
+### Database Initialization
 ```bash
 npm run db:init
 ```
 
-### 3. Configure Environment
-
+### Type Checking
 ```bash
-cp env.example .env.local
-# Edit .env.local with your API keys
+npm run type-check
 ```
 
-### 4. Run Development Server
-
+### Linting
 ```bash
-npm run dev
+npm run lint
 ```
 
-## ⚙️ Configuration
+## 🐳 Docker Configuration
 
-### Required API Keys
+The application uses a multi-stage Docker build for optimal performance:
 
-Edit `.env.local` or `docker-compose.override.yml`:
+1. **Dependencies Stage**: Installs and builds native modules
+2. **Builder Stage**: Compiles Next.js application
+3. **Runner Stage**: Minimal production image
 
-| Service | Key | Get From |
-|---------|-----|----------|
-| Helius RPC | `NEXT_PUBLIC_HELIUS_RPC` | [helius.xyz](https://helius.xyz) |
-| Birdeye | `NEXT_PUBLIC_BIRDEYE_API_KEY` | [birdeye.so](https://birdeye.so) |
-| Pump.fun | `NEXT_PUBLIC_PUMPFUN_API_KEY` | [pumpportal.fun](https://pumpportal.fun) |
-| Jito (Optional) | `JITO_AUTH_TOKEN` | Premium Jito access |
+### Docker Commands
+```bash
+# Build
+docker compose build --no-cache
 
-### Platform Configuration
+# Run
+docker compose up -d
 
-- **Solana Network**: Mainnet-beta (devnet not supported)
-- **Default RPC**: Helius (recommended for reliability)
-- **Jito Endpoint**: `https://mainnet.block-engine.jito.wtf`
+# View logs
+docker logs keymaker-prod -f
 
-## 📖 Usage Guide
-
-### 1. Initial Setup
-
-1. **Configure API Keys**: Navigate to Settings → Enter your API keys
-2. **Import Master Wallet**: Wallets → Import → Enter private key → Set as Master
-3. **Fund Master Wallet**: Ensure sufficient SOL for operations
-
-### 2. Create Sniper Wallets
-
-1. Click "Create Wallet Group"
-2. Enter number of wallets (e.g., 10)
-3. Set encryption password
-4. Fund wallets with random amounts (0.3-0.7 SOL each)
-
-### 3. Launch Token
-
-1. **Select Platform**: Pump.fun, LetsBonk, or Raydium
-2. **Configure Token**:
-   - Name & Symbol
-   - Supply (usually 1B)
-   - Initial buy amount
-   - Platform-specific settings
-3. **Choose Execution Mode**:
-   - Flash: Fastest, uses Jito bundles
-   - Regular: Standard execution
-   - Stealth: Delayed for organic appearance
-   - Manual: Full control
-4. **Execute**: Click "🔑 Execute Keymaker"
-
-### 4. Monitor & Manage
-
-- **Activity Monitor**: Real-time buy/sell tracking
-- **PnL Dashboard**: Track profits and losses
-- **Sell Monitor**: Configure auto-sell conditions
-- **Analytics**: View detailed performance metrics
-
-## 🏗️ Architecture
-
-```
-the-keymaker/
-├── app/              # Next.js 14 app directory
-│   ├── api/         # Server-side API routes
-│   └── dashboard/   # Main application pages
-├── components/       # React components
-├── services/         # Core business logic
-├── lib/             # Utilities and store
-├── bonk-mcp/        # Python backend for LetsBonk
-├── data/            # SQLite database
-└── docker/          # Docker configuration
+# Stop
+docker compose down
 ```
 
-### Key Services
+## 📊 Database Schema
 
-- `bundleService`: Jito bundle execution
-- `platformService`: Multi-platform token launches
-- `walletService`: Secure wallet management
-- `sellService`: Jupiter-powered token selling
-- `rugService`: Raydium pool manipulation
+### Wallets Table
+```sql
+CREATE TABLE wallets (
+  id INTEGER PRIMARY KEY,
+  publicKey TEXT UNIQUE NOT NULL,
+  encryptedPrivateKey TEXT NOT NULL,
+  role TEXT NOT NULL,
+  balance REAL DEFAULT 0
+);
+```
 
-## 🛡️ Security
+### PnL Tracking Table
+```sql
+CREATE TABLE pnl_tracking (
+  id INTEGER PRIMARY KEY,
+  wallet TEXT NOT NULL,
+  token_address TEXT NOT NULL,
+  action TEXT NOT NULL,
+  sol_amount REAL NOT NULL,
+  token_amount REAL NOT NULL,
+  price REAL NOT NULL,
+  timestamp INTEGER NOT NULL
+);
+```
 
-- **Encryption**: AES-256-GCM for all private keys
-- **Local Storage**: Keys encrypted in browser/container
-- **No Telemetry**: All tracking disabled by default
-- **Password Protection**: Required for all wallet operations
-- **Docker Security**: Non-root user, resource limits
+### Bundle Executions Table
+```sql
+CREATE TABLE bundle_executions (
+  id INTEGER PRIMARY KEY,
+  bundle_id TEXT,
+  slot INTEGER NOT NULL,
+  signatures TEXT NOT NULL,
+  status TEXT NOT NULL,
+  success_count INTEGER NOT NULL,
+  failure_count INTEGER NOT NULL,
+  used_jito BOOLEAN NOT NULL,
+  execution_time INTEGER NOT NULL
+);
+```
 
-## 🐛 Troubleshooting
+## 🔐 Security Considerations
 
-### Docker Issues
+1. **Wallet Security**
+   - Private keys are never stored in plain text
+   - AES-256-GCM encryption with unique salt/IV per wallet
+   - PBKDF2 key derivation prevents brute force attacks
 
-**Container shows "unhealthy"**
-- Normal behavior - health endpoint not implemented
-- Check actual status with `docker-compose logs`
+2. **API Security**
+   - Rate limiting on all endpoints
+   - CORS protection
+   - Input validation and sanitization
+   - No sensitive data in logs
 
-**Environment variable warnings**
-- Expected - uses values from docker-compose.override.yml
+3. **Transaction Security**
+   - Local transaction signing only
+   - No private keys transmitted over network
+   - Simulation before execution
 
-### Transaction Issues
+## 🚨 Error Handling
 
-**"Insufficient SOL"**
-- Ensure wallets have 0.05+ SOL for fees
-- Master wallet needs extra for token creation
+The application implements comprehensive error handling:
+- Sentry integration for error tracking
+- Graceful degradation for API failures
+- User-friendly error messages
+- Automatic retry logic for network operations
 
-**"Transaction failed"**
-- Check Jito bundle includes tip (min 1000 lamports)
-- Verify token accounts exist
-- Increase compute units if needed
+## 📈 Performance Optimization
 
-### API Issues
-
-**"Rate limited"**
-- Upgrade to premium RPC tier
-- Implement request queuing
-- Add retry logic with backoff
-
-## 📊 Performance
-
-- **Bundle Capacity**: 20 wallets max per session
-- **Jito Limits**: 5 transactions per bundle
-- **Build Time**: ~4-5 minutes (Docker)
-- **Memory Usage**: 500MB-2GB typical
-- **Container Size**: ~300MB
+- React component memoization
+- Debounced API calls
+- Efficient database queries with indexes
+- Docker layer caching
+- Next.js production optimizations
 
 ## 🤝 Contributing
 
@@ -239,21 +323,17 @@ the-keymaker/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📜 License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## ⚠️ Disclaimer
+## 🙏 Acknowledgments
 
-This software is for educational purposes only. Use at your own risk. The authors are not responsible for any losses incurred through the use of this software. Always verify transactions and use small amounts when testing.
-
-## 🔗 Resources
-
-- [Documentation](./guide.md)
-- [Security Checklist](./SECURITY_CHECKLIST.md)
-- [Production Deployment](./PRODUCTION_DEPLOYMENT.md)
-- [Project Summary](./SUMMARY.md)
+- Solana Foundation for blockchain infrastructure
+- Jito Labs for MEV protection
+- Helius for RPC services
+- Jupiter for swap aggregation
 
 ---
 
-**Version**: 1.0.0 | **Status**: Production Ready | **Last Updated**: August 1, 2025
+**Built with ❤️ for the Solana ecosystem**

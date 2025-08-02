@@ -10,15 +10,18 @@ import { Label } from '@/components/UI/label';
 import { Switch } from '@/components/UI/switch';
 import { Badge } from '@/components/UI/badge';
 import { Skeleton } from '@/components/UI/skeleton';
-import { Settings, Key, Globe, Shield, Database, Save, Check, AlertCircle } from 'lucide-react';
+import { Settings, Key, Globe, Shield, Database, Save, Check, AlertCircle, Activity, Wifi, Zap, Server } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { Connection } from '@solana/web3.js';
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 
 interface ApiKeys {
   heliusRpc?: string;
   birdeyeApiKey?: string;
   pumpfunApiKey?: string;
   letsbonkApiKey?: string;
-  moonshotApiKey?: string;
+
 }
 
 interface Preferences {
@@ -30,6 +33,9 @@ interface Preferences {
 }
 
 export default function SettingsPage() {
+  const { rpcStatus, wsStatus, jitoStatus, rtt } = useSystemStatus();
+  const [solanaStatus, setSolanaStatus] = useState<'healthy' | 'degraded' | 'error'>('healthy');
+  const [slotHeight, setSlotHeight] = useState<number | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
   const [preferences, setPreferences] = useState<Preferences>({
     defaultSlippage: 5,
@@ -41,6 +47,25 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
+
+  // Check Solana mainnet status
+  useEffect(() => {
+    const checkSolanaStatus = async () => {
+      try {
+        const conn = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+        const slot = await conn.getSlot();
+        setSlotHeight(slot);
+        setSolanaStatus('healthy');
+      } catch {
+        setSolanaStatus('error');
+        setSlotHeight(null);
+      }
+    };
+    
+    checkSolanaStatus();
+    const interval = setInterval(checkSolanaStatus, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Load settings from localStorage
@@ -88,9 +113,7 @@ export default function SettingsPage() {
         validKeys.letsbonkApiKey = apiKeys.letsbonkApiKey;
       }
       
-      if (apiKeys.moonshotApiKey) {
-        validKeys.moonshotApiKey = apiKeys.moonshotApiKey;
-      }
+      
       
       // Save to localStorage
       localStorage.setItem('apiKeys', JSON.stringify(validKeys));
@@ -226,19 +249,7 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <div>
-              <Label>Moonshot API Key</Label>
-              <Input
-                type={showKeys ? 'text' : 'password'}
-                value={apiKeys.moonshotApiKey || ''}
-                onChange={(e) => setApiKeys({ ...apiKeys, moonshotApiKey: e.target.value })}
-                placeholder="Your Moonshot API key"
-                className="bg-black/50 border-aqua/30 font-mono text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Optional - For launching tokens on Moonshot
-              </p>
-            </div>
+
 
             <Button 
               onClick={handleSaveApiKeys} 
@@ -407,6 +418,71 @@ export default function SettingsPage() {
               The database stores execution logs, token launches, P/L records, and other analytics data.
               Run <code className="bg-black/50 px-2 py-1 rounded">npm run db:init</code> to initialize.
             </p>
+          </CardContent>
+        </Card>
+        {/* Status Grid Section */}
+        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Connection Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              {/* RPC Status */}
+              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-aqua" />
+                    <span className="font-medium">RPC</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${rpcStatus === 'healthy' ? 'bg-green-500' : rpcStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                </div>
+                <p className="text-xs text-gray-400" title={`RTT: ${rtt.rpc}ms`}>Helius RPC</p>
+                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.rpc}ms`}>RTT: {rtt.rpc}ms</p>
+              </div>
+
+              {/* WebSocket Status */}
+              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Wifi className="w-5 h-5 text-aqua" />
+                    <span className="font-medium">WebSocket</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${wsStatus === 'healthy' ? 'bg-green-500' : wsStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                </div>
+                <p className="text-xs text-gray-400">Real-time Updates</p>
+                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.ws}ms`}>RTT: {rtt.ws}ms</p>
+              </div>
+
+              {/* Jito Status */}
+              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-aqua" />
+                    <span className="font-medium">Jito Engine</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${jitoStatus === 'healthy' ? 'bg-green-500' : jitoStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                </div>
+                <p className="text-xs text-gray-400">Bundle Execution</p>
+                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.jito}ms`}>RTT: {rtt.jito}ms</p>
+              </div>
+
+              {/* Solana Mainnet Status */}
+              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-5 h-5 text-aqua" />
+                    <span className="font-medium">Solana Mainnet</span>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${solanaStatus === 'healthy' ? 'bg-green-500' : solanaStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                </div>
+                <p className="text-xs text-gray-400">Network Status</p>
+                <p className="text-xs text-gray-500">Slot: {slotHeight ? slotHeight.toLocaleString() : 'Loading...'}</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-4">Status updates every 8 seconds</p>
           </CardContent>
         </Card>
       </motion.div>

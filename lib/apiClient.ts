@@ -4,7 +4,7 @@
  */
 
 interface ProxyRequest {
-  service: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun' | 'moonshot';
+  service: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun';
   path: string;
   params?: any;
   method?: 'GET' | 'POST';
@@ -167,26 +167,7 @@ class APIClient {
     },
   };
   
-  /**
-   * Moonshot API methods
-   */
-  moonshot = {
-    createToken: async (params: any) => {
-      return this.request({
-        service: 'moonshot',
-        path: '/create',
-        params,
-        method: 'POST',
-      });
-    },
-    
-    getToken: async (tokenAddress: string) => {
-      return this.request({
-        service: 'moonshot',
-        path: `/token/${tokenAddress}`,
-      });
-    },
-  };
+
 }
 
 // Export singleton instance

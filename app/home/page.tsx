@@ -46,10 +46,10 @@ export default function DashboardPage() {
   const stats = [
     {
       title: 'Total Balance',
-      value: `${totalBalance.toFixed(2)} SOL`,
+      value: wallets.length > 0 ? `${totalBalance.toFixed(2)} SOL` : 'No wallets',
       icon: <DollarSign className="h-4 w-4" />,
-      description: `Across ${wallets.length} wallets`,
-      color: 'text-green-400'
+      description: wallets.length > 0 ? `Across ${wallets.length} wallets` : 'Load wallets to begin',
+      color: wallets.length > 0 ? 'text-green-400' : 'text-gray-400'
     },
     {
       title: 'Master Wallet',
@@ -67,10 +67,10 @@ export default function DashboardPage() {
     },
     {
       title: 'Total PnL',
-      value: pnlPercentage > 0 ? `+${pnlPercentage.toFixed(1)}%` : `${pnlPercentage.toFixed(1)}%`,
+      value: totalInvested > 0 ? (pnlPercentage > 0 ? `+${pnlPercentage.toFixed(1)}%` : `${pnlPercentage.toFixed(1)}%`) : 'No trades',
       icon: <TrendingUp className="h-4 w-4" />,
-      description: `$${Math.abs(totalReturned - totalInvested).toFixed(2)}`,
-      color: pnlPercentage > 0 ? 'text-green-400' : 'text-red-400'
+      description: totalInvested > 0 ? `$${Math.abs(totalReturned - totalInvested).toFixed(2)}` : 'Start trading to see PnL',
+      color: totalInvested > 0 ? (pnlPercentage > 0 ? 'text-green-400' : 'text-red-400') : 'text-gray-400'
     }
   ];
 

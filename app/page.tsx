@@ -13,37 +13,37 @@ export default function Home() {
       icon: <Wallet className="h-8 w-8" />,
       title: 'Wallet Management',
       description: 'Manage wallet groups with roles and automated funding',
-      href: '/dashboard/wallets'
+      href: '/wallets'
     },
     {
       icon: <Rocket className="h-8 w-8" />,
       title: 'Token Launch',
       description: 'Deploy tokens on pump.fun, letsbonk, or Raydium',
-      href: '/dashboard/create'
+      href: '/spl-creator'
     },
     {
       icon: <Package className="h-8 w-8" />,
       title: 'Bundle Engine',
       description: 'Execute bundled transactions with Jito integration',
-      href: '/dashboard/bundle'
+      href: '/bundle'
     },
     {
       icon: <TrendingUp className="h-8 w-8" />,
       title: 'PnL Tracking',
       description: 'Real-time profit and loss monitoring',
-      href: '/dashboard/pnl'
+      href: '/pnl'
     },
     {
       icon: <FileText className="h-8 w-8" />,
       title: 'Execution Logs',
       description: 'Detailed logs of all operations',
-      href: '/dashboard/logs'
+      href: '/logs'
     },
     {
       icon: <Settings className="h-8 w-8" />,
       title: 'Control Center',
       description: 'Orchestrate the entire Keymaker flow',
-      href: '/dashboard'
+      href: '/home'
     }
   ];
 
@@ -67,7 +67,7 @@ export default function Home() {
             <Button 
               size="lg"
               className="bg-green-600 hover:bg-green-700"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/home')}
             >
               <Rocket className="mr-2 h-5 w-5" />
               Launch Control Center
@@ -76,7 +76,7 @@ export default function Home() {
               size="lg"
               variant="outline"
               className="text-white border-white hover:bg-white hover:text-black"
-              onClick={() => router.push('/dashboard/wallets')}
+              onClick={() => router.push('/wallets')}
             >
               <Wallet className="mr-2 h-5 w-5" />
               Manage Wallets

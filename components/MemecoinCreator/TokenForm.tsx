@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
-import { createToken as moonshotCreate } from '../../services/moonshotService';
+
 import { useKeymakerStore } from '@/lib/store';
 import { AlertCircle } from 'lucide-react';
 
@@ -104,7 +104,7 @@ export default function TokenForm() {
         symbol,
         decimals: parseInt(decimals),
         supply: parseInt(supply),
-        platform: platform.toLowerCase().replace('.', '') as any,
+        platform: platform.toLowerCase().replace('.', '') as 'pump.fun' | 'letsbonk.fun' | 'raydium',
         lpAmount: 1, // Default LP amount
         walletPublicKey: publicKey.toString()
       });
@@ -127,12 +127,10 @@ export default function TokenForm() {
           break;
           
         case 'LetsBonk.fun':
-          tokenAddr = await moonshotCreate(name, symbol, parseInt(supply), metadata);
+          tokenAddr = await letsbonkCreate(name, symbol, parseInt(supply), metadata);
           break;
           
-        case 'Moonshot':
-          tokenAddr = await moonshotCreate(name, symbol, parseInt(supply), metadata);
-          break;
+
           
         default:
           throw new Error('Invalid platform selected');
@@ -151,9 +149,9 @@ export default function TokenForm() {
       setWebsite('');
       setTwitter('');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Deployment error:', error);
-      toast.error(error.message || 'Deployment failed');
+      toast.error(error instanceof Error ? error.message : 'Deployment failed');
     } finally {
       setLoading(false);
     }
@@ -302,7 +300,7 @@ export default function TokenForm() {
                   <SelectItem value="Pump.fun">Pump.fun</SelectItem>
                   <SelectItem value="Raydium">Raydium</SelectItem>
                   <SelectItem value="LetsBonk.fun">LetsBonk.fun</SelectItem>
-                  <SelectItem value="Moonshot">Moonshot</SelectItem>
+      
                 </SelectContent>
               </Select>
             </div>

@@ -25,11 +25,7 @@ const API_SERVICES = {
     apiKey: process.env.PUMPFUN_API_KEY,
     allowedPaths: ['/create', '/add-liquidity', '/token'],
   },
-  moonshot: {
-    baseUrl: process.env.MOONSHOT_API_URL,
-    apiKey: process.env.MOONSHOT_API_KEY,
-    allowedPaths: ['/create', '/token'],
-  },
+
 } as const;
 
 // Rate limiting map (in-memory for now, use Redis in production)

@@ -25,7 +25,7 @@ export interface TokenLaunchData {
   symbol: string;
   decimals: number;
   supply: number;
-  platform: 'pump.fun' | 'letsbonk.fun' | 'raydium' | 'moonshot';
+  platform: 'pump.fun' | 'letsbonk.fun' | 'raydium';
   lpAmount: number;
   walletPublicKey: string;
   mintAddress?: string;

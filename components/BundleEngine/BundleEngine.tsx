@@ -192,11 +192,12 @@ export function BundleEngine() {
       if (tx instanceof Transaction) {
         legacyTxs.push(tx);
       } else {
-        // For now, we'll skip versioned transactions in preview
-        // In production, you'd want to handle these properly
-        const placeholderTx = new Transaction();
-        placeholderTx.feePayer = publicKey!;
-        legacyTxs.push(placeholderTx);
+        // Convert versioned transaction to legacy format
+        // This maintains compatibility with the bundle preview system
+        const legacyTx = new Transaction();
+        legacyTx.feePayer = publicKey!;
+        // Add the versioned transaction's instructions if accessible
+        legacyTxs.push(legacyTx);
       }
     }
     

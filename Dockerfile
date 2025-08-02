@@ -6,7 +6,10 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps
+# Skip postinstall during build as it requires the scripts directory
+RUN npm ci --legacy-peer-deps --ignore-scripts
+# Rebuild native dependencies
+RUN npm rebuild sqlite3
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder

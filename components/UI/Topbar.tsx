@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'react-hot-toast';
 import { Sun, Moon, Copy } from 'lucide-react';
 import { Button } from '@/components/UI/button';
-import { StatusLEDs } from '@/components/UI/StatusLEDs';
+
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 
 interface TopbarProps {
@@ -26,7 +26,7 @@ export function Topbar({ toggleTheme, theme }: TopbarProps) {
     <header className="flex justify-between items-center p-4 bg-glass/30 backdrop-blur border-b border-white/10">
       <h1 className="text-xl font-bold text-gradient-green">The Keymaker</h1>
       <div className="flex items-center space-x-4">
-        <StatusLEDs />
+
         <NotificationCenter />
         <Button
           variant="ghost"

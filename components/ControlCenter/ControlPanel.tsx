@@ -175,7 +175,7 @@ export function ControlPanel() {
           telegram: ''
         },
         {
-          platform: tokenConfig.platform as 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot',
+          platform: tokenConfig.platform as 'pump.fun' | 'raydium' | 'letsbonk.fun',
           solAmount: tokenConfig.solAmount,
           tokenAmount: tokenConfig.tokenAmount
         }

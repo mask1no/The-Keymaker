@@ -42,7 +42,7 @@ export interface LiquidityPoolParams {
   tokenMint: PublicKey;
   solAmount: number;
   tokenAmount: number;
-  platform: 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot';
+  platform: 'pump.fun' | 'raydium' | 'letsbonk.fun';
 }
 
 export interface LiquidityPoolResult {
@@ -59,7 +59,7 @@ export async function launchToken(
   payer: Keypair,
   tokenParams: TokenCreationParams,
   liquidityParams: {
-    platform: 'pump.fun' | 'raydium' | 'letsbonk.fun' | 'moonshot';
+    platform: 'pump.fun' | 'raydium' | 'letsbonk.fun';
     solAmount: number;
     tokenAmount: number;
   }
@@ -139,19 +139,7 @@ export async function launchToken(
         break;
       }
 
-      case 'moonshot': {
-        const moonshotService = await import('./moonshotService');
-        tokenAddress = await moonshotService.createToken(
-          tokenParams.name,
-          tokenParams.symbol,
-          tokenParams.supply,
-          metadata
-        );
-        txSignature = tokenAddress;
-        decimals = 9;
-        supply = tokenParams.supply;
-        break;
-      }
+
 
       case 'raydium': {
         // For Raydium, we create the token manually then add liquidity

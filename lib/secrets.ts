@@ -4,7 +4,7 @@ export function verifySecrets() {
     'NEXT_PUBLIC_JITO_ENDPOINT',
     'PUMPFUN_API_KEY',
     'LETSBONK_API_KEY',
-    'MOONSHOT_API_KEY',
+  
     'NEXT_PUBLIC_BIRDEYE_API_KEY',
     'HELIUS_API_KEY'
   ];
