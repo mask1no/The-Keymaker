@@ -2,7 +2,7 @@
 import { Home, Zap, Wallet, Coins, Activity, BarChart2, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
 import { useKeymakerStore } from '@/lib/store';
 
@@ -67,7 +67,7 @@ export function Sidebar() {
                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              <span className="ml-2 text-xs font-medium text-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="ml-2 text-xs font-medium text-green-400">
                 LIVE
               </span>
             </div>
