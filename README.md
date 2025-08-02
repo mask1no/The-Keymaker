@@ -1,20 +1,57 @@
-# The Keymaker v1.0.0 - Production-Grade Solana Bundler
+# The Keymaker v1.0.1 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.0-orange)
+![Version](https://img.shields.io/badge/version-1.0.1-orange)
 
 ## 🚀 Overview
 
 The Keymaker is a production-ready Solana bundler application built for high-performance token operations on mainnet. It provides a complete suite of tools for SPL token creation, Jito bundle execution, wallet management, and real-time PnL tracking.
 
 **Key Features:**
-- 🪙 SPL Token Creation & Deployment
-- 📦 Jito Bundle Execution (Stealth & Manual)
-- 👛 Secure Wallet Management
-- 📊 Real-Time PnL Tracking
-- 🔄 Live WebSocket Monitoring
-- 🔐 AES-256-GCM Encryption
+- 🪙 SPL Token Creation & Deployment (pump.fun, Raydium, letsbonk.fun)
+- 📦 Jito Bundle Execution (Stealth & Manual modes)
+- 👛 Secure Wallet Management (Phantom + Keypair imports)
+- 📊 Real-Time PnL Tracking with SQLite persistence
+- 🔄 Live Status Monitoring (RPC, WebSocket, Jito, Mainnet)
+- 🔐 AES-256-GCM Encryption for private keys
+- 🎯 100% Production-Ready - No mock data or placeholders
+- 🛡️ Comprehensive Error Boundaries with recovery options
+- 🌓 Persistent Dark/Light theme toggle
+- 🔄 Automatic RPC retry with rate limiting
+
+## 🆕 What's New in v1.0.1
+
+### UI/UX Improvements
+- **Fixed Sidebar**: Always expanded showing both icons and labels (no hover animations)
+- **Status Indicators**: Moved to Settings page in a clean 2x2 Bento grid
+  - RPC Health with RTT display
+  - WebSocket connection status  
+  - Jito Engine availability
+  - Solana Mainnet status
+  - Updates every 8 seconds automatically
+- **Theme Toggle**: Now properly persists across sessions using localStorage
+- **Error Boundaries**: Comprehensive error handling with recovery options
+
+### Technical Enhancements
+- **Zero Mock Data**: Complete removal of all placeholder values and mock wallets
+- **Real Wallet Integration**: Phantom wallet adapter fully connected
+- **Service Wiring**: All services properly connected and functional
+- **Route Updates**: Simplified navigation structure
+  - `/home` - Overview dashboard
+  - `/bundle` - Bundle execution engine
+  - `/wallets` - Wallet management
+  - `/spl-creator` - Token creation
+  - `/logs` - Trade history
+  - `/pnl` - Profit & loss tracking
+  - `/settings` - Configuration & status
+
+### Production Readiness
+- Docker health checks configured
+- Database auto-initialization on install
+- RPC rate limiting and retry logic
+- All buttons and interactions fully functional
+- No grey screens or dead routes
 
 ## 🏗️ Architecture
 
@@ -45,7 +82,7 @@ The Keymaker is a production-ready Solana bundler application built for high-per
 
 #### 3. **Platform Service** (`services/platformService.ts`)
 - Creates SPL tokens on mainnet
-- Integrates with pump.fun, Raydium, letsbonk.fun, Moonshot
+- Integrates with pump.fun, Raydium, letsbonk.fun
 - Handles liquidity pool creation
 - Validates token parameters
 
