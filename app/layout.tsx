@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className={theme}>
-      <body className="bg-gradient-to-br from-green-900 to-black text-white/90">
+      <body className="bg-gradient-to-br dark:from-green-900 dark:to-black from-green-100 to-white dark:text-white/90 text-gray-900 transition-colors duration-300">
         <WalletContext>
           <Toaster position="top-right" />
           <GlobalHotkeys />

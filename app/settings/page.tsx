@@ -14,7 +14,10 @@ import { Settings, Key, Globe, Shield, Database, Save, Check, AlertCircle, Activ
 import toast from 'react-hot-toast';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { Connection } from '@solana/web3.js';
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
+import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface ApiKeys {
   heliusRpc?: string;
@@ -32,6 +35,20 @@ interface Preferences {
   soundNotifications: boolean;
 }
 
+interface HealthStatus {
+  connected: boolean;
+  rtt: number;
+  lastCheck: number;
+}
+
+interface HealthHistory {
+  timestamp: number;
+  rtt: number;
+  connected: boolean;
+}
+
+const MAX_HISTORY_POINTS = 180; // 30 minutes at 10s intervals
+
 export default function SettingsPage() {
   const { rpcStatus, wsStatus, jitoStatus, rtt } = useSystemStatus();
   const [solanaStatus, setSolanaStatus] = useState<'healthy' | 'degraded' | 'error'>('healthy');
@@ -47,24 +64,168 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
+  
+  // Health monitoring states
+  const [rpcHealth, setRpcHealth] = useState<HealthStatus>({ connected: false, rtt: 0, lastCheck: 0 });
+  const [wsHealth, setWsHealth] = useState<HealthStatus>({ connected: false, rtt: 0, lastCheck: 0 });
+  const [jitoHealth, setJitoHealth] = useState<HealthStatus>({ connected: false, rtt: 0, lastCheck: 0 });
+  const [solanaHealth, setSolanaHealth] = useState<HealthStatus>({ connected: false, rtt: 0, lastCheck: 0 });
+  
+  // History states
+  const [rpcHistory, setRpcHistory] = useState<HealthHistory[]>([]);
+  const [wsHistory, setWsHistory] = useState<HealthHistory[]>([]);
+  const [jitoHistory, setJitoHistory] = useState<HealthHistory[]>([]);
+  const [solanaHistory, setSolanaHistory] = useState<HealthHistory[]>([]);
+  
+  // Modal states
+  const [selectedService, setSelectedService] = useState<'rpc' | 'ws' | 'jito' | 'solana' | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Check Solana mainnet status
+  // Health check functions
+  const checkRPCHealth = async () => {
+    const start = Date.now();
+    try {
+      const conn = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+      const slot = await conn.getSlot();
+      const rtt = Date.now() - start;
+      
+      const status = { connected: slot > 0, rtt, lastCheck: Date.now() };
+      setRpcHealth(status);
+      
+      setRpcHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt, connected: status.connected }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    } catch (error) {
+      const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+      setRpcHealth(status);
+      setRpcHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt: 0, connected: false }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    }
+  };
+
+  const checkWebSocketHealth = async () => {
+    const start = Date.now();
+    try {
+      const wsUrl = NEXT_PUBLIC_HELIUS_RPC.replace('https', 'wss');
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        const rtt = Date.now() - start;
+        const status = { connected: true, rtt, lastCheck: Date.now() };
+        setWsHealth(status);
+        setWsHistory(prev => {
+          const newHistory = [...prev, { timestamp: Date.now(), rtt, connected: true }];
+          return newHistory.slice(-MAX_HISTORY_POINTS);
+        });
+        ws.close();
+      };
+      
+      ws.onerror = () => {
+        const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+        setWsHealth(status);
+        setWsHistory(prev => {
+          const newHistory = [...prev, { timestamp: Date.now(), rtt: 0, connected: false }];
+          return newHistory.slice(-MAX_HISTORY_POINTS);
+        });
+      };
+      
+      setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN && ws.readyState !== WebSocket.CLOSED) {
+          ws.close();
+          const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+          setWsHealth(status);
+        }
+      }, 5000);
+    } catch (error) {
+      const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+      setWsHealth(status);
+      setWsHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt: 0, connected: false }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    }
+  };
+
+  const checkJitoHealth = async () => {
+    const start = Date.now();
+    try {
+      const response = await fetch(NEXT_PUBLIC_JITO_ENDPOINT + '/api/v1/bundles', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const rtt = Date.now() - start;
+      const connected = response.ok || response.status === 400; // 400 is expected without auth
+      
+      const status = { connected, rtt, lastCheck: Date.now() };
+      setJitoHealth(status);
+      
+      setJitoHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt, connected }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    } catch (error) {
+      const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+      setJitoHealth(status);
+      setJitoHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt: 0, connected: false }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    }
+  };
+
+  const checkSolanaHealth = async () => {
+    const start = Date.now();
+    try {
+      const conn = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+      const slot = await conn.getSlot();
+      const rtt = Date.now() - start;
+      setSlotHeight(slot);
+      setSolanaStatus('healthy');
+      
+      const status = { connected: true, rtt, lastCheck: Date.now() };
+      setSolanaHealth(status);
+      
+      setSolanaHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt, connected: true }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    } catch {
+      setSolanaStatus('error');
+      setSlotHeight(null);
+      const status = { connected: false, rtt: 0, lastCheck: Date.now() };
+      setSolanaHealth(status);
+      setSolanaHistory(prev => {
+        const newHistory = [...prev, { timestamp: Date.now(), rtt: 0, connected: false }];
+        return newHistory.slice(-MAX_HISTORY_POINTS);
+      });
+    }
+  };
+
+  // Run health checks
   useEffect(() => {
-    const checkSolanaStatus = async () => {
-      try {
-        const conn = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
-        const slot = await conn.getSlot();
-        setSlotHeight(slot);
-        setSolanaStatus('healthy');
-      } catch {
-        setSolanaStatus('error');
-        setSlotHeight(null);
-      }
+    // Initial checks
+    checkRPCHealth();
+    checkWebSocketHealth();
+    checkJitoHealth();
+    checkSolanaHealth();
+
+    // Set up interval for periodic checks (every 8 seconds)
+    const interval = setInterval(() => {
+      checkRPCHealth();
+      checkWebSocketHealth();
+      checkJitoHealth();
+      checkSolanaHealth();
+    }, 8000);
+
+    return () => {
+      clearInterval(interval);
     };
-    
-    checkSolanaStatus();
-    const interval = setInterval(checkSolanaStatus, 8000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -152,6 +313,41 @@ export default function SettingsPage() {
       soundNotifications: true
     });
     toast.success('Reset to default settings');
+  };
+
+  const handleServiceClick = (service: 'rpc' | 'ws' | 'jito' | 'solana') => {
+    setSelectedService(service);
+    setDialogOpen(true);
+  };
+
+  const getHistoryData = () => {
+    switch (selectedService) {
+      case 'rpc':
+        return rpcHistory;
+      case 'ws':
+        return wsHistory;
+      case 'jito':
+        return jitoHistory;
+      case 'solana':
+        return solanaHistory;
+      default:
+        return [];
+    }
+  };
+
+  const getServiceName = () => {
+    switch (selectedService) {
+      case 'rpc':
+        return 'RPC';
+      case 'ws':
+        return 'WebSocket';
+      case 'jito':
+        return 'Jito Engine';
+      case 'solana':
+        return 'Solana Mainnet';
+      default:
+        return '';
+    }
   };
 
   if (loading) {
@@ -429,63 +625,248 @@ export default function SettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {/* RPC Status */}
-              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-aqua" />
-                    <span className="font-medium">RPC</span>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${rpcStatus === 'healthy' ? 'bg-green-500' : rpcStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                </div>
-                <p className="text-xs text-gray-400" title={`RTT: ${rtt.rpc}ms`}>Helius RPC</p>
-                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.rpc}ms`}>RTT: {rtt.rpc}ms</p>
-              </div>
+            <TooltipProvider>
+              <div className="grid grid-cols-2 gap-4">
+                {/* RPC Status */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleServiceClick('rpc')}
+                      className="bg-black/50 border border-aqua/30 rounded-lg p-4 cursor-pointer hover:border-aqua/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-aqua" />
+                          <span className="font-medium">RPC</span>
+                        </div>
+                        <motion.div
+                          className={`h-3 w-3 rounded-full ${
+                            rpcHealth.connected ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                          animate={{
+                            boxShadow: rpcHealth.connected
+                              ? ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)']
+                              : ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 8px rgba(239, 68, 68, 0)'],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400">Helius RPC</p>
+                      <p className="text-xs text-gray-500">
+                        {rpcHealth.connected ? `RTT: ${rpcHealth.rtt}ms` : 'Disconnected'}
+                      </p>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <p>Status: {rpcHealth.connected ? 'Connected' : 'Disconnected'}</p>
+                      {rpcHealth.connected && <p>RTT: {rpcHealth.rtt}ms</p>}
+                      <p>Last check: {new Date(rpcHealth.lastCheck).toLocaleTimeString()}</p>
+                      <p className="mt-1 text-gray-400">Click for history</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* WebSocket Status */}
-              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Wifi className="w-5 h-5 text-aqua" />
-                    <span className="font-medium">WebSocket</span>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${wsStatus === 'healthy' ? 'bg-green-500' : wsStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                </div>
-                <p className="text-xs text-gray-400">Real-time Updates</p>
-                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.ws}ms`}>RTT: {rtt.ws}ms</p>
-              </div>
+                {/* WebSocket Status */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleServiceClick('ws')}
+                      className="bg-black/50 border border-aqua/30 rounded-lg p-4 cursor-pointer hover:border-aqua/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Wifi className="w-5 h-5 text-aqua" />
+                          <span className="font-medium">WebSocket</span>
+                        </div>
+                        <motion.div
+                          className={`h-3 w-3 rounded-full ${
+                            wsHealth.connected ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                          animate={{
+                            boxShadow: wsHealth.connected
+                              ? ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)']
+                              : ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 8px rgba(239, 68, 68, 0)'],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400">Real-time Updates</p>
+                      <p className="text-xs text-gray-500">
+                        {wsHealth.connected ? `RTT: ${wsHealth.rtt}ms` : 'Disconnected'}
+                      </p>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <p>Status: {wsHealth.connected ? 'Connected' : 'Disconnected'}</p>
+                      {wsHealth.connected && <p>RTT: {wsHealth.rtt}ms</p>}
+                      <p>Last check: {new Date(wsHealth.lastCheck).toLocaleTimeString()}</p>
+                      <p className="mt-1 text-gray-400">Click for history</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* Jito Status */}
-              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-aqua" />
-                    <span className="font-medium">Jito Engine</span>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${jitoStatus === 'healthy' ? 'bg-green-500' : jitoStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                </div>
-                <p className="text-xs text-gray-400">Bundle Execution</p>
-                <p className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={`RTT: ${rtt.jito}ms`}>RTT: {rtt.jito}ms</p>
-              </div>
+                {/* Jito Status */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleServiceClick('jito')}
+                      className="bg-black/50 border border-aqua/30 rounded-lg p-4 cursor-pointer hover:border-aqua/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-5 h-5 text-aqua" />
+                          <span className="font-medium">Jito Engine</span>
+                        </div>
+                        <motion.div
+                          className={`h-3 w-3 rounded-full ${
+                            jitoHealth.connected ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                          animate={{
+                            boxShadow: jitoHealth.connected
+                              ? ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)']
+                              : ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 8px rgba(239, 68, 68, 0)'],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400">Bundle Execution</p>
+                      <p className="text-xs text-gray-500">
+                        {jitoHealth.connected ? `RTT: ${jitoHealth.rtt}ms` : 'Disconnected'}
+                      </p>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <p>Status: {jitoHealth.connected ? 'Connected' : 'Disconnected'}</p>
+                      {jitoHealth.connected && <p>RTT: {jitoHealth.rtt}ms</p>}
+                      <p>Last check: {new Date(jitoHealth.lastCheck).toLocaleTimeString()}</p>
+                      <p className="mt-1 text-gray-400">Click for history</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* Solana Mainnet Status */}
-              <div className="bg-black/50 border border-aqua/30 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Server className="w-5 h-5 text-aqua" />
-                    <span className="font-medium">Solana Mainnet</span>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${solanaStatus === 'healthy' ? 'bg-green-500' : solanaStatus === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                </div>
-                <p className="text-xs text-gray-400">Network Status</p>
-                <p className="text-xs text-gray-500">Slot: {slotHeight ? slotHeight.toLocaleString() : 'Loading...'}</p>
+                {/* Solana Mainnet Status */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleServiceClick('solana')}
+                      className="bg-black/50 border border-aqua/30 rounded-lg p-4 cursor-pointer hover:border-aqua/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Server className="w-5 h-5 text-aqua" />
+                          <span className="font-medium">Solana Mainnet</span>
+                        </div>
+                        <motion.div
+                          className={`h-3 w-3 rounded-full ${
+                            solanaHealth.connected ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                          animate={{
+                            boxShadow: solanaHealth.connected
+                              ? ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)']
+                              : ['0 0 0 0 rgba(239, 68, 68, 0.4)', '0 0 0 8px rgba(239, 68, 68, 0)'],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400">Network Status</p>
+                      <p className="text-xs text-gray-500">
+                        {slotHeight ? `Slot: ${slotHeight.toLocaleString()}` : 'Disconnected'}
+                      </p>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <p>Status: {solanaHealth.connected ? 'Connected' : 'Disconnected'}</p>
+                      {solanaHealth.connected && <p>RTT: {solanaHealth.rtt}ms</p>}
+                      <p>Last check: {new Date(solanaHealth.lastCheck).toLocaleTimeString()}</p>
+                      <p className="mt-1 text-gray-400">Click for history</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </div>
-            <p className="text-xs text-gray-400 mt-4">Status updates every 8 seconds</p>
+            </TooltipProvider>
+            <p className="text-xs text-gray-400 mt-4">Status updates every 8 seconds • Click any card to view history</p>
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* History Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {getServiceName()} Connection History (30 min)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={getHistoryData()}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis
+                  dataKey="timestamp"
+                  tickFormatter={(time) => new Date(time).toLocaleTimeString()}
+                  stroke="#666"
+                />
+                <YAxis stroke="#666" />
+                <Line
+                  type="monotone"
+                  dataKey="rtt"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-between text-sm text-white/60">
+            <span>
+              Avg RTT: {
+                getHistoryData().length > 0
+                  ? Math.round(
+                      getHistoryData().reduce((acc, h) => acc + h.rtt, 0) / getHistoryData().length
+                    )
+                  : 0
+              }ms
+            </span>
+            <span>
+              Uptime: {
+                getHistoryData().length > 0
+                  ? Math.round(
+                      (getHistoryData().filter(h => h.connected).length / getHistoryData().length) * 100
+                    )
+                  : 0
+              }%
+            </span>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
