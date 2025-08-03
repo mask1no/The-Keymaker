@@ -1,6 +1,6 @@
 {
   "name": "the-keymaker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "dev": "next dev",
@@ -11,9 +11,12 @@
     "clean": "rm -rf node_modules package-lock.json .next && npm cache clean --force",
     "db:init": "ts-node --project tsconfig.node.json scripts/initDb.ts",
     "test:production": "ts-node --project tsconfig.node.json scripts/testProduction.ts",
+    "verify": "ts-node --project tsconfig.node.json scripts/verifyApp.ts",
+    "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
     "postinstall": "npm run db:init"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
     "@jup-ag/api": "^6.0.0",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@opentelemetry/instrumentation": "^0.57.2",
@@ -52,6 +55,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.0",
+    "react-hook-form": "^7.62.0",
     "react-hot-toast": "^2.4.0",
     "react-hotkeys-hook": "^4.4.1",
     "recharts": "^2.10.0",
@@ -60,6 +64,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.0",
     "use-debounce": "^10.0.5",
+    "zod": "^4.0.14",
     "zustand": "^5.0.6"
   },
   "devDependencies": {

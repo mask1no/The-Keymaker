@@ -1,8 +1,8 @@
-# The Keymaker v1.0.1 - Production-Grade Solana Bundler
+# The Keymaker v1.1.0 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.1-orange)
+![Version](https://img.shields.io/badge/version-1.1.0-orange)
 
 ## 🚀 Overview
 
@@ -20,7 +20,19 @@ The Keymaker is a production-ready Solana bundler application built for high-per
 - 🌓 Persistent Dark/Light theme toggle
 - 🔄 Automatic RPC retry with rate limiting
 
-## 🆕 What's New in v1.0.1
+## 🆕 What's New in v1.1.0
+
+### Major Enhancements
+- **Launch Wizard**: Step-by-step guided setup with preset saving
+- **Advanced Trading**: Visual condition builder for complex sell strategies  
+- **Wallet Groups**: Organize wallets with color-coded groups
+- **Network Flexibility**: Hot-swap between mainnet/devnet
+- **Enhanced Monitoring**: Connection issues shown in global banner
+- **Smarter Execution**: Auto-retry with progressive slippage on liquidity errors
+- **Configurable Bundles**: Support for up to 20 transactions per bundle
+- **Fee-Aware PnL**: Accurate tracking including gas and Jito tips
+
+## 🔄 Previous Release (v1.0.1)
 
 ### UI/UX Improvements
 - **Fixed Sidebar**: Always expanded showing both icons and labels (no hover animations)

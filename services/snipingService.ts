@@ -1,7 +1,7 @@
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
 import axios from 'axios';
 import { validateToken } from './bundleService';
-import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
+import { getConnection } from '@/lib/network';
 import { getQuote, getSwapTransaction } from './jupiterService';
 import { logger } from '@/lib/logger';
 
@@ -9,7 +9,7 @@ export async function snipeToken(
   tokenAddress: string, 
   solAmount: number, // in SOL
   maxSlippage: number, // in percentage (e.g., 1 for 1%)
-  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed'), 
+  connection: Connection = getConnection('confirmed'), 
   signer: Keypair
 ): Promise<string> {
   if (!(await validateToken(tokenAddress))) {

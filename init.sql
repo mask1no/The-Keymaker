@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS trades (
   sol_in REAL NOT NULL,
   sol_out REAL NOT NULL,
   pnl REAL NOT NULL,
+  fees REAL DEFAULT 0,
+  gas_fee REAL DEFAULT 0,
+  jito_tip REAL DEFAULT 0,
   executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

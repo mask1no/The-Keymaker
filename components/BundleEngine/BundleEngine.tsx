@@ -22,6 +22,7 @@ import { trackBuy, trackSell } from '@/services/pnlService';
 import { getKeypair } from '@/services/walletService';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { useKeymakerStore } from '@/lib/store';
+import { getBundleTxLimit } from '@/lib/constants/bundleConfig';
 
 interface TransactionInput {
   tokenAddress: string;
@@ -105,8 +106,9 @@ export function BundleEngine() {
       return toast.error('Fill all required fields');
     }
     
-    if (transactions.length >= 20) {
-      return toast.error('Maximum 20 transactions per bundle');
+    const maxBundleSize = getBundleTxLimit();
+    if (transactions.length >= maxBundleSize) {
+      return toast.error(`Maximum ${maxBundleSize} transactions per bundle`);
     }
     
     // Validate token address

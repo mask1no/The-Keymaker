@@ -70,6 +70,39 @@ async function initializeDatabase() {
   
   console.log('✅ Database initialized successfully');
   console.log(`📊 Tables: ${newTables.map(t => t.name).join(', ')}`);
+  
+  // Apply migrations
+  console.log('🔄 Applying migrations...');
+  const migrationsDir = path.join(process.cwd(), 'scripts', 'migrations');
+  if (fs.existsSync(migrationsDir)) {
+    const migrationFiles = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.sql'))
+      .sort();
+    
+    for (const file of migrationFiles) {
+      console.log(`  → Applying ${file}...`);
+      try {
+        const migrationSql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
+        const migrationStatements = migrationSql
+          .split(';')
+          .filter(stmt => stmt.trim())
+          .map(stmt => stmt.trim() + ';');
+        
+        for (const stmt of migrationStatements) {
+          try {
+            await db.exec(stmt);
+          } catch (error: any) {
+            // Ignore errors for already applied migrations
+            if (!error.message.includes('duplicate column')) {
+              console.error(`    ⚠️ Migration warning: ${error.message}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`    ❌ Failed to apply migration ${file}:`, error);
+      }
+    }
+  }
 
   await db.close();
 }

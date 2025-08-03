@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/UI/ErrorBoundary';
 import { Sidebar } from '@/components/UI/Sidebar';
 import { Topbar } from '@/components/UI/Topbar';
-
+import { ConnectionBanner } from '@/components/UI/ConnectionBanner';
 import { MobileNav } from '@/components/UI/MobileNav';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
@@ -27,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Toaster position="top-right" />
           <GlobalHotkeys />
           <ErrorBoundary>
+            <ConnectionBanner />
             <div className="flex min-h-screen">
               <div className="hidden md:block">
                 <Sidebar />

@@ -31,7 +31,7 @@ export function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className="w-[240px] h-screen bg-black/40 backdrop-blur-md border-r border-white/10 flex flex-col py-6">
+      <aside className="fixed w-[240px] h-screen bg-[#101418]/80 backdrop-blur border-r border-white/10 flex flex-col py-6">
         {/* Logo */}
         <div className="flex items-center px-4 h-10">
           <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">

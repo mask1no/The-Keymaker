@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { Keypair } from '@solana/web3.js';
 import { logTokenLaunch } from './executionLogService';
+import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry';
+import { logger } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 
 type TokenMetadata = {
@@ -70,40 +72,63 @@ export async function createToken(
 }
 
 /**
- * Buy tokens on letsbonk.fun
+ * Buy tokens on letsbonk.fun with automatic slippage retry
  */
 export async function buyToken(
   tokenMint: string,
   amountSol: number,
   buyer: Keypair,
-  slippage = 10
+  maxSlippage: number = 10
 ): Promise<string> {
-  try {
-    // Call Python backend via API proxy
-    const response = await axios.post('/api/proxy', {
-      method: 'buy-token',
-      params: {
-        tokenMint,
-        amountSol,
-        slippage,
-        keypair: buyer.secretKey.toString(),
+  const swapFunction = async (slippage: number) => {
+    try {
+      // Call Python backend via API proxy
+      const response = await axios.post('/api/proxy', {
+        method: 'buy-token',
+        params: {
+          tokenMint,
+          amountSol,
+          slippage,
+          keypair: buyer.secretKey.toString(),
+        }
+      }, {
+        timeout: 30000
+      });
+
+      const result = response.data;
+      
+      if (result.success && result.txSignature) {
+        return {
+          success: true,
+          txSignature: result.txSignature
+        };
       }
-    }, {
-      timeout: 30000
-    });
 
-    const result = response.data;
-    
-    if (!result.success || !result.txSignature) {
-      throw new Error(result.error || 'Token purchase failed');
+      return {
+        success: false,
+        error: result.error || 'Token purchase failed'
+      };
+    } catch (error: any) {
+      logger.error('LetsBonk buy error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message
+      };
     }
+  };
 
-    return result.txSignature;
-  } catch (error: any) {
-    Sentry.captureException(error);
-    console.error('LetsBonk buy error:', error.response?.data || error.message);
-    throw new Error(`Failed to buy token on LetsBonk: ${error.response?.data?.error || error.message}`);
+  // Use retry logic with progressive slippage
+  const result = await retryWithSlippage(swapFunction, {
+    ...DEFAULT_SLIPPAGE_CONFIGS.letsbonk,
+    maxSlippage
+  });
+
+  if (!result.success) {
+    Sentry.captureException(new Error(result.error));
+    throw new Error(`Failed to buy token on LetsBonk: ${result.error}`);
   }
+
+  return result.txSignature!;
 }
 
 export async function createLiquidityPool(

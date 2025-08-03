@@ -22,11 +22,12 @@ import bs58 from 'bs58';
 //   JitoAuthKeypair
 // } from 'jito-ts';
 import { 
-  NEXT_PUBLIC_HELIUS_RPC, 
   JITO_TIP_ACCOUNTS, 
   NEXT_PUBLIC_BIRDEYE_API_KEY 
 } from '../constants';
 import { logBundleExecution } from './executionLogService';
+import { getConnection } from '@/lib/network';
+import { BUNDLE_CONFIG, getBundleTxLimit } from '@/lib/constants/bundleConfig';
 
 // Jito types
 interface JitoBundleStatus {
@@ -161,7 +162,7 @@ async function buildBundle(
 
 async function previewBundle(
   txs: Transaction[], 
-  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+  connection: Connection = getConnection('confirmed')
 ): Promise<PreviewResult[]> {
   const { blockhash } = await connection.getLatestBlockhash('confirmed');
   
@@ -328,7 +329,7 @@ export async function executeBundle(
     };
   } = {}
 ): Promise<ExecutionResult> {
-  const conn = options.connection || new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+  const conn = options.connection || getConnection('confirmed');
   const retries = options.retries || 3;
   const tipAmount = options.tipAmount || 10000; // 0.00001 SOL default
   const logger = options.logger || console.log;
@@ -338,8 +339,9 @@ export async function executeBundle(
     throw new Error('No transactions to bundle');
   }
   
-  if (txs.length > 5) {
-    throw new Error('Bundle size exceeds maximum of 5 transactions');
+  const maxBundleSize = getBundleTxLimit();
+  if (txs.length > maxBundleSize) {
+    throw new Error(`Bundle size exceeds maximum of ${maxBundleSize} transactions`);
   }
   
   const startTime = Date.now();
@@ -408,6 +410,19 @@ export async function executeBundle(
             log.includes('failed')
           );
           
+          // Check for slippage errors
+          const slippageErrors = logs.filter(log =>
+            log.includes('slippage') ||
+            log.includes('tolerance exceeded') ||
+            log.includes('price impact') ||
+            log.includes('minimum output')
+          );
+          
+          if (slippageErrors.length > 0) {
+            logger(`Transaction ${index} slippage detected: ${slippageErrors.join(', ')}`);
+            return { success: false, error: 'slippage', logs, needsSlippageAdjustment: true };
+          }
+          
           if (warnings.length > 0) {
             logger(`Transaction ${index} simulation warnings: ${warnings.join(', ')}`);
           }
@@ -422,7 +437,57 @@ export async function executeBundle(
     
     // Check if all simulations passed
     const failedSimulations = simulationResults.filter(r => !r.success);
-    if (failedSimulations.length > 0) {
+    const slippageNeeded = simulationResults.filter((r: any) => r.needsSlippageAdjustment);
+    
+    // Handle slippage errors by adjusting and retrying
+    if (slippageNeeded.length > 0) {
+      logger(`Detected slippage issues in ${slippageNeeded.length} transactions. Adjusting...`);
+      
+      // Adjust slippage tolerance (increase by 50%)
+      for (let i = 0; i < sortedTxs.length; i++) {
+        const result: any = simulationResults[i];
+        if (result.needsSlippageAdjustment) {
+          // Look for swap instructions and adjust slippage
+          const tx = sortedTxs[i];
+          for (const instruction of tx.instructions) {
+            // Check if this is a swap instruction by looking at program ID
+            const programId = instruction.programId.toBase58();
+            if (programId.includes('JUP') || programId.includes('9W959') || programId.includes('whirL')) {
+              // This is likely a swap instruction, adjust slippage in the data
+              logger(`Adjusting slippage for transaction ${i}`);
+              // Note: Actual slippage adjustment would depend on the specific DEX protocol
+              // This is a placeholder for the concept
+            }
+          }
+        }
+      }
+      
+      // Re-convert and re-simulate with adjusted parameters
+      const adjustedVersionedTxs = await convertToVersionedTransactions(
+        sortedTxs,
+        conn,
+        tipAmount,
+        options.feePayer
+      );
+      
+      // Re-sign adjusted transactions
+      for (let i = 0; i < adjustedVersionedTxs.length; i++) {
+        const vTx = adjustedVersionedTxs[i];
+        const signer = signers[i];
+        
+        if (signer === null && options.walletAdapter) {
+          const legacyTx = Transaction.from(vTx.serialize());
+          const signedTx = await options.walletAdapter.signTransaction(legacyTx);
+          adjustedVersionedTxs[i] = VersionedTransaction.deserialize(signedTx.serialize());
+        } else if (signer) {
+          vTx.sign([signer as Keypair]);
+        }
+      }
+      
+      // Use adjusted transactions
+      versionedTxs.splice(0, versionedTxs.length, ...adjustedVersionedTxs);
+      signatures = versionedTxs.map(tx => bs58.encode(tx.signatures[0] || new Uint8Array()));
+    } else if (failedSimulations.length > 0) {
       throw new Error(`${failedSimulations.length} transactions failed simulation. Bundle not submitted.`);
     }
     

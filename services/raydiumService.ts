@@ -7,7 +7,8 @@ import {
   getAssociatedTokenAddressSync,
   getMint 
 } from '@solana/spl-token';
-import { NEXT_PUBLIC_HELIUS_RPC, SOL_MINT_ADDRESS } from '../constants';
+import { SOL_MINT_ADDRESS } from '../constants';
+import { getConnection } from '@/lib/network';
 import { logTokenLaunch } from './executionLogService';
 import bs58 from 'bs58';
 
@@ -27,7 +28,7 @@ export async function createToken(
   supply: number, 
   metadata: TokenMetadata, 
   authority: Keypair, 
-  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+  connection: Connection = getConnection('confirmed')
 ): Promise<string> {
   try {
     // Create mint account
@@ -178,7 +179,7 @@ export async function createLiquidityPool(
 
 export async function getTokenInfo(
   tokenMint: string,
-  connection: Connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+  connection: Connection = getConnection('confirmed')
 ): Promise<{
   decimals: number;
   supply: string;

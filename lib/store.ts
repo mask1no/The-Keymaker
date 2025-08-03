@@ -107,6 +107,15 @@ interface KeymakerStore {
   removeNotification: (id: string) => void;
   clearNotifications: () => void;
   markNotificationAsRead: (id: string) => void;
+  
+  // UI State
+  bundleMode: 'flash' | 'stealth' | 'manual';
+  setBundleMode: (mode: 'flash' | 'stealth' | 'manual') => void;
+  settingsLoaded: boolean;
+  setSettingsLoaded: (loaded: boolean) => void;
+  banners: string[];
+  addBanner: (banner: string) => void;
+  removeBanner: (banner: string) => void;
 }
 
 const defaultExecutionSteps: ExecutionStep[] = [
@@ -137,10 +146,13 @@ export const useKeymakerStore = create<KeymakerStore>()(
       network: 'mainnet-beta',
       rpcUrl: 'https://api.mainnet-beta.solana.com',
       wsUrl: 'wss://api.mainnet-beta.solana.com',
-      theme: 'dark',
+      theme: (typeof window !== 'undefined' && localStorage.getItem('theme') as 'dark' | 'light') || 'dark',
       totalInvested: 0,
       totalReturned: 0,
       notifications: [],
+      bundleMode: 'flash',
+      settingsLoaded: false,
+      banners: [],
       
       // Actions
       setWallets: (wallets) => set({ wallets }),
@@ -229,6 +241,17 @@ export const useKeymakerStore = create<KeymakerStore>()(
           notifications: state.notifications.map((n) =>
             n.id === id ? { ...n, read: true } : n
           ),
+        })),
+        
+      setBundleMode: (mode) => set({ bundleMode: mode }),
+      setSettingsLoaded: (loaded) => set({ settingsLoaded: loaded }),
+      addBanner: (banner) =>
+        set((state) => ({
+          banners: [...state.banners, banner]
+        })),
+      removeBanner: (banner) =>
+        set((state) => ({
+          banners: state.banners.filter(b => b !== banner)
         })),
     }),
     {

@@ -24,50 +24,55 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Production image, copy all the files and run next
-FROM node:20-alpine AS runner
+# Production image with nginx
+FROM nginx:1.27-alpine AS runner
+
+# Install Node.js, sqlite, curl and tini for proper signal handling
+RUN apk add --no-cache nodejs npm sqlite curl tini
+
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install sqlite and curl for health checks
-RUN apk add --no-cache sqlite curl
-
 # Create app user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
 
-# Create necessary directories
-RUN mkdir -p /app/public /app/data && chown -R nextjs:nodejs /app
+# Copy nginx config
+COPY --from=builder /app/nginx.conf /etc/nginx/nginx.conf
 
-# Copy built application (only if directories exist)
+# Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy public files if they exist
 COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
+
+# Copy scripts and database files
+COPY --chown=nextjs:nodejs init.sql ./init.sql
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Create data directory with correct permissions
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
-# Copy database init script for runtime use
-COPY --chown=nextjs:nodejs init.sql ./init.sql
+# Create PID file directory
+RUN mkdir -p /var/run && chown -R nextjs:nodejs /var/run
 
-# Copy entrypoint script
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
-
-USER nextjs
+# Handle SIGTERM for graceful shutdown
+STOPSIGNAL SIGTERM
 
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Add health check
+# Enhanced health check with multiple endpoints
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -fs http://localhost:3000/api/health || exit 1
+  CMD curl -fs http://localhost:3000/api/health || \
+      curl -fs http://localhost/health || \
+      exit 1
 
-ENTRYPOINT ["./docker-entrypoint.sh"] 
+# Use tini to handle signals properly
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["./docker-entrypoint.sh"]

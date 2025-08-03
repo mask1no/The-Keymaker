@@ -1,8 +1,15 @@
-import { Connection } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { open } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import { getConnection, getCurrentNetwork } from '../lib/network';
+import { createToken as createRaydiumToken } from '../services/raydiumService';
+import { createWallet } from '../services/walletService';
+import { executeBundle } from '../services/bundleService';
+import { buildSwapTransaction } from '../services/jupiterService';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -33,29 +40,193 @@ function addTest(name: string, status: TestResult['status'], message: string) {
 }
 
 async function testSolanaRPC() {
-  const rpcUrl = process.env.NEXT_PUBLIC_HELIUS_RPC;
+  const connection = getConnection();
+  const network = getCurrentNetwork();
   
-  if (!rpcUrl || rpcUrl.includes('YOUR_API_KEY')) {
-    addTest('Solana RPC', 'fail', 'NEXT_PUBLIC_HELIUS_RPC not configured or contains placeholder');
+  try {
+    const version = await connection.getVersion();
+    const slot = await connection.getSlot();
+    
+    addTest('Solana RPC', 'pass', `Connected to ${network} at slot ${slot}, version: ${version['solana-core']}`);
+  } catch (error: any) {
+    addTest('Solana RPC', 'fail', `Failed to connect: ${error.message}`);
+  }
+}
+
+async function testDynamicTokenCreation() {
+  // Only run on devnet unless explicitly requested
+  const network = getCurrentNetwork();
+  const isTestMode = process.argv.includes('--test-mode');
+  
+  if (network === 'mainnet-beta' && !isTestMode) {
+    addTest('Token Creation', 'warning', 'Skipping on mainnet. Use --test-mode to force.');
+    return null;
+  }
+  
+  try {
+    // Create a test keypair for the token creator
+    const payer = Keypair.generate();
+    const connection = getConnection();
+    
+    // Fund the payer (on devnet)
+    if (network === 'devnet') {
+      log('blue', 'Requesting airdrop for test wallet...');
+      const airdropSig = await connection.requestAirdrop(payer.publicKey, 2 * LAMPORTS_PER_SOL);
+      await connection.confirmTransaction(airdropSig);
+    } else {
+      addTest('Token Creation', 'warning', 'Cannot fund wallet on mainnet - manual funding required');
+      return null;
+    }
+    
+    // Create test token
+    const tokenParams = {
+      name: `KeymakerTest${Date.now()}`,
+      symbol: `KMT${Date.now().toString().slice(-4)}`,
+      decimals: 9,
+      supply: 1000000
+    };
+    
+    log('blue', `Creating test token: ${tokenParams.name} (${tokenParams.symbol})...`);
+    
+    const tokenAddress = await createRaydiumToken(
+      tokenParams.name,
+      tokenParams.symbol,
+      tokenParams.supply,
+      { name: tokenParams.name, symbol: tokenParams.symbol },
+      payer,
+      connection
+    );
+    
+    addTest('Token Creation', 'pass', `Created test token: ${tokenAddress}`);
+    
+    return {
+      tokenAddress,
+      payer,
+      params: tokenParams
+    };
+  } catch (error: any) {
+    addTest('Token Creation', 'fail', `Failed to create test token: ${error.message}`);
+    return null;
+  }
+}
+
+async function testWalletCreation() {
+  try {
+    // Create test wallets
+    const wallets = [];
+    for (let i = 0; i < 3; i++) {
+      const wallet = await createWallet(`test-sniper-${i}`, 'sniper');
+      wallets.push(wallet);
+    }
+    
+    addTest('Wallet Creation', 'pass', `Created ${wallets.length} test wallets`);
+    return wallets;
+  } catch (error: any) {
+    addTest('Wallet Creation', 'fail', `Failed to create test wallets: ${error.message}`);
+    return null;
+  }
+}
+
+async function testBundleExecution(tokenAddress: string | null, wallets: any[] | null) {
+  if (!tokenAddress || !wallets) {
+    addTest('Bundle Execution', 'skip', 'Skipping - no test token or wallets');
+    return;
+  }
+  
+  const network = getCurrentNetwork();
+  if (network === 'mainnet-beta') {
+    addTest('Bundle Execution', 'warning', 'Skipping bundle execution on mainnet');
     return;
   }
   
   try {
-    const connection = new Connection(rpcUrl);
-    const version = await connection.getVersion();
-    const slot = await connection.getSlot();
+    const connection = getConnection();
     
-    // Check if mainnet
-    const genesisHash = await connection.getGenesisHash();
-    const isMainnet = genesisHash === '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
+    // Fund test wallets
+    log('blue', 'Funding test wallets...');
+    for (const wallet of wallets) {
+      const keypair = Keypair.fromSecretKey(new Uint8Array(wallet.keypair));
+      const airdropSig = await connection.requestAirdrop(keypair.publicKey, 0.1 * LAMPORTS_PER_SOL);
+      await connection.confirmTransaction(airdropSig);
+    }
     
-    if (isMainnet) {
-      addTest('Solana RPC', 'pass', `Connected to mainnet at slot ${slot}, version: ${version['solana-core']}`);
+    // Build swap transactions
+    const transactions = [];
+    const signers = [];
+    const walletRoles = [];
+    
+    for (const wallet of wallets) {
+      const keypair = Keypair.fromSecretKey(new Uint8Array(wallet.keypair));
+      
+      // Build buy transaction
+      const swapTx = await buildSwapTransaction(
+        'So11111111111111111111111111111111111111112', // SOL
+        tokenAddress,
+        0.01 * LAMPORTS_PER_SOL, // 0.01 SOL
+        keypair.publicKey.toBase58(),
+        100, // 1% slippage
+        'medium'
+      );
+      
+      transactions.push(swapTx);
+      signers.push(keypair);
+      walletRoles.push({ publicKey: keypair.publicKey.toBase58(), role: 'sniper' });
+    }
+    
+    // Execute bundle
+    log('blue', 'Executing test bundle...');
+    const result = await executeBundle(
+      transactions,
+      walletRoles,
+      signers,
+      {
+        connection,
+        tipAmount: 10000, // 0.00001 SOL
+        retries: 2
+      }
+    );
+    
+    const successCount = result.results.filter(r => r === 'success').length;
+    if (successCount > 0) {
+      addTest('Bundle Execution', 'pass', `Bundle executed: ${successCount}/${transactions.length} successful`);
     } else {
-      addTest('Solana RPC', 'warning', 'Connected but not to mainnet-beta');
+      addTest('Bundle Execution', 'fail', 'Bundle execution failed - all transactions failed');
+    }
+    
+    return result;
+  } catch (error: any) {
+    addTest('Bundle Execution', 'fail', `Bundle execution error: ${error.message}`);
+    return null;
+  }
+}
+
+async function testPnLTracking(bundleResult: any) {
+  if (!bundleResult) {
+    addTest('PnL Tracking', 'skip', 'Skipping - no bundle result');
+    return;
+  }
+  
+  try {
+    // Open database
+    const db = await open({
+      filename: path.join(process.cwd(), 'data', 'analytics.db'),
+      driver: sqlite3.Database
+    });
+    
+    // Check if trades were recorded
+    const trades = await db.all(
+      'SELECT * FROM pnl_tracking ORDER BY timestamp DESC LIMIT 10'
+    );
+    
+    await db.close();
+    
+    if (trades.length > 0) {
+      addTest('PnL Tracking', 'pass', `Found ${trades.length} trade records in database`);
+    } else {
+      addTest('PnL Tracking', 'warning', 'No trade records found - tracking may not be working');
     }
   } catch (error: any) {
-    addTest('Solana RPC', 'fail', `Failed to connect: ${error.message}`);
+    addTest('PnL Tracking', 'fail', `Failed to check PnL tracking: ${error.message}`);
   }
 }
 
@@ -116,18 +287,6 @@ async function testBirdeyeAPI() {
   }
 }
 
-async function testPumpFunAPI() {
-  const apiKey = process.env.NEXT_PUBLIC_PUMPFUN_API_KEY;
-  
-  if (!apiKey || apiKey === 'YOUR_PUMPFUN_API_KEY') {
-    addTest('Pump.fun API', 'warning', 'NEXT_PUBLIC_PUMPFUN_API_KEY not configured (required for Pump.fun launches)');
-    return;
-  }
-  
-  // Can't test without making actual API calls that might cost
-  addTest('Pump.fun API', 'pass', 'API key configured (validity will be tested on first use)');
-}
-
 async function testDatabase() {
   const dbPath = path.join(process.cwd(), 'data', 'analytics.db');
   
@@ -167,56 +326,28 @@ async function testEnvironmentSecurity() {
   }
 }
 
-async function testJupiterAPI() {
-  try {
-    const response = await axios.get(
-      'https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000',
-      { timeout: 5000 }
-    );
-    
-    if (response.data && response.data.routePlan) {
-      addTest('Jupiter API', 'pass', 'Jupiter swap API is accessible');
-    } else {
-      addTest('Jupiter API', 'warning', 'Jupiter API responded with unexpected format');
-    }
-  } catch (error: any) {
-    addTest('Jupiter API', 'fail', `Cannot reach Jupiter API: ${error.message}`);
-  }
-}
-
-async function checkDependencies() {
-  try {
-    const packageJson = JSON.parse(await fs.readFile('package.json', 'utf-8'));
-    const nodeModulesExists = await fs.access('node_modules').then(() => true).catch(() => false);
-    
-    if (!nodeModulesExists) {
-      addTest('Dependencies', 'fail', 'node_modules not found. Run: npm install');
-    } else {
-      const criticalDeps = ['@solana/web3.js', 'next', 'react'];
-      const missing = criticalDeps.filter(dep => !packageJson.dependencies[dep]);
-      
-      if (missing.length === 0) {
-        addTest('Dependencies', 'pass', 'All critical dependencies present');
-      } else {
-        addTest('Dependencies', 'fail', `Missing dependencies: ${missing.join(', ')}`);
-      }
-    }
-  } catch (error: any) {
-    addTest('Dependencies', 'fail', `Cannot check dependencies: ${error.message}`);
-  }
-}
-
 async function runAllTests() {
   console.log('\n🔍 Running Keymaker Production Tests...\n');
   
+  const network = getCurrentNetwork();
+  console.log(`📡 Network: ${network}\n`);
+  
+  // Basic connectivity tests
   await testSolanaRPC();
   await testJitoEndpoint();
   await testBirdeyeAPI();
-  await testPumpFunAPI();
-  await testJupiterAPI();
   await testDatabase();
   await testEnvironmentSecurity();
-  await checkDependencies();
+  
+  // Dynamic tests (only on devnet or with --test-mode)
+  if (network === 'devnet' || process.argv.includes('--test-mode')) {
+    console.log('\n🧪 Running dynamic tests...\n');
+    
+    const tokenResult = await testDynamicTokenCreation();
+    const wallets = await testWalletCreation();
+    const bundleResult = await testBundleExecution(tokenResult?.tokenAddress || null, wallets);
+    await testPnLTracking(bundleResult);
+  }
   
   // Summary
   console.log('\n📊 Test Summary:');
@@ -225,15 +356,21 @@ async function runAllTests() {
   let passed = 0;
   let failed = 0;
   let warnings = 0;
+  let skipped = 0;
   
   tests.forEach(test => {
-    const icon = test.status === 'pass' ? '✅' : test.status === 'fail' ? '❌' : '⚠️';
-    const color = test.status === 'pass' ? 'green' : test.status === 'fail' ? 'red' : 'yellow';
+    const icon = test.status === 'pass' ? '✅' : 
+                 test.status === 'fail' ? '❌' : 
+                 test.status === 'skip' ? '⏭️' : '⚠️';
+    const color = test.status === 'pass' ? 'green' : 
+                  test.status === 'fail' ? 'red' : 
+                  test.status === 'skip' ? 'blue' : 'yellow';
     
     log(color, `${icon} ${test.name.padEnd(20)} ${test.message}`);
     
     if (test.status === 'pass') passed++;
     else if (test.status === 'fail') failed++;
+    else if (test.status === 'skip') skipped++;
     else warnings++;
   });
   
@@ -242,6 +379,7 @@ async function runAllTests() {
   log('green', `Passed: ${passed}`);
   log('red', `Failed: ${failed}`);
   log('yellow', `Warnings: ${warnings}`);
+  log('blue', `Skipped: ${skipped}`);
   
   if (failed === 0) {
     console.log('\n🚀 Your Keymaker is ready for production!');
@@ -259,4 +397,4 @@ async function runAllTests() {
 runAllTests().catch(error => {
   console.error('Test runner error:', error);
   process.exit(1);
-}); 
+});

@@ -20,6 +20,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { useKeymakerStore } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { settingsSchema, type SettingsFormData } from '@/lib/validations/settings';
 
 interface ApiKeys {
   heliusRpc?: string;
@@ -63,6 +66,7 @@ export default function SettingsPage() {
   const [solanaStatus, setSolanaStatus] = useState<'healthy' | 'degraded' | 'error'>('healthy');
   const [slotHeight, setSlotHeight] = useState<number | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [preferences, setPreferences] = useState<Preferences>({
     defaultSlippage: 5,
     defaultPriorityFee: 0.00001,
@@ -261,29 +265,58 @@ export default function SettingsPage() {
     loadSettings();
   }, []);
 
+  const validateUrl = (url: string): boolean => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:' || parsed.protocol === 'wss:' || parsed.protocol === 'ws:';
+    } catch {
+      return false;
+    }
+  };
+
+  const validateApiKey = (key: string): boolean => {
+    // Basic validation: not empty and reasonable length
+    return key.length > 10 && key.length < 100 && /^[a-zA-Z0-9-_]+$/.test(key);
+  };
+
   const handleSaveApiKeys = async () => {
+    // Validate required fields
+    const errors: Record<string, string> = {};
+    
+    if (!apiKeys.heliusRpc || apiKeys.heliusRpc.trim() === '') {
+      errors.heliusRpc = 'Helius RPC endpoint is required';
+    } else if (!validateUrl(apiKeys.heliusRpc)) {
+      errors.heliusRpc = 'Must be a valid URL';
+    }
+    
+    if (!apiKeys.birdeyeApiKey || apiKeys.birdeyeApiKey.trim() === '') {
+      errors.birdeyeApiKey = 'Birdeye API key is required';
+    }
+    
+    // Check for errors
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      // Show toast for each error
+      Object.values(errors).forEach(error => toast.error(error));
+      return;
+    }
+    
     setSaving(true);
     try {
       // Validate API keys
-      const validKeys: ApiKeys = {};
+      const validKeys: ApiKeys = {
+        heliusRpc: apiKeys.heliusRpc,
+        birdeyeApiKey: apiKeys.birdeyeApiKey
+      };
       
-      if (apiKeys.heliusRpc) {
-        validKeys.heliusRpc = apiKeys.heliusRpc;
-      }
-      
-      if (apiKeys.birdeyeApiKey) {
-        validKeys.birdeyeApiKey = apiKeys.birdeyeApiKey;
-      }
-      
-      if (apiKeys.pumpfunApiKey) {
+      // Add optional keys if valid
+      if (apiKeys.pumpfunApiKey && validateApiKey(apiKeys.pumpfunApiKey)) {
         validKeys.pumpfunApiKey = apiKeys.pumpfunApiKey;
       }
       
-      if (apiKeys.letsbonkApiKey) {
+      if (apiKeys.letsbonkApiKey && validateApiKey(apiKeys.letsbonkApiKey)) {
         validKeys.letsbonkApiKey = apiKeys.letsbonkApiKey;
       }
-      
-      
       
       // Save to localStorage
       localStorage.setItem('apiKeys', JSON.stringify(validKeys));
@@ -293,7 +326,15 @@ export default function SettingsPage() {
         (window as any).NEXT_PUBLIC_HELIUS_RPC = validKeys.heliusRpc;
       }
       
+      // TODO: Save to database via API
+      // await fetch('/api/settings', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ apiKeys: validKeys })
+      // });
+      
       toast.success('API keys saved successfully');
+      setFormErrors({});
     } catch (error) {
       toast.error('Failed to save API keys');
     } finally {
@@ -399,31 +440,67 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Helius RPC Endpoint</Label>
+              <Label>Helius RPC Endpoint *</Label>
               <Input
                 type={showKeys ? 'text' : 'password'}
                 value={apiKeys.heliusRpc || ''}
-                onChange={(e) => setApiKeys({ ...apiKeys, heliusRpc: e.target.value })}
+                onChange={(e) => {
+                  setApiKeys({ ...apiKeys, heliusRpc: e.target.value });
+                  // Clear error when user starts typing
+                  if (formErrors.heliusRpc) {
+                    setFormErrors({ ...formErrors, heliusRpc: '' });
+                  }
+                }}
+                onBlur={() => {
+                  // Validate on blur
+                  if (!apiKeys.heliusRpc || apiKeys.heliusRpc.trim() === '') {
+                    setFormErrors({ ...formErrors, heliusRpc: 'Helius RPC endpoint is required' });
+                  } else if (!validateUrl(apiKeys.heliusRpc)) {
+                    setFormErrors({ ...formErrors, heliusRpc: 'Must be a valid URL' });
+                  }
+                }}
                 placeholder="https://mainnet.helius-rpc.com/?api-key=..."
-                className="bg-black/50 border-aqua/30 font-mono text-sm"
+                className={`bg-black/50 border-aqua/30 font-mono text-sm ${
+                  formErrors.heliusRpc ? 'border-red-500' : ''
+                }`}
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Required for RPC connections. Get one at helius.xyz
-              </p>
+              {formErrors.heliusRpc ? (
+                <p className="text-xs text-red-500 mt-1">{formErrors.heliusRpc}</p>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">
+                  Required for RPC connections. Get one at helius.xyz
+                </p>
+              )}
             </div>
 
             <div>
-              <Label>Birdeye API Key</Label>
+              <Label>Birdeye API Key *</Label>
               <Input
                 type={showKeys ? 'text' : 'password'}
                 value={apiKeys.birdeyeApiKey || ''}
-                onChange={(e) => setApiKeys({ ...apiKeys, birdeyeApiKey: e.target.value })}
+                onChange={(e) => {
+                  setApiKeys({ ...apiKeys, birdeyeApiKey: e.target.value });
+                  if (formErrors.birdeyeApiKey) {
+                    setFormErrors({ ...formErrors, birdeyeApiKey: '' });
+                  }
+                }}
+                onBlur={() => {
+                  if (!apiKeys.birdeyeApiKey || apiKeys.birdeyeApiKey.trim() === '') {
+                    setFormErrors({ ...formErrors, birdeyeApiKey: 'Birdeye API key is required' });
+                  }
+                }}
                 placeholder="Your Birdeye API key"
-                className="bg-black/50 border-aqua/30 font-mono text-sm"
+                className={`bg-black/50 border-aqua/30 font-mono text-sm ${
+                  formErrors.birdeyeApiKey ? 'border-red-500' : ''
+                }`}
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Required for token prices and market data
-              </p>
+              {formErrors.birdeyeApiKey ? (
+                <p className="text-xs text-red-500 mt-1">{formErrors.birdeyeApiKey}</p>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">
+                  Required for token prices and market data
+                </p>
+              )}
             </div>
 
             <div>
@@ -458,8 +535,8 @@ export default function SettingsPage() {
 
             <Button 
               onClick={handleSaveApiKeys} 
-              disabled={saving}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              disabled={saving || !apiKeys.heliusRpc || !apiKeys.birdeyeApiKey || !!formErrors.heliusRpc || !!formErrors.birdeyeApiKey}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>

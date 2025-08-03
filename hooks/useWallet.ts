@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection } from '@solana/web3.js';
 import { useDebounce } from 'use-debounce';
-import { NEXT_PUBLIC_HELIUS_RPC } from '../constants';
+import { getConnection } from '@/lib/network';
 
 export function useWalletBalance() {
   const { publicKey } = useWallet();
-  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+  const connection = getConnection('confirmed');
   const [balance, setBalance] = useState(0);
   const [debouncedFetch] = useDebounce(async () => {
     if (!publicKey) return;

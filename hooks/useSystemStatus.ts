@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Connection } from '@solana/web3.js';
-import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '../constants';
+import { NEXT_PUBLIC_JITO_ENDPOINT } from '../constants';
+import { getConnection } from '@/lib/network';
 
 type Status = 'healthy' | 'degraded' | 'error';
 
@@ -15,7 +16,7 @@ export function useSystemStatus() {
       // Check RPC
       try {
         const startTime = Date.now();
-        const conn = new Connection(NEXT_PUBLIC_HELIUS_RPC);
+        const conn = getConnection();
         await conn.getLatestBlockhash();
         const endTime = Date.now();
         setRtt(prev => ({ ...prev, rpc: endTime - startTime }));

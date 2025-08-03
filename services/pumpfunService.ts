@@ -1,6 +1,10 @@
 import axios from 'axios';
+import { Keypair } from '@solana/web3.js';
 import { NEXT_PUBLIC_PUMP_API_URL } from '../constants';
 import { logTokenLaunch } from './executionLogService';
+import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry';
+import { logger } from '@/lib/logger';
+import * as Sentry from '@sentry/nextjs';
 
 type TokenMetadata = { 
   name: string; 
@@ -74,6 +78,68 @@ export async function createToken(
   }
 }
 
+/**
+ * Buy tokens on pump.fun with automatic slippage retry
+ */
+export async function buyToken(
+  tokenMint: string,
+  amountSol: number,
+  buyer: Keypair,
+  maxSlippage: number = 10
+): Promise<string> {
+  const swapFunction = async (slippage: number) => {
+    try {
+      const response = await axios.post(
+        `${NEXT_PUBLIC_PUMP_API_URL}/buy`,
+        {
+          tokenAddress: tokenMint,
+          solAmount: amountSol,
+          slippage,
+          buyerPublicKey: buyer.publicKey.toBase58()
+        },
+        {
+          headers: { 
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PUMPFUN_API_KEY || ''}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      if (response.data.success && response.data.signature) {
+        return {
+          success: true,
+          txSignature: response.data.signature
+        };
+      }
+
+      return {
+        success: false,
+        error: response.data.error || 'Buy transaction failed'
+      };
+    } catch (error: any) {
+      logger.error('Pump.fun buy error:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message
+      };
+    }
+  };
+
+  // Use retry logic with progressive slippage
+  const result = await retryWithSlippage(swapFunction, {
+    ...DEFAULT_SLIPPAGE_CONFIGS.pumpfun,
+    maxSlippage
+  });
+
+  if (!result.success) {
+    Sentry.captureException(new Error(result.error));
+    throw new Error(`Failed to buy token on Pump.fun: ${result.error}`);
+  }
+
+  return result.txSignature!;
+}
+
 export async function createLiquidityPool(
   token: string, 
   solAmount: number
@@ -136,4 +202,11 @@ export async function getTokenInfo(tokenAddress: string): Promise<{
     console.error('Failed to get token info:', error);
     throw new Error(`Failed to get token info: ${error.message}`);
   }
-} 
+}
+
+export default {
+  createToken,
+  buyToken,
+  createLiquidityPool,
+  getTokenInfo
+};

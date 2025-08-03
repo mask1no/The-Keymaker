@@ -12,6 +12,9 @@ interface PnLEntry {
   tokenAmount: number;
   price: number;
   timestamp: number;
+  fees?: number;
+  gas_fee?: number;
+  jito_tip?: number;
 }
 
 export interface WalletPnL {
@@ -53,6 +56,9 @@ async function initializePnLTable() {
       sol_amount REAL NOT NULL,
       token_amount REAL NOT NULL,
       price REAL NOT NULL,
+      fees REAL DEFAULT 0,
+      gas_fee REAL DEFAULT 0,
+      jito_tip REAL DEFAULT 0,
       timestamp INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -68,69 +74,85 @@ async function initializePnLTable() {
   await db.close();
 }
 
-// Track a buy transaction
+// Track a buy transaction with fee awareness
 export async function trackBuy(
   wallet: string,
   tokenAddress: string,
   solSpent: number,
-  tokenReceived: number
+  tokenReceived: number,
+  fees: { gas?: number; jito?: number } = {}
 ): Promise<void> {
   const db = await getDb();
   const price = solSpent / tokenReceived;
+  const gasFee = fees.gas || 0;
+  const jitoTip = fees.jito || 0;
+  const totalFees = gasFee + jitoTip;
   
   await db.run(`
-    INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, timestamp)
-    VALUES (?, ?, 'buy', ?, ?, ?, ?)
-  `, [wallet, tokenAddress, solSpent, tokenReceived, price, Date.now()]);
+    INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, fees, gas_fee, jito_tip, timestamp)
+    VALUES (?, ?, 'buy', ?, ?, ?, ?, ?, ?, ?)
+  `, [wallet, tokenAddress, solSpent, tokenReceived, price, totalFees, gasFee, jitoTip, Date.now()]);
   
   await db.close();
 }
 
-// Track a sell transaction
+// Track a sell transaction with fee awareness
 export async function trackSell(
   wallet: string,
   tokenAddress: string,
   solReceived: number,
-  tokenSold: number
+  tokenSold: number,
+  fees: { gas?: number; jito?: number } = {}
 ): Promise<void> {
   const db = await getDb();
   const price = solReceived / tokenSold;
+  const gasFee = fees.gas || 0;
+  const jitoTip = fees.jito || 0;
+  const totalFees = gasFee + jitoTip;
   
   await db.run(`
-    INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, timestamp)
-    VALUES (?, ?, 'sell', ?, ?, ?, ?)
-  `, [wallet, tokenAddress, solReceived, tokenSold, price, Date.now()]);
+    INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, fees, gas_fee, jito_tip, timestamp)
+    VALUES (?, ?, 'sell', ?, ?, ?, ?, ?, ?, ?)
+  `, [wallet, tokenAddress, solReceived, tokenSold, price, totalFees, gasFee, jitoTip, Date.now()]);
   
   await db.close();
 }
 
-// Get PnL for a specific wallet
+// Get PnL for a specific wallet with fee awareness
 export async function getWalletPnL(wallet: string): Promise<WalletPnL> {
   const db = await getDb();
   
-  const entries = await db.all<PnLEntry[]>(`
+  const entries = await db.all<any[]>(`
     SELECT * FROM pnl_tracking WHERE wallet = ? ORDER BY timestamp
   `, wallet);
   
   let totalInvested = 0;
   let totalReturned = 0;
+  let totalGasFees = 0;
+  let totalJitoTips = 0;
   
   entries.forEach(entry => {
     if (entry.action === 'buy') {
-      totalInvested += entry.solAmount;
+      totalInvested += entry.sol_amount;
     } else {
-      totalReturned += entry.solAmount;
+      totalReturned += entry.sol_amount;
     }
+    // Use specific fee columns if available, otherwise fall back to general fees
+    totalGasFees += entry.gas_fee || (entry.fees || 0) * 0.5;
+    totalJitoTips += entry.jito_tip || (entry.fees || 0) * 0.5;
   });
   
-  const netPnL = totalReturned - totalInvested;
-  const pnlPercentage = totalInvested > 0 ? (netPnL / totalInvested) * 100 : 0;
+  // Calculate fee-aware PnL
+  const totalFees = totalGasFees + totalJitoTips;
+  const totalCost = totalInvested + totalFees;
+  const netPnL = totalReturned - totalCost;
+  const pnlPercentage = totalCost > 0 ? (netPnL / totalCost) * 100 : 0;
   
   await db.close();
   
   return {
     wallet,
-    totalInvested,
+    totalInvested: totalCost, // Include fees in total invested
     totalReturned,
     netPnL,
     pnlPercentage,
@@ -305,28 +327,39 @@ export async function cleanupOldPnLData(): Promise<void> {
   await db.close();
 }
 
-// Save completed trade to trades table
+// Save completed trade to trades table with fee awareness
 export async function saveCompletedTrade(
   tokenAddress: string,
   txIds: string[],
   wallets: string[],
   solIn: number,
-  solOut: number
+  solOut: number,
+  fees: { gas?: number; jito?: number } = {}
 ): Promise<void> {
   const db = await getDb();
   
-  const pnl = solOut > 0 ? ((solOut - solIn) / solIn) * 100 : -100;
+  const gasFee = fees.gas || 0;
+  const jitoTip = fees.jito || 0;
+  const totalFees = gasFee + jitoTip;
+  
+  // Calculate fee-aware PnL
+  const totalCost = solIn + totalFees;
+  const netProfit = solOut - totalCost;
+  const pnl = totalCost > 0 ? (netProfit / totalCost) * 100 : -100;
   
   await db.run(`
-    INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees, gas_fee, jito_tip)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     tokenAddress,
     JSON.stringify(txIds),
     JSON.stringify(wallets),
     solIn,
     solOut,
-    pnl
+    pnl,
+    totalFees,
+    gasFee,
+    jitoTip
   ]);
   
   await db.close();
