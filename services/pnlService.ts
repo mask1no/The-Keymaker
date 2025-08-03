@@ -305,5 +305,32 @@ export async function cleanupOldPnLData(): Promise<void> {
   await db.close();
 }
 
+// Save completed trade to trades table
+export async function saveCompletedTrade(
+  tokenAddress: string,
+  txIds: string[],
+  wallets: string[],
+  solIn: number,
+  solOut: number
+): Promise<void> {
+  const db = await getDb();
+  
+  const pnl = solOut > 0 ? ((solOut - solIn) / solIn) * 100 : -100;
+  
+  await db.run(`
+    INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `, [
+    tokenAddress,
+    JSON.stringify(txIds),
+    JSON.stringify(wallets),
+    solIn,
+    solOut,
+    pnl
+  ]);
+  
+  await db.close();
+}
+
 // Initialize table on module load
 initializePnLTable().catch(console.error); 

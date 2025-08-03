@@ -29,7 +29,7 @@ import toast from 'react-hot-toast';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { useKeymakerStore } from '@/lib/store';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { importWallet, importWalletGroup } from '@/services/walletService';
+import { importWallet, importWalletGroup, saveWalletToDb } from '@/services/walletService';
 import { logger } from '@/lib/logger';
 
 interface WalletImportProps {
@@ -256,6 +256,13 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
 
     setIsProcessing(true);
     try {
+      // Request password for encryption
+      const password = prompt('Enter password to encrypt wallets:');
+      if (!password || password.length < 8) {
+        toast.error('Password must be at least 8 characters');
+        return;
+      }
+
       let imported = 0;
       
       for (const wallet of previewWallets) {
@@ -266,6 +273,16 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
           continue;
         }
 
+        // Re-import with the user's password for proper encryption
+        const walletData = await importWallet(wallet.privateKey, password, wallet.role);
+        
+        // Save to database
+        await saveWalletToDb({
+          ...walletData,
+          network: 'mainnet'
+        });
+
+        // Add to store
         await addWallet({
           publicKey: wallet.publicKey,
           role: wallet.role,

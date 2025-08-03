@@ -25,7 +25,7 @@ async function initializeDatabase() {
   );
   
   const tableNames = tables.map(t => t.name);
-  const requiredTables = ['wallets', 'logs', 'execution_logs', 'pnl_records'];
+  const requiredTables = ['wallets', 'tokens', 'trades', 'errors', 'settings', 'execution_logs', 'pnl_records', 'bundles'];
   const missingTables = requiredTables.filter(t => !tableNames.includes(t));
 
   if (missingTables.length === 0) {

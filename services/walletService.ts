@@ -1,6 +1,9 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import crypto from 'crypto';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import path from 'path';
 
 interface WalletData {
   publicKey: string;
@@ -380,5 +383,96 @@ export async function importWalletGroup(
       throw new Error('Incorrect password');
     }
     throw new Error(`Failed to import wallet group: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Get database connection
+ */
+async function getDb() {
+  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db');
+  return open({
+    filename: dbPath,
+    driver: sqlite3.Database
+  });
+}
+
+/**
+ * Save wallet to database
+ */
+export async function saveWalletToDb(
+  walletData: WalletData & { network?: string }
+): Promise<void> {
+  const db = await getDb();
+  
+  try {
+    await db.run(
+      `INSERT OR REPLACE INTO wallets (address, keypair, role, network) 
+       VALUES (?, ?, ?, ?)`,
+      [
+        walletData.publicKey,
+        walletData.encryptedPrivateKey,
+        walletData.role,
+        walletData.network || 'mainnet'
+      ]
+    );
+  } finally {
+    await db.close();
+  }
+}
+
+/**
+ * Get wallet from database
+ */
+export async function getWalletFromDb(address: string): Promise<WalletData | null> {
+  const db = await getDb();
+  
+  try {
+    const row = await db.get(
+      'SELECT * FROM wallets WHERE address = ?',
+      [address]
+    );
+    
+    if (!row) return null;
+    
+    return {
+      publicKey: row.address,
+      encryptedPrivateKey: row.keypair,
+      role: row.role
+    };
+  } finally {
+    await db.close();
+  }
+}
+
+/**
+ * Get all wallets from database
+ */
+export async function getAllWalletsFromDb(): Promise<WalletData[]> {
+  const db = await getDb();
+  
+  try {
+    const rows = await db.all('SELECT * FROM wallets');
+    
+    return rows.map(row => ({
+      publicKey: row.address,
+      encryptedPrivateKey: row.keypair,
+      role: row.role
+    }));
+  } finally {
+    await db.close();
+  }
+}
+
+/**
+ * Delete wallet from database
+ */
+export async function deleteWalletFromDb(address: string): Promise<void> {
+  const db = await getDb();
+  
+  try {
+    await db.run('DELETE FROM wallets WHERE address = ?', [address]);
+  } finally {
+    await db.close();
   }
 }

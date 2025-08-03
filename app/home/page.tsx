@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKeymakerStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
@@ -19,7 +19,9 @@ import {
   Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, Connection } from '@solana/web3.js';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { Skeleton } from '@/components/UI/skeleton';
 
 // Import all required components
 import { ControlPanel } from '@/components/ControlCenter/ControlPanel';
@@ -32,8 +34,12 @@ import { ActivityMonitor } from '@/components/ActivityMonitor/ActivityMonitor';
 type TabView = 'overview' | 'control' | 'wallets' | 'create' | 'logs' | 'analytics' | 'activity';
 
 export default function DashboardPage() {
-  const { wallets, totalInvested, totalReturned, tokenLaunchData } = useKeymakerStore();
+  const { wallets, totalInvested, totalReturned, tokenLaunchData, rpcUrl } = useKeymakerStore();
+  const { rpcStatus, wsStatus, jitoStatus } = useSystemStatus();
   const [activeTab, setActiveTab] = useState<TabView>('overview');
+  const [recentTrades, setRecentTrades] = useState<any[]>([]);
+  const [tokenMarketCap, setTokenMarketCap] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   
   // Calculate stats
@@ -42,6 +48,48 @@ export default function DashboardPage() {
   const sniperWallets = wallets.filter(w => w.role === 'sniper');
   const devWallets = wallets.filter(w => w.role === 'dev');
   const pnlPercentage = totalInvested > 0 ? ((totalReturned - totalInvested) / totalInvested) * 100 : 0;
+
+  // Fetch recent trades from database
+  useEffect(() => {
+    const fetchRecentTrades = async () => {
+      try {
+        const response = await fetch('/api/trades?limit=5');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentTrades(data.trades || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch recent trades:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentTrades();
+    const interval = setInterval(fetchRecentTrades, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update wallet balances periodically
+  useEffect(() => {
+    const updateBalances = async () => {
+      if (wallets.length === 0) return;
+      
+      try {
+        const connection = new Connection(rpcUrl);
+        // This would normally update balances via the store
+        // For now, balances are updated elsewhere
+      } catch (error) {
+        console.error('Failed to update balances:', error);
+      }
+    };
+
+    updateBalances();
+    const interval = setInterval(updateBalances, 10000); // Every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [wallets, rpcUrl]);
 
   const stats = [
     {
@@ -252,23 +300,86 @@ export default function DashboardPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-white/60">RPC Connection</span>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                        Connected
+                      <Badge 
+                        variant="outline" 
+                        className={`${
+                          rpcStatus === 'connected' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : rpcStatus === 'error'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}
+                      >
+                        {rpcStatus === 'connected' ? 'Connected' : rpcStatus === 'error' ? 'Error' : 'Connecting...'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-white/60">WebSocket Status</span>
+                      <Badge 
+                        variant="outline" 
+                        className={`${
+                          wsStatus === 'connected' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : wsStatus === 'error'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}
+                      >
+                        {wsStatus === 'connected' ? 'Connected' : wsStatus === 'error' ? 'Error' : 'Connecting...'}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-white/60">Jito Bundle Support</span>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                        Available
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-white/60">Wallet Security</span>
-                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                        Encrypted
+                      <Badge 
+                        variant="outline" 
+                        className={`${
+                          jitoStatus === 'connected' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : jitoStatus === 'error'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}
+                      >
+                        {jitoStatus === 'connected' ? 'Available' : jitoStatus === 'error' ? 'Unavailable' : 'Checking...'}
                       </Badge>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Trades */}
+              <Card className="bg-black/40 backdrop-blur-md border-white/10">
+                <CardHeader>
+                  <CardTitle>Recent Trades</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
+                    </div>
+                  ) : recentTrades.length > 0 ? (
+                    <div className="space-y-2">
+                      {recentTrades.map((trade, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="text-xs">
+                              {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}%
+                            </Badge>
+                            <span className="text-sm">
+                              {trade.token_address.slice(0, 8)}...
+                            </span>
+                          </div>
+                          <div className="text-sm text-white/60">
+                            {new Date(trade.executed_at).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-white/60">No trades yet</p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

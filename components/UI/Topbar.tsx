@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'react-hot-toast';
 import { Sun, Moon, Copy } from 'lucide-react';
 import { Button } from '@/components/UI/button';
-
+import { useKeymakerStore } from '@/lib/store';
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
 
 interface TopbarProps {
@@ -14,10 +14,15 @@ interface TopbarProps {
 
 export function Topbar({ toggleTheme, theme }: TopbarProps) {
   const { publicKey } = useWallet();
+  const { activeWallet, wallets } = useKeymakerStore();
+  
+  // Show active wallet if set, otherwise show browser wallet
+  const displayWallet = activeWallet || publicKey?.toBase58() || null;
+  const activeWalletData = activeWallet ? wallets.find(w => w.publicKey === activeWallet) : null;
   
   const copyAddress = () => {
-    if (publicKey) {
-      navigator.clipboard.writeText(publicKey.toBase58());
+    if (displayWallet) {
+      navigator.clipboard.writeText(displayWallet);
       toast.success('Address copied!');
     }
   };
@@ -37,10 +42,15 @@ export function Topbar({ toggleTheme, theme }: TopbarProps) {
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
         <div className="text-sm">
-          {publicKey ? (
+          {displayWallet ? (
             <div className="flex items-center">
               <div className="w-6 h-6 rounded-full mr-2 bg-gradient-to-br from-green-500/40 to-emerald-500/40" />
-              <span className="truncate max-w-[80px]">{publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}</span>
+              <div className="flex flex-col">
+                <span className="truncate max-w-[80px]">{displayWallet.slice(0, 6)}...{displayWallet.slice(-4)}</span>
+                {activeWalletData && (
+                  <span className="text-xs text-white/60">{activeWalletData.role}</span>
+                )}
+              </div>
               <Button variant="ghost" size="icon" onClick={copyAddress}><Copy className="w-4 h-4" /></Button>
             </div>
           ) : (

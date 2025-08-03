@@ -56,10 +56,12 @@ interface KeymakerStore {
   wallets: WalletData[];
   walletGroups: WalletGroup[];
   selectedGroup: string;
+  activeWallet: string | null; // Public key of active wallet
   setWallets: (wallets: WalletData[]) => void;
   addWallet: (wallet: Omit<WalletData, 'id' | 'balance'>) => void;
   setWalletGroups: (groups: WalletGroup[]) => void;
   setSelectedGroup: (group: string) => void;
+  setActiveWallet: (publicKey: string | null) => void;
   updateWalletBalance: (publicKey: string, balance: number) => void;
   
   // Token Launch
@@ -85,6 +87,14 @@ interface KeymakerStore {
   setTipAmount: (amount: number) => void;
   autoSellDelay: number; // seconds
   setAutoSellDelay: (delay: number) => void;
+  network: 'mainnet-beta' | 'devnet';
+  setNetwork: (network: 'mainnet-beta' | 'devnet') => void;
+  rpcUrl: string;
+  setRpcUrl: (url: string) => void;
+  wsUrl: string;
+  setWsUrl: (url: string) => void;
+  theme: 'dark' | 'light';
+  setTheme: (theme: 'dark' | 'light') => void;
   
   // PnL Tracking
   totalInvested: number;
@@ -116,6 +126,7 @@ export const useKeymakerStore = create<KeymakerStore>()(
       wallets: [],
       walletGroups: [{ id: 'default', name: 'Default Group', walletIds: [] }],
       selectedGroup: 'default',
+      activeWallet: null,
       tokenLaunchData: null,
       executionStrategy: 'flash',
       executionSteps: [...defaultExecutionSteps],
@@ -123,6 +134,10 @@ export const useKeymakerStore = create<KeymakerStore>()(
       jitoEnabled: true,
       tipAmount: 0.001,
       autoSellDelay: 60,
+      network: 'mainnet-beta',
+      rpcUrl: 'https://api.mainnet-beta.solana.com',
+      wsUrl: 'wss://api.mainnet-beta.solana.com',
+      theme: 'dark',
       totalInvested: 0,
       totalReturned: 0,
       notifications: [],
@@ -140,6 +155,7 @@ export const useKeymakerStore = create<KeymakerStore>()(
         }),
       setWalletGroups: (groups) => set({ walletGroups: groups }),
       setSelectedGroup: (group) => set({ selectedGroup: group }),
+      setActiveWallet: (publicKey) => set({ activeWallet: publicKey }),
       updateWalletBalance: (publicKey, balance) => 
         set((state) => ({
           wallets: state.wallets.map(w => 
@@ -180,6 +196,10 @@ export const useKeymakerStore = create<KeymakerStore>()(
       setJitoEnabled: (enabled) => set({ jitoEnabled: enabled }),
       setTipAmount: (amount) => set({ tipAmount: amount }),
       setAutoSellDelay: (delay) => set({ autoSellDelay: delay }),
+      setNetwork: (network) => set({ network }),
+      setRpcUrl: (url) => set({ rpcUrl: url }),
+      setWsUrl: (url) => set({ wsUrl: url }),
+      setTheme: (theme) => set({ theme }),
       
       updatePnL: (invested, returned) => 
         set((state) => ({

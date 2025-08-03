@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
 import { useKeymakerStore } from '@/lib/store';
+import { StatusCards } from './StatusCards';
 
 interface NavItem {
   name: string;
@@ -30,7 +31,7 @@ export function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className="w-60 h-screen bg-black/40 backdrop-blur-md border-r border-white/10 flex flex-col justify-between py-6">
+      <aside className="w-[240px] h-screen bg-black/40 backdrop-blur-md border-r border-white/10 flex flex-col py-6">
         {/* Logo */}
         <div className="flex items-center px-4 h-10">
           <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
@@ -40,7 +41,7 @@ export function Sidebar() {
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex-1 px-4 mt-8">
+        <nav className="px-4 mt-8">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -58,6 +59,14 @@ export function Sidebar() {
             })}
           </ul>
         </nav>
+
+        {/* Status Cards - 2x2 Bento */}
+        <div className="mt-8">
+          <StatusCards />
+        </div>
+
+        {/* Spacer to push content up */}
+        <div className="flex-1" />
 
         {/* Live Status Badge */}
         {isExecuting && (

@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS wallets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  publicKey TEXT UNIQUE NOT NULL,
-  encryptedPrivateKey TEXT NOT NULL,
+  address TEXT UNIQUE NOT NULL,
+  keypair TEXT NOT NULL,
   role TEXT NOT NULL,
+  network TEXT DEFAULT 'mainnet',
   balance REAL DEFAULT 0
 );
 
@@ -10,10 +11,52 @@ CREATE TABLE IF NOT EXISTS tokens (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   address TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
-  ticker TEXT NOT NULL,
-  platform TEXT NOT NULL,
+  symbol TEXT NOT NULL,
   supply BIGINT NOT NULL,
+  decimals INTEGER NOT NULL,
+  launch_platform TEXT,
   metadata JSON
+);
+
+CREATE TABLE IF NOT EXISTS trades (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token_address TEXT NOT NULL,
+  tx_ids TEXT NOT NULL,
+  wallets TEXT NOT NULL,
+  sol_in REAL NOT NULL,
+  sol_out REAL NOT NULL,
+  pnl REAL NOT NULL,
+  executed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS errors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message TEXT NOT NULL,
+  component TEXT NOT NULL,
+  occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS execution_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action TEXT NOT NULL,
+  status TEXT NOT NULL,
+  details JSON,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pnl_records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_address TEXT NOT NULL,
+  token_address TEXT NOT NULL,
+  sol_invested REAL NOT NULL,
+  sol_returned REAL NOT NULL,
+  profit_loss REAL NOT NULL,
+  recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS bundles (

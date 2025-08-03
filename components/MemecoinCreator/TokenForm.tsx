@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { createToken as pumpfunCreate } from '../../services/pumpfunService';
-
+import { createToken as letsbonkCreate } from '../../services/letsbonkService';
 import { useKeymakerStore } from '@/lib/store';
 import { AlertCircle } from 'lucide-react';
 
@@ -137,7 +137,41 @@ export default function TokenForm() {
       }
       
       setDeployedToken(tokenAddr);
-      toast.success(`Token deployed successfully!`);
+      
+      // Save token to database via API
+      try {
+        const response = await fetch('/api/tokens', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            address: tokenAddr,
+            name,
+            symbol,
+            supply: parseInt(supply),
+            decimals: parseInt(decimals),
+            launch_platform: platform,
+            metadata
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save token to database');
+        }
+        
+        // Update store with the deployed token address
+        setTokenLaunchData({
+          ...useKeymakerStore.getState().tokenLaunchData!,
+          mintAddress: tokenAddr
+        });
+        
+        toast.success(`Token deployed successfully!`);
+      } catch (dbError) {
+        console.error('Failed to save token to database:', dbError);
+        // Still show success since token was created
+        toast.success(`Token deployed successfully! (DB save failed)`);
+      }
       
       // Reset form
       setName('');

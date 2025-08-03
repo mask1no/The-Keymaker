@@ -18,6 +18,8 @@ import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { useKeymakerStore } from '@/lib/store';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 
 interface ApiKeys {
   heliusRpc?: string;
@@ -51,6 +53,13 @@ const MAX_HISTORY_POINTS = 180; // 30 minutes at 10s intervals
 
 export default function SettingsPage() {
   const { rpcStatus, wsStatus, jitoStatus, rtt } = useSystemStatus();
+  const { 
+    network, setNetwork, 
+    rpcUrl, setRpcUrl, 
+    wsUrl, setWsUrl,
+    jitoEnabled, setJitoEnabled,
+    tipAmount, setTipAmount 
+  } = useKeymakerStore();
   const [solanaStatus, setSolanaStatus] = useState<'healthy' | 'degraded' | 'error'>('healthy');
   const [slotHeight, setSlotHeight] = useState<number | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKeys>({});
@@ -468,6 +477,87 @@ export default function SettingsPage() {
                 </>
               )}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Network Configuration */}
+        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Network Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label>Network</Label>
+              <Select value={network} onValueChange={(value: 'mainnet-beta' | 'devnet') => setNetwork(value)}>
+                <SelectTrigger className="bg-black/50 border-aqua/30">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mainnet-beta">Mainnet Beta</SelectItem>
+                  <SelectItem value="devnet">Devnet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>RPC URL</Label>
+              <Input
+                type="text"
+                value={rpcUrl}
+                onChange={(e) => setRpcUrl(e.target.value)}
+                placeholder="https://api.mainnet-beta.solana.com"
+                className="bg-black/50 border-aqua/30 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Solana RPC endpoint URL
+              </p>
+            </div>
+
+            <div>
+              <Label>WebSocket URL</Label>
+              <Input
+                type="text"
+                value={wsUrl}
+                onChange={(e) => setWsUrl(e.target.value)}
+                placeholder="wss://api.mainnet-beta.solana.com"
+                className="bg-black/50 border-aqua/30 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Solana WebSocket endpoint URL
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Jito Bundle Service</Label>
+                <p className="text-xs text-gray-400">Enable Jito for MEV protection</p>
+              </div>
+              <Switch
+                checked={jitoEnabled}
+                onCheckedChange={setJitoEnabled}
+              />
+            </div>
+
+            {jitoEnabled && (
+              <div>
+                <Label>Jito Tip Amount (SOL)</Label>
+                <Input
+                  type="number"
+                  value={tipAmount}
+                  onChange={(e) => setTipAmount(parseFloat(e.target.value))}
+                  step="0.0001"
+                  min="0.0001"
+                  max="0.1"
+                  className="bg-black/50 border-aqua/30"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Tip amount for Jito bundles
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
