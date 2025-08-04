@@ -10,6 +10,9 @@ export const settingsSchema = z.object({
       .refine((val) => urlRegex.test(val), 'Must be a valid URL'),
     birdeyeApiKey: z.string()
       .min(1, 'Birdeye API key is required'),
+    twoCaptchaApiKey: z.string()
+      .min(32, '2Captcha API key must be at least 32 characters')
+      .optional(),
     pumpfunApiKey: z.string().optional(),
     letsbonkApiKey: z.string().optional(),
     jitoAuthToken: z.string().optional(),

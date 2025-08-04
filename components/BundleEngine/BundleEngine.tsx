@@ -23,6 +23,7 @@ import { getKeypair } from '@/services/walletService';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { useKeymakerStore } from '@/lib/store';
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig';
+import { FeeEstimator } from '@/components/FeeEstimator';
 
 interface TransactionInput {
   tokenAddress: string;
@@ -586,12 +587,23 @@ export function BundleEngine() {
       {/* Transaction List */}
       {transactions.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-aqua flex items-center gap-2">
-            Bundle Transactions ({transactions.length}/20)
-            {transactions.some(t => wallets.find(w => w.publicKey === t.wallet && w.role === 'sniper')) && (
-              <Badge variant="destructive" className="text-xs">Sniper Priority</Badge>
-            )}
-          </h3>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-aqua flex items-center gap-2">
+                Bundle Transactions ({transactions.length}/20)
+                {transactions.some(t => wallets.find(w => w.publicKey === t.wallet && w.role === 'sniper')) && (
+                  <Badge variant="destructive" className="text-xs">Sniper Priority</Badge>
+                )}
+              </h3>
+            </div>
+            
+            {/* Fee Estimator */}
+            <FeeEstimator 
+              transactionCount={transactions.length}
+              tipAmount={10000} // Default 0.01 SOL per transaction
+              className="w-80"
+            />
+          </div>
           <div className="space-y-1">
             {transactions.map((tx, i) => {
               const wallet = wallets.find(w => w.publicKey === tx.wallet);
@@ -614,7 +626,13 @@ export function BundleEngine() {
                       Slippage: {tx.slippage}%
                     </span>
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => removeTransaction(i)} className="hover:text-red-500">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => removeTransaction(i)} 
+                    className="hover:text-red-500"
+                    aria-label="Remove transaction from bundle"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>

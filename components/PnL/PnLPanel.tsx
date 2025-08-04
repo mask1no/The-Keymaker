@@ -205,6 +205,8 @@ export function PnLPanel() {
                     <TableHead>Wallet</TableHead>
                     <TableHead className="text-right">Invested</TableHead>
                     <TableHead className="text-right">Returned</TableHead>
+                    <TableHead className="text-right">Gas Fees</TableHead>
+                    <TableHead className="text-right">Jito Tips</TableHead>
                     <TableHead className="text-right">Net P&L</TableHead>
                     <TableHead className="text-right">P&L %</TableHead>
                     <TableHead className="text-right">Trades</TableHead>
@@ -221,6 +223,12 @@ export function PnLPanel() {
                       </TableCell>
                       <TableCell className="text-right">
                         {wallet.totalReturned.toFixed(4)} SOL
+                      </TableCell>
+                      <TableCell className="text-right text-yellow-500">
+                        {wallet.totalGasFees.toFixed(4)} SOL
+                      </TableCell>
+                      <TableCell className="text-right text-purple-400">
+                        {wallet.totalJitoTips.toFixed(4)} SOL
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}>
                         {formatSOL(wallet.netPnL)} SOL

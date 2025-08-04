@@ -11,6 +11,8 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { verifySecrets } from '@/lib/secrets';
 import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys';
+import { updateService } from '@/services/updateService';
+import { I18nProvider } from '@/services/i18nService';
 import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,36 +20,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     verifySecrets();
+    
+    // Start auto-update checks
+    updateService.startAutoCheck();
+    
+    return () => {
+      updateService.stopAutoCheck();
+    };
   }, []);
 
   return (
     <html lang="en" className={theme}>
       <body className="bg-gradient-to-br dark:from-green-900 dark:to-black from-green-100 to-white dark:text-white/90 text-gray-900 transition-colors duration-300">
-        <WalletContext>
-          <Toaster position="top-right" />
-          <GlobalHotkeys />
-          <ErrorBoundary>
-            <ConnectionBanner />
-            <div className="flex min-h-screen">
-              <div className="hidden md:block">
-                <Sidebar />
-              </div>
-              <div className="flex-1 flex flex-col">
-                <Topbar toggleTheme={toggleTheme} theme={theme} />
-                <motion.main
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex-1 p-4 pb-20 md:pb-4"
-                >
-                  {children}
-                </motion.main>
+        <I18nProvider>
+          <WalletContext>
+            <Toaster position="top-right" />
+            <GlobalHotkeys />
+            <ErrorBoundary>
+              <ConnectionBanner />
+              <div className="flex min-h-screen">
+                <div className="hidden md:block">
+                  <Sidebar />
+                </div>
+                <div className="flex-1 flex flex-col">
+                  <Topbar toggleTheme={toggleTheme} theme={theme} />
+                  <motion.main
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex-1 p-4 pb-20 md:pb-4"
+                  >
+                    {children}
+                  </motion.main>
 
+                </div>
               </div>
-            </div>
-            <MobileNav />
-          </ErrorBoundary>
-        </WalletContext>
+              <MobileNav />
+            </ErrorBoundary>
+          </WalletContext>
+        </I18nProvider>
       </body>
     </html>
   );

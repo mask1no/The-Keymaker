@@ -4,152 +4,82 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-1.1.0-orange)
 
-## 🚀 Overview
+## Overview
 
-The Keymaker is a production-ready Solana bundler application built for high-performance token operations on mainnet. It provides a complete suite of tools for SPL token creation, Jito bundle execution, wallet management, and real-time PnL tracking.
+The Keymaker is a production-ready Solana bundler application engineered for high-performance token operations on mainnet. This comprehensive platform provides institutional-grade tools for SPL token creation, Jito bundle execution, wallet management, and real-time profit and loss tracking.
 
-**Key Features:**
-- 🪙 SPL Token Creation & Deployment (pump.fun, Raydium, letsbonk.fun)
-- 📦 Jito Bundle Execution (Stealth & Manual modes)
-- 👛 Secure Wallet Management (Phantom + Keypair imports)
-- 📊 Real-Time PnL Tracking with SQLite persistence
-- 🔄 Live Status Monitoring (RPC, WebSocket, Jito, Mainnet)
-- 🔐 AES-256-GCM Encryption for private keys
-- 🎯 100% Production-Ready - No mock data or placeholders
-- 🛡️ Comprehensive Error Boundaries with recovery options
-- 🌓 Persistent Dark/Light theme toggle
-- 🔄 Automatic RPC retry with rate limiting
+## Key Features
 
-## 🆕 What's New in v1.1.0
+### Core Functionality
+- **SPL Token Creation**: Deploy tokens across multiple platforms including pump.fun, Raydium, and letsbonk.fun
+- **Bundle Execution**: Execute transactions through Jito Block Engine with stealth and manual operation modes
+- **Wallet Management**: Secure wallet infrastructure supporting both Phantom integration and direct keypair imports
+- **Real-Time Analytics**: Live profit and loss tracking with SQLite persistence and export capabilities
+- **Network Monitoring**: Continuous monitoring of RPC, WebSocket, Jito, and Mainnet connections with historical data
+- **Enterprise Security**: Military-grade AES-256-GCM encryption for private key storage
+- **Comprehensive Error Handling**: Robust error boundaries with automatic recovery mechanisms
+- **Theme Support**: Persistent dark and light theme options with smooth transitions
+- **Intelligent Retry Logic**: Automatic RPC retry with progressive rate limiting
 
-### Major Enhancements
-- **Launch Wizard**: Step-by-step guided setup with preset saving
-- **Advanced Trading**: Visual condition builder for complex sell strategies  
-- **Wallet Groups**: Organize wallets with color-coded groups
-- **Network Flexibility**: Hot-swap between mainnet/devnet
-- **Enhanced Monitoring**: Connection issues shown in global banner
-- **Smarter Execution**: Auto-retry with progressive slippage on liquidity errors
-- **Configurable Bundles**: Support for up to 20 transactions per bundle
-- **Fee-Aware PnL**: Accurate tracking including gas and Jito tips
+## Version 1.1.0 Enhancements
 
-## 🔄 Previous Release (v1.0.1)
+### Major Features
+- **Launch Wizard**: Streamlined token launch process with step-by-step guidance and preset management
+- **Advanced Trading Engine**: Visual condition builder for sophisticated sell strategies with multiple trigger types
+- **Wallet Organization**: Group-based wallet management with color-coded categories for improved organization
+- **Network Flexibility**: Seamless switching between mainnet and devnet environments
+- **Enhanced Monitoring**: Global connection status banner with real-time network health indicators
+- **Intelligent Execution**: Automatic retry with progressive slippage adjustments on liquidity errors
+- **Extended Bundle Support**: Support for up to 20 transactions per bundle with priority ordering
+- **Comprehensive Fee Tracking**: Accurate profit calculations including gas fees and Jito tips
 
-### UI/UX Improvements
-- **Fixed Sidebar**: Always expanded showing both icons and labels (no hover animations)
-- **Status Indicators**: Moved to Settings page in a clean 2x2 Bento grid
-  - RPC Health with RTT display and click for 30-min history
-  - WebSocket connection status with real-time monitoring
-  - Jito Engine availability tracking
-  - Solana Mainnet status with slot height
-  - Updates every 8 seconds automatically
-  - Interactive cards with tooltips and historical charts
-- **Theme Toggle**: Dark/Light mode fully functional with proper CSS theming
-  - Persists across sessions using localStorage
-  - Smooth transitions between themes
-  - All UI components theme-aware
-- **Error Boundaries**: Comprehensive error handling with recovery options
+## Architecture
 
-### Technical Enhancements
-- **Zero Mock Data**: Complete removal of all placeholder values and mock wallets
-- **Real Wallet Integration**: 
-  - Phantom wallet adapter fully connected
-  - Real pubkey display in topbar
-  - Copy address functionality
-  - Wallet selector shows actual connected wallets
-- **Service Wiring**: All services properly connected and functional
-  - bundleService ✅ - Jito bundle execution
-  - jupiterService ✅ - Token swaps via Jupiter
-  - platformService ✅ - Token creation on multiple platforms
-  - walletService ✅ - Secure wallet management
-  - pnlService ✅ - Real-time profit tracking
-  - sellService ✅ - Automated sell conditions
-- **Route Updates**: Simplified navigation structure
-  - `/` - Landing page with feature overview
-  - `/home` - Main dashboard with stats
-  - `/bundle` - Bundle execution engine
-  - `/wallets` - Wallet management
-  - `/spl-creator` - Token creation
-  - `/logs` - Trade history
-  - `/pnl` - Profit & loss tracking
-  - `/settings` - Configuration & status monitoring
+### Technology Stack
 
-### Production Readiness
-- Docker health checks configured at `/api/health`
-- Database auto-initialization with `docker-entrypoint.sh`
-- RPC rate limiting and retry logic implemented
-- All buttons and interactions fully functional
-- No grey screens or dead routes
-- Graceful SIGTERM handling in container
-- Health check endpoint returns `{ ok: true }`
+The Keymaker leverages modern web technologies and blockchain infrastructure:
 
-## 🏗️ Architecture
-
-### Tech Stack
-
-- **Frontend**: Next.js 14.2.30, React 18, TypeScript
-- **UI**: Tailwind CSS, shadcn/ui components
-- **Blockchain**: @solana/web3.js, @solana/spl-token
-- **State Management**: Zustand
-- **Database**: SQLite (local persistence)
-- **Security**: AES-256-GCM encryption, PBKDF2 key derivation
-- **Monitoring**: Sentry integration
-- **Container**: Docker with Alpine Linux
+- **Frontend Framework**: Next.js 14.2.30 with React 18 and TypeScript
+- **User Interface**: Tailwind CSS with shadcn/ui component library
+- **Blockchain Integration**: Solana Web3.js and SPL Token libraries
+- **State Management**: Zustand for efficient client-side state
+- **Data Persistence**: SQLite for transaction history and analytics
+- **Security**: AES-256-GCM encryption with PBKDF2 key derivation
+- **Error Monitoring**: Sentry integration for production error tracking
+- **Containerization**: Docker with Alpine Linux for minimal footprint
 
 ### Core Services
 
-#### 1. **Bundle Service** (`services/bundleService.ts`)
-- Executes bundles via Jito Block Engine
-- Supports up to 5 transactions per bundle
-- Implements retry logic with exponential backoff
-- Monitors bundle status in real-time
+#### Bundle Service
+The bundle service orchestrates transaction execution through Jito Block Engine, supporting batched transactions with sophisticated retry logic and real-time status monitoring. The service implements exponential backoff strategies and monitors bundle status through websocket connections.
 
-#### 2. **Wallet Service** (`services/walletService.ts`)
-- Encrypts private keys using AES-256-GCM
-- PBKDF2 key derivation (100,000 iterations)
-- Supports batch wallet creation
-- Import/export with encrypted .keymaker files
+#### Wallet Service
+A comprehensive wallet management system that encrypts private keys using AES-256-GCM with PBKDF2 key derivation utilizing 100,000 iterations. The service supports batch wallet creation, secure import/export functionality, and role-based wallet categorization.
 
-#### 3. **Platform Service** (`services/platformService.ts`)
-- Creates SPL tokens on mainnet
-- Integrates with pump.fun, Raydium, letsbonk.fun
-- Handles liquidity pool creation
-- Validates token parameters
+#### Platform Service
+Manages SPL token creation across multiple blockchain platforms, handling liquidity pool creation, token parameter validation, and platform-specific requirements. The service integrates with pump.fun, Raydium, and letsbonk.fun APIs.
 
-#### 4. **PnL Service** (`services/pnlService.ts`)
-- Tracks buy/sell transactions in SQLite
-- Calculates real-time profit/loss
-- Provides wallet and token-specific analytics
-- Exports data in JSON/CSV formats
+#### Analytics Service
+Tracks all buy and sell transactions in a local SQLite database, calculating real-time profit and loss metrics. Provides wallet-specific and token-specific analytics with export capabilities in JSON and CSV formats.
 
 ### Security Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Security Layers                          │
-├─────────────────────────────────────────────────────────────┤
-│  1. Wallet Encryption                                        │
-│     └─ AES-256-GCM with PBKDF2 (100k iterations)           │
-│                                                             │
-│  2. API Key Protection                                      │
-│     └─ Environment variables + localStorage                 │
-│                                                             │
-│  3. Transaction Signing                                     │
-│     └─ Local keypair management                            │
-│                                                             │
-│  4. Network Security                                        │
-│     └─ HTTPS only, rate limiting, CORS protection         │
-└─────────────────────────────────────────────────────────────┘
-```
+The Keymaker implements defense-in-depth security principles:
 
-## 🛠️ Installation
+1. **Wallet Encryption Layer**: AES-256-GCM encryption with unique salt and initialization vectors per wallet
+2. **API Key Protection**: Environment variable isolation with optional localStorage for client-side keys
+3. **Transaction Security**: Local-only transaction signing with no private key transmission
+4. **Network Security**: HTTPS enforcement, rate limiting, and CORS protection
+
+## Installation
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js version 20 or higher
 - Docker Desktop
 - Git
 
-### Setup
+### Setup Instructions
 
 1. Clone the repository:
 ```bash
@@ -157,88 +87,60 @@ git clone https://github.com/yourusername/the-keymaker.git
 cd the-keymaker
 ```
 
-2. Create `.env.local` file:
+2. Configure environment variables in `.env.local`:
 ```env
-# Required
+# Required Configuration
 NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 NEXT_PUBLIC_BIRDEYE_API_KEY=your_birdeye_api_key
 BIRDEYE_API_KEY=your_birdeye_api_key
 
-# Optional
+# Optional Services
 NEXT_PUBLIC_PUMPFUN_API_KEY=your_pumpfun_key
 PUMPFUN_API_KEY=your_pumpfun_key
-NEXT_PUBLIC_MOONSHOT_API_KEY=your_moonshot_key
-MOONSHOT_API_KEY=your_moonshot_key
 JITO_AUTH_TOKEN=your_jito_token
+TWOCAPTCHA_API_KEY=your_2captcha_key
 ```
 
-3. Build and run with Docker:
+3. Build and deploy with Docker:
 ```bash
 docker compose build
 docker compose up -d
 ```
 
-4. Access the app at http://localhost:3000
+4. Access the application at http://localhost:3000
 
-## 📋 Features
+## Application Routes
 
-### Home (`/home`)
-- Overview dashboard with system stats
-- Wallet balances and counts
-- PnL summary
-- Quick navigation tiles
+### Dashboard (`/home`)
+Central command center displaying system statistics, wallet balances, profit and loss summary, and quick access navigation.
 
-### Bundle (`/bundle`)
-- Execute Jito bundles with real wallets
-- Stealth mode for private transactions
-- Manual mode for custom operations
-- Real-time transaction preview
-- Bundle result tracking
+### Bundle Engine (`/bundle`)
+Execute Jito bundles with support for both stealth and manual modes. Features real-time transaction preview, fee estimation, and comprehensive result tracking.
 
-### Wallets (`/wallets`)
-- Create/import wallets (Phantom or keypair)
-- Role assignment (Master, Dev, Sniper)
-- Encrypted storage
-- Batch operations
-- Balance management
+### Wallet Manager (`/wallets`)
+Create and import wallets with support for Phantom integration and direct keypair imports. Assign roles, manage balances, and perform batch operations with encrypted storage.
 
-### SPL Creator (`/spl-creator`)
-- Deploy SPL tokens on mainnet
-- Multi-platform launch (pump.fun, Raydium, etc.)
-- Configurable token parameters
-- Liquidity pool creation
-- Metadata management
+### Token Creator (`/spl-creator`)
+Deploy SPL tokens on mainnet with multi-platform support. Configure token parameters, create liquidity pools, and manage metadata with platform-specific optimizations.
 
-### Trade History (`/logs`)
-- Complete transaction history
-- Filter by status, type, wallet
-- Export functionality
-- Real-time updates
-- Detailed bundle breakdowns
+### Transaction History (`/logs`)
+Complete transaction audit trail with advanced filtering, real-time updates, and export functionality. Detailed bundle breakdowns with individual transaction results.
 
-### PNL (`/pnl`)
-- Real-time profit/loss tracking
-- Per-wallet analytics
-- Per-token performance
-- Session statistics
-- Export reports
+### Analytics (`/pnl`)
+Real-time profit and loss tracking with per-wallet and per-token analytics. Session statistics with comprehensive export capabilities.
 
 ### Settings (`/settings`)
-- API key management
-- Connection status monitoring (2x2 grid)
-- Trading preferences
-- Security settings
-- Database management
+Centralized configuration management including API keys, connection monitoring, trading preferences, and security settings.
 
-## 🔧 API Endpoints
+## API Reference
 
-### Health Check
+### Health Check Endpoint
 ```
 GET /api/health
-Response: { "ok": true }
+Response: { "ok": true, "version": "1.1.0", "checks": {...} }
 ```
 
-### Proxy API
+### Proxy Service
 ```
 POST /api/proxy
 Body: {
@@ -249,7 +151,7 @@ Body: {
 }
 ```
 
-### Bundle Operations
+### Bundle Execution
 ```
 POST /api/bundle/execute
 Body: {
@@ -259,9 +161,9 @@ Body: {
 }
 ```
 
-## 🏃‍♂️ Development
+## Development
 
-### Local Development
+### Local Development Setup
 ```bash
 npm install
 npm run dev
@@ -272,164 +174,92 @@ npm run dev
 npm run db:init
 ```
 
-### Type Checking
+### Code Quality Tools
 ```bash
 npm run type-check
-```
-
-### Linting
-```bash
 npm run lint
 ```
 
-## 🐳 Docker Configuration
+## Production Deployment
 
-The application uses a multi-stage Docker build for optimal performance:
+The application utilizes a multi-stage Docker build process optimized for production:
 
 1. **Dependencies Stage**: Installs and builds native modules
-2. **Builder Stage**: Compiles Next.js application
-3. **Runner Stage**: Minimal production image
+2. **Builder Stage**: Compiles Next.js application with optimizations
+3. **Runner Stage**: Minimal production image with security hardening
 
-### Docker Commands
+### Docker Operations
 ```bash
-# Build
+# Build production image
 docker compose build --no-cache
 
-# Run
+# Deploy application
 docker compose up -d
 
-# View logs
+# Monitor logs
 docker logs keymaker-prod -f
 
-# Stop
+# Shutdown
 docker compose down
 ```
 
-## 📊 Database Schema
+## Database Schema
 
-### Wallets Table
-```sql
-CREATE TABLE wallets (
-  id INTEGER PRIMARY KEY,
-  publicKey TEXT UNIQUE NOT NULL,
-  encryptedPrivateKey TEXT NOT NULL,
-  role TEXT NOT NULL,
-  balance REAL DEFAULT 0
-);
-```
+The application uses SQLite for local data persistence with the following core tables:
 
-### PnL Tracking Table
-```sql
-CREATE TABLE pnl_tracking (
-  id INTEGER PRIMARY KEY,
-  wallet TEXT NOT NULL,
-  token_address TEXT NOT NULL,
-  action TEXT NOT NULL,
-  sol_amount REAL NOT NULL,
-  token_amount REAL NOT NULL,
-  price REAL NOT NULL,
-  timestamp INTEGER NOT NULL
-);
-```
+- **wallets**: Stores encrypted wallet data with role assignments
+- **pnl_tracking**: Records all buy/sell transactions for profit calculation
+- **bundle_executions**: Logs bundle execution results and metadata
+- **token_launches**: Tracks all token deployments with platform details
 
-### Bundle Executions Table
-```sql
-CREATE TABLE bundle_executions (
-  id INTEGER PRIMARY KEY,
-  bundle_id TEXT,
-  slot INTEGER NOT NULL,
-  signatures TEXT NOT NULL,
-  status TEXT NOT NULL,
-  success_count INTEGER NOT NULL,
-  failure_count INTEGER NOT NULL,
-  used_jito BOOLEAN NOT NULL,
-  execution_time INTEGER NOT NULL
-);
-```
+## Security Considerations
 
-## 🔐 Security Considerations
+### Wallet Security
+Private keys are encrypted using AES-256-GCM with unique salt and initialization vectors per wallet. PBKDF2 key derivation with 100,000 iterations prevents brute force attacks.
 
-1. **Wallet Security**
-   - Private keys are never stored in plain text
-   - AES-256-GCM encryption with unique salt/IV per wallet
-   - PBKDF2 key derivation prevents brute force attacks
+### API Security
+All endpoints implement rate limiting, CORS protection, input validation, and sanitization. Sensitive data is excluded from logs and error messages.
 
-2. **API Security**
-   - Rate limiting on all endpoints
-   - CORS protection
-   - Input validation and sanitization
-   - No sensitive data in logs
+### Transaction Security
+All transaction signing occurs locally with no private key transmission over the network. Transactions are simulated before execution to prevent costly errors.
 
-3. **Transaction Security**
-   - Local transaction signing only
-   - No private keys transmitted over network
-   - Simulation before execution
+## Performance Optimizations
 
-## 🚨 Error Handling
+The application implements several performance enhancements:
+- React component memoization for reduced re-renders
+- Debounced API calls to prevent rate limiting
+- Indexed database queries for fast data retrieval
+- Docker layer caching for efficient builds
+- Next.js production optimizations including code splitting
 
-The application implements comprehensive error handling:
-- Sentry integration for error tracking
-- Graceful degradation for API failures
-- User-friendly error messages
-- Automatic retry logic for network operations
+## System Status
 
-## 📈 Performance Optimization
+The Keymaker v1.1.0 represents a fully operational, production-ready platform:
 
-- React component memoization
-- Debounced API calls
-- Efficient database queries with indexes
-- Docker layer caching
-- Next.js production optimizations
+- Complete blockchain integration with real-time data
+- All application routes tested and functional
+- Docker container with automated health checks
+- Responsive UI with theme persistence
+- Real-time monitoring with historical data visualization
+- Military-grade wallet encryption
+- Jito bundle execution with MEV protection
+- Multi-platform token deployment
+- Comprehensive profit and loss tracking
+- Robust error handling and recovery
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Solana Foundation for blockchain infrastructure
-- Jito Labs for MEV protection
-- Helius for RPC services
-- Jupiter for swap aggregation
-
----
-
-## 🎉 THE KEYMAKER v1.0.1 — BUNDLER PRODUCTION READY
-
-### ✅ **ALL SYSTEMS OPERATIONAL**
-
-✓ **NO mock data remains** - 100% real blockchain integration  
-✓ **ALL pages functional** - Every route tested and working  
-✓ **Docker production-ready** - Health checks passing  
-✓ **UI modern & responsive** - Dark/Light themes working  
-✓ **Real-time monitoring** - Status LEDs with 30-min history  
-✓ **Wallets encrypted** - AES-256-GCM security  
-✓ **Bundles execute** - Jito integration confirmed  
-✓ **Tokens launch** - Multi-platform deployment  
-✓ **PNL tracks profit/loss** - Real-time calculations  
-✓ **No grey screens** - Comprehensive error handling  
-
-### 🚀 **READY FOR MAINNET DEPLOYMENT**
+### Production Deployment
 
 ```bash
-# Quick Deploy
+# Quick deployment
 docker compose up --build -d
 
-# Verify
+# Verify health
 curl http://localhost:3000/api/health
-# Returns: {"ok":true}
+# Expected: {"ok":true,"version":"1.1.0"}
 ```
 
-**The Keymaker v1.0.1** - Your production-grade Solana memecoin orchestration platform. Ship tokens, bundle trades, track profits. No compromises.
+The Keymaker v1.1.0 delivers institutional-grade Solana memecoin orchestration capabilities. Deploy tokens, execute bundles, and track profits with confidence.
 
 ---
 
-**Built with ❤️ for the Solana ecosystem**
+Built with ❤️ for the Solana ecosystem

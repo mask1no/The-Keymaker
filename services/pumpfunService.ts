@@ -5,6 +5,7 @@ import { logTokenLaunch } from './executionLogService';
 import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry';
 import { logger } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
+import { pumpFunFallback } from './pumpFunFallback';
 
 type TokenMetadata = { 
   name: string; 
@@ -74,6 +75,40 @@ export async function createToken(
     return response.data.tokenAddress;
   } catch (error: any) {
     console.error('Pump.fun token creation error:', error.response?.data || error.message);
+    
+    // Check if it's a 4xx error and try fallback
+    if (error.response?.status >= 400 && error.response?.status < 500) {
+      logger.warn('Pump.fun API returned 4xx error, attempting GUI fallback...');
+      
+      try {
+        const fallbackResult = await pumpFunFallback.launchTokenWithGUI(
+          name,
+          symbol,
+          metadata.description || `${name} - Created with The Keymaker`,
+          metadata.image || '',
+          { retries: 1 }
+        );
+        
+        // Log token launch with fallback result
+        await logTokenLaunch({
+          tokenAddress: fallbackResult.mint,
+          name,
+          symbol,
+          platform: 'Pump.fun (GUI)',
+          supply: supply.toString(),
+          decimals: 9,
+          launcherWallet: '',
+          transactionSignature: fallbackResult.txSignature,
+          liquidityPoolAddress: fallbackResult.lpAddress
+        });
+        
+        return fallbackResult.mint;
+      } catch (fallbackError) {
+        logger.error('GUI fallback also failed:', fallbackError);
+        throw new Error(`Failed to create token on Pump.fun: ${error.response?.data?.error || error.message} (GUI fallback also failed)`);
+      }
+    }
+    
     throw new Error(`Failed to create token on Pump.fun: ${error.response?.data?.error || error.message}`);
   }
 }

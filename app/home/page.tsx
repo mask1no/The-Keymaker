@@ -30,6 +30,7 @@ import { LogsPanel } from '@/components/ExecutionLog/LogsPanel';
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel';
 import MemecoinCreator from '@/components/MemecoinCreator/MemecoinCreator';
 import { ActivityMonitor } from '@/components/ActivityMonitor/ActivityMonitor';
+import { MarketCapCard } from '@/components/MarketCapCard';
 
 type TabView = 'overview' | 'control' | 'wallets' | 'create' | 'logs' | 'analytics' | 'activity';
 
@@ -248,8 +249,15 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              {/* Quick Actions */}
-              <Card className="bg-black/40 backdrop-blur-md border-white/10">
+              {/* Market Data and Quick Actions Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Market Cap Card */}
+                <div className="lg:col-span-1">
+                  <MarketCapCard />
+                </div>
+                
+                {/* Quick Actions */}
+                <Card className="bg-black/40 backdrop-blur-md border-white/10 lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
@@ -290,6 +298,7 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
 
               {/* System Status */}
               <Card className="bg-black/40 backdrop-blur-md border-white/10">

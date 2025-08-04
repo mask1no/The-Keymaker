@@ -27,9 +27,9 @@ import { settingsSchema, type SettingsFormData } from '@/lib/validations/setting
 interface ApiKeys {
   heliusRpc?: string;
   birdeyeApiKey?: string;
+  twoCaptchaApiKey?: string;
   pumpfunApiKey?: string;
   letsbonkApiKey?: string;
-
 }
 
 interface Preferences {
@@ -501,6 +501,20 @@ export default function SettingsPage() {
                   Required for token prices and market data
                 </p>
               )}
+            </div>
+
+            <div>
+              <Label>2Captcha API Key</Label>
+              <Input
+                type={showKeys ? 'text' : 'password'}
+                value={apiKeys.twoCaptchaApiKey || ''}
+                onChange={(e) => setApiKeys({ ...apiKeys, twoCaptchaApiKey: e.target.value })}
+                placeholder="Your 2Captcha API key"
+                className="bg-black/50 border-aqua/30 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Optional - For solving captchas in GUI fallback
+              </p>
             </div>
 
             <div>

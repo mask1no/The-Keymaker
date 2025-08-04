@@ -14,6 +14,8 @@ import { ArrowRight, ArrowLeft, Save, Play, Coins, Wallet, Zap, Settings2, Downl
 import { useKeymakerStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { promises as fs } from 'fs';
+import { presetService, LaunchPreset } from '@/services/presetService';
+import { Copy, Share2, FileJson } from 'lucide-react';
 
 interface WizardData {
   // Token details
@@ -21,21 +23,32 @@ interface WizardData {
   tokenSymbol: string;
   tokenSupply: number;
   tokenPlatform: 'pump.fun' | 'raydium' | 'letsbonk.fun';
+  tokenDescription?: string;
+  tokenImage?: string;
   
   // Wallet configuration
   walletCount: number;
   fundingAmount: number;
+  devAllocation?: number;
+  lpAllocation?: number;
   
   // Bundle settings
   bundleSize: number;
   buyAmount: number;
   slippage: number;
+  tipAmount?: number;
+  priorityFee?: number;
   
   // Execution settings
   autoSellEnabled: boolean;
   sellDelay: number;
   takeProfit: number;
   stopLoss: number;
+  
+  // Social links
+  telegram?: string;
+  twitter?: string;
+  website?: string;
 }
 
 const defaultWizardData: WizardData = {
@@ -43,15 +56,24 @@ const defaultWizardData: WizardData = {
   tokenSymbol: '',
   tokenSupply: 1000000000,
   tokenPlatform: 'pump.fun',
+  tokenDescription: '',
+  tokenImage: '',
   walletCount: 10,
   fundingAmount: 0.1,
+  devAllocation: 5,
+  lpAllocation: 85,
   bundleSize: 5,
   buyAmount: 0.01,
   slippage: 5,
+  tipAmount: 10000,
+  priorityFee: 5000,
   autoSellEnabled: false,
   sellDelay: 300,
   takeProfit: 50,
-  stopLoss: -20
+  stopLoss: -20,
+  telegram: '',
+  twitter: '',
+  website: ''
 };
 
 export default function LaunchWizard() {
@@ -60,7 +82,9 @@ export default function LaunchWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [wizardData, setWizardData] = useState<WizardData>(defaultWizardData);
   const [presetName, setPresetName] = useState('');
-  const [availablePresets, setAvailablePresets] = useState<string[]>([]);
+  const [availablePresets, setAvailablePresets] = useState<{ id: string; preset: LaunchPreset }[]>([]);
+  const [shareLink, setShareLink] = useState('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const steps = [
     { title: 'Token Details', icon: Coins, description: 'Configure your token parameters' },
@@ -75,25 +99,50 @@ export default function LaunchWizard() {
 
   const loadPresets = async () => {
     try {
-      const presets = localStorage.getItem('keymaker_presets');
-      if (presets) {
-        setAvailablePresets(Object.keys(JSON.parse(presets)));
-      }
+      const presets = await presetService.listPresets();
+      setAvailablePresets(presets);
     } catch (error) {
       console.error('Failed to load presets:', error);
     }
   };
 
-  const savePreset = () => {
+  const savePreset = async () => {
     if (!presetName.trim()) {
       toast.error('Please enter a preset name');
       return;
     }
 
     try {
-      const existingPresets = JSON.parse(localStorage.getItem('keymaker_presets') || '{}');
-      existingPresets[presetName] = wizardData;
-      localStorage.setItem('keymaker_presets', JSON.stringify(existingPresets));
+      const preset: LaunchPreset = {
+        name: presetName,
+        timestamp: Date.now(),
+        config: {
+          tokenName: wizardData.tokenName,
+          tokenSymbol: wizardData.tokenSymbol,
+          tokenDescription: wizardData.tokenDescription || '',
+          tokenImage: wizardData.tokenImage,
+          platform: wizardData.tokenPlatform,
+          totalSupply: wizardData.tokenSupply,
+          decimals: 9,
+          bundleSize: wizardData.bundleSize,
+          tipAmount: wizardData.tipAmount || 10000,
+          priorityFee: wizardData.priorityFee || 5000,
+          autoSellDelay: wizardData.sellDelay,
+          devAllocation: wizardData.devAllocation || 5,
+          lpAllocation: wizardData.lpAllocation || 85,
+          buyAmounts: {
+            min: wizardData.buyAmount * 0.8,
+            max: wizardData.buyAmount * 1.2
+          },
+          telegram: wizardData.telegram,
+          twitter: wizardData.twitter,
+          website: wizardData.website
+        }
+      };
+      
+      const presetId = await presetService.savePreset(preset);
+      const link = presetService.generateShareLink(presetId, preset);
+      setShareLink(link);
       
       toast.success(`Preset "${presetName}" saved successfully`);
       setPresetName('');
@@ -103,15 +152,57 @@ export default function LaunchWizard() {
     }
   };
 
-  const loadPreset = (name: string) => {
+  const loadPreset = async (presetId: string) => {
     try {
-      const presets = JSON.parse(localStorage.getItem('keymaker_presets') || '{}');
-      if (presets[name]) {
-        setWizardData(presets[name]);
-        toast.success(`Preset "${name}" loaded`);
+      const preset = await presetService.loadPreset(presetId);
+      if (preset) {
+        setWizardData({
+          tokenName: preset.config.tokenName,
+          tokenSymbol: preset.config.tokenSymbol,
+          tokenSupply: preset.config.totalSupply,
+          tokenPlatform: preset.config.platform as any,
+          tokenDescription: preset.config.tokenDescription,
+          tokenImage: preset.config.tokenImage,
+          walletCount: wizardData.walletCount, // Keep current wallet settings
+          fundingAmount: wizardData.fundingAmount,
+          devAllocation: preset.config.devAllocation,
+          lpAllocation: preset.config.lpAllocation,
+          bundleSize: preset.config.bundleSize,
+          buyAmount: (preset.config.buyAmounts.min + preset.config.buyAmounts.max) / 2,
+          slippage: wizardData.slippage,
+          tipAmount: preset.config.tipAmount,
+          priorityFee: preset.config.priorityFee,
+          autoSellEnabled: preset.config.autoSellDelay > 0,
+          sellDelay: preset.config.autoSellDelay,
+          takeProfit: wizardData.takeProfit,
+          stopLoss: wizardData.stopLoss,
+          telegram: preset.config.telegram,
+          twitter: preset.config.twitter,
+          website: preset.config.website
+        });
+        toast.success(`Preset "${preset.name}" loaded`);
       }
     } catch (error) {
       toast.error('Failed to load preset');
+    }
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    toast.success('Share link copied to clipboard!');
+  };
+
+  const importFromLink = async () => {
+    const link = prompt('Paste the preset share link:');
+    if (!link) return;
+    
+    const parsed = presetService.parseShareLink(link);
+    if (parsed) {
+      await presetService.savePreset(parsed.preset);
+      await loadPreset(parsed.id);
+      loadPresets();
+    } else {
+      toast.error('Invalid preset link');
     }
   };
 
@@ -343,18 +434,26 @@ export default function LaunchWizard() {
             <CardTitle className="text-lg">Presets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2 mb-4">
-              {availablePresets.map((preset) => (
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {availablePresets.map((item) => (
                 <Button
-                  key={preset}
+                  key={item.id}
                   variant="outline"
                   size="sm"
-                  onClick={() => loadPreset(preset)}
+                  onClick={() => loadPreset(item.id)}
                 >
                   <Upload className="w-4 h-4 mr-1" />
-                  {preset}
+                  {item.preset.name}
                 </Button>
               ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={importFromLink}
+              >
+                <FileJson className="w-4 h-4 mr-1" />
+                Import from Link
+              </Button>
             </div>
             <div className="flex gap-2">
               <Input
@@ -367,6 +466,12 @@ export default function LaunchWizard() {
                 <Save className="w-4 h-4 mr-1" />
                 Save Preset
               </Button>
+              {shareLink && (
+                <Button onClick={copyShareLink} size="sm" variant="outline">
+                  <Copy className="w-4 h-4 mr-1" />
+                  Copy Link
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

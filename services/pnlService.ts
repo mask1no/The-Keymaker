@@ -24,6 +24,8 @@ export interface WalletPnL {
   netPnL: number;
   pnlPercentage: number;
   trades: number;
+  totalGasFees: number;
+  totalJitoTips: number;
 }
 
 interface TokenPnL {
@@ -156,7 +158,9 @@ export async function getWalletPnL(wallet: string): Promise<WalletPnL> {
     totalReturned,
     netPnL,
     pnlPercentage,
-    trades: entries.length
+    trades: entries.length,
+    totalGasFees,
+    totalJitoTips
   };
 }
 
