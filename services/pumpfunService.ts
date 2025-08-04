@@ -6,6 +6,7 @@ import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry';
 import { logger } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 import { pumpFunFallback } from './pumpFunFallback';
+import { solvePumpFunCaptcha } from '@/helpers/puppeteerHelper';
 
 type TokenMetadata = { 
   name: string; 
@@ -78,34 +79,63 @@ export async function createToken(
     
     // Check if it's a 4xx error and try fallback
     if (error.response?.status >= 400 && error.response?.status < 500) {
-      logger.warn('Pump.fun API returned 4xx error, attempting GUI fallback...');
+      logger.warn('Pump.fun API returned 4xx error, attempting Puppeteer fallback...');
       
+      // First try puppeteer with real browser automation
       try {
-        const fallbackResult = await pumpFunFallback.launchTokenWithGUI(
+        const puppeteerResult = await solvePumpFunCaptcha(
           name,
           symbol,
           metadata.description || `${name} - Created with The Keymaker`,
           metadata.image || '',
-          { retries: 1 }
+          supply.toString()
         );
         
-        // Log token launch with fallback result
+        // Log token launch with puppeteer result
         await logTokenLaunch({
-          tokenAddress: fallbackResult.mint,
+          tokenAddress: puppeteerResult.mintAddress,
           name,
           symbol,
-          platform: 'Pump.fun (GUI)',
+          platform: 'Pump.fun (Puppeteer)',
           supply: supply.toString(),
           decimals: 9,
           launcherWallet: '',
-          transactionSignature: fallbackResult.txSignature,
-          liquidityPoolAddress: fallbackResult.lpAddress
+          transactionSignature: puppeteerResult.txHash,
+          liquidityPoolAddress: ''
         });
         
-        return fallbackResult.mint;
-      } catch (fallbackError) {
-        logger.error('GUI fallback also failed:', fallbackError);
-        throw new Error(`Failed to create token on Pump.fun: ${error.response?.data?.error || error.message} (GUI fallback also failed)`);
+        return puppeteerResult.mintAddress;
+      } catch (puppeteerError) {
+        logger.warn('Puppeteer fallback failed, trying GUI fallback...', puppeteerError);
+        
+        // Fall back to the existing GUI fallback
+        try {
+          const fallbackResult = await pumpFunFallback.launchTokenWithGUI(
+            name,
+            symbol,
+            metadata.description || `${name} - Created with The Keymaker`,
+            metadata.image || '',
+            { retries: 1 }
+          );
+          
+          // Log token launch with fallback result
+          await logTokenLaunch({
+            tokenAddress: fallbackResult.mint,
+            name,
+            symbol,
+            platform: 'Pump.fun (GUI)',
+            supply: supply.toString(),
+            decimals: 9,
+            launcherWallet: '',
+            transactionSignature: fallbackResult.txSignature,
+            liquidityPoolAddress: fallbackResult.lpAddress
+          });
+          
+          return fallbackResult.mint;
+        } catch (fallbackError) {
+          logger.error('Both Puppeteer and GUI fallbacks failed:', fallbackError);
+          throw new Error(`Failed to create token on Pump.fun: ${error.response?.data?.error || error.message} (All fallbacks failed)`);
+        }
       }
     }
     

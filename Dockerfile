@@ -27,13 +27,16 @@ RUN npm run build
 # Production image with nginx
 FROM nginx:1.27-alpine AS runner
 
-# Install Node.js, sqlite, curl and tini for proper signal handling
-RUN apk add --no-cache nodejs npm sqlite curl tini
+# Install Node.js, sqlite, curl, tini and chromium dependencies for Puppeteer
+RUN apk add --no-cache nodejs npm sqlite curl tini chromium nss freetype harfbuzz ca-certificates ttf-freefont
 
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+# Configure Puppeteer to use system chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs

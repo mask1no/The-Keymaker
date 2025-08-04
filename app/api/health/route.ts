@@ -62,16 +62,33 @@ export async function GET() {
     
     const responseTime = Date.now() - startTime;
     
+    // Check if Puppeteer is installed (check for chromium executable)
+    const puppeteerInstalled = (() => {
+      try {
+        const fs = require('fs');
+        // Check common chromium paths
+        const chromiumPaths = [
+          '/usr/bin/chromium-browser',
+          '/usr/bin/chromium',
+          process.env.PUPPETEER_EXECUTABLE_PATH || ''
+        ];
+        return chromiumPaths.some(path => path && fs.existsSync(path));
+      } catch {
+        return false;
+      }
+    })();
+    
     const health = {
       ok: dbOk && rpcStatus.connected,
-      version: '1.1.1',
+      version: '1.1.2',
       timestamp: new Date().toISOString(),
       responseTime: `${responseTime}ms`,
       checks: {
         database: dbOk ? 'healthy' : 'unhealthy',
         rpc: rpcStatus.connected ? 'healthy' : 'unhealthy',
         jito: jitoOk ? 'healthy' : 'unhealthy',
-        slot: rpcStatus.slot
+        slot: rpcStatus.slot,
+        PUPPETEER_INSTALLED: puppeteerInstalled
       }
     };
     
@@ -81,7 +98,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({
       ok: false,
-      version: '1.1.1',
+      version: '1.1.2',
       timestamp: new Date().toISOString(),
       error: 'Health check failed'
     }, { status: 503 });

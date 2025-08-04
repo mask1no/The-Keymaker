@@ -4,6 +4,7 @@ import { logTokenLaunch } from './executionLogService';
 import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry';
 import { logger } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
+import { solvePumpFunCaptcha } from '@/helpers/puppeteerHelper';
 
 type TokenMetadata = {
   name: string;
@@ -67,6 +68,40 @@ export async function createToken(
   } catch (error: any) {
     Sentry.captureException(error);
     console.error('LetsBonk token creation error:', error.response?.data || error.message);
+    
+    // Check if it's a 4xx/429 error and try Puppeteer fallback (assuming LetsBonk uses similar captcha)
+    if (error.response?.status >= 400 && error.response?.status < 500) {
+      logger.warn('LetsBonk API returned 4xx error, attempting Puppeteer fallback...');
+      
+      try {
+        const puppeteerResult = await solvePumpFunCaptcha(
+          name,
+          symbol,
+          metadata.description || `${name} - Created with The Keymaker`,
+          metadata.image || '',
+          supply.toString()
+        );
+        
+        // Log token launch with puppeteer result
+        await logTokenLaunch({
+          tokenAddress: puppeteerResult.mintAddress,
+          name,
+          symbol,
+          platform: 'LetsBonk (Puppeteer)',
+          supply: supply.toString(),
+          decimals: 6,
+          launcherWallet: payer.publicKey.toBase58(),
+          transactionSignature: puppeteerResult.txHash,
+          liquidityPoolAddress: ''
+        });
+        
+        return puppeteerResult.mintAddress;
+      } catch (puppeteerError) {
+        logger.error('Puppeteer fallback failed for LetsBonk:', puppeteerError);
+        throw new Error(`Failed to create token on LetsBonk: ${error.response?.data?.error || error.message} (Puppeteer fallback also failed)`);
+      }
+    }
+    
     throw new Error(`Failed to create token on LetsBonk: ${error.response?.data?.error || error.message}`);
   }
 }
