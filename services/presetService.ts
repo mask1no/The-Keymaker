@@ -1,7 +1,4 @@
 import { logger } from '@/lib/logger';
-import { promises as fs } from 'fs';
-import { homedir } from 'os';
-import path from 'path';
 
 export interface LaunchPreset {
   name: string;

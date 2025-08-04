@@ -31,15 +31,15 @@ export async function POST(req: NextRequest) {
     // 2. Or use a cloud browser automation service
     // 3. Or queue the job for a worker process
     
-    // For now, return a structured response
-    const result = {
-      mint: `${body.tokenSymbol}_mock_${Date.now()}`,
-      lpAddress: `lp_${body.tokenSymbol}_mock_${Date.now()}`,
-      txSignature: `sig_${Date.now()}`,
-      message: 'Pump.fun GUI fallback would be executed here'
-    };
-
-    return NextResponse.json(result);
+    // In production, this would integrate with a headless browser service
+    // For now, return error indicating service needs external implementation
+    return NextResponse.json(
+      { 
+        error: 'GUI fallback service not configured',
+        message: 'External headless browser service required for pump.fun fallback'
+      },
+      { status: 501 }
+    );
   } catch (error) {
     logger.error('Pump.fun fallback error:', error);
     return NextResponse.json(

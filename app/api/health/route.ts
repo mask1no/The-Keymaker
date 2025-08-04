@@ -64,7 +64,7 @@ export async function GET() {
     
     const health = {
       ok: dbOk && rpcStatus.connected,
-      version: '1.1.0',
+      version: '1.1.1',
       timestamp: new Date().toISOString(),
       responseTime: `${responseTime}ms`,
       checks: {
@@ -81,7 +81,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({
       ok: false,
-      version: '1.1.0',
+      version: '1.1.1',
       timestamp: new Date().toISOString(),
       error: 'Health check failed'
     }, { status: 503 });

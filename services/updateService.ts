@@ -60,38 +60,49 @@ class UpdateService {
   }
 
   private notifyUpdate(info: VersionInfo) {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <div className="font-semibold">Update Available!</div>
-        <div className="text-sm">Version {info.latest} is now available</div>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={() => {
-              if (info.downloadUrl) {
-                window.open(info.downloadUrl, '_blank');
-              }
-              toast.dismiss(t.id);
-            }}
-            className="px-3 py-1 bg-aqua text-black rounded text-sm font-medium hover:bg-aqua/80"
-          >
-            Download
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600"
-          >
-            Later
-          </button>
-        </div>
-      </div>
-    ), {
+    
+    toast.custom((t) => {
+      // Create DOM elements programmatically
+      const container = document.createElement('div');
+      container.className = 'flex flex-col gap-2 p-4 bg-black/90 border border-aqua/30 rounded-lg';
+      
+      const title = document.createElement('div');
+      title.className = 'font-semibold text-white';
+      title.textContent = 'Update Available!';
+      
+      const version = document.createElement('div');
+      version.className = 'text-sm text-gray-300';
+      version.textContent = `Version ${info.latest} is now available`;
+      
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'flex gap-2 mt-2';
+      
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'px-3 py-1 bg-aqua text-black rounded text-sm font-medium hover:bg-aqua/80';
+      downloadBtn.textContent = 'Download';
+      downloadBtn.onclick = () => {
+        if (info.downloadUrl) {
+          window.open(info.downloadUrl, '_blank');
+        }
+        toast.dismiss(t.id);
+      };
+      
+      const laterBtn = document.createElement('button');
+      laterBtn.className = 'px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600';
+      laterBtn.textContent = 'Later';
+      laterBtn.onclick = () => toast.dismiss(t.id);
+      
+      buttonContainer.appendChild(downloadBtn);
+      buttonContainer.appendChild(laterBtn);
+      
+      container.appendChild(title);
+      container.appendChild(version);
+      container.appendChild(buttonContainer);
+      
+      return container;
+    }, {
       duration: 10000,
-      position: 'bottom-right',
-      style: {
-        background: '#1a1a1a',
-        color: '#fff',
-        border: '1px solid #06b6d4'
-      }
+      position: 'bottom-right'
     });
   }
 
