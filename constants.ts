@@ -1,9 +1,14 @@
-export const NEXT_PUBLIC_HELIUS_RPC = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY';
-export const NEXT_PUBLIC_JITO_ENDPOINT = process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://mainnet.block-engine.jito.wtf';
-export const NEXT_PUBLIC_BIRDEYE_API_KEY = process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || '';
-export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6';
-export const NEXT_PUBLIC_SOLSCAN_API_URL = 'https://api.solscan.io';
-export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api';
+export const NEXT_PUBLIC_HELIUS_RPC =
+  process.env.NEXT_PUBLIC_HELIUS_RPC ||
+  'https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY'
+export const NEXT_PUBLIC_JITO_ENDPOINT =
+  process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
+  'https://mainnet.block-engine.jito.wtf'
+export const NEXT_PUBLIC_BIRDEYE_API_KEY =
+  process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || ''
+export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
+export const NEXT_PUBLIC_SOLSCAN_API_URL = 'https://api.solscan.io'
+export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'
 export const JITO_TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
   'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe',
@@ -12,8 +17,8 @@ export const JITO_TIP_ACCOUNTS = [
   'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh',
   'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
   'DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL',
-  '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT'
-];
+  '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT',
+]
 
 // Solana native mint (SOL)
-export const SOL_MINT_ADDRESS = 'So11111111111111111111111111111111111111112'; 
+export const SOL_MINT_ADDRESS = 'So11111111111111111111111111111111111111112'

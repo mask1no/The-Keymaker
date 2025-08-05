@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap');
-@import "@solana/wallet-adapter-react-ui/styles.css";
+@import '@solana/wallet-adapter-react-ui/styles.css';
 
 @tailwind base;
 @tailwind components;
@@ -52,7 +52,12 @@
   }
 
   /* Typography */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Fira Sans', sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -62,7 +67,9 @@
     font-family: 'Inter', sans-serif;
   }
 
-  code, pre, .font-mono {
+  code,
+  pre,
+  .font-mono {
     font-family: 'Fira Code', monospace;
   }
 }
@@ -122,14 +129,16 @@
 
 /* Glow effects */
 .glow-green {
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5),
-              0 0 40px rgba(34, 197, 94, 0.3),
-              0 0 60px rgba(34, 197, 94, 0.1);
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.5),
+    0 0 40px rgba(34, 197, 94, 0.3),
+    0 0 60px rgba(34, 197, 94, 0.1);
 }
 
 .glow-green-sm {
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5),
-              0 0 20px rgba(34, 197, 94, 0.3);
+  box-shadow:
+    0 0 10px rgba(34, 197, 94, 0.5),
+    0 0 20px rgba(34, 197, 94, 0.3);
 }
 
 /* Button hover effects */
@@ -173,4 +182,4 @@ select:focus {
 
 .border-aqua {
   @apply dark:border-cyan-400 border-cyan-600;
-} 
+}

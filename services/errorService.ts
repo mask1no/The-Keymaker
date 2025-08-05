@@ -1,51 +1,54 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import path from 'path';
+import sqlite3 from 'sqlite3'
+import { open } from 'sqlite'
+import path from 'path'
 
 async function getDb() {
-  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db');
+  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
   return open({
     filename: dbPath,
-    driver: sqlite3.Database
-  });
+    driver: sqlite3.Database,
+  })
 }
 
 /**
  * Log error to database
  */
-export async function logError(message: string, component: string): Promise<void> {
+export async function logError(
+  message: string,
+  component: string,
+): Promise<void> {
   try {
-    const db = await getDb();
-    
-    await db.run(
-      'INSERT INTO errors (message, component) VALUES (?, ?)',
-      [message, component]
-    );
-    
-    await db.close();
+    const db = await getDb()
+
+    await db.run('INSERT INTO errors (message, component) VALUES (?, ?)', [
+      message,
+      component,
+    ])
+
+    await db.close()
   } catch (error) {
     // Fail silently to avoid infinite error loops
-    console.error('Failed to log error to database:', error);
+    console.error('Failed to log error to database:', error)
   }
 }
 
 /**
  * Get recent errors
  */
-export async function getRecentErrors(limit: number = 50): Promise<any[]> {
+export async function getRecentErrors(limit = 50): Promise<unknown[]> {
   try {
-    const db = await getDb();
-    
+    const db = await getDb()
+
     const errors = await db.all(
       'SELECT * FROM errors ORDER BY occurred_at DESC LIMIT ?',
-      [limit]
-    );
-    
-    await db.close();
-    return errors;
+      [limit],
+    )
+
+    await db.close()
+    return errors
   } catch (error) {
-    console.error('Failed to fetch errors:', error);
-    return [];
+    console.error('Failed to fetch errors:', error)
+    return []
   }
 }
 
@@ -54,16 +57,15 @@ export async function getRecentErrors(limit: number = 50): Promise<any[]> {
  */
 export async function cleanupOldErrors(): Promise<void> {
   try {
-    const db = await getDb();
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    
-    await db.run(
-      'DELETE FROM errors WHERE occurred_at < ?',
-      [sevenDaysAgo]
-    );
-    
-    await db.close();
+    const db = await getDb()
+    const sevenDaysAgo = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+
+    await db.run('DELETE FROM errors WHERE occurred_at < ?', [sevenDaysAgo])
+
+    await db.close()
   } catch (error) {
-    console.error('Failed to cleanup old errors:', error);
+    console.error('Failed to cleanup old errors:', error)
   }
 }

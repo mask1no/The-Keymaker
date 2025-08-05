@@ -1,9 +1,9 @@
-'use client';
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Coins } from 'lucide-react';
-import TokenForm from './TokenForm';
-import { GlassCard } from '@/components/UI/GlassCard';
+'use client'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Coins } from 'lucide-react'
+import TokenForm from './TokenForm'
+import { GlassCard } from '@/components/UI/GlassCard'
 
 export default function MemecoinCreator() {
   return (
@@ -20,5 +20,5 @@ export default function MemecoinCreator() {
         <TokenForm />
       </GlassCard>
     </motion.div>
-  );
-} 
+  )
+}

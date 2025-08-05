@@ -1,23 +1,23 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface StepperProps {
-  currentStep: number;
-  steps: string[];
-  className?: string;
+  currentStep: number
+  steps: string[]
+  className?: string
 }
 
 export function Stepper({ currentStep, steps, className }: StepperProps) {
   return (
-    <div className={cn("flex items-center justify-between", className)}>
+    <div className={cn('flex items-center justify-between', className)}>
       {steps.map((step, index) => (
         <div key={index} className="flex items-center">
           <div
             className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium",
+              'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
               index <= currentStep
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground',
             )}
           >
             {index + 1}
@@ -25,21 +25,21 @@ export function Stepper({ currentStep, steps, className }: StepperProps) {
           {index < steps.length - 1 && (
             <div
               className={cn(
-                "h-0.5 w-12 mx-2",
-                index < currentStep ? "bg-primary" : "bg-muted"
+                'h-0.5 w-12 mx-2',
+                index < currentStep ? 'bg-primary' : 'bg-muted',
               )}
             />
           )}
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 interface StepProps {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
+  title: string
+  description?: string
+  children: React.ReactNode
 }
 
 export function Step({ title, description, children }: StepProps) {
@@ -53,5 +53,5 @@ export function Step({ title, description, children }: StepProps) {
       </div>
       <div>{children}</div>
     </div>
-  );
+  )
 }

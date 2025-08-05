@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 
-const LATEST_VERSION = '1.1.0';
+const LATEST_VERSION = '1.1.0'
 
 export async function GET() {
   return NextResponse.json({
@@ -16,7 +16,7 @@ export async function GET() {
       'Fee & tip estimator',
       'Auto-update checker',
       'Accessibility improvements',
-      'i18n support'
-    ]
-  });
+      'i18n support',
+    ],
+  })
 }

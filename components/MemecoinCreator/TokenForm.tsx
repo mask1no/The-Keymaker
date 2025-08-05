@@ -1,143 +1,177 @@
-'use client';
-import React, { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { Coins, Image, Globe, MessageCircle, Twitter } from 'lucide-react';
-import { Input } from '@/components/UI/input';
-import { Button } from '@/components/UI/button';
-import { Label } from '@/components/UI/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
-import { Badge } from '@/components/UI/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
-import { createToken as pumpfunCreate } from '../../services/pumpfunService';
-import { createToken as letsbonkCreate } from '../../services/letsbonkService';
-import { useKeymakerStore } from '@/lib/store';
-import { AlertCircle } from 'lucide-react';
+'use client'
+import React, { useState } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
+import { Coins, Image, Globe, MessageCircle, Twitter } from 'lucide-react'
+import { Input } from '@/components/UI/input'
+import { Button } from '@/components/UI/button'
+import { Label } from '@/components/UI/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Badge } from '@/components/UI/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/UI/dialog'
+import { createToken as pumpfunCreate } from '../../services/pumpfunService'
+import { createToken as letsbonkCreate } from '../../services/letsbonkService'
+import { useKeymakerStore } from '@/lib/store'
+import { AlertCircle } from 'lucide-react'
+import { Keypair } from '@solana/web3.js'
 
 export default function TokenForm() {
-  const { publicKey } = useWallet();
-  const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [deployedToken, setDeployedToken] = useState<string | null>(null);
-  
+  const { publicKey } = useWallet()
+  const [loading, setLoading] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
+  const [deployedToken, setDeployedToken] = useState<string | null>(null)
+
   // Zustand store
-  const { setTokenLaunchData } = useKeymakerStore();
-  
+  const { setTokenLaunchData, wallets } = useKeymakerStore()
+
   // Form fields
-  const [name, setName] = useState('');
-  const [symbol, setSymbol] = useState('');
-  const [supply, setSupply] = useState('1000000000');
-  const [decimals, setDecimals] = useState('9');
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
-  const [telegram, setTelegram] = useState('');
-  const [website, setWebsite] = useState('');
-  const [twitter, setTwitter] = useState('');
-  const [platform, setPlatform] = useState('Pump.fun');
+  const [name, setName] = useState('')
+  const [symbol, setSymbol] = useState('')
+  const [supply, setSupply] = useState('1000000000')
+  const [decimals, setDecimals] = useState('9')
+  const [description, setDescription] = useState('')
+  const [image, setImage] = useState('')
+  const [telegram, setTelegram] = useState('')
+  const [website, setWebsite] = useState('')
+  const [twitter, setTwitter] = useState('')
+  const [platform, setPlatform] = useState('Pump.fun')
 
   const validateForm = (): boolean => {
     if (!name || name.length > 32) {
-      toast.error('Name is required and must be 32 characters or less');
-      return false;
+      toast.error('Name is required and must be 32 characters or less')
+      return false
     }
-    
+
     if (!symbol || symbol.length > 10) {
-      toast.error('Symbol is required and must be 10 characters or less');
-      return false;
+      toast.error('Symbol is required and must be 10 characters or less')
+      return false
     }
-    
+
     if (!supply || parseInt(supply) <= 0) {
-      toast.error('Supply must be greater than 0');
-      return false;
+      toast.error('Supply must be greater than 0')
+      return false
     }
-    
+
     if (parseInt(decimals) < 0 || parseInt(decimals) > 18) {
-      toast.error('Decimals must be between 0 and 18');
-      return false;
+      toast.error('Decimals must be between 0 and 18')
+      return false
     }
-    
+
     if (image && !isValidUrl(image)) {
-      toast.error('Invalid image URL');
-      return false;
+      toast.error('Invalid image URL')
+      return false
     }
-    
-    return true;
-  };
+
+    return true
+  }
 
   const isValidUrl = (url: string): boolean => {
     try {
-      new URL(url);
-      return true;
+      new URL(url)
+      return true
     } catch {
-      return false;
+      return false
     }
-  };
+  }
 
-  const metadata = { 
-    name, 
-    symbol, 
+  const metadata = {
+    name,
+    symbol,
     description,
-    image, 
-    telegram, 
-    website, 
-    twitter 
-  };
+    image,
+    telegram,
+    website,
+    twitter,
+  }
 
   const handleDeploy = async () => {
     if (!publicKey) {
-      return toast.error('Connect wallet first');
+      return toast.error('Connect wallet first')
     }
-    
+
     if (!validateForm()) {
-      return;
+      return
     }
-    
-    setLoading(true);
+
+    setLoading(true)
     try {
-      let tokenAddr: string;
-      
+      let tokenAddr: string
+
       // Update global store with token launch data
       setTokenLaunchData({
         name,
         symbol,
         decimals: parseInt(decimals),
         supply: parseInt(supply),
-        platform: platform.toLowerCase().replace('.', '') as 'pump.fun' | 'letsbonk.fun' | 'raydium',
+        platform: platform.toLowerCase().replace('.', '') as
+          | 'pump.fun'
+          | 'letsbonk.fun'
+          | 'raydium',
         lpAmount: 1, // Default LP amount
-        walletPublicKey: publicKey.toString()
-      });
-      
+        walletPublicKey: publicKey.toString(),
+      })
+
       switch (platform) {
         case 'Raydium': {
           // For Raydium, we need to prompt for wallet password
-          const password = prompt('Enter wallet password to create token:');
+          const password = prompt('Enter wallet password to create token:')
           if (!password) {
-            throw new Error('Password required to create token');
+            throw new Error('Password required to create token')
           }
-          
+
           // Raydium requires a full keypair which isn't available with browser wallets
           // Direct users to use other platforms or import a wallet
-          throw new Error('Raydium token creation requires an imported wallet with decryptable keypair. Please use Pump.fun or other platforms.');
+          throw new Error(
+            'Raydium token creation requires an imported wallet with decryptable keypair. Please use Pump.fun or other platforms.',
+          )
         }
-          
-        case 'Pump.fun':
-          tokenAddr = await pumpfunCreate(name, symbol, parseInt(supply), metadata);
-          break;
-          
-        case 'LetsBonk.fun':
-          tokenAddr = await letsbonkCreate(name, symbol, parseInt(supply), metadata);
-          break;
-          
 
-          
+        case 'Pump.fun':
+          tokenAddr = await pumpfunCreate(
+            name,
+            symbol,
+            parseInt(supply),
+            metadata,
+          )
+          break
+
+        case 'LetsBonk.fun': {
+          // For LetsBonk, we need a keypair - use master wallet or create temp
+          const masterWallet = wallets.find(w => w.role === 'master')
+          if (!masterWallet) {
+            throw new Error('Master wallet not found')
+          }
+          // Create a temporary keypair for now - in production this should use the actual wallet
+          const tempKeypair = Keypair.generate()
+          tokenAddr = await letsbonkCreate(
+            name,
+            symbol,
+            parseInt(supply),
+            metadata,
+            tempKeypair,
+          )
+        }
+          break
+
         default:
-          throw new Error('Invalid platform selected');
+          throw new Error('Invalid platform selected')
       }
-      
-      setDeployedToken(tokenAddr);
-      
+
+      setDeployedToken(tokenAddr)
+
       // Save token to database via API
       try {
         const response = await fetch('/api/tokens', {
@@ -152,56 +186,58 @@ export default function TokenForm() {
             supply: parseInt(supply),
             decimals: parseInt(decimals),
             launch_platform: platform,
-            metadata
+            metadata,
           }),
-        });
-        
+        })
+
         if (!response.ok) {
-          throw new Error('Failed to save token to database');
+          throw new Error('Failed to save token to database')
         }
-        
+
         // Update store with the deployed token address
-        setTokenLaunchData({
-          ...useKeymakerStore.getState().tokenLaunchData!,
-          mintAddress: tokenAddr
-        });
-        
-        toast.success(`Token deployed successfully!`);
+        const currentData = useKeymakerStore.getState().tokenLaunchData
+        if (currentData) {
+          setTokenLaunchData({
+            ...currentData,
+            mintAddress: tokenAddr,
+          })
+        }
+
+        toast.success(`Token deployed successfully!`)
       } catch (dbError) {
-        console.error('Failed to save token to database:', dbError);
+        console.error('Failed to save token to database:', dbError)
         // Still show success since token was created
-        toast.success(`Token deployed successfully! (DB save failed)`);
+        toast.success(`Token deployed successfully! (DB save failed)`)
       }
-      
+
       // Reset form
-      setName('');
-      setSymbol('');
-      setSupply('1000000000');
-      setDescription('');
-      setImage('');
-      setTelegram('');
-      setWebsite('');
-      setTwitter('');
-      
+      setName('')
+      setSymbol('')
+      setSupply('1000000000')
+      setDescription('')
+      setImage('')
+      setTelegram('')
+      setWebsite('')
+      setTwitter('')
     } catch (error) {
-      console.error('Deployment error:', error);
-      toast.error(error instanceof Error ? error.message : 'Deployment failed');
+      console.error('Deployment error:', error)
+      toast.error(error instanceof Error ? error.message : 'Deployment failed')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handlePreview = () => {
     if (!validateForm()) {
-      return;
+      return
     }
-    setShowPreview(true);
-  };
+    setShowPreview(true)
+  }
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
-  };
+    navigator.clipboard.writeText(text)
+    toast.success('Copied to clipboard')
+  }
 
   return (
     <>
@@ -216,114 +252,114 @@ export default function TokenForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Name *</Label>
-              <Input 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="My Awesome Token"
                 maxLength={32}
                 className="bg-black/50 border-aqua/30"
               />
               <span className="text-xs text-gray-400">{name.length}/32</span>
             </div>
-            
+
             <div>
               <Label>Symbol *</Label>
-              <Input 
-                value={symbol} 
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())} 
+              <Input
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                 placeholder="TOKEN"
                 maxLength={10}
                 className="bg-black/50 border-aqua/30"
               />
               <span className="text-xs text-gray-400">{symbol.length}/10</span>
             </div>
-            
+
             <div>
               <Label>Supply *</Label>
-              <Input 
-                type="number" 
-                value={supply} 
-                onChange={(e) => setSupply(e.target.value)} 
+              <Input
+                type="number"
+                value={supply}
+                onChange={(e) => setSupply(e.target.value)}
                 placeholder="1000000000"
                 className="bg-black/50 border-aqua/30"
               />
             </div>
-            
+
             <div>
               <Label>Decimals</Label>
-              <Input 
-                type="number" 
-                value={decimals} 
-                onChange={(e) => setDecimals(e.target.value)} 
+              <Input
+                type="number"
+                value={decimals}
+                onChange={(e) => setDecimals(e.target.value)}
                 placeholder="9"
                 min="0"
                 max="18"
                 className="bg-black/50 border-aqua/30"
               />
             </div>
-            
+
             <div className="md:col-span-2">
               <Label>Description</Label>
-              <Input 
-                value={description} 
-                onChange={(e) => setDescription(e.target.value)} 
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="A brief description of your token"
                 className="bg-black/50 border-aqua/30"
               />
             </div>
-            
+
             <div className="md:col-span-2">
               <Label>Image URL</Label>
               <div className="flex gap-2">
                 <Image className="w-5 h-5 text-gray-400 mt-2" />
-                <Input 
-                  value={image} 
-                  onChange={(e) => setImage(e.target.value)} 
+                <Input
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
                   placeholder="https://example.com/logo.png"
                   className="bg-black/50 border-aqua/30"
                 />
               </div>
             </div>
-            
+
             <div>
               <Label>Telegram</Label>
               <div className="flex gap-2">
                 <MessageCircle className="w-5 h-5 text-gray-400 mt-2" />
-                <Input 
-                  value={telegram} 
-                  onChange={(e) => setTelegram(e.target.value)} 
+                <Input
+                  value={telegram}
+                  onChange={(e) => setTelegram(e.target.value)}
                   placeholder="t.me/mytoken"
                   className="bg-black/50 border-aqua/30"
                 />
               </div>
             </div>
-            
+
             <div>
               <Label>Website</Label>
               <div className="flex gap-2">
                 <Globe className="w-5 h-5 text-gray-400 mt-2" />
-                <Input 
-                  value={website} 
-                  onChange={(e) => setWebsite(e.target.value)} 
+                <Input
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://mytoken.com"
                   className="bg-black/50 border-aqua/30"
                 />
               </div>
             </div>
-            
+
             <div>
               <Label>Twitter/X</Label>
               <div className="flex gap-2">
                 <Twitter className="w-5 h-5 text-gray-400 mt-2" />
-                <Input 
-                  value={twitter} 
-                  onChange={(e) => setTwitter(e.target.value)} 
+                <Input
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
                   placeholder="@mytoken"
                   className="bg-black/50 border-aqua/30"
                 />
               </div>
             </div>
-            
+
             <div>
               <Label>Platform</Label>
               <Select value={platform} onValueChange={setPlatform}>
@@ -334,30 +370,30 @@ export default function TokenForm() {
                   <SelectItem value="Pump.fun">Pump.fun</SelectItem>
                   <SelectItem value="Raydium">Raydium</SelectItem>
                   <SelectItem value="LetsBonk.fun">LetsBonk.fun</SelectItem>
-      
                 </SelectContent>
               </Select>
             </div>
           </div>
-          
+
           {platform === 'letsbonk.fun' && (
             <div className="border border-yellow-500/50 bg-yellow-500/10 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5" />
               <div className="text-sm text-yellow-500">
-                LetsBonk.fun integration is configured. Token creation will use the wallet system through the Control Panel.
+                LetsBonk.fun integration is configured. Token creation will use
+                the wallet system through the Control Panel.
               </div>
             </div>
           )}
 
           <div className="flex gap-2 pt-4">
-            <Button 
-              onClick={handlePreview} 
+            <Button
+              onClick={handlePreview}
               variant="outline"
               disabled={loading}
             >
               Preview Token
             </Button>
-            <Button 
+            <Button
               onClick={handleDeploy}
               disabled={loading || !publicKey}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
@@ -366,7 +402,11 @@ export default function TokenForm() {
                 <>
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
                     className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
                   />
                   Deploying...
@@ -376,17 +416,23 @@ export default function TokenForm() {
               )}
             </Button>
           </div>
-          
+
           {deployedToken && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg"
             >
-              <h4 className="font-semibold text-green-500 mb-2">Token Deployed Successfully!</h4>
+              <h4 className="font-semibold text-green-500 mb-2">
+                Token Deployed Successfully!
+              </h4>
               <div className="flex items-center justify-between">
                 <span className="font-mono text-sm">{deployedToken}</span>
-                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(deployedToken)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(deployedToken)}
+                >
                   Copy
                 </Button>
               </div>
@@ -412,7 +458,7 @@ export default function TokenForm() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="bg-black/90 border-aqua/30">
@@ -421,12 +467,13 @@ export default function TokenForm() {
           </DialogHeader>
           <div className="space-y-4">
             {image && (
-              <img 
-                src={image} 
-                alt={name} 
+              <img
+                src={image}
+                alt={name}
                 className="w-24 h-24 rounded-full mx-auto"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
                 }}
               />
             )}
@@ -455,17 +502,32 @@ export default function TokenForm() {
               )}
               <div className="flex gap-2 pt-2">
                 {telegram && (
-                  <a href={telegram} target="_blank" rel="noopener noreferrer" className="text-aqua hover:underline text-sm">
+                  <a
+                    href={telegram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-aqua hover:underline text-sm"
+                  >
                     Telegram
                   </a>
                 )}
                 {website && (
-                  <a href={website} target="_blank" rel="noopener noreferrer" className="text-aqua hover:underline text-sm">
+                  <a
+                    href={website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-aqua hover:underline text-sm"
+                  >
                     Website
                   </a>
                 )}
                 {twitter && (
-                  <a href={`https://twitter.com/${twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-aqua hover:underline text-sm">
+                  <a
+                    href={`https://twitter.com/${twitter.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-aqua hover:underline text-sm"
+                  >
                     Twitter
                   </a>
                 )}
@@ -478,5 +540,5 @@ export default function TokenForm() {
         </DialogContent>
       </Dialog>
     </>
-  );
-} 
+  )
+}

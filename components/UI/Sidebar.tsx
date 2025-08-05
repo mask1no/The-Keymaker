@@ -1,18 +1,28 @@
-'use client';
-import { Home, Zap, Wallet, Coins, Activity, BarChart2, Settings } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+'use client'
+import {
+  Home,
+  Zap,
+  Wallet,
+  Coins,
+  Activity,
+  BarChart2,
+  Settings,
+} from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
-import { useKeymakerStore } from '@/lib/store';
-import { StatusCards } from './StatusCards';
+import {
+  TooltipProvider,
+} from '@/components/UI/tooltip'
+import { useKeymakerStore } from '@/lib/store'
+import { StatusCards } from './StatusCards'
 
 interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
-  tooltip?: string;
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  badge?: string
+  tooltip?: string
 }
 
 const navItems: NavItem[] = [
@@ -23,11 +33,11 @@ const navItems: NavItem[] = [
   { name: 'Trade History', href: '/logs', icon: Activity },
   { name: 'PNL', href: '/pnl', icon: BarChart2 },
   { name: 'Settings', href: '/settings', icon: Settings },
-];
+]
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const { isExecuting } = useKeymakerStore();
+  const pathname = usePathname()
+  const { isExecuting } = useKeymakerStore()
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -44,18 +54,20 @@ export function Sidebar() {
         <nav className="px-4 mt-8">
           <ul className="space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
+              const isActive = pathname === item.href
+              const Icon = item.icon
               return (
                 <li key={item.name}>
                   <Link href={item.href}>
-                    <div className={`flex items-center h-10 px-4 rounded-lg transition-colors ${isActive ? 'bg-green-500/20 text-green-400' : 'text-white/80 hover:text-white hover:bg-white/5'}`}>
+                    <div
+                      className={`flex items-center h-10 px-4 rounded-lg transition-colors ${isActive ? 'bg-green-500/20 text-green-400' : 'text-white/80 hover:text-white hover:bg-white/5'}`}
+                    >
                       <Icon className="w-5 h-5 flex-shrink-0" />
                       <span className="ml-3">{item.name}</span>
                     </div>
                   </Link>
                 </li>
-              );
+              )
             })}
           </ul>
         </nav>
@@ -91,5 +103,5 @@ export function Sidebar() {
         </nav>
       </aside>
     </TooltipProvider>
-  );
-} 
+  )
+}

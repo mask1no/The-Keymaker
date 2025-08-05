@@ -3,98 +3,106 @@
  * Uses Sentry in production, console in development
  */
 
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs'
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 interface LogContext {
-  [key: string]: any;
+  [key: string]: any
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
-  
+  private isDevelopment = process.env.NODE_ENV === 'development'
+
   private log(level: LogLevel, message: string, context?: LogContext) {
     // In production, only log warnings and errors
     if (!this.isDevelopment && (level === 'debug' || level === 'info')) {
-      return;
+      return
     }
-    
-    const timestamp = new Date().toISOString();
-    
+
+    const timestamp = new Date().toISOString()
+
     // Console output in development
     if (this.isDevelopment) {
-      const consoleMethod = level === 'error' ? console.error : 
-                          level === 'warn' ? console.warn : 
-                          console.log;
-      
-      consoleMethod(`[${timestamp}] [${level.toUpperCase()}]`, message, context || '');
+      const consoleMethod =
+        level === 'error'
+          ? console.error
+          : level === 'warn'
+            ? console.warn
+            : console.log
+
+      consoleMethod(
+        `[${timestamp}] [${level.toUpperCase()}]`,
+        message,
+        context || '',
+      )
     }
-    
+
     // Sentry logging for errors and warnings
     if (level === 'error') {
       Sentry.captureException(new Error(message), {
         level: 'error',
-        extra: context
-      });
+        extra: context,
+      })
     } else if (level === 'warn' && !this.isDevelopment) {
       Sentry.captureMessage(message, {
         level: 'warning',
-        extra: context
-      });
+        extra: context,
+      })
     }
   }
-  
+
   debug(message: string, context?: LogContext) {
-    this.log('debug', message, context);
+    this.log('debug', message, context)
   }
-  
+
   info(message: string, context?: LogContext) {
-    this.log('info', message, context);
+    this.log('info', message, context)
   }
-  
+
   warn(message: string, context?: LogContext) {
-    this.log('warn', message, context);
+    this.log('warn', message, context)
   }
-  
+
   error(message: string, context?: LogContext) {
-    this.log('error', message, context);
+    this.log('error', message, context)
   }
-  
+
   // Special method for API errors
   apiError(service: string, error: any, context?: LogContext) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    const statusCode = error?.response?.status;
-    
+    const errorMessage =
+      error?.response?.data?.message || error?.message || 'Unknown error'
+    const statusCode = error?.response?.status
+
     this.error(`${service} API error: ${errorMessage}`, {
       service,
       statusCode,
       error: error?.response?.data || error,
-      ...context
-    });
+      ...context,
+    })
   }
-  
+
   // Transaction logging
   transaction(action: string, details: LogContext) {
     this.info(`Transaction: ${action}`, {
       action,
       ...details,
-      timestamp: Date.now()
-    });
+      timestamp: Date.now(),
+    })
   }
-  
+
   // Security event logging
   security(event: string, details: LogContext) {
     this.warn(`Security event: ${event}`, {
       event,
       ...details,
-      timestamp: Date.now()
-    });
+      timestamp: Date.now(),
+    })
   }
 }
 
 // Export singleton instance
-export const logger = new Logger();
+export const logger = new Logger()
 
 // Also export for testing
-export { Logger }; 
+export { Logger }

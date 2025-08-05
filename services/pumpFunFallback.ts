@@ -1,45 +1,47 @@
-import { logger } from '@/lib/logger';
-import { useSettingsStore } from '@/stores/useSettingsStore';
+import { logger } from '@/lib/logger'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 interface PumpFunTokenResult {
-  mint: string;
-  lpAddress?: string;
-  txSignature: string;
+  mint: string
+  lpAddress?: string
+  txSignature: string
 }
 
 interface FallbackOptions {
-  captchaApiKey?: string;
-  retries?: number;
+  captchaApiKey?: string
+  retries?: number
 }
 
 export class PumpFunFallbackService {
-  private isRunning = false;
+  private isRunning = false
 
   async launchTokenWithGUI(
     tokenName: string,
     tokenSymbol: string,
     description: string,
     imageUrl: string,
-    options: FallbackOptions = { retries: 1 }
+    options: FallbackOptions = { retries: 1 },
   ): Promise<PumpFunTokenResult> {
     if (this.isRunning) {
-      throw new Error('GUI fallback is already running');
+      throw new Error('GUI fallback is already running')
     }
 
-    const settings = useSettingsStore.getState();
-    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaApiKey;
+    const settings = useSettingsStore.getState()
+    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaApiKey
 
     if (!captchaApiKey) {
-      throw new Error('2Captcha API key not configured in settings');
+      throw new Error('2Captcha API key not configured in settings')
     }
 
-    this.isRunning = true;
-    let attempt = 0;
+    this.isRunning = true
+    let attempt = 0
 
     try {
       while (attempt <= (options.retries || 1)) {
-        attempt++;
-        logger.info(`Launching pump.fun token via GUI fallback (attempt ${attempt})...`);
+        attempt++
+        logger.info(
+          `Launching pump.fun token via GUI fallback (attempt ${attempt})...`,
+        )
 
         try {
           // Call API endpoint for GUI fallback
@@ -51,42 +53,42 @@ export class PumpFunFallbackService {
               tokenSymbol,
               description,
               imageUrl,
-              captchaApiKey
-            })
-          });
+              captchaApiKey,
+            }),
+          })
 
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'GUI fallback failed');
+            const error = await response.json()
+            throw new Error(error.error || 'GUI fallback failed')
           }
 
-          const result = await response.json();
-          logger.info('Token launched successfully via GUI fallback:', result);
-          return result;
+          const result = await response.json()
+          logger.info('Token launched successfully via GUI fallback:', result)
+          return result
         } catch (error) {
-          logger.error(`GUI fallback attempt ${attempt} failed:`, error);
-          
+          logger.error(`GUI fallback attempt ${attempt} failed:`, error)
+
           if (attempt > (options.retries || 1)) {
-            throw error;
+            throw error
           }
-          
+
           // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 5000))
         }
       }
 
-      throw new Error('All GUI fallback attempts failed');
+      throw new Error('All GUI fallback attempts failed')
     } finally {
-      this.isRunning = false;
+      this.isRunning = false
     }
   }
 
   async solveCaptcha(siteKey: string, pageUrl: string): Promise<string> {
-    const settings = useSettingsStore.getState();
-    const apiKey = settings.twoCaptchaApiKey;
+    const settings = useSettingsStore.getState()
+    const apiKey = settings.twoCaptchaApiKey
 
     if (!apiKey) {
-      throw new Error('2Captcha API key not configured');
+      throw new Error('2Captcha API key not configured')
     }
 
     try {
@@ -99,49 +101,52 @@ export class PumpFunFallbackService {
           method: 'hcaptcha',
           sitekey: siteKey,
           pageurl: pageUrl,
-          json: '1'
-        })
-      });
+          json: '1',
+        }),
+      })
 
-      const submitData = await submitResponse.json();
+      const submitData = await submitResponse.json()
       if (submitData.status !== 1) {
-        throw new Error(`2Captcha submit failed: ${submitData.error_text}`);
+        throw new Error(`2Captcha submit failed: ${submitData.error_text}`)
       }
 
-      const requestId = submitData.request;
-      logger.info(`2Captcha request submitted: ${requestId}`);
+      const requestId = submitData.request
+      logger.info(`2Captcha request submitted: ${requestId}`)
 
       // Poll for result
-      let attempts = 0;
-      while (attempts < 30) { // Max 150 seconds
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
+      let attempts = 0
+      while (attempts < 30) {
+        // Max 150 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000))
+
         const resultResponse = await fetch(
-          `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`
-        );
-        
-        const resultData = await resultResponse.json();
-        
+          `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`,
+        )
+
+        const resultData = await resultResponse.json()
+
         if (resultData.status === 1) {
-          logger.info('Captcha solved successfully');
-          return resultData.request;
+          logger.info('Captcha solved successfully')
+          return resultData.request
         } else if (resultData.request !== 'CAPCHA_NOT_READY') {
-          throw new Error(`2Captcha error: ${resultData.error_text}`);
+          throw new Error(`2Captcha error: ${resultData.error_text}`)
         }
-        
-        attempts++;
+
+        attempts++
       }
 
-      throw new Error('2Captcha timeout - captcha not solved within 150 seconds');
+      throw new Error(
+        '2Captcha timeout - captcha not solved within 150 seconds',
+      )
     } catch (error) {
-      logger.error('Failed to solve captcha:', error);
-      throw error;
+      logger.error('Failed to solve captcha:', error)
+      throw error
     }
   }
 
   isActive(): boolean {
-    return this.isRunning;
+    return this.isRunning
   }
 }
 
-export const pumpFunFallback = new PumpFunFallbackService();
+export const pumpFunFallback = new PumpFunFallbackService()

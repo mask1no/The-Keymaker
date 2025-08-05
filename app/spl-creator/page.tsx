@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
+import { redirect } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function SPLCreatorPage() {
   useEffect(() => {
-    redirect('/spl-creator/create');
-  }, []);
+    redirect('/spl-creator/create')
+  }, [])
 
-  return null;
+  return null
 }

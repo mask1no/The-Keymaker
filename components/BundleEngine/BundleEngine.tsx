@@ -1,160 +1,218 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, Transaction, PublicKey, Keypair, VersionedTransaction } from '@solana/web3.js';
-import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { ChevronDown, ChevronUp, Copy, Download, Zap, Plus, Trash2, AlertCircle, Lock } from 'lucide-react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Button } from '@/components/UI/button';
-import { Input } from '@/components/UI/input';
-import { Label } from '@/components/UI/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/UI/table';
-import { Skeleton } from '@/components/UI/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
-import { Badge } from '@/components/UI/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/UI/dialog';
-import { previewBundle, executeBundle, type PreviewResult, type ExecutionResult } from '@/services/bundleService';
-import { exportExecutionLog } from '@/lib/clientLogger';
-import { buildSwapTransaction, WSOL_MINT, convertToLamports } from '@/services/jupiterService';
-import { trackBuy, trackSell } from '@/services/pnlService';
-import { getKeypair } from '@/services/walletService';
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { useKeymakerStore } from '@/lib/store';
-import { getBundleTxLimit } from '@/lib/constants/bundleConfig';
-import { FeeEstimator } from '@/components/FeeEstimator';
+'use client'
+import React, { useState, useEffect } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import {
+  Connection,
+  Transaction,
+  PublicKey,
+  Keypair,
+  VersionedTransaction,
+} from '@solana/web3.js'
+import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
+import {
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Download,
+  Zap,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Lock,
+} from 'lucide-react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { Button } from '@/components/UI/button'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/UI/table'
+import { Skeleton } from '@/components/UI/skeleton'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/UI/tooltip'
+import { Badge } from '@/components/UI/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/UI/dialog'
+import {
+  previewBundle,
+  executeBundle,
+  type PreviewResult,
+  type ExecutionResult,
+} from '@/services/bundleService'
+import { exportExecutionLog } from '@/lib/clientLogger'
+import {
+  buildSwapTransaction,
+  WSOL_MINT,
+  convertToLamports,
+} from '@/services/jupiterService'
+import { trackBuy, trackSell } from '@/services/pnlService'
+import { getKeypair } from '@/services/walletService'
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
+import { useKeymakerStore } from '@/lib/store'
+import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
+import { FeeEstimator } from '@/components/FeeEstimator'
 
 interface TransactionInput {
-  tokenAddress: string;
-  amount: number;
-  slippage: number;
-  wallet?: string;
-  action: 'buy' | 'sell';
-  priorityFee?: number;
+  tokenAddress: string
+  amount: number
+  slippage: number
+  wallet?: string
+  action: 'buy' | 'sell'
+  priorityFee?: number
 }
 
 interface WalletWithRole {
-  publicKey: string;
-  role: 'master' | 'dev' | 'sniper' | 'normal';
-  balance: number;
-  keypair?: Keypair;
+  publicKey: string
+  role: 'master' | 'dev' | 'sniper' | 'normal'
+  balance: number
+  keypair?: Keypair
 }
 
 export function BundleEngine() {
-  const { publicKey, signTransaction } = useWallet();
-  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
-  
+  const { publicKey, signTransaction } = useWallet()
+  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+
   // Zustand store
-  const { wallets: globalWallets, jitoEnabled, tipAmount } = useKeymakerStore();
-  
-  const [transactions, setTransactions] = useState<TransactionInput[]>([]);
-  const [preview, setPreview] = useState<PreviewResult[]>([]);
-  const [results, setResults] = useState<ExecutionResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [expandedLogs, setExpandedLogs] = useState<number[]>([]);
-  
+  const { wallets: globalWallets, jitoEnabled, tipAmount } = useKeymakerStore()
+
+  const [transactions, setTransactions] = useState<TransactionInput[]>([])
+  const [preview, setPreview] = useState<PreviewResult[]>([])
+  const [results, setResults] = useState<ExecutionResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [expandedLogs, setExpandedLogs] = useState<number[]>([])
+
   // Form inputs
-  const [tokenAddress, setTokenAddress] = useState('');
-  const [amount, setAmount] = useState('');
-  const [slippage, setSlippage] = useState('5');
-  const [selectedWallet, setSelectedWallet] = useState('');
-  const [action, setAction] = useState<'buy' | 'sell'>('buy');
-  const [priorityFee, setPriorityFee] = useState('0.00001');
-  
+  const [tokenAddress, setTokenAddress] = useState('')
+  const [amount, setAmount] = useState('')
+  const [slippage, setSlippage] = useState('5')
+  const [selectedWallet, setSelectedWallet] = useState('')
+  const [action, setAction] = useState<'buy' | 'sell'>('buy')
+  const [priorityFee, setPriorityFee] = useState('0.00001')
+
   // Wallet management
-  const [wallets, setWallets] = useState<WalletWithRole[]>([]);
-  const [activeGroup] = useState('default');
-  
+  const [wallets, setWallets] = useState<WalletWithRole[]>([])
+  const [activeGroup] = useState('default')
+
   // Password dialog
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [walletPassword, setWalletPassword] = useState('');
-  const [passwordCallback, setPasswordCallback] = useState<((password: string) => void) | null>(null);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [walletPassword, setWalletPassword] = useState('')
+  const [passwordCallback, setPasswordCallback] = useState<
+    ((password: string) => void) | null
+  >(null)
 
   useEffect(() => {
     // Load wallets from global store instead of localStorage
     if (globalWallets && globalWallets.length > 0) {
-      setWallets(globalWallets.map(w => ({
-        publicKey: w.publicKey,
-        role: w.role,
-        balance: w.balance || 0,
-        // Keypair will be added when needed for signing
-      })));
+      setWallets(
+        globalWallets.map((w) => ({
+          publicKey: w.publicKey,
+          role: w.role,
+          balance: w.balance || 0,
+          // Keypair will be added when needed for signing
+        })),
+      )
     } else {
       // Fallback to localStorage if store is empty
       const loadWallets = async () => {
-        const stored = localStorage.getItem('walletGroups');
+        const stored = localStorage.getItem('walletGroups')
         if (stored) {
-          const groups = JSON.parse(stored);
-          const activeGroupData = groups[activeGroup];
+          const groups = JSON.parse(stored)
+          const activeGroupData = groups[activeGroup]
           if (activeGroupData && activeGroupData.wallets) {
             // Map wallets without keypairs (they're encrypted)
-            setWallets(activeGroupData.wallets.map((w: any) => ({
-              publicKey: w.publicKey,
-              role: w.role,
-              balance: w.balance || 0,
-              // Keypair will be added when needed for signing
-            })));
+            setWallets(
+              activeGroupData.wallets.map((w: any) => ({
+                publicKey: w.publicKey,
+                role: w.role,
+                balance: w.balance || 0,
+                // Keypair will be added when needed for signing
+              })),
+            )
           }
         }
-      };
-      loadWallets();
+      }
+      loadWallets()
     }
-  }, [activeGroup, globalWallets]);
-  
+  }, [activeGroup, globalWallets])
+
   const addTransaction = () => {
     if (!tokenAddress || !amount || !slippage) {
-      return toast.error('Fill all required fields');
+      return toast.error('Fill all required fields')
     }
-    
-    const maxBundleSize = getBundleTxLimit();
+
+    const maxBundleSize = getBundleTxLimit()
     if (transactions.length >= maxBundleSize) {
-      return toast.error(`Maximum ${maxBundleSize} transactions per bundle`);
+      return toast.error(`Maximum ${maxBundleSize} transactions per bundle`)
     }
-    
+
     // Validate token address
     try {
-      new PublicKey(tokenAddress);
+      new PublicKey(tokenAddress)
     } catch {
-      return toast.error('Invalid token address');
+      return toast.error('Invalid token address')
     }
-    
+
     const newTx: TransactionInput = {
       tokenAddress,
       amount: parseFloat(amount),
       slippage: parseFloat(slippage),
       wallet: selectedWallet || publicKey?.toBase58(),
       action,
-      priorityFee: parseFloat(priorityFee) * 1e9 // Convert SOL to lamports
-    };
-    
-    setTransactions([...transactions, newTx]);
-    
+      priorityFee: parseFloat(priorityFee) * 1e9, // Convert SOL to lamports
+    }
+
+    setTransactions([...transactions, newTx])
+
     // Reset form
-    setTokenAddress('');
-    setAmount('');
-    setSelectedWallet('');
-    
-    toast.success('Transaction added to bundle');
-  };
-  
+    setTokenAddress('')
+    setAmount('')
+    setSelectedWallet('')
+
+    toast.success('Transaction added to bundle')
+  }
+
   const removeTransaction = (index: number) => {
-    setTransactions(transactions.filter((_, i) => i !== index));
-  };
-  
+    setTransactions(transactions.filter((_, i) => i !== index))
+  }
+
   const clearBundle = () => {
-    setTransactions([]);
-    setPreview([]);
-    setResults(null);
-    toast.success('Bundle cleared');
-  };
-  
-  const buildTransactions = async (): Promise<(Transaction | VersionedTransaction)[]> => {
-    const txs: (Transaction | VersionedTransaction)[] = [];
-    
+    setTransactions([])
+    setPreview([])
+    setResults(null)
+    toast.success('Bundle cleared')
+  }
+
+  const buildTransactions = async (): Promise<
+    (Transaction | VersionedTransaction)[]
+  > => {
+    const txs: (Transaction | VersionedTransaction)[] = []
+
     for (const input of transactions) {
-      const feePayer = input.wallet ? new PublicKey(input.wallet) : publicKey!;
-      
+      const feePayer = input.wallet ? new PublicKey(input.wallet) : publicKey!
+
       try {
         if (input.action === 'buy') {
           // Buy token with SOL
@@ -164,9 +222,9 @@ export function BundleEngine() {
             convertToLamports(input.amount), // SOL amount in lamports
             feePayer.toBase58(),
             Math.floor(input.slippage * 100), // Convert percentage to basis points
-            input.priorityFee
-          );
-          txs.push(swapTx);
+            input.priorityFee,
+          )
+          txs.push(swapTx)
         } else {
           // Sell token for SOL
           const swapTx = await buildSwapTransaction(
@@ -175,141 +233,157 @@ export function BundleEngine() {
             convertToLamports(input.amount, 9), // Assuming 9 decimals, adjust as needed
             feePayer.toBase58(),
             Math.floor(input.slippage * 100),
-            input.priorityFee
-          );
-          txs.push(swapTx);
+            input.priorityFee,
+          )
+          txs.push(swapTx)
         }
       } catch (error) {
-        console.error(`Failed to build transaction for ${input.tokenAddress}:`, error);
-        throw new Error(`Failed to build swap: ${(error as Error).message}`);
+        console.error(
+          `Failed to build transaction for ${input.tokenAddress}:`,
+          error,
+        )
+        throw new Error(`Failed to build swap: ${(error as Error).message}`)
       }
     }
-    
-    return txs;
-  };
-  
-  const convertToLegacyTransactions = async (txs: (Transaction | VersionedTransaction)[]): Promise<Transaction[]> => {
-    const legacyTxs: Transaction[] = [];
-    
+
+    return txs
+  }
+
+  const convertToLegacyTransactions = async (
+    txs: (Transaction | VersionedTransaction)[],
+  ): Promise<Transaction[]> => {
+    const legacyTxs: Transaction[] = []
+
     for (const tx of txs) {
       if (tx instanceof Transaction) {
-        legacyTxs.push(tx);
+        legacyTxs.push(tx)
       } else {
         // Convert versioned transaction to legacy format
         // This maintains compatibility with the bundle preview system
-        const legacyTx = new Transaction();
-        legacyTx.feePayer = publicKey!;
+        const legacyTx = new Transaction()
+        legacyTx.feePayer = publicKey!
         // Add the versioned transaction's instructions if accessible
-        legacyTxs.push(legacyTx);
+        legacyTxs.push(legacyTx)
       }
     }
-    
-    return legacyTxs;
-  };
-  
+
+    return legacyTxs
+  }
+
   const handlePreview = async () => {
     if (transactions.length === 0) {
-      return toast.error('Add transactions to preview');
+      return toast.error('Add transactions to preview')
     }
-    
-    setLoading(true);
+
+    setLoading(true)
     try {
-      const txs = await buildTransactions();
-      const legacyTxs = await convertToLegacyTransactions(txs);
-      const previewData = await previewBundle(legacyTxs, connection);
-      setPreview(previewData);
-      
-      const failures = previewData.filter(p => !p.success).length;
+      const txs = await buildTransactions()
+      const legacyTxs = await convertToLegacyTransactions(txs)
+      const previewData = await previewBundle(legacyTxs, connection)
+      setPreview(previewData)
+
+      const failures = previewData.filter((p) => !p.success).length
       if (failures > 0) {
-        toast.error(`${failures} transactions failed simulation`);
+        toast.error(`${failures} transactions failed simulation`)
       } else {
-        toast.success('All transactions simulated successfully');
+        toast.success('All transactions simulated successfully')
       }
     } catch (error) {
-      toast.error(`Preview failed: ${(error as Error).message}`);
-      setPreview([]);
+      toast.error(`Preview failed: ${(error as Error).message}`)
+      setPreview([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
+
   const handleExecute = async () => {
-    if (!publicKey) return toast.error('Connect wallet first');
-    if (transactions.length === 0) return toast.error('Add transactions to execute');
-    
+    if (!publicKey) return toast.error('Connect wallet first')
+    if (transactions.length === 0)
+      return toast.error('Add transactions to execute')
+
     // Check if wallet has sufficient balance
-    const balance = await connection.getBalance(publicKey);
+    const balance = await connection.getBalance(publicKey)
     if (balance === 0) {
-      return toast.error('Wallet has 0 SOL. Please fund your wallet first.');
+      return toast.error('Wallet has 0 SOL. Please fund your wallet first.')
     }
-    
+
     // Check if balance is sufficient for fees (rough estimate)
-    const estimatedFees = (transactions.length + 1) * 0.001 * 1e9; // 0.001 SOL per tx + tip
+    const estimatedFees = (transactions.length + 1) * 0.001 * 1e9 // 0.001 SOL per tx + tip
     if (balance < estimatedFees) {
-      return toast.error(`Insufficient balance. Need at least ${(estimatedFees / 1e9).toFixed(4)} SOL for fees.`);
+      return toast.error(
+        `Insufficient balance. Need at least ${(estimatedFees / 1e9).toFixed(4)} SOL for fees.`,
+      )
     }
-    
-    setLoading(true);
+
+    setLoading(true)
     try {
-      const txs = await buildTransactions();
-      const legacyTxs = await convertToLegacyTransactions(txs);
-      
+      const txs = await buildTransactions()
+      const legacyTxs = await convertToLegacyTransactions(txs)
+
       // Check if any transactions use imported wallets
-      const usesImportedWallets = transactions.some(t => t.wallet && t.wallet !== publicKey?.toBase58());
-      
-      let executionResult: ExecutionResult | null = null;
-      
+      const usesImportedWallets = transactions.some(
+        (t) => t.wallet && t.wallet !== publicKey?.toBase58(),
+      )
+
+      let executionResult: ExecutionResult | null = null
+
       if (usesImportedWallets) {
         // Request password for decrypting wallets
-        const password = await requestWalletPassword();
+        const password = await requestWalletPassword()
         if (!password) {
-          setLoading(false);
-          return;
+          setLoading(false)
+          return
         }
-        
+
         // Build signers array with decrypted keypairs
-        const signers: (Keypair | null)[] = [];
-        
+        const signers: (Keypair | null)[] = []
+
         // Note: The signers array must match the length of transactions array
         // Use null for transactions that will be signed by the wallet adapter
-        
+
         // Add signers for each transaction
         for (const tx of transactions) {
           if (tx.wallet && tx.wallet !== publicKey?.toBase58()) {
             // Find wallet data
-            const walletData = wallets.find(w => w.publicKey === tx.wallet);
+            const walletData = wallets.find((w) => w.publicKey === tx.wallet)
             if (!walletData) {
-              throw new Error(`Wallet ${tx.wallet} not found`);
+              throw new Error(`Wallet ${tx.wallet} not found`)
             }
-            
+
             // Get encrypted private key from localStorage
-            const stored = localStorage.getItem('walletGroups');
-            if (!stored) throw new Error('No wallet groups found');
-            
-            const groups = JSON.parse(stored);
-            const activeGroupData = groups[activeGroup];
-            const encryptedWallet = activeGroupData.wallets.find((w: any) => w.publicKey === tx.wallet);
-            
+            const stored = localStorage.getItem('walletGroups')
+            if (!stored) throw new Error('No wallet groups found')
+
+            const groups = JSON.parse(stored)
+            const activeGroupData = groups[activeGroup]
+            const encryptedWallet = activeGroupData.wallets.find(
+              (w: any) => w.publicKey === tx.wallet,
+            )
+
             if (!encryptedWallet || !encryptedWallet.encryptedPrivateKey) {
-              throw new Error(`Encrypted data not found for wallet ${tx.wallet}`);
+              throw new Error(
+                `Encrypted data not found for wallet ${tx.wallet}`,
+              )
             }
-            
+
             try {
-              const keypair = await getKeypair(encryptedWallet, password);
-              signers.push(keypair);
+              const keypair = await getKeypair(encryptedWallet, password)
+              signers.push(keypair)
             } catch (error) {
-              throw new Error(`Failed to decrypt wallet ${tx.wallet}: Invalid password`);
+              throw new Error(
+                `Failed to decrypt wallet ${tx.wallet}: Invalid password`,
+              )
             }
           } else {
             // Connected wallet transaction - will be signed by wallet adapter
-            signers.push(null);
+            signers.push(null)
           }
         }
-        
+
         // Execute bundle with proper signers
         executionResult = await executeBundle(
           legacyTxs,
-          wallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+          wallets.map((w) => ({ publicKey: w.publicKey, role: w.role })),
           signers,
           {
             feePayer: publicKey,
@@ -318,19 +392,20 @@ export function BundleEngine() {
             connection,
             walletAdapter: {
               publicKey,
-              signTransaction: signTransaction!
-            }
-          }
-        );
-        
+              signTransaction: signTransaction!,
+            },
+          },
+        )
       } else {
         // Only connected wallet transactions
-        const signers: (Keypair | null)[] = new Array(transactions.length).fill(null);
-        
+        const signers: (Keypair | null)[] = new Array(transactions.length).fill(
+          null,
+        )
+
         // Execute bundle
         executionResult = await executeBundle(
           legacyTxs,
-          wallets.map(w => ({ publicKey: w.publicKey, role: w.role })),
+          wallets.map((w) => ({ publicKey: w.publicKey, role: w.role })),
           signers,
           {
             feePayer: publicKey,
@@ -339,101 +414,110 @@ export function BundleEngine() {
             connection,
             walletAdapter: {
               publicKey,
-              signTransaction: signTransaction!
-            }
-          }
-        );
+              signTransaction: signTransaction!,
+            },
+          },
+        )
       }
-      
+
       // Set results and show success/error messages
       if (executionResult) {
-        setResults(executionResult);
-        
-        const successCount = executionResult.results.filter((r: string) => r === 'success').length;
+        setResults(executionResult)
+
+        const successCount = executionResult.results.filter(
+          (r: string) => r === 'success',
+        ).length
         if (successCount === executionResult.results.length) {
-          toast.success(`Bundle executed successfully! All ${successCount} transactions confirmed`);
+          toast.success(
+            `Bundle executed successfully! All ${successCount} transactions confirmed`,
+          )
         } else if (successCount > 0) {
-          toast.error(`Bundle partially executed: ${successCount}/${executionResult.results.length} succeeded`);
+          toast.error(
+            `Bundle partially executed: ${successCount}/${executionResult.results.length} succeeded`,
+          )
         } else {
-          toast.error('Bundle execution failed');
+          toast.error('Bundle execution failed')
         }
       }
-      
-        // Track PnL for successful transactions
-        for (let i = 0; i < transactions.length; i++) {
-          if (executionResult.results[i] === 'success') {
-            const tx = transactions[i];
-            const wallet = tx.wallet || publicKey.toBase58();
-            
-            try {
-              if (tx.action === 'buy') {
-                // For buys, amount is SOL spent
-                await trackBuy(wallet, tx.tokenAddress, tx.amount, 0); // Token amount would need to be calculated
-              } else {
-                // For sells, amount is tokens sold
-                await trackSell(wallet, tx.tokenAddress, 0, tx.amount); // SOL received would need to be calculated
-              }
-            } catch (error) {
-              console.error('Failed to track PnL:', error);
+
+      // Track PnL for successful transactions
+      for (let i = 0; i < transactions.length; i++) {
+        if (executionResult.results[i] === 'success') {
+          const tx = transactions[i]
+          const wallet = tx.wallet || publicKey.toBase58()
+
+          try {
+            if (tx.action === 'buy') {
+              // For buys, amount is SOL spent
+              await trackBuy(wallet, tx.tokenAddress, tx.amount, 0) // Token amount would need to be calculated
+            } else {
+              // For sells, amount is tokens sold
+              await trackSell(wallet, tx.tokenAddress, 0, tx.amount) // SOL received would need to be calculated
             }
+          } catch (error) {
+            console.error('Failed to track PnL:', error)
           }
         }
-      
+      }
     } catch (error) {
-      toast.error(`Execution failed: ${(error as Error).message}`);
+      toast.error(`Execution failed: ${(error as Error).message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
+
   const requestWalletPassword = (): Promise<string> => {
     return new Promise((resolve) => {
-      setPasswordCallback(() => resolve);
-      setShowPasswordDialog(true);
-    });
-  };
-  
+      setPasswordCallback(() => resolve)
+      setShowPasswordDialog(true)
+    })
+  }
+
   const handlePasswordSubmit = () => {
     if (passwordCallback && walletPassword) {
-      passwordCallback(walletPassword);
-      setShowPasswordDialog(false);
-      setWalletPassword('');
-      setPasswordCallback(null);
+      passwordCallback(walletPassword)
+      setShowPasswordDialog(false)
+      setWalletPassword('')
+      setPasswordCallback(null)
     }
-  };
-  
+  }
+
   // Hotkey for execution
-  useHotkeys('meta+enter,ctrl+enter', handleExecute, { enableOnFormTags: true });
-  
+  useHotkeys('meta+enter,ctrl+enter', handleExecute, { enableOnFormTags: true })
+
   const handleExportLog = async () => {
     try {
-      const log = await exportExecutionLog();
-      const blob = new Blob([log], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `keymaker-log-${Date.now()}.json`;
-      a.click();
-      toast.success('Log exported');
+      const log = await exportExecutionLog()
+      const blob = new Blob([log], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `keymaker-log-${Date.now()}.json`
+      a.click()
+      toast.success('Log exported')
     } catch (error) {
-      toast.error('Failed to export log');
+      toast.error('Failed to export log')
     }
-  };
-  
+  }
+
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
-  };
-  
+    navigator.clipboard.writeText(text)
+    toast.success('Copied to clipboard')
+  }
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'sniper': return 'destructive';
-      case 'dev': return 'secondary';
-      case 'normal': return 'default';
-      default: return 'outline';
+      case 'sniper':
+        return 'destructive'
+      case 'dev':
+        return 'secondary'
+      case 'normal':
+        return 'default'
+      default:
+        return 'outline'
     }
-  };
-  
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -446,14 +530,16 @@ export function BundleEngine() {
           Bundle Engine
         </h2>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">Active Group: {activeGroup}</span>
+          <span className="text-sm text-gray-400">
+            Active Group: {activeGroup}
+          </span>
           <Button variant="outline" size="sm" onClick={handleExportLog}>
             <Download className="w-4 h-4 mr-1" />
             Export Log
           </Button>
         </div>
       </div>
-      
+
       {/* Transaction Input Form */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="col-span-2 lg:col-span-1">
@@ -465,7 +551,7 @@ export function BundleEngine() {
             className="bg-black/50 border-aqua/30 font-mono text-sm"
           />
         </div>
-        
+
         <div>
           <Label>Amount {action === 'buy' ? '(SOL)' : '(Tokens)'}</Label>
           <Input
@@ -477,7 +563,7 @@ export function BundleEngine() {
             className="bg-black/50 border-aqua/30"
           />
         </div>
-        
+
         <div>
           <Label>Slippage %</Label>
           <Input
@@ -489,7 +575,7 @@ export function BundleEngine() {
             className="bg-black/50 border-aqua/30"
           />
         </div>
-        
+
         <div>
           <Label>Priority Fee (SOL)</Label>
           <Input
@@ -501,7 +587,7 @@ export function BundleEngine() {
             className="bg-black/50 border-aqua/30"
           />
         </div>
-        
+
         <div>
           <Label>Wallet</Label>
           <Select value={selectedWallet} onValueChange={setSelectedWallet}>
@@ -510,13 +596,16 @@ export function BundleEngine() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Connected Wallet</SelectItem>
-              {wallets.map(w => (
+              {wallets.map((w) => (
                 <SelectItem key={w.publicKey} value={w.publicKey}>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs">
                       {w.publicKey.slice(0, 6)}...{w.publicKey.slice(-4)}
                     </span>
-                    <Badge variant={getRoleBadgeColor(w.role) as any} className="text-xs">
+                    <Badge
+                      variant={getRoleBadgeColor(w.role) as any}
+                      className="text-xs"
+                    >
                       {w.role}
                     </Badge>
                   </div>
@@ -525,7 +614,7 @@ export function BundleEngine() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label>Action</Label>
           <div className="flex gap-2 mt-2">
@@ -546,29 +635,37 @@ export function BundleEngine() {
           </div>
         </div>
       </div>
-      
+
       <div className="flex gap-2 flex-wrap">
-        <Button onClick={addTransaction} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+        <Button
+          onClick={addTransaction}
+          disabled={loading}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
           <Plus className="w-4 h-4 mr-1" />
           Add to Bundle
         </Button>
-        
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={handlePreview} disabled={loading || transactions.length === 0} variant="outline">
+              <Button
+                onClick={handlePreview}
+                disabled={loading || transactions.length === 0}
+                variant="outline"
+              >
                 Preview Bundle
               </Button>
             </TooltipTrigger>
             <TooltipContent>Simulate all transactions</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                onClick={handleExecute} 
+              <Button
+                onClick={handleExecute}
                 disabled={loading || transactions.length === 0}
                 className="bg-green-500 hover:bg-green-600"
               >
@@ -578,12 +675,12 @@ export function BundleEngine() {
             <TooltipContent>Submit bundle to Jito</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        
+
         <Button onClick={clearBundle} disabled={loading} variant="destructive">
           Clear Bundle
         </Button>
       </div>
-      
+
       {/* Transaction List */}
       {transactions.length > 0 && (
         <div className="space-y-2">
@@ -591,14 +688,20 @@ export function BundleEngine() {
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-aqua flex items-center gap-2">
                 Bundle Transactions ({transactions.length}/20)
-                {transactions.some(t => wallets.find(w => w.publicKey === t.wallet && w.role === 'sniper')) && (
-                  <Badge variant="destructive" className="text-xs">Sniper Priority</Badge>
+                {transactions.some((t) =>
+                  wallets.find(
+                    (w) => w.publicKey === t.wallet && w.role === 'sniper',
+                  ),
+                ) && (
+                  <Badge variant="destructive" className="text-xs">
+                    Sniper Priority
+                  </Badge>
                 )}
               </h3>
             </div>
-            
+
             {/* Fee Estimator */}
-            <FeeEstimator 
+            <FeeEstimator
               transactionCount={transactions.length}
               tipAmount={10000} // Default 0.01 SOL per transaction
               className="w-80"
@@ -606,19 +709,27 @@ export function BundleEngine() {
           </div>
           <div className="space-y-1">
             {transactions.map((tx, i) => {
-              const wallet = wallets.find(w => w.publicKey === tx.wallet);
+              const wallet = wallets.find((w) => w.publicKey === tx.wallet)
               return (
-                <div key={i} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-aqua/10 hover:border-aqua/30 transition-colors">
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-aqua/10 hover:border-aqua/30 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium">
-                      {tx.action.toUpperCase()} {tx.amount} {tx.action === 'buy' ? 'SOL' : 'Tokens'}
+                      {tx.action.toUpperCase()} {tx.amount}{' '}
+                      {tx.action === 'buy' ? 'SOL' : 'Tokens'}
                     </span>
                     <span className="text-sm text-gray-400">→</span>
                     <span className="font-mono text-sm text-gray-300">
-                      {tx.tokenAddress.slice(0, 8)}...{tx.tokenAddress.slice(-8)}
+                      {tx.tokenAddress.slice(0, 8)}...
+                      {tx.tokenAddress.slice(-8)}
                     </span>
                     {wallet && (
-                      <Badge variant={getRoleBadgeColor(wallet.role) as any} className="text-xs">
+                      <Badge
+                        variant={getRoleBadgeColor(wallet.role) as any}
+                        className="text-xs"
+                      >
                         {wallet.role}
                       </Badge>
                     )}
@@ -626,28 +737,30 @@ export function BundleEngine() {
                       Slippage: {tx.slippage}%
                     </span>
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => removeTransaction(i)} 
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeTransaction(i)}
                     className="hover:text-red-500"
                     aria-label="Remove transaction from bundle"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-              );
+              )
             })}
           </div>
         </div>
       )}
-      
+
       {/* Preview Results */}
       {loading && <Skeleton className="h-32 w-full" />}
-      
+
       {preview.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-aqua">Simulation Results</h3>
+          <h3 className="text-lg font-semibold text-aqua">
+            Simulation Results
+          </h3>
           <Table>
             <TableHeader>
               <TableRow>
@@ -673,11 +786,19 @@ export function BundleEngine() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setExpandedLogs(prev => 
-                        prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
-                      )}
+                      onClick={() =>
+                        setExpandedLogs((prev) =>
+                          prev.includes(i)
+                            ? prev.filter((x) => x !== i)
+                            : [...prev, i],
+                        )
+                      }
                     >
-                      {expandedLogs.includes(i) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {expandedLogs.includes(i) ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                       {p.logs.length} logs
                     </Button>
                     {expandedLogs.includes(i) && (
@@ -689,7 +810,9 @@ export function BundleEngine() {
                           </div>
                         )}
                         {p.logs.map((log, j) => (
-                          <div key={j} className="text-gray-400">{log}</div>
+                          <div key={j} className="text-gray-400">
+                            {log}
+                          </div>
                         ))}
                       </div>
                     )}
@@ -700,7 +823,7 @@ export function BundleEngine() {
           </Table>
         </div>
       )}
-      
+
       {/* Execution Results */}
       {results && (
         <motion.div
@@ -709,75 +832,99 @@ export function BundleEngine() {
           className="space-y-4 p-4 bg-black/50 rounded-lg border border-aqua/30"
         >
           <h3 className="text-lg font-semibold text-aqua">Execution Results</h3>
-          
+
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-gray-400">Bundle ID:</span>
               <div className="flex items-center gap-2 mt-1">
-                <span className="font-mono text-xs">{results.bundleId ? `${results.bundleId.slice(0, 12)}...` : 'N/A'}</span>
+                <span className="font-mono text-xs">
+                  {results.bundleId
+                    ? `${results.bundleId.slice(0, 12)}...`
+                    : 'N/A'}
+                </span>
                 {results.bundleId && (
-                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(results.bundleId!)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyToClipboard(results.bundleId!)}
+                  >
                     <Copy className="w-3 h-3" />
                   </Button>
                 )}
               </div>
             </div>
-            
+
             <div>
               <span className="text-gray-400">Slot:</span>
-              <span className="ml-2 font-medium">{results.slotTargeted.toLocaleString()}</span>
+              <span className="ml-2 font-medium">
+                {results.slotTargeted.toLocaleString()}
+              </span>
             </div>
-            
+
             <div>
               <span className="text-gray-400">Method:</span>
-              <Badge variant={results.usedJito ? 'default' : 'outline'} className="ml-2">
+              <Badge
+                variant={results.usedJito ? 'default' : 'outline'}
+                className="ml-2"
+              >
                 {results.usedJito ? 'Jito MEV' : 'Standard RPC'}
               </Badge>
             </div>
-            
+
             <div>
               <span className="text-gray-400">Execution Time:</span>
-              <span className="ml-2 font-medium">{(results.metrics.executionTime / 1000).toFixed(2)}s</span>
+              <span className="ml-2 font-medium">
+                {(results.metrics.executionTime / 1000).toFixed(2)}s
+              </span>
             </div>
-            
+
             <div>
               <span className="text-gray-400">Success Rate:</span>
-              <span className={`ml-2 font-medium ${results.metrics.successRate === 1 ? 'text-green-500' : 'text-yellow-500'}`}>
+              <span
+                className={`ml-2 font-medium ${results.metrics.successRate === 1 ? 'text-green-500' : 'text-yellow-500'}`}
+              >
                 {(results.metrics.successRate * 100).toFixed(0)}%
               </span>
             </div>
-            
+
             <div>
               <span className="text-gray-400">Est. Cost:</span>
-              <span className="ml-2 font-medium">{results.metrics.estimatedCost.toFixed(5)} SOL</span>
+              <span className="ml-2 font-medium">
+                {results.metrics.estimatedCost.toFixed(5)} SOL
+              </span>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <h4 className="font-semibold">Transaction Links:</h4>
             <div className="max-h-40 overflow-y-auto space-y-1">
-              {results.explorerUrls.map((url: string, i: number) => (
-                url && (
-                  <div key={i} className="flex items-center justify-between p-2 bg-black/30 rounded">
-                    <span className="text-sm">
-                      Transaction {i + 1}: {results.results[i] === 'success' ? '✅' : '❌'}
-                    </span>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-aqua hover:underline text-sm"
+              {results.explorerUrls.map(
+                (url: string, i: number) =>
+                  url && (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-2 bg-black/30 rounded"
                     >
-                      View on Solscan →
-                    </a>
-                  </div>
-                )
-              ))}
+                      <span className="text-sm">
+                        Transaction {i + 1}:{' '}
+                        {results.results[i] === 'success' ? '✅' : '❌'}
+                      </span>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-aqua hover:underline text-sm"
+                      >
+                        View on Solscan →
+                      </a>
+                    </div>
+                  ),
+              )}
             </div>
           </div>
         </motion.div>
       )}
-      
+
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent className="sm:max-w-[425px]">
@@ -787,7 +934,8 @@ export function BundleEngine() {
               Wallet Password Required
             </DialogTitle>
             <DialogDescription>
-              Enter your wallet password to decrypt imported wallets for bundle execution.
+              Enter your wallet password to decrypt imported wallets for bundle
+              execution.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -811,11 +959,11 @@ export function BundleEngine() {
             <Button
               variant="outline"
               onClick={() => {
-                setShowPasswordDialog(false);
-                setWalletPassword('');
+                setShowPasswordDialog(false)
+                setWalletPassword('')
                 if (passwordCallback) {
-                  passwordCallback('');
-                  setPasswordCallback(null);
+                  passwordCallback('')
+                  setPasswordCallback(null)
                 }
               }}
             >
@@ -828,5 +976,5 @@ export function BundleEngine() {
         </DialogContent>
       </Dialog>
     </motion.div>
-  );
-} 
+  )
+}

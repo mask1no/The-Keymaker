@@ -5,15 +5,15 @@ services:
       dockerfile: Dockerfile
     container_name: keymaker-prod
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       # Core Configuration
       NODE_ENV: production
-      
+
       # Solana RPC Configuration
       NEXT_PUBLIC_HELIUS_RPC: ${NEXT_PUBLIC_HELIUS_RPC}
       NEXT_PUBLIC_JITO_ENDPOINT: ${NEXT_PUBLIC_JITO_ENDPOINT:-https://mainnet.block-engine.jito.wtf}
-      
+
       # API Keys
       NEXT_PUBLIC_BIRDEYE_API_KEY: ${NEXT_PUBLIC_BIRDEYE_API_KEY}
       BIRDEYE_API_KEY: ${BIRDEYE_API_KEY}
@@ -21,45 +21,45 @@ services:
       PUMPFUN_API_KEY: ${PUMPFUN_API_KEY}
       NEXT_PUBLIC_MOONSHOT_API_KEY: ${NEXT_PUBLIC_MOONSHOT_API_KEY}
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
-      
+
       # Optional Services
       JITO_AUTH_TOKEN: ${JITO_AUTH_TOKEN}
       HELIUS_API_KEY: ${HELIUS_API_KEY}
       KEYPAIR: ${KEYPAIR}
-      
+
       # Monitoring
       SENTRY_DSN: ${SENTRY_DSN}
       NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
-      
+
       # Python module RPC
       RPC_URL: ${RPC_URL}
-    
+
     volumes:
       # Persist database and wallets
       - ./data:/app/data
-      
+
     restart: unless-stopped
-    
+
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    
+
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # Optional: Nginx reverse proxy for HTTPS
   nginx:
     image: nginx:alpine
     container_name: keymaker-nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
@@ -78,4 +78,4 @@ networks:
 # Persistent volumes
 volumes:
   keymaker-data:
-    driver: local 
+    driver: local

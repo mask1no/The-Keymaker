@@ -1,16 +1,16 @@
-import { VersionedTransaction } from '@solana/web3.js';
-import axios from 'axios';
-import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants';
-import { QuoteResponse, SwapResponse } from '@/lib/types';
+import { VersionedTransaction } from '@solana/web3.js'
+import axios from 'axios'
+import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
+import { QuoteResponse, SwapResponse } from '@/lib/types'
 
-const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+const WSOL_MINT = 'So11111111111111111111111111111111111111112'
 
 export async function getQuote(
   inputMint: string,
   outputMint: string,
   amount: number, // in lamports/smallest unit
   slippageBps = 50, // 0.5% default
-  swapMode = 'ExactIn'
+  swapMode = 'ExactIn',
 ): Promise<QuoteResponse> {
   try {
     const params = new URLSearchParams({
@@ -20,21 +20,29 @@ export async function getQuote(
       slippageBps: slippageBps.toString(),
       swapMode,
       onlyDirectRoutes: 'false',
-      asLegacyTransaction: 'false'
-    });
+      asLegacyTransaction: 'false',
+    })
 
-    const response = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`, {
-      headers: {
-        'Accept': 'application/json'
+    const response = await axios.get(
+      `${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`,
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+        timeout: 10000,
       },
-      timeout: 10000
-    });
+    )
 
-    return response.data;
+    return response.data
   } catch (error) {
-    const err = error as { response?: { data?: { error?: string } }; message?: string };
-    console.error('Jupiter quote error:', err.response?.data || err.message);
-    throw new Error(`Failed to get quote: ${err.response?.data?.error || err.message}`);
+    const err = error as {
+      response?: { data?: { error?: string } }
+      message?: string
+    }
+    console.error('Jupiter quote error:', err.response?.data || err.message)
+    throw new Error(
+      `Failed to get quote: ${err.response?.data?.error || err.message}`,
+    )
   }
 }
 
@@ -43,7 +51,7 @@ export async function getSwapTransaction(
   userPublicKey: string,
   wrapAndUnwrapSol = true,
   feeAccount?: string,
-  prioritizationFeeLamports?: number
+  prioritizationFeeLamports?: number,
 ): Promise<SwapResponse> {
   try {
     const body: any = {
@@ -52,15 +60,15 @@ export async function getSwapTransaction(
       wrapAndUnwrapSol,
       asLegacyTransaction: false,
       computeUnitPriceMicroLamports: 'auto',
-      dynamicComputeUnitLimit: true
-    };
+      dynamicComputeUnitLimit: true,
+    }
 
     if (feeAccount) {
-      body.feeAccount = feeAccount;
+      body.feeAccount = feeAccount
     }
 
     if (prioritizationFeeLamports) {
-      body.prioritizationFeeLamports = prioritizationFeeLamports;
+      body.prioritizationFeeLamports = prioritizationFeeLamports
     }
 
     const response = await axios.post(
@@ -68,17 +76,19 @@ export async function getSwapTransaction(
       body,
       {
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
-        timeout: 10000
-      }
-    );
+        timeout: 10000,
+      },
+    )
 
-    return response.data;
+    return response.data
   } catch (error: any) {
-    console.error('Jupiter swap error:', error.response?.data || error.message);
-    throw new Error(`Failed to get swap transaction: ${error.response?.data?.error || error.message}`);
+    console.error('Jupiter swap error:', error.response?.data || error.message)
+    throw new Error(
+      `Failed to get swap transaction: ${error.response?.data?.error || error.message}`,
+    )
   }
 }
 
@@ -88,15 +98,15 @@ export async function buildSwapTransaction(
   amountLamports: number,
   userPublicKey: string,
   slippageBps = 50,
-  priorityFee?: number
+  priorityFee?: number,
 ): Promise<VersionedTransaction> {
   // Get quote
   const quote = await getQuote(
     inputMint,
     outputMint,
     amountLamports,
-    slippageBps
-  );
+    slippageBps,
+  )
 
   // Get swap transaction
   const swap = await getSwapTransaction(
@@ -104,55 +114,55 @@ export async function buildSwapTransaction(
     userPublicKey,
     true,
     undefined,
-    priorityFee
-  );
+    priorityFee,
+  )
 
   // Deserialize the transaction
-  const swapTransactionBuf = Buffer.from(swap.swapTransaction, 'base64');
-  const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+  const swapTransactionBuf = Buffer.from(swap.swapTransaction, 'base64')
+  const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
 
-  return transaction;
+  return transaction
 }
 
 export async function getTokenPrice(
   tokenMint: string,
-  vsToken = 'USDC'
+  vsToken = 'USDC',
 ): Promise<number> {
   try {
     const response = await axios.get(
       `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}&vsToken=${vsToken}`,
       {
         headers: {
-          'Accept': 'application/json'
+          Accept: 'application/json',
         },
-        timeout: 5000
-      }
-    );
+        timeout: 5000,
+      },
+    )
 
-    const data = response.data.data;
+    const data = response.data.data
     if (data && data[tokenMint]) {
-      return data[tokenMint].price;
+      return data[tokenMint].price
     }
 
-    throw new Error('Price not found');
+    throw new Error('Price not found')
   } catch (error) {
-    console.error('Failed to get token price:', error);
-    throw error;
+    console.error('Failed to get token price:', error)
+    throw error
   }
 }
 
 export async function calculatePriceImpact(
-  quote: QuoteResponse
+  quote: QuoteResponse,
 ): Promise<number> {
-  return parseFloat(quote.priceImpactPct);
+  return parseFloat(quote.priceImpactPct)
 }
 
 export function convertToLamports(amount: number, decimals = 9): number {
-  return Math.floor(amount * Math.pow(10, decimals));
+  return Math.floor(amount * Math.pow(10, decimals))
 }
 
 export function convertFromLamports(lamports: number, decimals = 9): number {
-  return lamports / Math.pow(10, decimals);
+  return lamports / Math.pow(10, decimals)
 }
 
-export { WSOL_MINT }; 
+export { WSOL_MINT }

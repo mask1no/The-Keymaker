@@ -1,34 +1,39 @@
-'use client';
+'use client'
 
-import React, { Component, ReactNode } from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import React, { Component, ReactNode } from 'react'
+import { AlertCircle, RefreshCw, Home } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
-interface Props { children: ReactNode }
-interface State { hasError: boolean; error?: Error | null }
+interface Props {
+  children: ReactNode
+}
+interface State {
+  hasError: boolean
+  error?: Error | null
+}
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
-  
-  static getDerivedStateFromError(error: Error) { 
-    return { hasError: true, error }; 
+  state: State = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
   }
-  
+
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    toast.error(`Error: ${error.message}`);
+    console.error('Error caught by boundary:', error, errorInfo)
+    toast.error(`Error: ${error.message}`)
   }
-  
+
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
+    this.setState({ hasError: false, error: null })
+    window.location.reload()
+  }
 
   handleGoHome = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.href = '/';
-  };
-  
+    this.setState({ hasError: false, error: null })
+    window.location.href = '/'
+  }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -36,13 +41,15 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full bg-black/40 backdrop-blur-xl border border-red-500/20 rounded-xl p-8">
             <div className="flex items-center gap-3 mb-4">
               <AlertCircle className="w-8 h-8 text-red-500" />
-              <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
+              <h1 className="text-2xl font-bold text-white">
+                Something went wrong
+              </h1>
             </div>
-            
+
             <p className="text-gray-400 mb-4">
               An unexpected error occurred. This could be due to:
             </p>
-            
+
             <ul className="text-sm text-gray-500 space-y-1 mb-6">
               <li>• Network connectivity issues</li>
               <li>• Invalid configuration or missing API keys</li>
@@ -76,8 +83,8 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
           </div>
         </div>
-      );
+      )
     }
-    return this.props.children;
+    return this.props.children
   }
-} 
+}

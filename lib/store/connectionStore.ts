@@ -1,19 +1,19 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
 
 interface ConnectionState {
-  rpcDown: boolean;
-  wsDown: boolean;
-  jitoDown: boolean;
-  mainnetDown: boolean;
-  retryCount: number;
-  retryInSeconds: number;
-  setRpcDown: (down: boolean) => void;
-  setWsDown: (down: boolean) => void;
-  setJitoDown: (down: boolean) => void;
-  setMainnetDown: (down: boolean) => void;
-  setRetryCount: (count: number) => void;
-  setRetryInSeconds: (seconds: number) => void;
-  isAnyServiceDown: () => boolean;
+  rpcDown: boolean
+  wsDown: boolean
+  jitoDown: boolean
+  mainnetDown: boolean
+  retryCount: number
+  retryInSeconds: number
+  setRpcDown: (down: boolean) => void
+  setWsDown: (down: boolean) => void
+  setJitoDown: (down: boolean) => void
+  setMainnetDown: (down: boolean) => void
+  setRetryCount: (count: number) => void
+  setRetryInSeconds: (seconds: number) => void
+  isAnyServiceDown: () => boolean
 }
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({
@@ -30,7 +30,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   setRetryCount: (count) => set({ retryCount: count }),
   setRetryInSeconds: (seconds) => set({ retryInSeconds: seconds }),
   isAnyServiceDown: () => {
-    const state = get();
-    return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown;
-  }
-}));
+    const state = get()
+    return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown
+  },
+}))

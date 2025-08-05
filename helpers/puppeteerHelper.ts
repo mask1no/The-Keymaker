@@ -1,202 +1,284 @@
-import puppeteer from 'puppeteer';
-import { Solver } from '2captcha';
-import { logger } from '@/lib/logger';
-import { getSettings } from '@/services/settingsService';
+/**
+ * Puppeteer helper for headless browser automation and captcha solving
+ * Uses 2Captcha service for hCaptcha solving on Pump.fun and LetsBonk
+ */
 
-interface PumpFunResult {
-  txHash: string;
-  mintAddress: string;
+import puppeteer, { Browser, Page } from 'puppeteer'
+const TwoCaptcha = require('2captcha')
+import { logger } from '@/lib/logger'
+
+interface CaptchaSolverConfig {
+  twoCaptchaApiKey?: string
+  headlessTimeout?: number // in seconds
+  headless?: boolean
 }
 
-export async function solvePumpFunCaptcha(
-  tokenName: string,
-  tokenSymbol: string,
-  description: string,
-  imageUrl: string,
-  supply: string
-): Promise<PumpFunResult> {
-  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || 
-    (process.platform === 'linux' ? '/usr/bin/chromium-browser' : undefined);
-    
-  const browser = await puppeteer.launch({
-    headless: true,
-    executablePath,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process',
-      '--disable-gpu'
-    ]
-  });
+interface TokenLaunchResult {
+  mint: string
+  lp: string
+  txHash?: string
+}
 
-  try {
-    const page = await browser.newPage();
-    
-    // Set viewport and user agent
-    await page.setViewport({ width: 1280, height: 720 });
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+class PuppeteerHelper {
+  private browser: Browser | null = null
+  private solver: any = null
+  private config: CaptchaSolverConfig
 
-    // Navigate to pump.fun create page
-    logger.info('Navigating to pump.fun create page');
-    await page.goto('https://pump.fun/create', { 
-      waitUntil: 'networkidle2',
-      timeout: 30000 
-    });
-
-    // Wait for form to load
-    await page.waitForSelector('input[name="name"]', { timeout: 10000 });
-
-    // Fill the form
-    logger.info('Filling token creation form');
-    await page.type('input[name="name"]', tokenName);
-    await page.type('input[name="symbol"]', tokenSymbol);
-    await page.type('textarea[name="description"]', description);
-    await page.type('input[name="supply"]', supply);
-    
-    // Handle image URL if provided
-    if (imageUrl) {
-      const imageInput = await page.$('input[name="imageUrl"]');
-      if (imageInput) {
-        await imageInput.type(imageUrl);
-      }
+  constructor(config: CaptchaSolverConfig = {}) {
+    this.config = {
+      headlessTimeout: 30,
+      headless: true,
+      ...config,
     }
 
-    // Check for hCaptcha
-    const captchaFrame = await page.$('iframe[src*="hcaptcha.com"]');
-    if (captchaFrame) {
-      logger.info('hCaptcha detected, solving...');
+    if (config.twoCaptchaApiKey) {
+      this.solver = new TwoCaptcha(config.twoCaptchaApiKey)
+    }
+  }
+
+  /**
+   * Initialize the browser instance
+   */
+  async initBrowser(): Promise<void> {
+    if (this.browser) return
+
+    try {
+      this.browser = await puppeteer.launch({
+        headless: this.config.headless,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu',
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      })
+      logger.info('Puppeteer browser initialized')
+    } catch (error) {
+      logger.error('Failed to initialize Puppeteer browser:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Close the browser instance
+   */
+  async closeBrowser(): Promise<void> {
+    if (this.browser) {
+      await this.browser.close()
+      this.browser = null
+      logger.info('Puppeteer browser closed')
+    }
+  }
+
+  /**
+   * Solve hCaptcha using 2Captcha service
+   */
+  async solveHCaptcha(page: Page, siteKey: string): Promise<string> {
+    if (!this.solver) {
+      throw new Error('2Captcha API key not configured')
+    }
+
+    const pageUrl = page.url()
+    logger.info(`Solving hCaptcha for ${pageUrl}`)
+
+    try {
+      // Request captcha solution from 2Captcha
+      const result = await this.solver.hcaptcha(siteKey, pageUrl)
       
-      // Get 2captcha API key from settings
-      const settings = await getSettings();
-      const apiKey = settings?.apiKeys?.twoCaptchaApiKey;
-      
-      if (!apiKey) {
-        throw new Error('2Captcha API key not configured in settings');
+      if (result.data) {
+        logger.info('hCaptcha solved successfully')
+        return result.data
+      } else {
+        throw new Error('Failed to solve hCaptcha')
+      }
+    } catch (error) {
+      logger.error('Error solving hCaptcha:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Launch token on Pump.fun with captcha bypass
+   */
+  async launchTokenOnPumpFun(
+    tokenData: {
+      name: string
+      symbol: string
+      description: string
+      imageUrl?: string
+      twitter?: string
+      telegram?: string
+      website?: string
+    },
+    _walletPrivateKey: string, // TODO: Implement wallet signing
+  ): Promise<TokenLaunchResult> {
+    await this.initBrowser()
+    const page = await this.browser!.newPage()
+
+    try {
+      // Set timeout
+      page.setDefaultTimeout(this.config.headlessTimeout! * 1000)
+
+      // Navigate to Pump.fun
+      await page.goto('https://pump.fun/create', { waitUntil: 'networkidle2' })
+
+      // Fill in token details
+      await page.type('#token-name', tokenData.name)
+      await page.type('#token-symbol', tokenData.symbol)
+      await page.type('#token-description', tokenData.description)
+
+      if (tokenData.imageUrl) {
+        await page.type('#token-image', tokenData.imageUrl)
       }
 
-      // Initialize 2captcha solver
-      const solver = new Solver(apiKey);
-      
-      // Get the site key
-      const siteKey = await page.evaluate(() => {
-        const iframe = document.querySelector('iframe[src*="hcaptcha.com"]');
-        if (iframe) {
-          const src = iframe.getAttribute('src');
-          const match = src?.match(/sitekey=([^&]+)/);
-          return match ? match[1] : null;
-        }
-        return null;
-      });
-
-      if (!siteKey) {
-        throw new Error('Could not extract hCaptcha site key');
+      // Add social links if provided
+      if (tokenData.twitter) {
+        await page.type('#twitter', tokenData.twitter)
+      }
+      if (tokenData.telegram) {
+        await page.type('#telegram', tokenData.telegram)
+      }
+      if (tokenData.website) {
+        await page.type('#website', tokenData.website)
       }
 
-      // Solve captcha using 2captcha
-      try {
-        const result = await solver.hcaptcha(siteKey, page.url());
+      // Click create button
+      await page.click('#create-token-button')
+
+      // Wait for hCaptcha to appear
+      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
+        timeout: 5000,
+      }).catch(() => null)
+
+      if (hcaptchaFrame) {
+        // Extract site key
+        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
         
-        // Inject captcha solution
-        await page.evaluate((token) => {
-          // @ts-ignore
-          window.hcaptcha?.setResponse(token);
-          // Also try setting it directly on the textarea
-          const responseTextarea = document.querySelector('textarea[name="h-captcha-response"]');
-          if (responseTextarea) {
-            responseTextarea.value = token;
-          }
-          // Trigger the callback if it exists
-          // @ts-ignore
-          if (window.hcaptchaCallback) {
-            // @ts-ignore
-            window.hcaptchaCallback(token);
-          }
-        }, result.data);
+        if (siteKeyMatch) {
+          const siteKey = siteKeyMatch[1]
+          const captchaResponse = await this.solveHCaptcha(page, siteKey)
+          
+          // Inject captcha response
+          await page.evaluate((response) => {
+            (window as any).hcaptcha.setResponse(response)
+          }, captchaResponse)
+          
+          // Submit form again
+          await page.click('#create-token-button')
+        }
+      }
+
+      // Wait for success and extract token details
+      await page.waitForSelector('.success-message', { timeout: 30000 })
+      
+      const mint = await page.$eval('.token-mint', el => el.textContent?.trim() || '')
+      const lp = await page.$eval('.liquidity-pool', el => el.textContent?.trim() || '')
+
+      logger.info(`Token launched successfully: ${mint}`)
+      
+      return { mint, lp }
+    } catch (error) {
+      logger.error('Error launching token on Pump.fun:', error)
+      throw error
+    } finally {
+      await page.close()
+    }
+  }
+
+  /**
+   * Buy token on LetsBonk with captcha bypass
+   */
+  async buyTokenOnLetsBonk(
+    tokenAddress: string,
+    amountSol: number,
+    _walletPrivateKey: string, // TODO: Implement wallet signing
+  ): Promise<string> {
+    await this.initBrowser()
+    const page = await this.browser!.newPage()
+
+    try {
+      // Set timeout
+      page.setDefaultTimeout(this.config.headlessTimeout! * 1000)
+
+      // Navigate to LetsBonk trade page
+      await page.goto(`https://letsbonk.io/trade/${tokenAddress}`, { 
+        waitUntil: 'networkidle2' 
+      })
+
+      // Input buy amount
+      await page.type('#buy-amount', amountSol.toString())
+      
+      // Click buy button
+      await page.click('#buy-button')
+
+      // Handle potential captcha
+      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
+        timeout: 5000,
+      }).catch(() => null)
+
+      if (hcaptchaFrame) {
+        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
         
-        logger.info('Captcha solved successfully');
-      } catch (error) {
-        logger.error('Failed to solve captcha:', error);
-        throw new Error('Captcha solving failed');
-      }
-    }
-
-    // Set up console log listener for txHash
-    const txHashPromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        const text = msg.text();
-        if (text.includes('window.txHash')) {
-          const match = text.match(/window\.txHash[:\s]*([A-Za-z0-9]+)/);
-          if (match) {
-            resolve(match[1]);
-          }
-        }
-      });
-    });
-
-    // Click create button
-    logger.info('Clicking create button');
-    const createButton = await page.$('button:has-text("Create")') || 
-                       await page.$('button[type="submit"]');
-    if (!createButton) {
-      throw new Error('Create button not found');
-    }
-    
-    await createButton.click();
-
-    // Wait for transaction hash with timeout
-    const txHash = await Promise.race([
-      txHashPromise,
-      new Promise<string>((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout waiting for transaction hash')), 60000)
-      )
-    ]);
-
-    // Try to extract mint address from the page
-    const mintAddress = await page.evaluate(() => {
-      // Check various possible locations
-      const possibleSelectors = [
-        'a[href*="/token/"]',
-        'span:has-text("Token:")',
-        'div:has-text("Mint:")'
-      ];
-      
-      for (const selector of possibleSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          const href = element.getAttribute('href');
-          if (href) {
-            const match = href.match(/\/token\/([A-Za-z0-9]+)/);
-            if (match) return match[1];
-          }
-          const text = element.textContent;
-          if (text) {
-            const match = text.match(/[A-Za-z0-9]{43,44}/);
-            if (match) return match[0];
-          }
+        if (siteKeyMatch) {
+          const siteKey = siteKeyMatch[1]
+          const captchaResponse = await this.solveHCaptcha(page, siteKey)
+          
+          await page.evaluate((response) => {
+            (window as any).hcaptcha.setResponse(response)
+          }, captchaResponse)
+          
+          await page.click('#buy-button')
         }
       }
-      
-      // Fallback: look for any base58 string that looks like a mint
-      const allText = document.body.textContent || '';
-      const match = allText.match(/[1-9A-HJ-NP-Za-km-z]{43,44}/);
-      return match ? match[0] : '';
-    });
 
-    logger.info(`Token created successfully - TX: ${txHash}, Mint: ${mintAddress}`);
-    
-    return {
-      txHash,
-      mintAddress: mintAddress || txHash // Use txHash as fallback if mint not found
-    };
-    
-  } catch (error) {
-    logger.error('Puppeteer helper error:', error);
-    throw error;
-  } finally {
-    await browser.close();
+      // Wait for transaction hash
+      const txHash = await page.waitForSelector('.tx-hash', { timeout: 30000 })
+        .then(el => el?.evaluate(el => el.textContent?.trim() || ''))
+
+      logger.info(`Token bought successfully: ${txHash}`)
+      
+      return txHash || ''
+    } catch (error) {
+      logger.error('Error buying token on LetsBonk:', error)
+      throw error
+    } finally {
+      await page.close()
+    }
+  }
+
+  /**
+   * Test if Puppeteer is working correctly
+   */
+  async testPuppeteer(): Promise<boolean> {
+    try {
+      await this.initBrowser()
+      const page = await this.browser!.newPage()
+      await page.goto('https://example.com', { waitUntil: 'domcontentloaded' })
+      const title = await page.title()
+      await page.close()
+      return title === 'Example Domain'
+    } catch (error) {
+      logger.error('Puppeteer test failed:', error)
+      return false
+    }
   }
 }
+
+// Export singleton instance
+let puppeteerHelper: PuppeteerHelper | null = null
+
+export function getPuppeteerHelper(config?: CaptchaSolverConfig): PuppeteerHelper {
+  if (!puppeteerHelper) {
+    puppeteerHelper = new PuppeteerHelper(config)
+  }
+  return puppeteerHelper
+}
+
+export default PuppeteerHelper

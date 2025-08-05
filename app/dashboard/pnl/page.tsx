@@ -1,8 +1,8 @@
-'use client';
-export const dynamic = 'force-dynamic';
+'use client'
+export const dynamic = 'force-dynamic'
 
-import { PnLPanel } from '@/components/PnL/PnLPanel';
-import { StatusCluster } from '@/components/UI/StatusCluster';
+import { PnLPanel } from '@/components/PnL/PnLPanel'
+import { StatusCluster } from '@/components/UI/StatusCluster'
 
 export default function PnLPage() {
   return (
@@ -10,5 +10,5 @@ export default function PnLPage() {
       <PnLPanel />
       <StatusCluster />
     </div>
-  );
-} 
+  )
+}

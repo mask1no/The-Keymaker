@@ -11,6 +11,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 ## Key Features
 
 ### Core Functionality
+
 - **SPL Token Creation**: Deploy tokens across multiple platforms including pump.fun, Raydium, and letsbonk.fun
 - **Bundle Execution**: Execute transactions through Jito Block Engine with stealth and manual operation modes
 - **Wallet Management**: Secure wallet infrastructure supporting both Phantom integration and direct keypair imports
@@ -24,6 +25,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 ## Version 1.1.0 Enhancements
 
 ### Major Features
+
 - **Launch Wizard**: Streamlined token launch process with step-by-step guidance and preset management
 - **Advanced Trading Engine**: Visual condition builder for sophisticated sell strategies with multiple trigger types
 - **Wallet Organization**: Group-based wallet management with color-coded categories for improved organization
@@ -51,15 +53,19 @@ The Keymaker leverages modern web technologies and blockchain infrastructure:
 ### Core Services
 
 #### Bundle Service
+
 The bundle service orchestrates transaction execution through Jito Block Engine, supporting batched transactions with sophisticated retry logic and real-time status monitoring. The service implements exponential backoff strategies and monitors bundle status through websocket connections.
 
 #### Wallet Service
+
 A comprehensive wallet management system that encrypts private keys using AES-256-GCM with PBKDF2 key derivation utilizing 100,000 iterations. The service supports batch wallet creation, secure import/export functionality, and role-based wallet categorization.
 
 #### Platform Service
+
 Manages SPL token creation across multiple blockchain platforms, handling liquidity pool creation, token parameter validation, and platform-specific requirements. The service integrates with pump.fun, Raydium, and letsbonk.fun APIs.
 
 #### Analytics Service
+
 Tracks all buy and sell transactions in a local SQLite database, calculating real-time profit and loss metrics. Provides wallet-specific and token-specific analytics with export capabilities in JSON and CSV formats.
 
 ### Security Architecture
@@ -82,12 +88,14 @@ The Keymaker implements defense-in-depth security principles:
 ### Setup Instructions
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/the-keymaker.git
 cd the-keymaker
 ```
 
 2. Configure environment variables in `.env.local`:
+
 ```env
 # Required Configuration
 NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
@@ -102,6 +110,7 @@ TWOCAPTCHA_API_KEY=your_2captcha_key
 ```
 
 3. Build and deploy with Docker:
+
 ```bash
 docker compose build
 docker compose up -d
@@ -112,35 +121,44 @@ docker compose up -d
 ## Application Routes
 
 ### Dashboard (`/home`)
+
 Central command center displaying system statistics, wallet balances, profit and loss summary, and quick access navigation.
 
 ### Bundle Engine (`/bundle`)
+
 Execute Jito bundles with support for both stealth and manual modes. Features real-time transaction preview, fee estimation, and comprehensive result tracking.
 
 ### Wallet Manager (`/wallets`)
+
 Create and import wallets with support for Phantom integration and direct keypair imports. Assign roles, manage balances, and perform batch operations with encrypted storage.
 
 ### Token Creator (`/spl-creator`)
+
 Deploy SPL tokens on mainnet with multi-platform support. Configure token parameters, create liquidity pools, and manage metadata with platform-specific optimizations.
 
 ### Transaction History (`/logs`)
+
 Complete transaction audit trail with advanced filtering, real-time updates, and export functionality. Detailed bundle breakdowns with individual transaction results.
 
 ### Analytics (`/pnl`)
+
 Real-time profit and loss tracking with per-wallet and per-token analytics. Session statistics with comprehensive export capabilities.
 
 ### Settings (`/settings`)
+
 Centralized configuration management including API keys, connection monitoring, trading preferences, and security settings.
 
 ## API Reference
 
 ### Health Check Endpoint
+
 ```
 GET /api/health
 Response: { "ok": true, "version": "1.1.0", "checks": {...} }
 ```
 
 ### Proxy Service
+
 ```
 POST /api/proxy
 Body: {
@@ -152,6 +170,7 @@ Body: {
 ```
 
 ### Bundle Execution
+
 ```
 POST /api/bundle/execute
 Body: {
@@ -164,17 +183,20 @@ Body: {
 ## Development
 
 ### Local Development Setup
+
 ```bash
 npm install
 npm run dev
 ```
 
 ### Database Initialization
+
 ```bash
 npm run db:init
 ```
 
 ### Code Quality Tools
+
 ```bash
 npm run type-check
 npm run lint
@@ -189,6 +211,7 @@ The application utilizes a multi-stage Docker build process optimized for produc
 3. **Runner Stage**: Minimal production image with security hardening
 
 ### Docker Operations
+
 ```bash
 # Build production image
 docker compose build --no-cache
@@ -215,17 +238,21 @@ The application uses SQLite for local data persistence with the following core t
 ## Security Considerations
 
 ### Wallet Security
+
 Private keys are encrypted using AES-256-GCM with unique salt and initialization vectors per wallet. PBKDF2 key derivation with 100,000 iterations prevents brute force attacks.
 
 ### API Security
+
 All endpoints implement rate limiting, CORS protection, input validation, and sanitization. Sensitive data is excluded from logs and error messages.
 
 ### Transaction Security
+
 All transaction signing occurs locally with no private key transmission over the network. Transactions are simulated before execution to prevent costly errors.
 
 ## Performance Optimizations
 
 The application implements several performance enhancements:
+
 - React component memoization for reduced re-renders
 - Debounced API calls to prevent rate limiting
 - Indexed database queries for fast data retrieval

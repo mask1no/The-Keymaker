@@ -1,19 +1,25 @@
-'use client';
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+'use client'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
-} from '@/components/UI/dialog';
-import { Button } from '@/components/UI/button';
-import { Input } from '@/components/UI/input';
-import { Label } from '@/components/UI/label';
-import { Badge } from '@/components/UI/badge';
-import { Card } from '@/components/UI/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+  DialogDescription,
+} from '@/components/UI/dialog'
+import { Button } from '@/components/UI/button'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
+import { Badge } from '@/components/UI/badge'
+import { Card } from '@/components/UI/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select'
 import {
   Key,
   Upload,
@@ -23,307 +29,333 @@ import {
   User,
   Code,
   Loader2,
-  X
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { useKeymakerStore } from '@/lib/store';
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { importWallet, importWalletGroup, saveWalletToDb } from '@/services/walletService';
-import { logger } from '@/lib/logger';
+  X,
+} from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Connection, PublicKey } from '@solana/web3.js'
+import { useKeymakerStore } from '@/lib/store'
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
+import {
+  importWallet,
+  importWalletGroup,
+  saveWalletToDb,
+} from '@/services/walletService'
+import { logger } from '@/lib/logger'
 
 interface WalletImportProps {
-  isOpen: boolean;
-  onClose: () => void;
-  groupId?: string;
+  isOpen: boolean
+  onClose: () => void
+  groupId?: string
 }
 
-type ImportMode = 'single' | 'json' | 'file';
-type WalletRole = 'master' | 'sniper' | 'dev';
+type ImportMode = 'single' | 'json' | 'file'
+type WalletRole = 'master' | 'sniper' | 'dev'
 
 interface ImportedWallet {
-  publicKey: string;
-  privateKey: string;
-  role: WalletRole;
-  balance?: number;
-  valid: boolean;
+  publicKey: string
+  privateKey: string
+  role: WalletRole
+  balance?: number
+  valid: boolean
 }
 
 export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
-  const { addWallet, wallets, walletGroups } = useKeymakerStore();
-  const [mode, setMode] = useState<ImportMode>('single');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
+  const { addWallet, wallets, walletGroups } = useKeymakerStore()
+  const [mode, setMode] = useState<ImportMode>('single')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   // Single wallet import state
-  const [privateKey, setPrivateKey] = useState('');
-  const [walletRole, setWalletRole] = useState<WalletRole>('sniper');
-  
+  const [privateKey, setPrivateKey] = useState('')
+  const [walletRole, setWalletRole] = useState<WalletRole>('sniper')
+
   // JSON import state
-  const [jsonInput, setJsonInput] = useState('');
-  
+  const [jsonInput, setJsonInput] = useState('')
+
   // File import state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
   // Preview state
-  const [previewWallets, setPreviewWallets] = useState<ImportedWallet[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
-  
-  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC);
+  const [previewWallets, setPreviewWallets] = useState<ImportedWallet[]>([])
+  const [showPreview, setShowPreview] = useState(false)
+
+  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC)
 
   const resetForm = () => {
-    setPrivateKey('');
-    setJsonInput('');
-    setSelectedFile(null);
-    setPreviewWallets([]);
-    setShowPreview(false);
-    setError(null);
-  };
+    setPrivateKey('')
+    setJsonInput('')
+    setSelectedFile(null)
+    setPreviewWallets([])
+    setShowPreview(false)
+    setError(null)
+  }
 
   const validatePrivateKey = (key: string): boolean => {
     try {
       // Try base58 format
       if (key.length === 88 || key.length === 87) {
-        return true;
+        return true
       }
-      
+
       // Try array format
-      const parsed = JSON.parse(key);
-      return Array.isArray(parsed) && parsed.length === 64;
+      const parsed = JSON.parse(key)
+      return Array.isArray(parsed) && parsed.length === 64
     } catch {
-      return false;
+      return false
     }
-  };
+  }
 
   const getBalance = async (publicKey: string): Promise<number> => {
     try {
-      const pubKey = new PublicKey(publicKey);
-      const balance = await connection.getBalance(pubKey);
-      return balance / 1e9; // Convert lamports to SOL
+      const pubKey = new PublicKey(publicKey)
+      const balance = await connection.getBalance(pubKey)
+      return balance / 1e9 // Convert lamports to SOL
     } catch (error) {
-      logger.error('Failed to get balance', { publicKey, error });
-      return 0;
+      logger.error('Failed to get balance', { publicKey, error })
+      return 0
     }
-  };
+  }
 
-  const processWallet = async (privateKeyInput: string, role: WalletRole): Promise<ImportedWallet | null> => {
+  const processWallet = async (
+    privateKeyInput: string,
+    role: WalletRole,
+  ): Promise<ImportedWallet | null> => {
     try {
       // For preview, we'll use a temporary password
       // The actual encryption will happen when the user confirms the import
-      const tempPassword = 'preview_' + Date.now();
-      const wallet = await importWallet(privateKeyInput, tempPassword, role);
-      const balance = await getBalance(wallet.publicKey);
-      
+      const tempPassword = 'preview_' + Date.now()
+      const wallet = await importWallet(privateKeyInput, tempPassword, role)
+      const balance = await getBalance(wallet.publicKey)
+
       return {
         publicKey: wallet.publicKey,
         privateKey: privateKeyInput,
         role,
         balance,
-        valid: true
-      };
+        valid: true,
+      }
     } catch (error) {
-      logger.error('Failed to process wallet', { error });
-      return null;
+      logger.error('Failed to process wallet', { error })
+      return null
     }
-  };
+  }
 
   const handleSingleImport = async () => {
     if (!privateKey.trim()) {
-      setError('Please enter a private key');
-      return;
+      setError('Please enter a private key')
+      return
     }
 
     if (!validatePrivateKey(privateKey)) {
-      setError('Invalid private key format');
-      return;
+      setError('Invalid private key format')
+      return
     }
 
-    setIsProcessing(true);
-    setError(null);
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const processed = await processWallet(privateKey, walletRole);
+      const processed = await processWallet(privateKey, walletRole)
       if (!processed) {
-        throw new Error('Failed to process wallet');
+        throw new Error('Failed to process wallet')
       }
 
-      setPreviewWallets([processed]);
-      setShowPreview(true);
+      setPreviewWallets([processed])
+      setShowPreview(true)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Import failed');
-      toast.error('Failed to import wallet');
+      setError(error instanceof Error ? error.message : 'Import failed')
+      toast.error('Failed to import wallet')
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const handleJSONImport = async () => {
     if (!jsonInput.trim()) {
-      setError('Please enter JSON data');
-      return;
+      setError('Please enter JSON data')
+      return
     }
 
-    setIsProcessing(true);
-    setError(null);
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const data = JSON.parse(jsonInput);
-      const walletList: ImportedWallet[] = [];
+      const data = JSON.parse(jsonInput)
+      const walletList: ImportedWallet[] = []
 
       // Handle different JSON formats
       if (Array.isArray(data)) {
         // Array of wallet objects
         for (const item of data) {
           if (item.privateKey || item.private_key || item.key) {
-            const key = item.privateKey || item.private_key || item.key;
-            const role = item.role || 'sniper';
-            const processed = await processWallet(key, role);
-            if (processed) walletList.push(processed);
+            const key = item.privateKey || item.private_key || item.key
+            const role = item.role || 'sniper'
+            const processed = await processWallet(key, role)
+            if (processed) walletList.push(processed)
           }
         }
       } else if (data.wallets && Array.isArray(data.wallets)) {
         // Keymaker export format
         for (const wallet of data.wallets) {
-          const processed = await processWallet(wallet.privateKey, wallet.role || 'sniper');
-          if (processed) walletList.push(processed);
+          const processed = await processWallet(
+            wallet.privateKey,
+            wallet.role || 'sniper',
+          )
+          if (processed) walletList.push(processed)
         }
       } else if (typeof data === 'object') {
         // Single wallet object
-        const key = data.privateKey || data.private_key || data.key;
+        const key = data.privateKey || data.private_key || data.key
         if (key) {
-          const processed = await processWallet(key, data.role || 'sniper');
-          if (processed) walletList.push(processed);
+          const processed = await processWallet(key, data.role || 'sniper')
+          if (processed) walletList.push(processed)
         }
       }
 
       if (walletList.length === 0) {
-        throw new Error('No valid wallets found in JSON');
+        throw new Error('No valid wallets found in JSON')
       }
 
-      setPreviewWallets(walletList);
-      setShowPreview(true);
+      setPreviewWallets(walletList)
+      setShowPreview(true)
     } catch (error) {
       if (error instanceof SyntaxError) {
-        setError('Invalid JSON format');
+        setError('Invalid JSON format')
       } else {
-        setError(error instanceof Error ? error.message : 'Import failed');
+        setError(error instanceof Error ? error.message : 'Import failed')
       }
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const handleFileImport = async () => {
     if (!selectedFile) {
-      setError('Please select a file');
-      return;
+      setError('Please select a file')
+      return
     }
 
-    setIsProcessing(true);
-    setError(null);
+    setIsProcessing(true)
+    setError(null)
 
     try {
-      const text = await selectedFile.text();
-      
+      const text = await selectedFile.text()
+
       if (selectedFile.name.endsWith('.keymaker')) {
         // Handle encrypted Keymaker file
-        const password = prompt('Enter password to decrypt wallets:');
+        const password = prompt('Enter password to decrypt wallets:')
         if (!password) {
-          throw new Error('Password required');
+          throw new Error('Password required')
         }
 
-        const group = await importWalletGroup(text, password);
-        
+        const group = await importWalletGroup(text, password)
+
         // For now, we'll just show a success message
         // In a real implementation, we'd integrate with the secure storage
-        toast.success(`Imported ${group.wallets.length} wallets from ${group.name}`);
-        onClose();
-        return;
+        toast.success(
+          `Imported ${group.wallets.length} wallets from ${group.name}`,
+        )
+        onClose()
+        return
       } else {
         // Handle as JSON
-        setJsonInput(text);
-        await handleJSONImport();
+        setJsonInput(text)
+        await handleJSONImport()
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'File import failed');
+      setError(error instanceof Error ? error.message : 'File import failed')
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const confirmImport = async () => {
-    if (previewWallets.length === 0) return;
+    if (previewWallets.length === 0) return
 
-    setIsProcessing(true);
+    setIsProcessing(true)
     try {
       // Request password for encryption
-      const password = prompt('Enter password to encrypt wallets:');
+      const password = prompt('Enter password to encrypt wallets:')
       if (!password || password.length < 8) {
-        toast.error('Password must be at least 8 characters');
-        return;
+        toast.error('Password must be at least 8 characters')
+        return
       }
 
-      let imported = 0;
-      
+      let imported = 0
+
       for (const wallet of previewWallets) {
         // Check if wallet already exists
-        const exists = wallets.some(w => w.publicKey === wallet.publicKey);
+        const exists = wallets.some((w) => w.publicKey === wallet.publicKey)
         if (exists) {
-          toast.error(`Wallet ${wallet.publicKey.slice(0, 8)}... already exists`);
-          continue;
+          toast.error(
+            `Wallet ${wallet.publicKey.slice(0, 8)}... already exists`,
+          )
+          continue
         }
 
         // Re-import with the user's password for proper encryption
-        const walletData = await importWallet(wallet.privateKey, password, wallet.role);
-        
+        const walletData = await importWallet(
+          wallet.privateKey,
+          password,
+          wallet.role,
+        )
+
         // Save to database
         await saveWalletToDb({
           ...walletData,
-          network: 'mainnet'
-        });
+          network: 'mainnet',
+        })
 
         // Add to store
         await addWallet({
           publicKey: wallet.publicKey,
           role: wallet.role,
-          groupId: groupId || walletGroups[0]?.id || 'default'
-        });
-        
-        imported++;
+          groupId: groupId || walletGroups[0]?.id || 'default',
+        })
+
+        imported++
       }
 
-      toast.success(`Imported ${imported} wallet${imported !== 1 ? 's' : ''}`);
-      resetForm();
-      onClose();
+      toast.success(`Imported ${imported} wallet${imported !== 1 ? 's' : ''}`)
+      resetForm()
+      onClose()
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Import failed');
-      toast.error('Failed to import wallets');
+      setError(error instanceof Error ? error.message : 'Import failed')
+      toast.error('Failed to import wallets')
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
 
   const getRoleColor = (role: WalletRole) => {
     switch (role) {
-      case 'master': return 'text-yellow-400';
-      case 'sniper': return 'text-green-400';
-      case 'dev': return 'text-blue-400';
+      case 'master':
+        return 'text-yellow-400'
+      case 'sniper':
+        return 'text-green-400'
+      case 'dev':
+        return 'text-blue-400'
     }
-  };
+  }
 
   const getRoleIcon = (role: WalletRole) => {
     switch (role) {
-      case 'master': return <Key className="h-4 w-4" />;
-      case 'sniper': return <User className="h-4 w-4" />;
-      case 'dev': return <Code className="h-4 w-4" />;
+      case 'master':
+        return <Key className="h-4 w-4" />
+      case 'sniper':
+        return <User className="h-4 w-4" />
+      case 'dev':
+        return <Code className="h-4 w-4" />
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl bg-black/90 backdrop-blur-xl border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Import Wallets</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            Import Wallets
+          </DialogTitle>
           <DialogDescription>
             Import wallets using private keys, JSON data, or Keymaker files
           </DialogDescription>
@@ -385,10 +417,13 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                       Enter a base58 string or JSON array of bytes
                     </p>
                   </div>
-                  
+
                   <div>
                     <Label>Wallet Role</Label>
-                    <Select value={walletRole} onValueChange={(v) => setWalletRole(v as WalletRole)}>
+                    <Select
+                      value={walletRole}
+                      onValueChange={(v) => setWalletRole(v as WalletRole)}
+                    >
                       <SelectTrigger className="bg-white/5">
                         <SelectValue />
                       </SelectTrigger>
@@ -442,7 +477,9 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                     <input
                       type="file"
                       accept=".json,.keymaker"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      onChange={(e) =>
+                        setSelectedFile(e.target.files?.[0] || null)
+                      }
                       className="hidden"
                       id="file-upload"
                     />
@@ -457,8 +494,12 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                         </div>
                       ) : (
                         <div>
-                          <p className="font-medium">Drop file here or click to browse</p>
-                          <p className="text-sm text-white/60">Supports .json and .keymaker files</p>
+                          <p className="font-medium">
+                            Drop file here or click to browse
+                          </p>
+                          <p className="text-sm text-white/60">
+                            Supports .json and .keymaker files
+                          </p>
                         </div>
                       )}
                     </label>
@@ -481,8 +522,8 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    resetForm();
-                    onClose();
+                    resetForm()
+                    onClose()
                   }}
                   className="flex-1"
                 >
@@ -490,15 +531,20 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                 </Button>
                 <Button
                   onClick={() => {
-                    if (mode === 'single') handleSingleImport();
-                    else if (mode === 'json') handleJSONImport();
-                    else if (mode === 'file') handleFileImport();
+                    if (mode === 'single') handleSingleImport()
+                    else if (mode === 'json') handleJSONImport()
+                    else if (mode === 'file') handleFileImport()
                   }}
-                  disabled={isProcessing || (
-                    mode === 'single' ? !privateKey :
-                    mode === 'json' ? !jsonInput :
-                    mode === 'file' ? !selectedFile : false
-                  )}
+                  disabled={
+                    isProcessing ||
+                    (mode === 'single'
+                      ? !privateKey
+                      : mode === 'json'
+                        ? !jsonInput
+                        : mode === 'file'
+                          ? !selectedFile
+                          : false)
+                  }
                   className="flex-1"
                 >
                   {isProcessing ? (
@@ -518,10 +564,15 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
               className="space-y-6"
             >
               <div>
-                <h3 className="font-medium mb-4">Preview ({previewWallets.length} wallets)</h3>
+                <h3 className="font-medium mb-4">
+                  Preview ({previewWallets.length} wallets)
+                </h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {previewWallets.map((wallet, index) => (
-                    <Card key={index} className="p-4 bg-white/5 border-white/10">
+                    <Card
+                      key={index}
+                      className="p-4 bg-white/5 border-white/10"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={getRoleColor(wallet.role)}>
@@ -529,7 +580,8 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                           </div>
                           <div>
                             <p className="font-mono text-sm">
-                              {wallet.publicKey.slice(0, 8)}...{wallet.publicKey.slice(-8)}
+                              {wallet.publicKey.slice(0, 8)}...
+                              {wallet.publicKey.slice(-8)}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge variant="secondary" className="text-xs">
@@ -547,7 +599,9 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            setPreviewWallets(prev => prev.filter((_, i) => i !== index));
+                            setPreviewWallets((prev) =>
+                              prev.filter((_, i) => i !== index),
+                            )
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -576,7 +630,8 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
                   ) : (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Import {previewWallets.length} Wallet{previewWallets.length !== 1 ? 's' : ''}
+                      Import {previewWallets.length} Wallet
+                      {previewWallets.length !== 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
@@ -586,5 +641,5 @@ export function WalletImport({ isOpen, onClose, groupId }: WalletImportProps) {
         </AnimatePresence>
       </DialogContent>
     </Dialog>
-  );
-} 
+  )
+}

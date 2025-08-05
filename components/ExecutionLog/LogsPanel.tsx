@@ -1,11 +1,11 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
-import { Button } from '@/components/UI/button';
-import { Badge } from '@/components/UI/badge';
-import { Input } from '@/components/UI/input';
-import { Skeleton } from '@/components/UI/skeleton';
+'use client'
+import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Button } from '@/components/UI/button'
+import { Badge } from '@/components/UI/badge'
+import { Input } from '@/components/UI/input'
+import { Skeleton } from '@/components/UI/skeleton'
 import {
   FileText,
   Download,
@@ -18,145 +18,156 @@ import {
   Search,
   Trash2,
   ExternalLink,
-  X
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { getExecutionLogs, clearLogs, type ExecutionLog } from '@/lib/clientLogger';
-import { logger } from '@/lib/logger';
-import toast from 'react-hot-toast';
+  X,
+} from 'lucide-react'
+import { format } from 'date-fns'
+import {
+  getExecutionLogs,
+  clearLogs,
+  type ExecutionLog,
+} from '@/lib/clientLogger'
+import { logger } from '@/lib/logger'
+import toast from 'react-hot-toast'
 
-type LogType = 'all' | 'token_launch' | 'bundle' | 'sell' | 'error';
-type LogStatus = 'all' | 'success' | 'failed' | 'pending';
+type LogType = 'all' | 'token_launch' | 'bundle' | 'sell' | 'error'
+type LogStatus = 'all' | 'success' | 'failed' | 'pending'
 
 export function LogsPanel() {
-  const [logs, setLogs] = useState<ExecutionLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<LogType>('all');
-  const [statusFilter, setStatusFilter] = useState<LogStatus>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLog, setSelectedLog] = useState<ExecutionLog | null>(null);
+  const [logs, setLogs] = useState<ExecutionLog[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState<LogType>('all')
+  const [statusFilter, setStatusFilter] = useState<LogStatus>('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedLog, setSelectedLog] = useState<ExecutionLog | null>(null)
 
   useEffect(() => {
-    loadLogs();
-  }, []);
+    loadLogs()
+  }, [])
 
   const loadLogs = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const allLogs = await getExecutionLogs();
-      setLogs(allLogs.sort((a, b) => b.timestamp - a.timestamp));
+      const allLogs = await getExecutionLogs()
+      setLogs(allLogs.sort((a, b) => b.timestamp - a.timestamp))
     } catch (error) {
-      logger.error('Failed to load logs', { error });
-      toast.error('Failed to load execution logs');
+      logger.error('Failed to load logs', { error })
+      toast.error('Failed to load execution logs')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleClearLogs = async () => {
-    if (!confirm('Are you sure you want to clear all logs? This cannot be undone.')) {
-      return;
+    if (
+      !confirm(
+        'Are you sure you want to clear all logs? This cannot be undone.',
+      )
+    ) {
+      return
     }
 
     try {
-      await clearLogs();
-      setLogs([]);
-      toast.success('Logs cleared successfully');
+      await clearLogs()
+      setLogs([])
+      toast.success('Logs cleared successfully')
     } catch (error) {
-      logger.error('Failed to clear logs', { error });
-      toast.error('Failed to clear logs');
+      logger.error('Failed to clear logs', { error })
+      toast.error('Failed to clear logs')
     }
-  };
+  }
 
   const exportLogs = () => {
-    const filteredLogs = getFilteredLogs();
-    
+    const filteredLogs = getFilteredLogs()
+
     // Create CSV content
-    const headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error'];
-    const rows = filteredLogs.map(log => [
+    const headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error']
+    const rows = filteredLogs.map((log) => [
       format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss'),
       log.action,
       log.status || 'N/A',
       JSON.stringify(log.details || {}),
-      log.error || ''
-    ]);
+      log.error || '',
+    ])
 
     const csv = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n')
 
     // Download CSV
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `keymaker-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `keymaker-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
 
-    toast.success('Logs exported successfully');
-  };
+    toast.success('Logs exported successfully')
+  }
 
   const getFilteredLogs = () => {
-    return logs.filter(log => {
+    return logs.filter((log) => {
       // Type filter
       if (filter !== 'all') {
-        if (filter === 'token_launch' && !log.action.includes('token')) return false;
-        if (filter === 'bundle' && !log.action.includes('bundle')) return false;
-        if (filter === 'sell' && !log.action.includes('sell')) return false;
-        if (filter === 'error' && !log.error) return false;
+        if (filter === 'token_launch' && !log.action.includes('token'))
+          return false
+        if (filter === 'bundle' && !log.action.includes('bundle')) return false
+        if (filter === 'sell' && !log.action.includes('sell')) return false
+        if (filter === 'error' && !log.error) return false
       }
 
       // Status filter
       if (statusFilter !== 'all') {
-        if (statusFilter === 'success' && log.status !== 'success') return false;
-        if (statusFilter === 'failed' && log.status !== 'failed') return false;
-        if (statusFilter === 'pending' && log.status !== 'pending') return false;
+        if (statusFilter === 'success' && log.status !== 'success') return false
+        if (statusFilter === 'failed' && log.status !== 'failed') return false
+        if (statusFilter === 'pending' && log.status !== 'pending') return false
       }
 
       // Search filter
       if (searchTerm) {
-        const search = searchTerm.toLowerCase();
-        const matchesAction = log.action.toLowerCase().includes(search);
-        const matchesDetails = JSON.stringify(log.details || {}).toLowerCase().includes(search);
-        const matchesError = (log.error || '').toLowerCase().includes(search);
-        
-        if (!matchesAction && !matchesDetails && !matchesError) return false;
+        const search = searchTerm.toLowerCase()
+        const matchesAction = log.action.toLowerCase().includes(search)
+        const matchesDetails = JSON.stringify(log.details || {})
+          .toLowerCase()
+          .includes(search)
+        const matchesError = (log.error || '').toLowerCase().includes(search)
+
+        if (!matchesAction && !matchesDetails && !matchesError) return false
       }
 
-      return true;
-    });
-  };
+      return true
+    })
+  }
 
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-red-500" />
       case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <AlertCircle className="h-4 w-4 text-gray-500" />
     }
-  };
+  }
 
   const getActionBadgeColor = (action: string) => {
-    if (action.includes('token')) return 'bg-purple-500/20 text-purple-400';
-    if (action.includes('bundle')) return 'bg-blue-500/20 text-blue-400';
-    if (action.includes('sell')) return 'bg-green-500/20 text-green-400';
-    if (action.includes('fund')) return 'bg-yellow-500/20 text-yellow-400';
-    return 'bg-gray-500/20 text-gray-400';
-  };
+    if (action.includes('token')) return 'bg-purple-500/20 text-purple-400'
+    if (action.includes('bundle')) return 'bg-blue-500/20 text-blue-400'
+    if (action.includes('sell')) return 'bg-green-500/20 text-green-400'
+    if (action.includes('fund')) return 'bg-yellow-500/20 text-yellow-400'
+    return 'bg-gray-500/20 text-gray-400'
+  }
 
   const formatDetails = (details: any) => {
-    if (!details) return null;
+    if (!details) return null
 
-    const items = [];
-    
+    const items = []
+
     if (details.mint) {
       items.push(
         <div key="mint" className="flex items-center gap-2">
@@ -170,8 +181,8 @@ export function LogsPanel() {
             {details.mint.slice(0, 8)}...
             <ExternalLink className="h-3 w-3" />
           </a>
-        </div>
-      );
+        </div>,
+      )
     }
 
     if (details.signature) {
@@ -187,17 +198,19 @@ export function LogsPanel() {
             {details.signature.slice(0, 8)}...
             <ExternalLink className="h-3 w-3" />
           </a>
-        </div>
-      );
+        </div>,
+      )
     }
 
     if (details.bundleId) {
       items.push(
         <div key="bundle" className="flex items-center gap-2">
           <span className="text-white/60">Bundle:</span>
-          <span className="font-mono text-sm">{details.bundleId.slice(0, 8)}...</span>
-        </div>
-      );
+          <span className="font-mono text-sm">
+            {details.bundleId.slice(0, 8)}...
+          </span>
+        </div>,
+      )
     }
 
     if (details.walletCount !== undefined) {
@@ -205,8 +218,8 @@ export function LogsPanel() {
         <div key="wallets" className="flex items-center gap-2">
           <span className="text-white/60">Wallets:</span>
           <span>{details.walletCount}</span>
-        </div>
-      );
+        </div>,
+      )
     }
 
     if (details.amount !== undefined) {
@@ -214,14 +227,14 @@ export function LogsPanel() {
         <div key="amount" className="flex items-center gap-2">
           <span className="text-white/60">Amount:</span>
           <span>{details.amount} SOL</span>
-        </div>
-      );
+        </div>,
+      )
     }
 
-    return items.length > 0 ? items : null;
-  };
+    return items.length > 0 ? items : null
+  }
 
-  const filteredLogs = getFilteredLogs();
+  const filteredLogs = getFilteredLogs()
 
   return (
     <motion.div
@@ -244,7 +257,9 @@ export function LogsPanel() {
                 onClick={loadLogs}
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+                />
                 Refresh
               </Button>
               <Button
@@ -449,5 +464,5 @@ export function LogsPanel() {
         </div>
       )}
     </motion.div>
-  );
-} 
+  )
+}

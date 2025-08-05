@@ -1,9 +1,9 @@
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export interface TransactionFees {
-  gas: number; // in SOL
-  jito: number; // in SOL
-  total: number; // in SOL
+  gas: number // in SOL
+  jito: number // in SOL
+  total: number // in SOL
 }
 
 /**
@@ -14,23 +14,23 @@ export interface TransactionFees {
  */
 export function calculateBundleFees(
   txCount: number,
-  jitoTipLamports: number = 0
+  jitoTipLamports = 0,
 ): TransactionFees {
   // Base transaction fee is 5000 lamports per transaction
-  const BASE_TX_FEE_LAMPORTS = 5000;
-  
+  const BASE_TX_FEE_LAMPORTS = 5000
+
   // Calculate gas fees (includes one extra for the tip transaction if using Jito)
-  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTS;
-  const gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL;
-  
+  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTS
+  const gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
+
   // Convert Jito tip to SOL
-  const jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOL;
-  
+  const jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOL
+
   return {
     gas: gasFeeSOL,
     jito: jitoTipSOL,
-    total: gasFeeSOL + jitoTipSOL
-  };
+    total: gasFeeSOL + jitoTipSOL,
+  }
 }
 
 /**
@@ -41,15 +41,15 @@ export function calculateBundleFees(
  */
 export function calculatePerWalletFees(
   totalFees: TransactionFees,
-  walletCount: number
+  walletCount: number,
 ): TransactionFees {
   if (walletCount === 0) {
-    return { gas: 0, jito: 0, total: 0 };
+    return { gas: 0, jito: 0, total: 0 }
   }
-  
+
   return {
     gas: totalFees.gas / walletCount,
     jito: totalFees.jito / walletCount,
-    total: totalFees.total / walletCount
-  };
+    total: totalFees.total / walletCount,
+  }
 }

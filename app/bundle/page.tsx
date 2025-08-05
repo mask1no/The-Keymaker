@@ -1,9 +1,9 @@
-'use client';
-export const dynamic = 'force-dynamic';
+'use client'
+export const dynamic = 'force-dynamic'
 
-import { BundleEngine } from '@/components/BundleEngine/BundleEngine';
-import { ManualBuyTable } from '@/components/BundleEngine/ManualBuyTable';
-import { StatusCluster } from '@/components/UI/StatusCluster';
+import { BundleEngine } from '@/components/BundleEngine/BundleEngine'
+import { ManualBuyTable } from '@/components/BundleEngine/ManualBuyTable'
+import { StatusCluster } from '@/components/UI/StatusCluster'
 
 export default function BundlePage() {
   return (
@@ -12,5 +12,5 @@ export default function BundlePage() {
       <ManualBuyTable />
       <StatusCluster />
     </div>
-  );
-} 
+  )
+}

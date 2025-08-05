@@ -1,18 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 export function useJitoStatus() {
-  const [jitoStatus, setJitoStatus] = useState<'Connected' | 'Fallback' | 'Disconnected' | 'Unknown'>('Unknown');
+  const [jitoStatus, setJitoStatus] = useState<
+    'Connected' | 'Fallback' | 'Disconnected' | 'Unknown'
+  >('Unknown')
   useEffect(() => {
     const checkJito = async () => {
       try {
-        const response = await fetch(process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://mainnet.block-engine.jito.wtf');
-        setJitoStatus(response.ok ? 'Connected' : 'Fallback');
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
+            'https://mainnet.block-engine.jito.wtf',
+        )
+        setJitoStatus(response.ok ? 'Connected' : 'Fallback')
       } catch {
-        setJitoStatus('Disconnected');
+        setJitoStatus('Disconnected')
       }
-    };
-    checkJito();
-    const interval = setInterval(checkJito, 4000);
-    return () => clearInterval(interval);
-  }, []);
-  return { jitoStatus };
-} 
+    }
+    checkJito()
+    const interval = setInterval(checkJito, 4000)
+    return () => clearInterval(interval)
+  }, [])
+  return { jitoStatus }
+}

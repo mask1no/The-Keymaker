@@ -1,121 +1,127 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { Keypair } from '@solana/web3.js';
+import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
+import { Keypair } from '@solana/web3.js'
 
-export type WalletRole = 'master' | 'dev' | 'sniper' | 'normal';
+export type WalletRole = 'master' | 'dev' | 'sniper' | 'normal'
 
 export interface WalletData {
-  id: string;
-  publicKey: string;
-  role: WalletRole;
-  balance: number;
-  keypair?: Keypair;
-  encryptedPrivateKey?: string;
-  groupId?: string;
+  id: string
+  publicKey: string
+  role: WalletRole
+  balance: number
+  keypair?: Keypair
+  encryptedPrivateKey?: string
+  groupId?: string
 }
 
 export interface WalletGroup {
-  id: string;
-  name: string;
-  walletIds: string[];
+  id: string
+  name: string
+  walletIds: string[]
 }
 
 export interface TokenLaunchData {
-  name: string;
-  symbol: string;
-  decimals: number;
-  supply: number;
-  platform: 'pump.fun' | 'letsbonk.fun' | 'raydium';
-  lpAmount: number;
-  walletPublicKey: string;
-  mintAddress?: string;
-  txSignature?: string;
+  name: string
+  symbol: string
+  decimals: number
+  supply: number
+  platform: 'pump.fun' | 'letsbonk.fun' | 'raydium'
+  lpAmount: number
+  walletPublicKey: string
+  mintAddress?: string
+  txSignature?: string
 }
 
-export type ExecutionStrategy = 'flash' | 'stealth' | 'manual' | 'regular';
+export type ExecutionStrategy = 'flash' | 'stealth' | 'manual' | 'regular'
 
 export interface ExecutionStep {
-  id: string;
-  name: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  message?: string;
-  timestamp?: number;
+  id: string
+  name: string
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  message?: string
+  timestamp?: number
 }
 
 export interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message?: string;
-  timestamp: number;
-  read?: boolean;
+  id: string
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message?: string
+  timestamp: number
+  read?: boolean
 }
 
 interface KeymakerStore {
   // Wallet Management
-  wallets: WalletData[];
-  walletGroups: WalletGroup[];
-  selectedGroup: string;
-  activeWallet: string | null; // Public key of active wallet
-  setWallets: (wallets: WalletData[]) => void;
-  addWallet: (wallet: Omit<WalletData, 'id' | 'balance'>) => void;
-  setWalletGroups: (groups: WalletGroup[]) => void;
-  setSelectedGroup: (group: string) => void;
-  setActiveWallet: (publicKey: string | null) => void;
-  updateWalletBalance: (publicKey: string, balance: number) => void;
-  
+  wallets: WalletData[]
+  walletGroups: WalletGroup[]
+  selectedGroup: string
+  activeWallet: string | null // Public key of active wallet
+  setWallets: (wallets: WalletData[]) => void
+  addWallet: (wallet: Omit<WalletData, 'id' | 'balance'>) => void
+  setWalletGroups: (groups: WalletGroup[]) => void
+  setSelectedGroup: (group: string) => void
+  setActiveWallet: (publicKey: string | null) => void
+  updateWalletBalance: (publicKey: string, balance: number) => void
+
   // Token Launch
-  tokenLaunchData: TokenLaunchData | null;
-  setTokenLaunchData: (data: TokenLaunchData) => void;
-  
+  tokenLaunchData: TokenLaunchData | null
+  setTokenLaunchData: (data: TokenLaunchData) => void
+
   // Execution Flow
-  executionStrategy: ExecutionStrategy;
-  setExecutionStrategy: (strategy: ExecutionStrategy) => void;
-  executionSteps: ExecutionStep[];
-  isExecuting: boolean;
-  
+  executionStrategy: ExecutionStrategy
+  setExecutionStrategy: (strategy: ExecutionStrategy) => void
+  executionSteps: ExecutionStep[]
+  isExecuting: boolean
+
   // Control Functions
-  startExecution: () => void;
-  stopExecution: () => void;
-  updateStepStatus: (stepId: string, status: ExecutionStep['status'], message?: string) => void;
-  resetExecution: () => void;
-  
+  startExecution: () => void
+  stopExecution: () => void
+  updateStepStatus: (
+    stepId: string,
+    status: ExecutionStep['status'],
+    message?: string,
+  ) => void
+  resetExecution: () => void
+
   // Settings
-  jitoEnabled: boolean;
-  setJitoEnabled: (enabled: boolean) => void;
-  tipAmount: number;
-  setTipAmount: (amount: number) => void;
-  autoSellDelay: number; // seconds
-  setAutoSellDelay: (delay: number) => void;
-  network: 'mainnet-beta' | 'devnet';
-  setNetwork: (network: 'mainnet-beta' | 'devnet') => void;
-  rpcUrl: string;
-  setRpcUrl: (url: string) => void;
-  wsUrl: string;
-  setWsUrl: (url: string) => void;
-  theme: 'dark' | 'light';
-  setTheme: (theme: 'dark' | 'light') => void;
-  
+  jitoEnabled: boolean
+  setJitoEnabled: (enabled: boolean) => void
+  tipAmount: number
+  setTipAmount: (amount: number) => void
+  autoSellDelay: number // seconds
+  setAutoSellDelay: (delay: number) => void
+  network: 'mainnet-beta' | 'devnet'
+  setNetwork: (network: 'mainnet-beta' | 'devnet') => void
+  rpcUrl: string
+  setRpcUrl: (url: string) => void
+  wsUrl: string
+  setWsUrl: (url: string) => void
+  theme: 'dark' | 'light'
+  setTheme: (theme: 'dark' | 'light') => void
+
   // PnL Tracking
-  totalInvested: number;
-  totalReturned: number;
-  updatePnL: (invested: number, returned: number) => void;
-  
+  totalInvested: number
+  totalReturned: number
+  updatePnL: (invested: number, returned: number) => void
+
   // Notifications
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
-  removeNotification: (id: string) => void;
-  clearNotifications: () => void;
-  markNotificationAsRead: (id: string) => void;
-  
+  notifications: Notification[]
+  addNotification: (
+    notification: Omit<Notification, 'id' | 'timestamp'>,
+  ) => void
+  removeNotification: (id: string) => void
+  clearNotifications: () => void
+  markNotificationAsRead: (id: string) => void
+
   // UI State
-  bundleMode: 'flash' | 'stealth' | 'manual';
-  setBundleMode: (mode: 'flash' | 'stealth' | 'manual') => void;
-  settingsLoaded: boolean;
-  setSettingsLoaded: (loaded: boolean) => void;
-  banners: string[];
-  addBanner: (banner: string) => void;
-  removeBanner: (banner: string) => void;
+  bundleMode: 'flash' | 'stealth' | 'manual'
+  setBundleMode: (mode: 'flash' | 'stealth' | 'manual') => void
+  settingsLoaded: boolean
+  setSettingsLoaded: (loaded: boolean) => void
+  banners: string[]
+  addBanner: (banner: string) => void
+  removeBanner: (banner: string) => void
 }
 
 const defaultExecutionSteps: ExecutionStep[] = [
@@ -125,8 +131,8 @@ const defaultExecutionSteps: ExecutionStep[] = [
   { id: 'bundle', name: '📦 Bundle Buys', status: 'pending' },
   { id: 'wait-sells', name: '⏱️ Wait 60s', status: 'pending' },
   { id: 'sell', name: '💸 Sell Sniper Wallets', status: 'pending' },
-  { id: 'complete', name: '✅ Complete', status: 'pending' }
-];
+  { id: 'complete', name: '✅ Complete', status: 'pending' },
+]
 
 export const useKeymakerStore = create<KeymakerStore>()(
   devtools(
@@ -146,65 +152,68 @@ export const useKeymakerStore = create<KeymakerStore>()(
       network: 'mainnet-beta',
       rpcUrl: 'https://api.mainnet-beta.solana.com',
       wsUrl: 'wss://api.mainnet-beta.solana.com',
-      theme: (typeof window !== 'undefined' && localStorage.getItem('theme') as 'dark' | 'light') || 'dark',
+      theme:
+        (typeof window !== 'undefined' &&
+          (localStorage.getItem('theme') as 'dark' | 'light')) ||
+        'dark',
       totalInvested: 0,
       totalReturned: 0,
       notifications: [],
       bundleMode: 'flash',
       settingsLoaded: false,
       banners: [],
-      
+
       // Actions
       setWallets: (wallets) => set({ wallets }),
-      addWallet: (wallet) => 
+      addWallet: (wallet) =>
         set((state) => {
           const newWallet: WalletData = {
             ...wallet,
             id: `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            balance: 0
-          };
-          return { wallets: [...state.wallets, newWallet] };
+            balance: 0,
+          }
+          return { wallets: [...state.wallets, newWallet] }
         }),
       setWalletGroups: (groups) => set({ walletGroups: groups }),
       setSelectedGroup: (group) => set({ selectedGroup: group }),
       setActiveWallet: (publicKey) => set({ activeWallet: publicKey }),
-      updateWalletBalance: (publicKey, balance) => 
+      updateWalletBalance: (publicKey, balance) =>
         set((state) => ({
-          wallets: state.wallets.map(w => 
-            w.publicKey === publicKey ? { ...w, balance } : w
-          )
+          wallets: state.wallets.map((w) =>
+            w.publicKey === publicKey ? { ...w, balance } : w,
+          ),
         })),
-      
+
       setTokenLaunchData: (data) => set({ tokenLaunchData: data }),
-      
+
       setExecutionStrategy: (strategy) => set({ executionStrategy: strategy }),
-      
+
       startExecution: () => {
-        set({ 
-          isExecuting: true, 
-          executionSteps: [...defaultExecutionSteps] 
-        });
+        set({
+          isExecuting: true,
+          executionSteps: [...defaultExecutionSteps],
+        })
       },
-      
+
       stopExecution: () => {
-        set({ isExecuting: false });
+        set({ isExecuting: false })
       },
-      
-      updateStepStatus: (stepId, status, message) => 
+
+      updateStepStatus: (stepId, status, message) =>
         set((state) => ({
-          executionSteps: state.executionSteps.map(step =>
-            step.id === stepId 
+          executionSteps: state.executionSteps.map((step) =>
+            step.id === stepId
               ? { ...step, status, message, timestamp: Date.now() }
-              : step
-          )
+              : step,
+          ),
         })),
-      
-      resetExecution: () => 
-        set({ 
-          isExecuting: false, 
-          executionSteps: [...defaultExecutionSteps] 
+
+      resetExecution: () =>
+        set({
+          isExecuting: false,
+          executionSteps: [...defaultExecutionSteps],
         }),
-      
+
       setJitoEnabled: (enabled) => set({ jitoEnabled: enabled }),
       setTipAmount: (amount) => set({ tipAmount: amount }),
       setAutoSellDelay: (delay) => set({ autoSellDelay: delay }),
@@ -212,13 +221,13 @@ export const useKeymakerStore = create<KeymakerStore>()(
       setRpcUrl: (url) => set({ rpcUrl: url }),
       setWsUrl: (url) => set({ wsUrl: url }),
       setTheme: (theme) => set({ theme }),
-      
-      updatePnL: (invested, returned) => 
+
+      updatePnL: (invested, returned) =>
         set((state) => ({
           totalInvested: state.totalInvested + invested,
-          totalReturned: state.totalReturned + returned
+          totalReturned: state.totalReturned + returned,
         })),
-        
+
       addNotification: (notification) =>
         set((state) => ({
           notifications: [
@@ -239,23 +248,23 @@ export const useKeymakerStore = create<KeymakerStore>()(
       markNotificationAsRead: (id) =>
         set((state) => ({
           notifications: state.notifications.map((n) =>
-            n.id === id ? { ...n, read: true } : n
+            n.id === id ? { ...n, read: true } : n,
           ),
         })),
-        
+
       setBundleMode: (mode) => set({ bundleMode: mode }),
       setSettingsLoaded: (loaded) => set({ settingsLoaded: loaded }),
       addBanner: (banner) =>
         set((state) => ({
-          banners: [...state.banners, banner]
+          banners: [...state.banners, banner],
         })),
       removeBanner: (banner) =>
         set((state) => ({
-          banners: state.banners.filter(b => b !== banner)
+          banners: state.banners.filter((b) => b !== banner),
         })),
     }),
     {
-      name: 'keymaker-store'
-    }
-  )
-); 
+      name: 'keymaker-store',
+    },
+  ),
+)

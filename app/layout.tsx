@@ -1,33 +1,37 @@
-'use client';
-import React, { useEffect } from 'react';
-import { WalletContext } from '@/components/Wallet/WalletContext';
-import { Toaster } from 'react-hot-toast';
-import { ErrorBoundary } from '@/components/UI/ErrorBoundary';
-import { Sidebar } from '@/components/UI/Sidebar';
-import { Topbar } from '@/components/UI/Topbar';
-import { ConnectionBanner } from '@/components/UI/ConnectionBanner';
-import { MobileNav } from '@/components/UI/MobileNav';
-import { motion } from 'framer-motion';
-import { useTheme } from '@/hooks/useTheme';
-import { verifySecrets } from '@/lib/secrets';
-import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys';
-import { updateService } from '@/services/updateService';
-import { I18nProvider } from '@/services/i18nService';
-import './globals.css';
+'use client'
+import React, { useEffect } from 'react'
+import { WalletContext } from '@/components/Wallet/WalletContext'
+import { Toaster } from 'react-hot-toast'
+import { ErrorBoundary } from '@/components/UI/ErrorBoundary'
+import { Sidebar } from '@/components/UI/Sidebar'
+import { Topbar } from '@/components/UI/Topbar'
+import { ConnectionBanner } from '@/components/UI/ConnectionBanner'
+import { MobileNav } from '@/components/UI/MobileNav'
+import { motion } from 'framer-motion'
+import { useTheme } from '@/hooks/useTheme'
+import { verifySecrets } from '@/lib/secrets'
+import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys'
+import { updateService } from '@/services/updateService'
+import { I18nProvider } from '@/services/i18nService'
+import './globals.css'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { theme, toggleTheme } = useTheme();
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
-    verifySecrets();
-    
+    verifySecrets()
+
     // Start auto-update checks
-    updateService.startAutoCheck();
-    
+    updateService.startAutoCheck()
+
     return () => {
-      updateService.stopAutoCheck();
-    };
-  }, []);
+      updateService.stopAutoCheck()
+    }
+  }, [])
 
   return (
     <html lang="en" className={theme}>
@@ -52,7 +56,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   >
                     {children}
                   </motion.main>
-
                 </div>
               </div>
               <MobileNav />
@@ -61,5 +64,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </I18nProvider>
       </body>
     </html>
-  );
-} 
+  )
+}

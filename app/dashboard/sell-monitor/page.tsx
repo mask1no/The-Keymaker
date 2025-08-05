@@ -1,8 +1,8 @@
-'use client';
-export const dynamic = 'force-dynamic';
+'use client'
+export const dynamic = 'force-dynamic'
 
-import { SellMonitor } from '@/components/SellMonitor/SellMonitor';
-import { StatusCluster } from '@/components/UI/StatusCluster';
+import { SellMonitor } from '@/components/SellMonitor/SellMonitor'
+import { StatusCluster } from '@/components/UI/StatusCluster'
 
 export default function SellMonitorPage() {
   return (
@@ -10,5 +10,5 @@ export default function SellMonitorPage() {
       <SellMonitor />
       <StatusCluster />
     </div>
-  );
-} 
+  )
+}

@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 export default {
   content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
@@ -50,12 +50,19 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Fira Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: [
+          'Fira Sans',
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'sans-serif',
+        ],
         mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'gradient-green': 'linear-gradient(to right, #16a34a, #22c55e)',
         'gradient-cyan': 'linear-gradient(to right, #06b6d4, #22d3ee)',
       },
@@ -78,4 +85,4 @@ export default {
     },
   },
   plugins: [require('@tailwindcss/typography')],
-} satisfies Config; 
+} satisfies Config

@@ -1,6 +1,7 @@
 # 🚀 THE KEYMAKER v1.0.1 - Complete Production Guide
 
 ## 📋 Table of Contents
+
 1. [Quick Start](#quick-start)
 2. [Environment Setup](#environment-setup)
 3. [Features Overview](#features-overview)
@@ -14,12 +15,14 @@
 ## 🎯 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+ and npm
 - Docker and Docker Compose (for production)
 - Solana wallet with SOL for transactions
 - API keys from required services
 
 ### Development Setup (5 minutes)
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/keymaker.git
@@ -41,6 +44,7 @@ npm run dev
 ```
 
 ### Production Setup (Docker)
+
 ```bash
 # Build and run with Docker Compose
 docker compose up --build -d
@@ -115,6 +119,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 ## 🎮 Features Overview
 
 ### 1. Home Dashboard (`/home`)
+
 ![Dashboard](https://via.placeholder.com/800x400?text=Dashboard+Screenshot)
 
 - **Real-time Statistics**: Wallet counts, total balance, active tokens
@@ -123,6 +128,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Recent Activity**: Last 5 transactions
 
 ### 2. Bundle Engine (`/bundle`)
+
 ![Bundle Engine](https://via.placeholder.com/800x400?text=Bundle+Engine+Screenshot)
 
 - **Jito Integration**: MEV-protected bundle execution
@@ -132,6 +138,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Priority Fees**: Customizable for faster inclusion
 
 ### 3. Wallet Manager (`/wallets`)
+
 ![Wallet Manager](https://via.placeholder.com/800x400?text=Wallet+Manager+Screenshot)
 
 - **Secure Storage**: AES-256-GCM encryption
@@ -143,6 +150,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Import/Export**: Backup with encrypted .keymaker files
 
 ### 4. SPL Token Creator (`/spl-creator`)
+
 ![Token Creator](https://via.placeholder.com/800x400?text=Token+Creator+Screenshot)
 
 - **Multi-Platform Launch**:
@@ -153,6 +161,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Automatic Deployment**: One-click token creation
 
 ### 5. Trade History (`/logs`)
+
 ![Trade History](https://via.placeholder.com/800x400?text=Trade+History+Screenshot)
 
 - **Complete History**: All transactions tracked
@@ -161,6 +170,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Direct Links**: Solscan explorer integration
 
 ### 6. PNL Analytics (`/pnl`)
+
 ![PNL Analytics](https://via.placeholder.com/800x400?text=PNL+Analytics+Screenshot)
 
 - **Real-time Tracking**: Live profit/loss calculation
@@ -172,10 +182,11 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 - **Export Reports**: JSON/CSV formats
 
 ### 7. Settings (`/settings`)
+
 ![Settings](https://via.placeholder.com/800x400?text=Settings+Screenshot)
 
 - **API Configuration**: Secure key management
-- **Connection Monitoring**: 
+- **Connection Monitoring**:
   - Interactive 2x2 status grid
   - Click for 30-minute history charts
   - Real-time RTT measurements
@@ -189,6 +200,7 @@ NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 ### Docker Deployment (Recommended)
 
 1. **Prepare Environment**:
+
 ```bash
 # Create production .env file
 cp .env.example .env
@@ -196,6 +208,7 @@ cp .env.example .env
 ```
 
 2. **Build and Deploy**:
+
 ```bash
 # Build production image
 docker compose build
@@ -208,6 +221,7 @@ curl http://localhost:3000/api/health
 ```
 
 3. **Enable HTTPS (Optional)**:
+
 ```bash
 # Start with nginx profile
 docker compose --profile with-nginx up -d
@@ -219,6 +233,7 @@ docker compose --profile with-nginx up -d
 ### Manual Deployment
 
 1. **Build Application**:
+
 ```bash
 # Install dependencies
 npm ci --production
@@ -231,6 +246,7 @@ npm run db:init
 ```
 
 2. **Start with PM2**:
+
 ```bash
 # Install PM2
 npm install -g pm2
@@ -246,6 +262,7 @@ pm2 startup
 ### Health Monitoring
 
 The application provides health checks at `/api/health`:
+
 ```bash
 # Check health
 curl http://localhost:3000/api/health
@@ -403,6 +420,7 @@ CREATE TABLE token_launches (
 ### Debug Mode
 
 Enable debug logging:
+
 ```javascript
 // In your .env.local
 DEBUG=keymaker:*
@@ -426,10 +444,10 @@ LOG_LEVEL=debug
 ✅ Settings page shows all green status lights  
 ✅ Can create/import wallets  
 ✅ Bundle execution works  
-✅ PNL tracking active  
+✅ PNL tracking active
 
 **Congratulations! The Keymaker is ready for production use.** 🚀
 
 ---
 
-*Built with ❤️ for the Solana ecosystem*
+_Built with ❤️ for the Solana ecosystem_

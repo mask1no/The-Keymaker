@@ -7,10 +7,8 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     // Ignore specific warnings
-    config.ignoreWarnings = [
-      { module: /node_modules\/punycode/ }
-    ];
-    
+    config.ignoreWarnings = [{ module: /node_modules\/punycode/ }]
+
     // Don't bundle server-side modules for the browser
     if (!isServer) {
       config.resolve.fallback = {
@@ -22,16 +20,16 @@ const nextConfig = {
         os: false,
         stream: false,
         util: false,
-      };
-      
+      }
+
       // Ignore native modules
       config.externals.push({
-        'sqlite3': 'commonjs sqlite3',
-        'sqlite': 'commonjs sqlite',
-      });
+        sqlite3: 'commonjs sqlite3',
+        sqlite: 'commonjs sqlite',
+      })
     }
-    
-    return config;
+
+    return config
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -43,6 +41,6 @@ const nextConfig = {
     instrumentationHook: true,
     serverComponentsExternalPackages: ['sqlite3', 'sqlite'],
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

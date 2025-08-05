@@ -1,86 +1,102 @@
-'use client';
+'use client'
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, CheckCircle, XCircle, AlertCircle, Info, Trash2 } from 'lucide-react';
-import { Button } from '@/components/UI/button';
-import { useKeymakerStore } from '@/lib/store';
-import { Card } from '@/components/UI/card';
+import React, { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Bell,
+  X,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Info,
+  Trash2,
+} from 'lucide-react'
+import { Button } from '@/components/UI/button'
+import { useKeymakerStore } from '@/lib/store'
+import { Card } from '@/components/UI/card'
 
 export interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message?: string;
-  timestamp: number;
-  read?: boolean;
+  id: string
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message?: string
+  timestamp: number
+  read?: boolean
 }
 
 export function NotificationCenter() {
-  const { notifications, removeNotification, clearNotifications, markNotificationAsRead } = useKeymakerStore();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const {
+    notifications,
+    removeNotification,
+    clearNotifications,
+    markNotificationAsRead,
+  } = useKeymakerStore()
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    setIsOpen(!isOpen)
     // Mark all as read when opening
     if (!isOpen) {
-      notifications.forEach(n => {
+      notifications.forEach((n) => {
         if (!n.read) {
-          markNotificationAsRead(n.id);
+          markNotificationAsRead(n.id)
         }
-      });
+      })
     }
-  };
+  }
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-red-500" />
       case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />
       case 'info':
-        return <Info className="h-4 w-4 text-blue-500" />;
+        return <Info className="h-4 w-4 text-blue-500" />
     }
-  };
+  }
 
   const formatTime = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    
+    const now = Date.now()
+    const diff = now - timestamp
+
     if (diff < 60000) {
-      return 'just now';
+      return 'just now'
     } else if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000);
-      return `${minutes}m ago`;
+      const minutes = Math.floor(diff / 60000)
+      return `${minutes}m ago`
     } else if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000);
-      return `${hours}h ago`;
+      const hours = Math.floor(diff / 3600000)
+      return `${hours}h ago`
     } else {
-      return new Date(timestamp).toLocaleDateString();
+      return new Date(timestamp).toLocaleDateString()
     }
-  };
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -156,7 +172,9 @@ export function NotificationCenter() {
                         <div className="flex items-start gap-3">
                           {getIcon(notification.type)}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm">{notification.title}</p>
+                            <p className="font-medium text-sm">
+                              {notification.title}
+                            </p>
                             {notification.message && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 {notification.message}
@@ -185,5 +203,5 @@ export function NotificationCenter() {
         )}
       </AnimatePresence>
     </div>
-  );
-} 
+  )
+}

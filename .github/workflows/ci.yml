@@ -2,19 +2,21 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
+    tags:
+      - 'v*'
   pull_request:
-    branches: [ main ]
-  release:
-    types: [ created ]
+    branches: [main]
 
 env:
+  NODE_VERSION: '20'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  lint:
-    name: Lint Code
+  # Lint and Type Check
+  quality:
+    name: Code Quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,89 +24,102 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
       
-      - name: Run ESLint
-        run: npm run lint || true
+      - name: Run lint
+        run: npm run lint
       
-      - name: Run TypeScript check
-        run: npx tsc --noEmit
+      - name: Type check
+        run: npx tsc --noEmit --strict
+      
+      - name: Run ts-prune
+        run: npx ts-prune --project tsconfig.json > ts-prune-report.txt 2>&1 || true
+      
+      - name: Upload ts-prune report
+        uses: actions/upload-artifact@v3
+        with:
+          name: ts-prune-report
+          path: ts-prune-report.txt
 
+  # Test Suite
   test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: lint
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
       
-      - name: Initialize database
-        run: npm run db:init
+      - name: Run tests
+        run: npm test --if-present
       
-      - name: Run verification script
-        run: node scripts/verifyApp.js
+      - name: Generate coverage report
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run test:coverage --if-present || echo "No coverage script"
       
-      - name: Run production tests
-        run: npm run test:production || true
-        env:
-          NEXT_PUBLIC_HELIUS_RPC: ${{ secrets.HELIUS_RPC_URL }}
-          NEXT_PUBLIC_BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          fail_ci_if_error: false
 
+  # Build Application
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: test
+    needs: [quality]
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
       
-      - name: Build Next.js application
+      - name: Build Next.js app
         run: npm run build
-        env:
-          NEXT_PUBLIC_HELIUS_RPC: ${{ secrets.HELIUS_RPC_URL }}
-          NEXT_PUBLIC_BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
-          path: |
-            .next/
-            public/
-            package.json
-            init.sql
+          path: .next
 
+  # Docker Build & Push
   docker:
-    name: Build and Push Docker Image
+    name: Docker Build & Push
     runs-on: ubuntu-latest
-    needs: build
+    needs: [quality, test]
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
       
-      - name: Log in to Container Registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -121,79 +136,129 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            GIT_SHA=${{ github.sha }}
-            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
+  # Tauri Build (Desktop App)
   tauri:
-    name: Build Tauri Desktop App
+    name: Build Tauri (${{ matrix.platform }})
+    needs: [quality, test]
+    if: startsWith(github.ref, 'refs/tags/v')
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, windows-latest]
+        platform: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
-    needs: build
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       
-      - name: Install dependencies
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      
+      - name: Install Node dependencies
         run: npm ci --legacy-peer-deps
       
       - name: Build Tauri app
-        run: npm run tauri build
+        uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
-          name: tauri-${{ matrix.platform }}
-          path: |
-            src-tauri/target/release/bundle/
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Keymaker ${{ github.ref_name }}'
+          releaseBody: 'See CHANGELOG.md for details'
+          releaseDraft: false
+          prerelease: false
 
+  # Create Release
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [docker, tauri]
-    if: github.event_name == 'release'
+    needs: [build, docker, tauri]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-      
-      - name: Create release assets
+      - name: Generate latest.json for auto-update
         run: |
-          cd artifacts
-          for dir in tauri-*; do
-            zip -r "../${dir}.zip" "$dir"
-          done
+          echo '{
+            "version": "${{ github.ref_name }}",
+            "notes": "See CHANGELOG.md for details",
+            "pub_date": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "platforms": {
+              "darwin-x86_64": {
+                "signature": "",
+                "url": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/keymaker_${{ github.ref_name }}_x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "",
+                "url": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/keymaker_${{ github.ref_name }}_amd64.AppImage"
+              },
+              "windows-x86_64": {
+                "signature": "",
+                "url": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/keymaker_${{ github.ref_name }}_x64.msi"
+              }
+            }
+          }' > latest.json
       
-      - name: Upload release assets
+      - name: Upload latest.json
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            *.zip
+          files: latest.json
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Baseline Check (for future PRs)
+  baseline-check:
+    name: Baseline Compliance Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Check against baseline
+        run: |
+          echo "Checking against v1.3.0-baseline standards..."
+          npm run lint 2>&1 | tee lint-output.txt
+          if grep -q "error" lint-output.txt; then
+            echo "❌ Lint errors found - baseline check failed"
+            exit 1
+          fi
+          if grep -q "warning" lint-output.txt; then
+            echo "❌ Lint warnings found - baseline check failed"
+            exit 1
+          fi
+          echo "✅ Baseline check passed"

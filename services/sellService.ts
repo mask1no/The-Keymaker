@@ -3,90 +3,87 @@ import {
   Keypair,
   PublicKey,
   VersionedTransaction,
-} from '@solana/web3.js';
-import {
-  getAccount,
-  getAssociatedTokenAddress,
-} from '@solana/spl-token';
-import axios from 'axios';
-import * as Sentry from '@sentry/nextjs';
-import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants';
-import { logSellEvent } from './executionLogService';
+} from '@solana/web3.js'
+import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token'
+import axios from 'axios'
+import * as Sentry from '@sentry/nextjs'
+import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
+import { logSellEvent } from './executionLogService'
 
 export interface SellConditions {
   // PnL conditions
-  minPnlPercent?: number;     // Minimum profit percentage before selling
-  maxLossPercent?: number;    // Maximum loss percentage (stop loss)
-  
+  minPnlPercent?: number // Minimum profit percentage before selling
+  maxLossPercent?: number // Maximum loss percentage (stop loss)
+
   // Market cap conditions
-  targetMarketCap?: number;   // Target market cap in USD
-  minMarketCap?: number;      // Minimum market cap before selling
-  
+  targetMarketCap?: number // Target market cap in USD
+  minMarketCap?: number // Minimum market cap before selling
+
   // Time conditions
-  minHoldTime?: number;       // Minimum time to hold in seconds
-  maxHoldTime?: number;       // Maximum time to hold in seconds
-  
+  minHoldTime?: number // Minimum time to hold in seconds
+  maxHoldTime?: number // Maximum time to hold in seconds
+
   // Price conditions
-  targetPrice?: number;       // Target token price in USD
-  stopLossPrice?: number;     // Stop loss price in USD
-  
+  targetPrice?: number // Target token price in USD
+  stopLossPrice?: number // Stop loss price in USD
+
   // Volume conditions
-  minVolume24h?: number;      // Minimum 24h volume in USD
-  
+  minVolume24h?: number // Minimum 24h volume in USD
+
   // Manual trigger
-  manualSell?: boolean;       // Force sell regardless of conditions
+  manualSell?: boolean // Force sell regardless of conditions
 }
 
 export interface SellParams {
-  wallet: Keypair;
-  tokenMint: PublicKey;
-  amount: number;             // Amount of tokens to sell
-  slippage?: number;          // Slippage tolerance (default 1%)
-  conditions: SellConditions;
-  priority?: 'low' | 'medium' | 'high' | 'veryHigh';
+  wallet: Keypair
+  tokenMint: PublicKey
+  amount: number // Amount of tokens to sell
+  slippage?: number // Slippage tolerance (default 1%)
+  conditions: SellConditions
+  priority?: 'low' | 'medium' | 'high' | 'veryHigh'
 }
 
 export interface SellResult {
-  success: boolean;
-  txSignature?: string;
-  inputAmount: number;
-  outputAmount: number;       // SOL received
-  priceImpact: number;
-  pnlPercent?: number;
-  executionPrice: number;
-  error?: string;
+  success: boolean
+  txSignature?: string
+  inputAmount: number
+  outputAmount: number // SOL received
+  priceImpact: number
+  pnlPercent?: number
+  executionPrice: number
+  error?: string
 }
 
 export interface TokenPriceInfo {
-  price: number;
-  marketCap: number;
-  volume24h: number;
-  priceChange24h: number;
+  price: number
+  marketCap: number
+  volume24h: number
+  priceChange24h: number
 }
 
 /**
  * Get token price information from Jupiter
  */
 export async function getTokenPrice(
-  tokenMint: string
+  tokenMint: string,
 ): Promise<TokenPriceInfo | null> {
   try {
     const response = await axios.get(
-      `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}`
-    );
-    
-    const data = response.data?.data?.[tokenMint];
-    if (!data) return null;
-    
+      `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}`,
+    )
+
+    const data = response.data?.data?.[tokenMint]
+    if (!data) return null
+
     return {
       price: data.price || 0,
       marketCap: data.marketCap || 0,
       volume24h: data.volume24h || 0,
       priceChange24h: data.priceChange24h || 0,
-    };
+    }
   } catch (error) {
-    console.error('Failed to get token price:', error);
-    return null;
+    console.error('Failed to get token price:', error)
+    return null
   }
 }
 
@@ -96,12 +93,12 @@ export async function getTokenPrice(
 export function calculatePnL(
   entryPrice: number,
   currentPrice: number,
-  amount: number
+  amount: number,
 ): number {
-  if (entryPrice === 0) return 0;
-  const currentValue = currentPrice * amount;
-  const entryValue = entryPrice * amount;
-  return ((currentValue - entryValue) / entryValue) * 100;
+  if (entryPrice === 0) return 0
+  const currentValue = currentPrice * amount
+  const entryValue = entryPrice * amount
+  return ((currentValue - entryValue) / entryValue) * 100
 }
 
 /**
@@ -111,69 +108,105 @@ export async function checkSellConditions(
   tokenMint: string,
   conditions: SellConditions,
   entryPrice?: number,
-  entryTime?: number
+  entryTime?: number,
 ): Promise<{ shouldSell: boolean; reason?: string }> {
   // Manual sell overrides all conditions
   if (conditions.manualSell) {
-    return { shouldSell: true, reason: 'Manual sell triggered' };
+    return { shouldSell: true, reason: 'Manual sell triggered' }
   }
-  
+
   // Get current token info
-  const tokenInfo = await getTokenPrice(tokenMint);
+  const tokenInfo = await getTokenPrice(tokenMint)
   if (!tokenInfo) {
-    return { shouldSell: false, reason: 'Unable to fetch token price' };
+    return { shouldSell: false, reason: 'Unable to fetch token price' }
   }
-  
+
   // Check time conditions
   if (entryTime) {
-    const holdTime = (Date.now() - entryTime) / 1000; // Convert to seconds
-    
+    const holdTime = (Date.now() - entryTime) / 1000 // Convert to seconds
+
     if (conditions.minHoldTime && holdTime < conditions.minHoldTime) {
-      return { shouldSell: false, reason: `Minimum hold time not met (${holdTime}s < ${conditions.minHoldTime}s)` };
+      return {
+        shouldSell: false,
+        reason: `Minimum hold time not met (${holdTime}s < ${conditions.minHoldTime}s)`,
+      }
     }
-    
+
     if (conditions.maxHoldTime && holdTime >= conditions.maxHoldTime) {
-      return { shouldSell: true, reason: `Maximum hold time reached (${holdTime}s)` };
+      return {
+        shouldSell: true,
+        reason: `Maximum hold time reached (${holdTime}s)`,
+      }
     }
   }
-  
+
   // Check PnL conditions
   if (entryPrice && (conditions.minPnlPercent || conditions.maxLossPercent)) {
-    const pnl = calculatePnL(entryPrice, tokenInfo.price, 1);
-    
+    const pnl = calculatePnL(entryPrice, tokenInfo.price, 1)
+
     if (conditions.minPnlPercent && pnl >= conditions.minPnlPercent) {
-      return { shouldSell: true, reason: `Target profit reached (${pnl.toFixed(2)}%)` };
+      return {
+        shouldSell: true,
+        reason: `Target profit reached (${pnl.toFixed(2)}%)`,
+      }
     }
-    
+
     if (conditions.maxLossPercent && pnl <= -conditions.maxLossPercent) {
-      return { shouldSell: true, reason: `Stop loss triggered (${pnl.toFixed(2)}%)` };
+      return {
+        shouldSell: true,
+        reason: `Stop loss triggered (${pnl.toFixed(2)}%)`,
+      }
     }
   }
-  
+
   // Check market cap conditions
-  if (conditions.targetMarketCap && tokenInfo.marketCap >= conditions.targetMarketCap) {
-    return { shouldSell: true, reason: `Target market cap reached ($${tokenInfo.marketCap.toLocaleString()})` };
+  if (
+    conditions.targetMarketCap &&
+    tokenInfo.marketCap >= conditions.targetMarketCap
+  ) {
+    return {
+      shouldSell: true,
+      reason: `Target market cap reached ($${tokenInfo.marketCap.toLocaleString()})`,
+    }
   }
-  
-  if (conditions.minMarketCap && tokenInfo.marketCap < conditions.minMarketCap) {
-    return { shouldSell: false, reason: `Minimum market cap not met ($${tokenInfo.marketCap.toLocaleString()})` };
+
+  if (
+    conditions.minMarketCap &&
+    tokenInfo.marketCap < conditions.minMarketCap
+  ) {
+    return {
+      shouldSell: false,
+      reason: `Minimum market cap not met ($${tokenInfo.marketCap.toLocaleString()})`,
+    }
   }
-  
+
   // Check price conditions
   if (conditions.targetPrice && tokenInfo.price >= conditions.targetPrice) {
-    return { shouldSell: true, reason: `Target price reached ($${tokenInfo.price})` };
+    return {
+      shouldSell: true,
+      reason: `Target price reached ($${tokenInfo.price})`,
+    }
   }
-  
+
   if (conditions.stopLossPrice && tokenInfo.price <= conditions.stopLossPrice) {
-    return { shouldSell: true, reason: `Stop loss price triggered ($${tokenInfo.price})` };
+    return {
+      shouldSell: true,
+      reason: `Stop loss price triggered ($${tokenInfo.price})`,
+    }
   }
-  
+
   // Check volume conditions
-  if (conditions.minVolume24h && tokenInfo.volume24h < conditions.minVolume24h) {
-    return { shouldSell: false, reason: `Minimum 24h volume not met ($${tokenInfo.volume24h.toLocaleString()})` };
+  if (
+    conditions.minVolume24h &&
+    tokenInfo.volume24h < conditions.minVolume24h
+  ) {
+    return {
+      shouldSell: false,
+      reason: `Minimum 24h volume not met ($${tokenInfo.volume24h.toLocaleString()})`,
+    }
   }
-  
-  return { shouldSell: false, reason: 'No sell conditions met' };
+
+  return { shouldSell: false, reason: 'No sell conditions met' }
 }
 
 /**
@@ -182,58 +215,63 @@ export async function checkSellConditions(
 async function calculateDynamicSlippage(
   inputMint: string,
   outputMint: string,
-  amount: number
+  amount: number,
 ): Promise<number> {
   try {
     // Get initial quote to assess liquidity
-    const testResponse = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote`, {
-      params: {
-        inputMint,
-        outputMint,
-        amount: Math.floor(amount).toString(),
-        slippageBps: 100, // 1% for test
-        onlyDirectRoutes: false,
-        asLegacyTransaction: false,
+    const testResponse = await axios.get(
+      `${NEXT_PUBLIC_JUPITER_API_URL}/quote`,
+      {
+        params: {
+          inputMint,
+          outputMint,
+          amount: Math.floor(amount).toString(),
+          slippageBps: 100, // 1% for test
+          onlyDirectRoutes: false,
+          asLegacyTransaction: false,
+        },
       },
-    });
-    
-    const quote = testResponse.data;
-    const priceImpact = parseFloat(quote.priceImpactPct) || 0;
-    
+    )
+
+    const quote = testResponse.data
+    const priceImpact = parseFloat(quote.priceImpactPct) || 0
+
     // Calculate slippage based on price impact
-    let slippageBps: number;
-    
+    let slippageBps: number
+
     if (priceImpact < 0.1) {
       // Very liquid, low impact
-      slippageBps = 50; // 0.5%
+      slippageBps = 50 // 0.5%
     } else if (priceImpact < 0.5) {
       // Good liquidity
-      slippageBps = 100; // 1%
+      slippageBps = 100 // 1%
     } else if (priceImpact < 1) {
       // Moderate liquidity
-      slippageBps = 200; // 2%
+      slippageBps = 200 // 2%
     } else if (priceImpact < 3) {
       // Low liquidity
-      slippageBps = 300; // 3%
+      slippageBps = 300 // 3%
     } else if (priceImpact < 5) {
       // Very low liquidity
-      slippageBps = 500; // 5%
+      slippageBps = 500 // 5%
     } else {
       // Extremely low liquidity
-      slippageBps = Math.min(1000, Math.ceil(priceImpact * 100 + 200)); // Up to 10%
+      slippageBps = Math.min(1000, Math.ceil(priceImpact * 100 + 200)) // Up to 10%
     }
-    
+
     // Add extra buffer for volatile tokens
     if (priceImpact > 1) {
-      slippageBps = Math.min(5000, slippageBps * 1.5); // Max 50%
+      slippageBps = Math.min(5000, slippageBps * 1.5) // Max 50%
     }
-    
-    console.log(`Dynamic slippage for ${amount} tokens: ${slippageBps} bps (price impact: ${priceImpact}%)`);
-    return slippageBps;
+
+    console.log(
+      `Dynamic slippage for ${amount} tokens: ${slippageBps} bps (price impact: ${priceImpact}%)`,
+    )
+    return slippageBps
   } catch (error) {
-    console.error('Error calculating dynamic slippage:', error);
+    console.error('Error calculating dynamic slippage:', error)
     // Fallback to conservative default
-    return 300; // 3% default
+    return 300 // 3% default
   }
 }
 
@@ -244,12 +282,14 @@ async function getSwapQuote(
   inputMint: string,
   outputMint: string,
   amount: number,
-  slippage?: number // Optional, will calculate dynamically if not provided
+  slippage?: number, // Optional, will calculate dynamically if not provided
 ) {
   try {
     // Calculate dynamic slippage if not provided
-    const slippageBps = slippage ?? await calculateDynamicSlippage(inputMint, outputMint, amount);
-    
+    const slippageBps =
+      slippage ??
+      (await calculateDynamicSlippage(inputMint, outputMint, amount))
+
     const response = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote`, {
       params: {
         inputMint,
@@ -259,12 +299,12 @@ async function getSwapQuote(
         onlyDirectRoutes: false,
         asLegacyTransaction: false,
       },
-    });
-    
-    return response.data;
+    })
+
+    return response.data
   } catch (error) {
-    console.error('Failed to get swap quote:', error);
-    throw error;
+    console.error('Failed to get swap quote:', error)
+    throw error
   }
 }
 
@@ -275,48 +315,53 @@ async function executeSwap(
   connection: Connection,
   wallet: Keypair,
   quoteResponse: any,
-  priorityLevel?: 'low' | 'medium' | 'high' | 'veryHigh'
+  priorityLevel?: 'low' | 'medium' | 'high' | 'veryHigh',
 ): Promise<string> {
   try {
     // Get serialized transaction from Jupiter
-    const { data } = await axios.post(
-      `${NEXT_PUBLIC_JUPITER_API_URL}/swap`,
-      {
-        quoteResponse,
-        userPublicKey: wallet.publicKey.toBase58(),
-        wrapAndUnwrapSol: true,
-        prioritizationFeeLamports: priorityLevel === 'veryHigh' ? 1000000 : 
-                                   priorityLevel === 'high' ? 500000 :
-                                   priorityLevel === 'medium' ? 100000 : 10000,
-      }
-    );
-    
-    const { swapTransaction } = data;
-    
+    const { data } = await axios.post(`${NEXT_PUBLIC_JUPITER_API_URL}/swap`, {
+      quoteResponse,
+      userPublicKey: wallet.publicKey.toBase58(),
+      wrapAndUnwrapSol: true,
+      prioritizationFeeLamports:
+        priorityLevel === 'veryHigh'
+          ? 1000000
+          : priorityLevel === 'high'
+            ? 500000
+            : priorityLevel === 'medium'
+              ? 100000
+              : 10000,
+    })
+
+    const { swapTransaction } = data
+
     // Deserialize and sign transaction
-    const transactionBuf = Buffer.from(swapTransaction, 'base64');
-    const transaction = VersionedTransaction.deserialize(transactionBuf);
-    transaction.sign([wallet]);
-    
+    const transactionBuf = Buffer.from(swapTransaction, 'base64')
+    const transaction = VersionedTransaction.deserialize(transactionBuf)
+    transaction.sign([wallet])
+
     // Send transaction
-    const latestBlockhash = await connection.getLatestBlockhash();
-    const rawTransaction = transaction.serialize();
+    const latestBlockhash = await connection.getLatestBlockhash()
+    const rawTransaction = transaction.serialize()
     const txSignature = await connection.sendRawTransaction(rawTransaction, {
       skipPreflight: false,
       maxRetries: 2,
-    });
-    
+    })
+
     // Confirm transaction
-    await connection.confirmTransaction({
-      signature: txSignature,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-    }, 'confirmed');
-    
-    return txSignature;
+    await connection.confirmTransaction(
+      {
+        signature: txSignature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      },
+      'confirmed',
+    )
+
+    return txSignature
   } catch (error) {
-    console.error('Swap execution failed:', error);
-    throw error;
+    console.error('Swap execution failed:', error)
+    throw error
   }
 }
 
@@ -325,15 +370,15 @@ async function executeSwap(
  */
 export async function sellToken(
   connection: Connection,
-  params: SellParams
+  params: SellParams,
 ): Promise<SellResult> {
   try {
     // Check if conditions are met
     const conditionCheck = await checkSellConditions(
       params.tokenMint.toBase58(),
-      params.conditions
-    );
-    
+      params.conditions,
+    )
+
     if (!conditionCheck.shouldSell && !params.conditions.manualSell) {
       return {
         success: false,
@@ -342,19 +387,19 @@ export async function sellToken(
         priceImpact: 0,
         executionPrice: 0,
         error: conditionCheck.reason || 'Sell conditions not met',
-      };
+      }
     }
-    
+
     // Get wallet token account
     const tokenAccount = await getAssociatedTokenAddress(
       params.tokenMint,
-      params.wallet.publicKey
-    );
-    
+      params.wallet.publicKey,
+    )
+
     // Get actual token balance
-    const account = await getAccount(connection, tokenAccount);
-    const actualAmount = Math.min(params.amount, Number(account.amount));
-    
+    const account = await getAccount(connection, tokenAccount)
+    const actualAmount = Math.min(params.amount, Number(account.amount))
+
     if (actualAmount === 0) {
       return {
         success: false,
@@ -363,17 +408,17 @@ export async function sellToken(
         priceImpact: 0,
         executionPrice: 0,
         error: 'No tokens to sell',
-      };
+      }
     }
-    
+
     // Get swap quote (selling tokens for SOL)
     const quote = await getSwapQuote(
       params.tokenMint.toBase58(),
       'So11111111111111111111111111111111111111112', // SOL mint
       actualAmount,
-      (params.slippage || 1) * 100 // Convert to basis points
-    );
-    
+      (params.slippage || 1) * 100, // Convert to basis points
+    )
+
     if (!quote) {
       return {
         success: false,
@@ -382,22 +427,23 @@ export async function sellToken(
         priceImpact: 0,
         executionPrice: 0,
         error: 'Unable to get swap quote',
-      };
+      }
     }
-    
+
     // Execute swap
     const txSignature = await executeSwap(
       connection,
       params.wallet,
       quote,
-      params.priority
-    );
-    
+      params.priority,
+    )
+
     // Calculate results
-    const outputAmount = parseInt(quote.outAmount) / 1e9; // Convert lamports to SOL
-    const priceImpact = parseFloat(quote.priceImpactPct) || 0;
-    const executionPrice = outputAmount / (actualAmount / Math.pow(10, quote.inputDecimals || 9));
-    
+    const outputAmount = parseInt(quote.outAmount) / 1e9 // Convert lamports to SOL
+    const priceImpact = parseFloat(quote.priceImpactPct) || 0
+    const executionPrice =
+      outputAmount / (actualAmount / Math.pow(10, quote.inputDecimals || 9))
+
     // Log execution
     await logSellEvent({
       wallet: params.wallet.publicKey.toBase58(),
@@ -407,8 +453,8 @@ export async function sellToken(
       marketCap: 0, // Would need to fetch this
       profitPercentage: 0, // Would need entry price to calculate
       transactionSignature: txSignature,
-    });
-    
+    })
+
     return {
       success: true,
       txSignature,
@@ -416,10 +462,9 @@ export async function sellToken(
       outputAmount,
       priceImpact,
       executionPrice,
-    };
-    
+    }
   } catch (error) {
-    Sentry.captureException(error);
+    Sentry.captureException(error)
     return {
       success: false,
       inputAmount: params.amount,
@@ -427,7 +472,7 @@ export async function sellToken(
       priceImpact: 0,
       executionPrice: 0,
       error: `Sell failed: ${(error as Error).message}`,
-    };
+    }
   }
 }
 
@@ -439,16 +484,16 @@ export async function batchSellTokens(
   wallets: Keypair[],
   tokenMint: PublicKey,
   conditions: SellConditions,
-  slippage?: number
+  slippage?: number,
 ): Promise<SellResult[]> {
-  const results: SellResult[] = [];
-  
+  const results: SellResult[] = []
+
   // Check conditions once for all wallets
   const conditionCheck = await checkSellConditions(
     tokenMint.toBase58(),
-    conditions
-  );
-  
+    conditions,
+  )
+
   if (!conditionCheck.shouldSell && !conditions.manualSell) {
     return wallets.map(() => ({
       success: false,
@@ -457,20 +502,23 @@ export async function batchSellTokens(
       priceImpact: 0,
       executionPrice: 0,
       error: conditionCheck.reason || 'Sell conditions not met',
-    }));
+    }))
   }
-  
+
   // Execute sells in parallel batches to avoid rate limits
-  const batchSize = 3;
+  const batchSize = 3
   for (let i = 0; i < wallets.length; i += batchSize) {
-    const batch = wallets.slice(i, i + batchSize);
+    const batch = wallets.slice(i, i + batchSize)
     const batchPromises = batch.map(async (wallet) => {
       try {
         // Get wallet balance
-        const tokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
-        const account = await getAccount(connection, tokenAccount);
-        const balance = Number(account.amount);
-        
+        const tokenAccount = await getAssociatedTokenAddress(
+          tokenMint,
+          wallet.publicKey,
+        )
+        const account = await getAccount(connection, tokenAccount)
+        const balance = Number(account.amount)
+
         if (balance === 0) {
           return {
             success: false,
@@ -479,9 +527,9 @@ export async function batchSellTokens(
             priceImpact: 0,
             executionPrice: 0,
             error: 'No balance',
-          };
+          }
         }
-        
+
         return sellToken(connection, {
           wallet,
           tokenMint,
@@ -489,7 +537,7 @@ export async function batchSellTokens(
           slippage,
           conditions,
           priority: 'high', // Use high priority for sniper sells
-        });
+        })
       } catch (error) {
         return {
           success: false,
@@ -498,20 +546,20 @@ export async function batchSellTokens(
           priceImpact: 0,
           executionPrice: 0,
           error: (error as Error).message,
-        };
+        }
       }
-    });
-    
-    const batchResults = await Promise.all(batchPromises);
-    results.push(...batchResults);
-    
+    })
+
+    const batchResults = await Promise.all(batchPromises)
+    results.push(...batchResults)
+
     // Small delay between batches to avoid rate limits
     if (i + batchSize < wallets.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
   }
-  
-  return results;
+
+  return results
 }
 
 export default {
@@ -520,4 +568,4 @@ export default {
   checkSellConditions,
   sellToken,
   batchSellTokens,
-}; 
+}
