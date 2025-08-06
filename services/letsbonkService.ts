@@ -4,7 +4,7 @@ import { logTokenLaunch } from './executionLogService'
 import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
-// import { puppeteerHelper } from '@/helpers/puppeteerHelper' - not used yet
+import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
 
 type TokenMetadata = {
   name: string
@@ -84,28 +84,34 @@ export async function createToken(
       )
 
       try {
-        const puppeteerResult = await solvePumpFunCaptcha(
-          name,
-          symbol,
-          metadata.description || `${name} - Created with The Keymaker`,
-          metadata.image || '',
-          supply.toString(),
+        const puppeteerHelper = getPuppeteerHelper()
+        const puppeteerResult = await puppeteerHelper.launchLetsBonk(
+          {
+            name,
+            symbol,
+            description: metadata.description || `${name} - Created with The Keymaker`,
+            imageUrl: metadata.image || '',
+            twitter: metadata.twitter,
+            telegram: metadata.telegram,
+            website: metadata.website,
+          },
+          payer.secretKey.toString(),
         )
 
         // Log token launch with puppeteer result
         await logTokenLaunch({
-          tokenAddress: puppeteerResult.mintAddress,
+          tokenAddress: puppeteerResult.mint,
           name,
           symbol,
           platform: 'LetsBonk (Puppeteer)',
           supply: supply.toString(),
           decimals: 6,
           launcherWallet: payer.publicKey.toBase58(),
-          transactionSignature: puppeteerResult.txHash,
-          liquidityPoolAddress: '',
+          transactionSignature: puppeteerResult.txHash || '',
+          liquidityPoolAddress: puppeteerResult.lp || '',
         })
 
-        return puppeteerResult.mintAddress
+        return puppeteerResult.mint
       } catch (puppeteerError) {
         logger.error('Puppeteer fallback failed for LetsBonk:', puppeteerError)
         throw new Error(

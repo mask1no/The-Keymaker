@@ -192,6 +192,95 @@ class PuppeteerHelper {
   }
 
   /**
+   * Launch token on LetsBonk with captcha bypass
+   */
+  async launchLetsBonk(
+    tokenData: {
+      name: string
+      symbol: string
+      description: string
+      imageUrl?: string
+      twitter?: string
+      telegram?: string
+      website?: string
+    },
+    _walletPrivateKey: string, // TODO: Implement wallet signing
+  ): Promise<TokenLaunchResult> {
+    await this.initBrowser()
+    const page = await this.browser!.newPage()
+
+    try {
+      // Set timeout
+      page.setDefaultTimeout(this.config.headlessTimeout! * 1000)
+
+      // Navigate to LetsBonk create page
+      await page.goto('https://letsbonk.fun/create', { waitUntil: 'networkidle2' })
+
+      // Fill in token details
+      await page.type('#token-name', tokenData.name)
+      await page.type('#token-symbol', tokenData.symbol)
+      await page.type('#token-description', tokenData.description)
+
+      if (tokenData.imageUrl) {
+        await page.type('#token-image', tokenData.imageUrl)
+      }
+
+      // Add social links if provided
+      if (tokenData.twitter) {
+        await page.type('#twitter', tokenData.twitter)
+      }
+      if (tokenData.telegram) {
+        await page.type('#telegram', tokenData.telegram)
+      }
+      if (tokenData.website) {
+        await page.type('#website', tokenData.website)
+      }
+
+      // Click create button
+      await page.click('#create-token-button')
+
+      // Wait for hCaptcha to appear
+      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
+        timeout: 5000,
+      }).catch(() => null)
+
+      if (hcaptchaFrame) {
+        // Extract site key
+        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
+        
+        if (siteKeyMatch) {
+          const siteKey = siteKeyMatch[1]
+          const captchaResponse = await this.solveHCaptcha(page, siteKey)
+          
+          // Inject captcha response
+          await page.evaluate((response) => {
+            (window as any).hcaptcha.setResponse(response)
+          }, captchaResponse)
+          
+          // Submit form again
+          await page.click('#create-token-button')
+        }
+      }
+
+      // Wait for success and extract token details
+      await page.waitForSelector('.success-message', { timeout: 30000 })
+      
+      const mint = await page.$eval('.token-mint', el => el.textContent?.trim() || '')
+      const lp = await page.$eval('.liquidity-pool', el => el.textContent?.trim() || '')
+
+      logger.info(`Token launched successfully on LetsBonk: ${mint}`)
+      
+      return { mint, lp }
+    } catch (error) {
+      logger.error('Error launching token on LetsBonk:', error)
+      throw error
+    } finally {
+      await page.close()
+    }
+  }
+
+  /**
    * Buy token on LetsBonk with captcha bypass
    */
   async buyTokenOnLetsBonk(
