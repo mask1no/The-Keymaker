@@ -12,15 +12,18 @@ export const settingsSchema = z
         .min(1, 'Helius RPC endpoint is required')
         .refine((val) => urlRegex.test(val), 'Must be a valid URL'),
       birdeyeApiKey: z.string().min(1, 'Birdeye API key is required'),
-      twoCaptchaApiKey: z
+      twoCaptchaKey: z
         .string()
         .min(32, '2Captcha API key must be at least 32 characters')
         .optional(),
       pumpfunApiKey: z.string().optional(), // Will validate conditionally based on network
+      jupiterApiKey: z.string().optional(),
       jitoAuthToken: z.string().optional(),
       jitoWsUrl: z.string().optional(),
     }),
-    network: z.enum(['mainnet-beta', 'devnet']),
+    network: z.enum(['dev-net', 'main-net']).transform((val) => 
+      val === 'dev-net' ? 'devnet' : 'mainnet-beta'
+    ),
     rpcUrl: z
       .string()
       .min(1, 'RPC URL is required')
@@ -33,14 +36,23 @@ export const settingsSchema = z
         'Must be a valid WebSocket URL',
       ),
     bundleConfig: z.object({
-      tipAmount: z.number().min(0).max(1000000),
+      jitoTipLamports: z
+        .number()
+        .min(0, 'Jito tip must be non-negative')
+        .max(50000, 'Jito tip cannot exceed 50,000 lamports on free tier'),
       bundleSize: z.number().min(1).max(20),
       retries: z.number().min(1).max(10),
       timeout: z.number().min(5000).max(60000),
     }),
+    jupiterConfig: z.object({
+      jupiterFeeBps: z
+        .number()
+        .min(0, 'Jupiter fee must be non-negative')
+        .max(100, 'Jupiter fee cannot exceed 100 basis points'),
+    }),
     captchaConfig: z.object({
       headlessTimeout: z.number().min(10).max(120).default(30), // Timeout in seconds
-      twoCaptchaApiKey: z.string().optional(),
+      twoCaptchaKey: z.string().optional(),
     }),
   })
   .refine(
@@ -54,5 +66,21 @@ export const settingsSchema = z
     {
       message: 'Pump.fun API key is required on mainnet',
       path: ['apiKeys', 'pumpfunApiKey'],
+    },
+  )
+  .refine(
+    (data) => {
+      // Bundle-cost cap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpoint
+      const jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
+      const isFreeTier = jitoUrl.includes('mainnet.block-engine.jito.wtf')
+      
+      if (isFreeTier && data.bundleConfig.jitoTipLamports > 50000) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'Jito tip cannot exceed 50,000 lamports on free-tier endpoint',
+      path: ['bundleConfig', 'jitoTipLamports'],
     },
   )

@@ -61,9 +61,12 @@ import {
 interface ApiKeys {
   heliusRpc?: string
   birdeyeApiKey?: string
-  twoCaptchaApiKey?: string
+  twoCaptchaKey?: string
   pumpfunApiKey?: string
+  jupiterApiKey?: string
   headlessTimeout?: number
+  jitoTipLamports?: number
+  jupiterFeeBps?: number
 }
 
 interface Preferences {
@@ -648,15 +651,31 @@ export default function SettingsPage() {
               <Label>2Captcha API Key</Label>
               <Input
                 type={showKeys ? 'text' : 'password'}
-                value={apiKeys.twoCaptchaApiKey || ''}
+                value={apiKeys.twoCaptchaKey || ''}
                 onChange={(e) =>
-                  setApiKeys({ ...apiKeys, twoCaptchaApiKey: e.target.value })
+                  setApiKeys({ ...apiKeys, twoCaptchaKey: e.target.value })
                 }
                 placeholder="Your 2Captcha API key"
                 className="bg-black/50 border-aqua/30 font-mono text-sm"
               />
               <p className="text-xs text-gray-400 mt-1">
                 Required for automatic captcha solving
+              </p>
+            </div>
+
+            <div>
+              <Label>Jupiter API Key</Label>
+              <Input
+                type={showKeys ? 'text' : 'password'}
+                value={apiKeys.jupiterApiKey || ''}
+                onChange={(e) =>
+                  setApiKeys({ ...apiKeys, jupiterApiKey: e.target.value })
+                }
+                placeholder="Your Jupiter API key (optional)"
+                className="bg-black/50 border-aqua/30 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Optional for enhanced swap features
               </p>
             </div>
 
@@ -727,17 +746,18 @@ export default function SettingsPage() {
             <div>
               <Label>Network</Label>
               <Select
-                value={network}
-                onValueChange={(value: 'mainnet-beta' | 'devnet') =>
-                  setNetwork(value)
-                }
+                value={network === 'mainnet-beta' ? 'main-net' : 'dev-net'}
+                onValueChange={(value: 'main-net' | 'dev-net') => {
+                  const mappedValue = value === 'main-net' ? 'mainnet-beta' : 'devnet'
+                  setNetwork(mappedValue as 'mainnet-beta' | 'devnet')
+                }}
               >
                 <SelectTrigger className="bg-black/50 border-aqua/30">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mainnet-beta">Mainnet Beta</SelectItem>
-                  <SelectItem value="devnet">Devnet</SelectItem>
+                  <SelectItem value="main-net">Main Net</SelectItem>
+                  <SelectItem value="dev-net">Dev Net</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -781,22 +801,66 @@ export default function SettingsPage() {
             </div>
 
             {jitoEnabled && (
-              <div>
-                <Label>Jito Tip Amount (SOL)</Label>
-                <Input
-                  type="number"
-                  value={tipAmount}
-                  onChange={(e) => setTipAmount(parseFloat(e.target.value))}
-                  step="0.0001"
-                  min="0.0001"
-                  max="0.1"
-                  className="bg-black/50 border-aqua/30"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Tip amount for Jito bundles
-                </p>
-              </div>
+              <>
+                <div>
+                  <Label>Jito Tip Amount (SOL)</Label>
+                  <Input
+                    type="number"
+                    value={tipAmount}
+                    onChange={(e) => setTipAmount(parseFloat(e.target.value))}
+                    step="0.0001"
+                    min="0.0001"
+                    max="0.1"
+                    className="bg-black/50 border-aqua/30"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Tip amount for Jito bundles
+                  </p>
+                </div>
+                
+                <div>
+                  <Label>Jito Tip (Lamports)</Label>
+                  <Input
+                    type="number"
+                    value={apiKeys.jitoTipLamports || 5000}
+                    onChange={(e) =>
+                      setApiKeys({
+                        ...apiKeys,
+                        jitoTipLamports: parseInt(e.target.value) || 5000,
+                      })
+                    }
+                    placeholder="5000"
+                    min="0"
+                    max="50000"
+                    className="bg-black/50 border-aqua/30"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Jito tip in lamports (max 50,000 on free tier)
+                  </p>
+                </div>
+              </>
             )}
+
+            <div>
+              <Label>Jupiter Fee (Basis Points)</Label>
+              <Input
+                type="number"
+                value={apiKeys.jupiterFeeBps || 5}
+                onChange={(e) =>
+                  setApiKeys({
+                    ...apiKeys,
+                    jupiterFeeBps: parseInt(e.target.value) || 5,
+                  })
+                }
+                placeholder="5"
+                min="0"
+                max="100"
+                className="bg-black/50 border-aqua/30"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Jupiter swap fee in basis points (0-100)
+              </p>
+            </div>
           </CardContent>
         </Card>
 

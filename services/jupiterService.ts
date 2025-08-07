@@ -52,6 +52,7 @@ export async function getSwapTransaction(
   wrapAndUnwrapSol = true,
   feeAccount?: string,
   prioritizationFeeLamports?: number,
+  feeBps?: number,
 ): Promise<SwapResponse> {
   try {
     const body: any = {
@@ -69,6 +70,10 @@ export async function getSwapTransaction(
 
     if (prioritizationFeeLamports) {
       body.prioritizationFeeLamports = prioritizationFeeLamports
+    }
+
+    if (feeBps && feeBps > 0) {
+      body.feeBps = feeBps
     }
 
     const response = await axios.post(
@@ -99,6 +104,7 @@ export async function buildSwapTransaction(
   userPublicKey: string,
   slippageBps = 50,
   priorityFee?: number,
+  feeBps?: number,
 ): Promise<VersionedTransaction> {
   // Get quote
   const quote = await getQuote(
@@ -115,6 +121,7 @@ export async function buildSwapTransaction(
     true,
     undefined,
     priorityFee,
+    feeBps,
   )
 
   // Deserialize the transaction
