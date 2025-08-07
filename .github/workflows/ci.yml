@@ -68,6 +68,13 @@ jobs:
           fetch-depth: 0
       - run: node scripts/canaryTrade.js
 
+  tauri:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Tauri build stub (placeholder)"
+
   baseline:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
