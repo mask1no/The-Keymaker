@@ -1,55 +1,3 @@
-## Keymaker v1.3.0 — Solana Bundler
-
-[![CI](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml/badge.svg?branch=opus/v1.3.0)](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-20.x-blue.svg)](https://nodejs.org/)
-
-Status: CI matrix (linux/mac/win) + Docker verify + unit/e2e tests.
-
-### Environment
-Copy `env.example` to `.env` and populate values. See Operations for key rotation policy and limits.
-
-### Quickstart
-1. Copy env.example to .env and fill keys
-2. Install deps and run
-
-```bash
-pnpm install
-pnpm dev
-```
-
-### Tests
-```bash
-pnpm test:coverage
-pnpm test:e2e
-```
-
-### Docker
-```bash
-docker build -t keymaker:ci .
-docker run --rm keymaker:ci
-```
-
-### Canary
-```bash
-node scripts/canaryTrade.js
-```
-
-## Operations
-
-- Key Rotation: Rotate `HELIUS_API_KEY`, `BIRDEYE_API_KEY`, `JUPITER_API_KEY`, `TWO_CAPTCHA_KEY`, `PUMP_FUN_API_KEY` on a monthly cadence or upon incident. Update CI secrets and local `.env` together. Validate with `npm run test:coverage` and `/api/health`.
-- Jito Tip Policy: On free-tier endpoint (`mainnet.block-engine.jito.wtf`), tip ≤ 50,000 lamports (enforced via Zod). Higher tips allowed on non-free-tier endpoints.
-- Deterministic Wallets (Testing): Tests use `DETERMINISTIC_SEED`. Never commit private keys.
-- 429 Sentinel: If any external call fails 3× with HTTP ≥ 429, label `blocked-external` and skip the step.
-
-## Architecture (Brief)
-
-- Frontend: Next.js 14, React 18, Tailwind CSS. Core UI: Dashboard, BundleEngine, PnL Panel, MarketCapCard (ARIA), Settings.
-- Services: Bundling (Jito), Jupiter swaps, Pump.fun fallback (Puppeteer + 2Captcha), PnL tracking (SQLite), rate limiting & retries.
-- Data: SQLite for analytics/PnL; Zustand store for client state.
-- Tests: Jest unit (≥80% coverage focused), Playwright e2e with 500 ms lag proxy.
-- CI: GitHub Actions matrix (ubuntu/mac/win), Docker build/verify, canary trade, baseline tag/comment.
-
 # The Keymaker v1.3.0 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
@@ -60,6 +8,7 @@ node scripts/canaryTrade.js
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![A11y](https://img.shields.io/badge/a11y-compliant-brightgreen)
+[![CI](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml/badge.svg?branch=opus/v1.3.0)](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml)
 
 ## Overview
 
@@ -104,49 +53,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 - **Extended Bundle Support**: Support for up to 20 transactions per bundle with priority ordering
 - **Comprehensive Fee Tracking**: Accurate profit calculations including gas fees and Jito tips
 
-## Architecture
-
-### Technology Stack
-
-The Keymaker leverages modern web technologies and blockchain infrastructure:
-
-- **Frontend Framework**: Next.js 14.2.30 with React 18 and TypeScript
-- **User Interface**: Tailwind CSS with shadcn/ui component library
-- **Blockchain Integration**: Solana Web3.js and SPL Token libraries
-- **State Management**: Zustand for efficient client-side state
-- **Data Persistence**: SQLite for transaction history and analytics
-- **Security**: AES-256-GCM encryption with PBKDF2 key derivation
-- **Error Monitoring**: Sentry integration for production error tracking
-- **Containerization**: Docker with Alpine Linux for minimal footprint
-
-### Core Services
-
-#### Bundle Service
-
-The bundle service orchestrates transaction execution through Jito Block Engine, supporting batched transactions with sophisticated retry logic and real-time status monitoring. The service implements exponential backoff strategies and monitors bundle status through websocket connections.
-
-#### Wallet Service
-
-A comprehensive wallet management system that encrypts private keys using AES-256-GCM with PBKDF2 key derivation utilizing 100,000 iterations. The service supports batch wallet creation, secure import/export functionality, and role-based wallet categorization.
-
-#### Platform Service
-
-Manages SPL token creation across multiple blockchain platforms, handling liquidity pool creation, token parameter validation, and platform-specific requirements. The service integrates with pump.fun, Raydium, and letsbonk.fun APIs.
-
-#### Analytics Service
-
-Tracks all buy and sell transactions in a local SQLite database, calculating real-time profit and loss metrics. Provides wallet-specific and token-specific analytics with export capabilities in JSON and CSV formats.
-
-### Security Architecture
-
-The Keymaker implements defense-in-depth security principles:
-
-1. **Wallet Encryption Layer**: AES-256-GCM encryption with unique salt and initialization vectors per wallet
-2. **API Key Protection**: Environment variable isolation with optional localStorage for client-side keys
-3. **Transaction Security**: Local-only transaction signing with no private key transmission
-4. **Network Security**: HTTPS enforcement, rate limiting, and CORS protection
-
-## Installation
+## Quick Start
 
 ### Prerequisites
 
@@ -154,16 +61,38 @@ The Keymaker implements defense-in-depth security principles:
 - Docker Desktop
 - Git
 
-### Setup Instructions
+### Installation
 
 1. Clone the repository:
-
 ```bash
-git clone https://github.com/yourusername/the-keymaker.git
+git clone https://github.com/mask1no/The-Keymaker.git
 cd the-keymaker
 ```
 
-2. Configure environment variables in `.env.local`:
+2. Configure environment variables:
+```bash
+cp env.example .env
+# Edit .env with your API keys
+```
+
+3. Install dependencies and run:
+```bash
+pnpm install
+pnpm dev
+```
+
+### Docker Deployment
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Access the application at http://localhost:3000
+
+## Environment Configuration
+
+Copy `env.example` to `.env` and populate with your keys:
 
 ```env
 # Required Configuration
@@ -178,183 +107,153 @@ JITO_AUTH_TOKEN=your_jito_token
 TWOCAPTCHA_API_KEY=your_2captcha_key
 ```
 
-3. Build and deploy with Docker:
+## Architecture
 
-```bash
-docker compose build
-docker compose up -d
-```
+### Technology Stack
 
-4. Access the application at http://localhost:3000
+- **Frontend Framework**: Next.js 14.2.30 with React 18 and TypeScript
+- **User Interface**: Tailwind CSS with shadcn/ui component library
+- **Blockchain Integration**: Solana Web3.js and SPL Token libraries
+- **State Management**: Zustand for efficient client-side state
+- **Data Persistence**: SQLite for transaction history and analytics
+- **Security**: AES-256-GCM encryption with PBKDF2 key derivation
+- **Error Monitoring**: Sentry integration for production error tracking
+- **Containerization**: Docker with Alpine Linux for minimal footprint
+
+### Core Services
+
+#### Bundle Service
+Orchestrates transaction execution through Jito Block Engine, supporting batched transactions with sophisticated retry logic and real-time status monitoring.
+
+#### Wallet Service
+Comprehensive wallet management system that encrypts private keys using AES-256-GCM with PBKDF2 key derivation utilizing 100,000 iterations.
+
+#### Platform Service
+Manages SPL token creation across multiple blockchain platforms, handling liquidity pool creation and platform-specific requirements.
+
+#### Analytics Service
+Tracks all buy and sell transactions in SQLite database, calculating real-time profit and loss metrics with export capabilities.
 
 ## Application Routes
 
-### Dashboard (`/home`)
-
-Central command center displaying system statistics, wallet balances, profit and loss summary, and quick access navigation.
-
-### Bundle Engine (`/bundle`)
-
-Execute Jito bundles with support for both stealth and manual modes. Features real-time transaction preview, fee estimation, and comprehensive result tracking.
-
-### Wallet Manager (`/wallets`)
-
-Create and import wallets with support for Phantom integration and direct keypair imports. Assign roles, manage balances, and perform batch operations with encrypted storage.
-
-### Token Creator (`/spl-creator`)
-
-Deploy SPL tokens on mainnet with multi-platform support. Configure token parameters, create liquidity pools, and manage metadata with platform-specific optimizations.
-
-### Transaction History (`/logs`)
-
-Complete transaction audit trail with advanced filtering, real-time updates, and export functionality. Detailed bundle breakdowns with individual transaction results.
-
-### Analytics (`/pnl`)
-
-Real-time profit and loss tracking with per-wallet and per-token analytics. Session statistics with comprehensive export capabilities.
-
-### Settings (`/settings`)
-
-Centralized configuration management including API keys, connection monitoring, trading preferences, and security settings.
+- **Dashboard** (`/home`): Central command center with system statistics
+- **Bundle Engine** (`/bundle`): Execute Jito bundles with fee estimation
+- **Wallet Manager** (`/wallets`): Create and manage encrypted wallets
+- **Token Creator** (`/spl-creator`): Deploy SPL tokens on mainnet
+- **Transaction History** (`/logs`): Complete transaction audit trail
+- **Analytics** (`/pnl`): Real-time profit and loss tracking
+- **Settings** (`/settings`): Centralized configuration management
 
 ## API Reference
 
-### Health Check Endpoint
-
+### Health Check
 ```
 GET /api/health
-Response: { "ok": true, "version": "1.1.0", "checks": {...} }
+Response: { "ok": true, "version": "1.3.0", "checks": {...} }
 ```
 
 ### Proxy Service
-
 ```
 POST /api/proxy
 Body: {
   service: "jupiter" | "birdeye" | "helius" | "pumpfun",
   endpoint: string,
-  params?: object,
-  method?: "GET" | "POST"
+  params?: object
 }
 ```
 
-### Bundle Execution
+## Testing
 
+```bash
+# Run unit tests with coverage
+pnpm test:coverage
+
+# Run end-to-end tests
+pnpm test:e2e
+
+# Run accessibility tests
+pnpm test:a11y
 ```
-POST /api/bundle/execute
-Body: {
-  transactions: Transaction[],
-  wallets: WalletData[],
-  tipAmount: number
-}
-```
+
+## Operations
+
+### Key Rotation
+Rotate API keys (`HELIUS_API_KEY`, `BIRDEYE_API_KEY`, `JUPITER_API_KEY`, `TWO_CAPTCHA_KEY`, `PUMP_FUN_API_KEY`) on a monthly cadence or upon incident.
+
+### Jito Tip Policy
+On free-tier endpoint (`mainnet.block-engine.jito.wtf`), tip ≤ 50,000 lamports (enforced via Zod).
+
+### Security
+- Deterministic wallets for testing only (never commit private keys)
+- 429 Sentinel: Auto-skip after 3× HTTP 429 errors
 
 ## Development
 
-### Local Development Setup
-
+### Local Setup
 ```bash
 npm install
 npm run dev
 ```
 
 ### Database Initialization
-
 ```bash
 npm run db:init
 ```
 
-### Code Quality Tools
-
+### Code Quality
 ```bash
 npm run type-check
 npm run lint
 ```
 
-## Production Deployment
-
-The application utilizes a multi-stage Docker build process optimized for production:
-
-1. **Dependencies Stage**: Installs and builds native modules
-2. **Builder Stage**: Compiles Next.js application with optimizations
-3. **Runner Stage**: Minimal production image with security hardening
-
-### Docker Operations
-
+### Canary Testing
 ```bash
-# Build production image
-docker compose build --no-cache
-
-# Deploy application
-docker compose up -d
-
-# Monitor logs
-docker logs keymaker-prod -f
-
-# Shutdown
-docker compose down
+node scripts/canaryTrade.js
 ```
-
-## Database Schema
-
-The application uses SQLite for local data persistence with the following core tables:
-
-- **wallets**: Stores encrypted wallet data with role assignments
-- **pnl_tracking**: Records all buy/sell transactions for profit calculation
-- **bundle_executions**: Logs bundle execution results and metadata
-- **token_launches**: Tracks all token deployments with platform details
 
 ## Security Considerations
 
 ### Wallet Security
-
-Private keys are encrypted using AES-256-GCM with unique salt and initialization vectors per wallet. PBKDF2 key derivation with 100,000 iterations prevents brute force attacks.
+- AES-256-GCM encryption with unique salt and IV per wallet
+- PBKDF2 key derivation with 100,000 iterations
+- Local-only transaction signing
 
 ### API Security
-
-All endpoints implement rate limiting, CORS protection, input validation, and sanitization. Sensitive data is excluded from logs and error messages.
+- Rate limiting and CORS protection
+- Input validation and sanitization
+- Sensitive data excluded from logs
 
 ### Transaction Security
-
-All transaction signing occurs locally with no private key transmission over the network. Transactions are simulated before execution to prevent costly errors.
+- Pre-execution simulation
+- No private key transmission
+- MEV protection through Jito
 
 ## Performance Optimizations
 
-The application implements several performance enhancements:
-
-- React component memoization for reduced re-renders
-- Debounced API calls to prevent rate limiting
-- Indexed database queries for fast data retrieval
-- Docker layer caching for efficient builds
-- Next.js production optimizations including code splitting
+- React component memoization
+- Debounced API calls
+- Indexed database queries
+- Docker layer caching
+- Next.js code splitting
 
 ## System Status
 
-The Keymaker v1.1.0 represents a fully operational, production-ready platform:
+The Keymaker v1.3.0 represents a fully operational, production-ready platform:
 
-- Complete blockchain integration with real-time data
-- All application routes tested and functional
-- Docker container with automated health checks
-- Responsive UI with theme persistence
-- Real-time monitoring with historical data visualization
-- Military-grade wallet encryption
-- Jito bundle execution with MEV protection
-- Multi-platform token deployment
-- Comprehensive profit and loss tracking
-- Robust error handling and recovery
+✅ Complete blockchain integration with real-time data  
+✅ All application routes tested and functional  
+✅ Docker container with automated health checks  
+✅ Responsive UI with theme persistence  
+✅ Real-time monitoring with historical data  
+✅ Military-grade wallet encryption  
+✅ Jito bundle execution with MEV protection  
+✅ Multi-platform token deployment  
+✅ Comprehensive profit and loss tracking  
+✅ Robust error handling and recovery  
 
-### Production Deployment
+## License
 
-```bash
-# Quick deployment
-docker compose up --build -d
-
-# Verify health
-curl http://localhost:3000/api/health
-# Expected: {"ok":true,"version":"1.1.0"}
-```
-
-The Keymaker v1.1.0 delivers institutional-grade Solana memecoin orchestration capabilities. Deploy tokens, execute bundles, and track profits with confidence.
+MIT License - See LICENSE file for details
 
 ---
 
