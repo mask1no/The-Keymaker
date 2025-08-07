@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { NEXT_PUBLIC_JITO_ENDPOINT } from '../constants'
+import { NEXT_PUBLIC_JITO_ENDPOINT, NEXT_PUBLIC_HELIUS_RPC } from '../constants'
 import { getConnection } from '@/lib/network'
 
 type Status = 'healthy' | 'degraded' | 'error'

@@ -7,53 +7,54 @@
 This release establishes the production-ready baseline with comprehensive testing, security hardening, and enterprise features.
 
 ### Added
+
 - **Security Enhancements**
   - Auto-lock timer (15 min default) that flushes AES keys from memory
   - 2Captcha integration for automated captcha solving
   - Puppeteer helper for headless browser automation fallback
   - Husky pre-commit hooks for code quality enforcement
-  
 - **UI/UX Improvements**
   - ARIA labels and role="region" for MarketCapCard accessibility
   - Gas Fee and Jito Tip columns in PnL tables with CSV export
   - ConnectionBanner click shows 30-min RTT sparkline modal (Recharts)
   - Dark mode contrast improvements (axe-core compliant)
-  
 - **Developer Experience**
   - Comprehensive GitHub Actions CI/CD pipeline with matrix builds
   - Docker multi-platform support (linux/amd64, linux/arm64)
   - Tauri desktop app with auto-update mechanism
   - ts-prune integration for unused export detection
-  
 - **Documentation**
   - Architecture documentation with data flow diagrams (docs/ARCH.md)
   - Operations manual for Docker/Tauri deployment (docs/OPERATIONS.md)
   - GitHub issue templates (bug, feature, question)
 
 ### Changed
+
 - **Settings Panel Realignment**
   - Removed LetsBonk API key field (no longer required)
   - Added 2Captcha API key field (optional)
   - Added Headless timeout configuration (default 30s)
   - Updated Zod schema with conditional Pump.fun API key validation
-  
 - **Performance Optimizations**
   - Improved lint configuration (0 errors, 0 warnings baseline)
   - Enhanced TypeScript strict mode compliance
   - Optimized bundle size with tree-shaking
 
 ### Fixed
+
 - All ESLint errors and warnings resolved
 - TypeScript strict mode compliance issues
 - Database schema inconsistencies
 - Health endpoint now includes puppeteer status
 
 ### Security
+
 - npm audit: 6 high severity vulnerabilities in Solana dependencies (cannot be fixed without ecosystem breaking changes)
 - Secrets scanning with gitleaks integration
 - Enhanced input validation across all forms
 
 ### Technical Debt
+
 - 206 unused exports documented in docs/QA/ts-prune.log
 - Solana dependency vulnerabilities tracked for future updates
 

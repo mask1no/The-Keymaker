@@ -148,22 +148,23 @@ export default function TokenForm() {
           )
           break
 
-        case 'LetsBonk.fun': {
-          // For LetsBonk, we need a keypair - use master wallet or create temp
-          const masterWallet = wallets.find(w => w.role === 'master')
-          if (!masterWallet) {
-            throw new Error('Master wallet not found')
+        case 'LetsBonk.fun':
+          {
+            // For LetsBonk, we need a keypair - use master wallet or create temp
+            const masterWallet = wallets.find((w) => w.role === 'master')
+            if (!masterWallet) {
+              throw new Error('Master wallet not found')
+            }
+            // Create a temporary keypair for now - in production this should use the actual wallet
+            const tempKeypair = Keypair.generate()
+            tokenAddr = await letsbonkCreate(
+              name,
+              symbol,
+              parseInt(supply),
+              metadata,
+              tempKeypair,
+            )
           }
-          // Create a temporary keypair for now - in production this should use the actual wallet
-          const tempKeypair = Keypair.generate()
-          tokenAddr = await letsbonkCreate(
-            name,
-            symbol,
-            parseInt(supply),
-            metadata,
-            tempKeypair,
-          )
-        }
           break
 
         default:

@@ -346,7 +346,8 @@ export async function exportPnLData(
     return JSON.stringify(data, null, 2)
   } else {
     // CSV format
-    let csv = 'Wallet,Total Invested,Total Returned,Gas Fees,Jito Tips,Net PnL,PnL %,Trades\n'
+    let csv =
+      'Wallet,Total Invested,Total Returned,Gas Fees,Jito Tips,Net PnL,PnL %,Trades\n'
     walletPnL.forEach((w) => {
       csv += `${w.wallet},${w.totalInvested.toFixed(4)},${w.totalReturned.toFixed(4)},${w.totalGasFees.toFixed(4)},${w.totalJitoTips.toFixed(4)},${w.netPnL.toFixed(4)},${w.pnlPercentage.toFixed(2)}%,${w.trades}\n`
     })

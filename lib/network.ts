@@ -24,58 +24,10 @@ export function getNetworkEndpoint(network: 'mainnet-beta' | 'devnet'): string {
   return network === 'devnet' ? DEVNET_RPC : MAINNET_RPC
 }
 
-export function getWebSocketEndpoint(
-  network: 'mainnet-beta' | 'devnet',
-): string {
-  const store = useKeymakerStore.getState()
-
-  // Use custom WS if set in store
-  if (store.wsUrl && store.wsUrl !== MAINNET_WS && store.wsUrl !== DEVNET_WS) {
-    return store.wsUrl
-  }
-
-  return network === 'devnet' ? DEVNET_WS : MAINNET_WS
-}
-
-export function getJitoEndpoint(network: 'mainnet-beta' | 'devnet'): string {
-  return network === 'devnet' ? JITO_DEVNET_URL : JITO_MAINNET_URL
-}
-
 export function getConnection(
   commitment: 'processed' | 'confirmed' | 'finalized' = 'confirmed',
 ): Connection {
   const store = useKeymakerStore.getState()
   const endpoint = getNetworkEndpoint(store.network)
   return new Connection(endpoint, commitment)
-}
-
-export function getExplorerUrl(
-  txId: string,
-  network: 'mainnet-beta' | 'devnet' = 'mainnet-beta',
-): string {
-  if (network === 'devnet') {
-    return `https://solscan.io/tx/${txId}?cluster=devnet`
-  }
-  return `https://solscan.io/tx/${txId}`
-}
-
-export function getAddressExplorerUrl(
-  address: string,
-  network: 'mainnet-beta' | 'devnet' = 'mainnet-beta',
-): string {
-  if (network === 'devnet') {
-    return `https://solscan.io/account/${address}?cluster=devnet`
-  }
-  return `https://solscan.io/account/${address}`
-}
-
-export function getTokenExplorerUrl(
-  tokenAddress: string,
-  network: 'mainnet-beta' | 'devnet' = 'mainnet-beta',
-): string {
-  // Birdeye only supports mainnet
-  if (network === 'devnet') {
-    return `https://solscan.io/token/${tokenAddress}?cluster=devnet`
-  }
-  return `https://birdeye.so/token/${tokenAddress}?chain=solana`
 }

@@ -35,6 +35,7 @@ docker-compose down -v
 ### Environment Configuration
 
 Create `.env.local` file:
+
 ```env
 # Required API Keys
 NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
@@ -124,18 +125,21 @@ docker-compose up -d
 ### Installation
 
 #### Windows
+
 1. Download `keymaker_1.3.0_x64.msi` from releases
 2. Run installer as Administrator
 3. Follow installation wizard
 4. Launch from Start Menu
 
 #### macOS
+
 1. Download `keymaker_1.3.0_x64.dmg` from releases
 2. Open DMG file
 3. Drag Keymaker to Applications folder
 4. Open from Applications (may need to allow in Security settings)
 
 #### Linux
+
 1. Download `keymaker_1.3.0_amd64.AppImage` from releases
 2. Make executable: `chmod +x keymaker_1.3.0_amd64.AppImage`
 3. Run: `./keymaker_1.3.0_amd64.AppImage`
@@ -165,18 +169,21 @@ brew upgrade keymaker
 ### Configuration Files
 
 #### Windows
+
 ```
 %APPDATA%\keymaker\config.json
 %APPDATA%\keymaker\data\keymaker.db
 ```
 
 #### macOS
+
 ```
 ~/Library/Application Support/keymaker/config.json
 ~/Library/Application Support/keymaker/data/keymaker.db
 ```
 
 #### Linux
+
 ```
 ~/.config/keymaker/config.json
 ~/.local/share/keymaker/data/keymaker.db
@@ -185,6 +192,7 @@ brew upgrade keymaker
 ### Troubleshooting
 
 #### Reset Configuration
+
 ```bash
 # Windows
 rmdir /s "%APPDATA%\keymaker"
@@ -197,6 +205,7 @@ rm -rf ~/.config/keymaker ~/.local/share/keymaker
 ```
 
 #### Debug Mode
+
 ```bash
 # Run with debug logging
 RUST_LOG=debug ./keymaker
@@ -241,6 +250,7 @@ PRAGMA temp_store = MEMORY;
 ### Monitoring Setup
 
 #### Prometheus Metrics
+
 ```yaml
 # prometheus.yml
 scrape_configs:
@@ -251,6 +261,7 @@ scrape_configs:
 ```
 
 #### Grafana Dashboard
+
 Import dashboard from `docs/monitoring/grafana-dashboard.json`
 
 ### Backup Strategy
@@ -276,6 +287,7 @@ find ${BACKUP_DIR} -name "*.tar.gz" -mtime +30 -delete
 ### Disaster Recovery
 
 1. **Database Corruption**
+
    ```bash
    sqlite3 keymaker.db ".recover" | sqlite3 recovered.db
    mv recovered.db keymaker.db

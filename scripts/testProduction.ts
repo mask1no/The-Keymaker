@@ -1,7 +1,4 @@
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js'
+import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import axios from 'axios'
 import * as dotenv from 'dotenv'
 import { promises as fs } from 'fs'

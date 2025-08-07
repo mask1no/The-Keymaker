@@ -11,9 +11,7 @@ import {
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import {
-  TooltipProvider,
-} from '@/components/UI/tooltip'
+import { TooltipProvider } from '@/components/UI/tooltip'
 import { useKeymakerStore } from '@/lib/store'
 import { StatusCards } from './StatusCards'
 

@@ -52,8 +52,7 @@ export function BundleSettings() {
     // Save to environment (for persistence)
     if (typeof window !== 'undefined') {
       const w = window as any
-      w.NEXT_PUBLIC_BUNDLE_TX_LIMIT =
-        localConfig.bundleSize.toString()
+      w.NEXT_PUBLIC_BUNDLE_TX_LIMIT = localConfig.bundleSize.toString()
     }
 
     toast.success('Bundle settings saved')

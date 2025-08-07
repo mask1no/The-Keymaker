@@ -20,7 +20,8 @@ export async function POST() {
     const rttHistory = connectionManager.getRTTHistory()
     const avgRttMs =
       rttHistory.length > 0
-        ? rttHistory.reduce((sum: number, h: any) => sum + h.rtt, 0) / rttHistory.length
+        ? rttHistory.reduce((sum: number, h: any) => sum + h.rtt, 0) /
+          rttHistory.length
         : 0
 
     const metrics = {

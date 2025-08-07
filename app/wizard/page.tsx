@@ -197,7 +197,10 @@ export default function LaunchWizard() {
           tokenName: preset.config.tokenName,
           tokenSymbol: preset.config.tokenSymbol,
           tokenSupply: preset.config.totalSupply,
-          tokenPlatform: preset.config.platform as 'pump.fun' | 'letsbonk.fun' | 'raydium',
+          tokenPlatform: preset.config.platform as
+            | 'pump.fun'
+            | 'letsbonk.fun'
+            | 'raydium',
           tokenDescription: preset.config.tokenDescription,
           tokenImage: preset.config.tokenImage,
           walletCount: wizardData.walletCount, // Keep current wallet settings
@@ -330,7 +333,13 @@ export default function LaunchWizard() {
               <Select
                 value={wizardData.tokenPlatform}
                 onValueChange={(value: string) =>
-                  setWizardData({ ...wizardData, tokenPlatform: value as 'pump.fun' | 'letsbonk.fun' | 'raydium' })
+                  setWizardData({
+                    ...wizardData,
+                    tokenPlatform: value as
+                      | 'pump.fun'
+                      | 'letsbonk.fun'
+                      | 'raydium',
+                  })
                 }
               >
                 <SelectTrigger>

@@ -89,7 +89,7 @@ class PuppeteerHelper {
     try {
       // Request captcha solution from 2Captcha
       const result = await this.solver.hcaptcha(siteKey, pageUrl)
-      
+
       if (result.data) {
         logger.info('hCaptcha solved successfully')
         return result.data
@@ -151,24 +151,28 @@ class PuppeteerHelper {
       await page.click('#create-token-button')
 
       // Wait for hCaptcha to appear
-      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
-        timeout: 5000,
-      }).catch(() => null)
+      const hcaptchaFrame = await page
+        .waitForSelector('iframe[src*="hcaptcha.com"]', {
+          timeout: 5000,
+        })
+        .catch(() => null)
 
       if (hcaptchaFrame) {
         // Extract site key
-        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const frameSrc = await hcaptchaFrame.evaluate((el) =>
+          el.getAttribute('src'),
+        )
         const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
-        
+
         if (siteKeyMatch) {
           const siteKey = siteKeyMatch[1]
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
-          
+
           // Inject captcha response
           await page.evaluate((response) => {
             (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
-          
+
           // Submit form again
           await page.click('#create-token-button')
         }
@@ -176,12 +180,18 @@ class PuppeteerHelper {
 
       // Wait for success and extract token details
       await page.waitForSelector('.success-message', { timeout: 30000 })
-      
-      const mint = await page.$eval('.token-mint', el => el.textContent?.trim() || '')
-      const lp = await page.$eval('.liquidity-pool', el => el.textContent?.trim() || '')
+
+      const mint = await page.$eval(
+        '.token-mint',
+        (el) => el.textContent?.trim() || '',
+      )
+      const lp = await page.$eval(
+        '.liquidity-pool',
+        (el) => el.textContent?.trim() || '',
+      )
 
       logger.info(`Token launched successfully: ${mint}`)
-      
+
       return { mint, lp }
     } catch (error) {
       logger.error('Error launching token on Pump.fun:', error)
@@ -214,7 +224,9 @@ class PuppeteerHelper {
       page.setDefaultTimeout(this.config.headlessTimeout! * 1000)
 
       // Navigate to LetsBonk create page
-      await page.goto('https://letsbonk.fun/create', { waitUntil: 'networkidle2' })
+      await page.goto('https://letsbonk.fun/create', {
+        waitUntil: 'networkidle2',
+      })
 
       // Fill in token details
       await page.type('#token-name', tokenData.name)
@@ -240,24 +252,28 @@ class PuppeteerHelper {
       await page.click('#create-token-button')
 
       // Wait for hCaptcha to appear
-      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
-        timeout: 5000,
-      }).catch(() => null)
+      const hcaptchaFrame = await page
+        .waitForSelector('iframe[src*="hcaptcha.com"]', {
+          timeout: 5000,
+        })
+        .catch(() => null)
 
       if (hcaptchaFrame) {
         // Extract site key
-        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const frameSrc = await hcaptchaFrame.evaluate((el) =>
+          el.getAttribute('src'),
+        )
         const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
-        
+
         if (siteKeyMatch) {
           const siteKey = siteKeyMatch[1]
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
-          
+
           // Inject captcha response
           await page.evaluate((response) => {
             (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
-          
+
           // Submit form again
           await page.click('#create-token-button')
         }
@@ -265,12 +281,18 @@ class PuppeteerHelper {
 
       // Wait for success and extract token details
       await page.waitForSelector('.success-message', { timeout: 30000 })
-      
-      const mint = await page.$eval('.token-mint', el => el.textContent?.trim() || '')
-      const lp = await page.$eval('.liquidity-pool', el => el.textContent?.trim() || '')
+
+      const mint = await page.$eval(
+        '.token-mint',
+        (el) => el.textContent?.trim() || '',
+      )
+      const lp = await page.$eval(
+        '.liquidity-pool',
+        (el) => el.textContent?.trim() || '',
+      )
 
       logger.info(`Token launched successfully on LetsBonk: ${mint}`)
-      
+
       return { mint, lp }
     } catch (error) {
       logger.error('Error launching token on LetsBonk:', error)
@@ -296,43 +318,48 @@ class PuppeteerHelper {
       page.setDefaultTimeout(this.config.headlessTimeout! * 1000)
 
       // Navigate to LetsBonk trade page
-      await page.goto(`https://letsbonk.io/trade/${tokenAddress}`, { 
-        waitUntil: 'networkidle2' 
+      await page.goto(`https://letsbonk.io/trade/${tokenAddress}`, {
+        waitUntil: 'networkidle2',
       })
 
       // Input buy amount
       await page.type('#buy-amount', amountSol.toString())
-      
+
       // Click buy button
       await page.click('#buy-button')
 
       // Handle potential captcha
-      const hcaptchaFrame = await page.waitForSelector('iframe[src*="hcaptcha.com"]', {
-        timeout: 5000,
-      }).catch(() => null)
+      const hcaptchaFrame = await page
+        .waitForSelector('iframe[src*="hcaptcha.com"]', {
+          timeout: 5000,
+        })
+        .catch(() => null)
 
       if (hcaptchaFrame) {
-        const frameSrc = await hcaptchaFrame.evaluate(el => el.getAttribute('src'))
+        const frameSrc = await hcaptchaFrame.evaluate((el) =>
+          el.getAttribute('src'),
+        )
         const siteKeyMatch = frameSrc?.match(/sitekey=([^&]+)/)
-        
+
         if (siteKeyMatch) {
           const siteKey = siteKeyMatch[1]
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
-          
+
           await page.evaluate((response) => {
             (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
-          
+
           await page.click('#buy-button')
         }
       }
 
       // Wait for transaction hash
-      const txHash = await page.waitForSelector('.tx-hash', { timeout: 30000 })
-        .then(el => el?.evaluate(el => el.textContent?.trim() || ''))
+      const txHash = await page
+        .waitForSelector('.tx-hash', { timeout: 30000 })
+        .then((el) => el?.evaluate((el) => el.textContent?.trim() || ''))
 
       logger.info(`Token bought successfully: ${txHash}`)
-      
+
       return txHash || ''
     } catch (error) {
       logger.error('Error buying token on LetsBonk:', error)
@@ -363,11 +390,11 @@ class PuppeteerHelper {
 // Export singleton instance
 let puppeteerHelper: PuppeteerHelper | null = null
 
-export function getPuppeteerHelper(config?: CaptchaSolverConfig): PuppeteerHelper {
+export function getPuppeteerHelper(
+  config?: CaptchaSolverConfig,
+): PuppeteerHelper {
   if (!puppeteerHelper) {
     puppeteerHelper = new PuppeteerHelper(config)
   }
   return puppeteerHelper
 }
-
-export default PuppeteerHelper

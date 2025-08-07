@@ -7,7 +7,6 @@ export const NEXT_PUBLIC_JITO_ENDPOINT =
 export const NEXT_PUBLIC_BIRDEYE_API_KEY =
   process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || ''
 export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
-export const NEXT_PUBLIC_SOLSCAN_API_URL = 'https://api.solscan.io'
 export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'
 export const JITO_TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',

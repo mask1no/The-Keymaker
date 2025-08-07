@@ -26,10 +26,10 @@ export default function RootLayout({
     verifySecrets()
 
     // Start auto-update checks
-    updateService.startAutoCheck()
+    updateService.initialize()
 
     return () => {
-      updateService.stopAutoCheck()
+      updateService.destroy()
     }
   }, [])
 

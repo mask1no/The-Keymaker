@@ -127,7 +127,12 @@ export function ConditionBuilder({
                             value={condition.type}
                             onValueChange={(value: string) =>
                               updateCondition(condition.id, {
-                                type: value as 'price' | 'profit' | 'loss' | 'time' | 'volume',
+                                type: value as
+                                  | 'price'
+                                  | 'profit'
+                                  | 'loss'
+                                  | 'time'
+                                  | 'volume',
                                 unit: getConditionUnit(value),
                               })
                             }
@@ -150,7 +155,9 @@ export function ConditionBuilder({
                           <Select
                             value={condition.operator}
                             onValueChange={(value: string) =>
-                              updateCondition(condition.id, { operator: value as 'above' | 'below' | 'equals' })
+                              updateCondition(condition.id, {
+                                operator: value as 'above' | 'below' | 'equals',
+                              })
                             }
                           >
                             <SelectTrigger>

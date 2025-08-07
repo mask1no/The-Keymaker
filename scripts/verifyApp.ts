@@ -1,8 +1,4 @@
-import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js'
+import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { open } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import path from 'path'

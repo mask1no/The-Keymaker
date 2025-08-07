@@ -4,7 +4,13 @@
 
 // Generic object types
 export type AnyObject = Record<string, unknown>
-export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
+  | JsonArray
 export type JsonObject = { [key: string]: JsonValue }
 export type JsonArray = JsonValue[]
 
@@ -47,7 +53,7 @@ export function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
 
 export function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
   if (isErrorWithMessage(maybeError)) return maybeError
-  
+
   try {
     return new Error(JSON.stringify(maybeError)) as ErrorWithMessage
   } catch {

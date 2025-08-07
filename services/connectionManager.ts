@@ -18,17 +18,17 @@ class ConnectionManager {
       const connection = this.getConnection()
       await connection.getSlot()
       const rtt = Date.now() - start
-      
+
       this.rttHistory.push({
         time: new Date().toISOString(),
-        rtt
+        rtt,
       })
-      
+
       // Keep last 30 measurements
       if (this.rttHistory.length > 30) {
         this.rttHistory.shift()
       }
-      
+
       return rtt
     } catch (error) {
       return -1

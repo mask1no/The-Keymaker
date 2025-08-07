@@ -6,7 +6,7 @@ import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 import { pumpFunFallback } from './pumpFunFallback'
-// import { puppeteerHelper } from '@/helpers/puppeteerHelper' - not used yet
+import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
 
 type TokenMetadata = {
   name: string
@@ -89,17 +89,20 @@ export async function createToken(
 
       // First try puppeteer with real browser automation
       try {
-        const puppeteerResult = await solvePumpFunCaptcha(
-          name,
-          symbol,
-          metadata.description || `${name} - Created with The Keymaker`,
-          metadata.image || '',
-          supply.toString(),
+        const puppeteerHelper = getPuppeteerHelper()
+        const puppeteerResult = await puppeteerHelper.launchTokenOnPumpFun(
+          {
+            name,
+            symbol,
+            description: metadata.description || `${name} - Created with The Keymaker`,
+            imageUrl: metadata.image || '',
+          },
+          '' // TODO: Add wallet private key
         )
 
         // Log token launch with puppeteer result
         await logTokenLaunch({
-          tokenAddress: puppeteerResult.mintAddress,
+          tokenAddress: puppeteerResult.mint,
           name,
           symbol,
           platform: 'Pump.fun (Puppeteer)',
@@ -110,7 +113,7 @@ export async function createToken(
           liquidityPoolAddress: '',
         })
 
-        return puppeteerResult.mintAddress
+        return puppeteerResult.mint
       } catch (puppeteerError) {
         logger.warn(
           'Puppeteer fallback failed, trying GUI fallback...',

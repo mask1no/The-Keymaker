@@ -31,13 +31,20 @@ class AutoLockService {
   private setupActivityListeners() {
     if (typeof window === 'undefined') return
 
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
-    
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ]
+
     const activityHandler = (_e: Event) => {
       this.onActivity()
     }
 
-    events.forEach(event => {
+    events.forEach((event) => {
       window.addEventListener(event, activityHandler, true)
       this.eventListeners.push(activityHandler)
     })
@@ -48,7 +55,7 @@ class AutoLockService {
    */
   private onActivity() {
     if (this.isLocked) return
-    
+
     this.lastActivity = Date.now()
     this.resetTimer()
   }
@@ -59,7 +66,7 @@ class AutoLockService {
   private startLockTimer() {
     this.lockTimer = setInterval(() => {
       const inactiveTime = Date.now() - this.lastActivity
-      
+
       if (inactiveTime >= this.lockTimeoutMs && !this.isLocked) {
         this.lock()
       }
@@ -84,12 +91,14 @@ class AutoLockService {
 
     // Clear AES keys and sensitive data from memory
     this.clearSensitiveData()
-    
+
     // Emit lock event
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('app-locked', { 
-        detail: { timestamp: Date.now() } 
-      }))
+      window.dispatchEvent(
+        new CustomEvent('app-locked', {
+          detail: { timestamp: Date.now() },
+        }),
+      )
     }
   }
 
@@ -106,10 +115,10 @@ class AutoLockService {
         'privateKeys',
         'mnemonics',
         'aesKey',
-        'iv'
+        'iv',
       ]
-      
-      keysToRemove.forEach(key => {
+
+      keysToRemove.forEach((key) => {
         window.localStorage.removeItem(key)
       })
     }
@@ -122,8 +131,8 @@ class AutoLockService {
     // Clear any in-memory stores
     if (typeof window !== 'undefined') {
       // Force reload stores to clear state
-      (window as any).__keystoreCache = null;
-      (window as any).__walletCache = null
+      (window as any).__keystoreCache = null
+      ;(window as any).__walletCache = null
     }
   }
 
@@ -134,12 +143,14 @@ class AutoLockService {
     this.isLocked = false
     this.resetTimer()
     logger.info('Application unlocked')
-    
+
     // Emit unlock event
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('app-unlocked', { 
-        detail: { timestamp: Date.now() } 
-      }))
+      window.dispatchEvent(
+        new CustomEvent('app-unlocked', {
+          detail: { timestamp: Date.now() },
+        }),
+      )
     }
   }
 
@@ -159,7 +170,14 @@ class AutoLockService {
     }
 
     // Remove event listeners
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ]
     this.eventListeners.forEach((handler, index) => {
       if (typeof window !== 'undefined') {
         window.removeEventListener(events[index % events.length], handler, true)
@@ -169,6 +187,7 @@ class AutoLockService {
 }
 
 // Export singleton instance
-export const autoLockService = typeof window !== 'undefined' ? new AutoLockService() : null
+export const autoLockService =
+  typeof window !== 'undefined' ? new AutoLockService() : null
 
 export default autoLockService

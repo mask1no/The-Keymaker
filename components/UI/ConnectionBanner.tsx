@@ -11,7 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/UI/dialog'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 export function ConnectionBanner() {
   const { rpcStatus, wsStatus, jitoStatus } = useSystemStatus()
@@ -31,7 +39,9 @@ export function ConnectionBanner() {
 
   const [isRetrying, setIsRetrying] = useState(false)
   const [showRTTModal, setShowRTTModal] = useState(false)
-  const [rttHistory, setRttHistory] = useState<Array<{ time: string; rtt: number }>>([])
+  const [rttHistory, setRttHistory] = useState<
+    Array<{ time: string; rtt: number }>
+  >([])
 
   // Update connection store based on system status
   useEffect(() => {
@@ -48,15 +58,18 @@ export function ConnectionBanner() {
         const response = await fetch('/api/health')
         if (response.ok) {
           const rtt = Date.now() - start
-          setRttHistory(prev => {
-            const newHistory = [...prev, {
-              time: new Date().toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-              }),
-              rtt
-            }]
+          setRttHistory((prev) => {
+            const newHistory = [
+              ...prev,
+              {
+                time: new Date().toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                }),
+                rtt,
+              },
+            ]
             // Keep last 30 data points (30 minutes)
             return newHistory.slice(-30)
           })
@@ -159,100 +172,102 @@ export function ConnectionBanner() {
           >
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <WifiOff className="w-5 h-5 text-white animate-pulse" />
-                <div className="text-white">
-                  <span className="font-semibold">Connection Issues: </span>
-                  <span className="text-red-100">
-                    {downServices.length === 1
-                      ? `${downServices[0]} is down`
-                      : `${downServices.slice(0, -1).join(', ')} and ${downServices.slice(-1)} are down`}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <WifiOff className="w-5 h-5 text-white animate-pulse" />
+                  <div className="text-white">
+                    <span className="font-semibold">Connection Issues: </span>
+                    <span className="text-red-100">
+                      {downServices.length === 1
+                        ? `${downServices[0]} is down`
+                        : `${downServices.slice(0, -1).join(', ')} and ${downServices.slice(-1)} are down`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {retryInSeconds > 0 && (
+                    <span className="text-sm text-red-100">
+                      Retrying in {retryInSeconds}s...
+                    </span>
+                  )}
+
+                  <Button
+                    onClick={handleRetry}
+                    disabled={isRetrying || retryInSeconds > 0}
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-red-600/50 disabled:opacity-50"
+                  >
+                    {isRetrying ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        Retry Now
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                {retryInSeconds > 0 && (
-                  <span className="text-sm text-red-100">
-                    Retrying in {retryInSeconds}s...
-                  </span>
-                )}
-
-                <Button
-                  onClick={handleRetry}
-                  disabled={isRetrying || retryInSeconds > 0}
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-red-600/50 disabled:opacity-50"
-                >
-                  {isRetrying ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-1" />
-                      Retry Now
-                    </>
-                  )}
-                </Button>
-              </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* RTT Sparkline Modal */}
+      <Dialog open={showRTTModal} onOpenChange={setShowRTTModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Connection Round-Trip Time (30-min history)
+            </DialogTitle>
+          </DialogHeader>
+          <div className="h-96 w-full">
+            {rttHistory.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={rttHistory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="time" stroke="#888" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    stroke="#888"
+                    tick={{ fontSize: 12 }}
+                    label={{
+                      value: 'RTT (ms)',
+                      angle: -90,
+                      position: 'insideLeft',
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="rtt"
+                    stroke="#00ffff"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Collecting RTT data...</p>
+                  <p className="text-sm mt-2">
+                    Data will appear after the first measurement
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-
-    {/* RTT Sparkline Modal */}
-    <Dialog open={showRTTModal} onOpenChange={setShowRTTModal}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5" />
-            Connection Round-Trip Time (30-min history)
-          </DialogTitle>
-        </DialogHeader>
-        <div className="h-96 w-full">
-          {rttHistory.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={rttHistory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis 
-                  dataKey="time" 
-                  stroke="#888"
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  stroke="#888"
-                  tick={{ fontSize: 12 }}
-                  label={{ value: 'RTT (ms)', angle: -90, position: 'insideLeft' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1a1a1a', 
-                    border: '1px solid #333',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="rtt" 
-                  stroke="#00ffff" 
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              <div className="text-center">
-                <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Collecting RTT data...</p>
-                <p className="text-sm mt-2">Data will appear after the first measurement</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  </>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -63,7 +63,7 @@ interface ApiKeys {
   birdeyeApiKey?: string
   twoCaptchaApiKey?: string
   pumpfunApiKey?: string
-  letsbonkApiKey?: string
+  headlessTimeout?: number
 }
 
 interface Preferences {
@@ -403,8 +403,14 @@ export default function SettingsPage() {
         validKeys.pumpfunApiKey = apiKeys.pumpfunApiKey
       }
 
-      if (apiKeys.letsbonkApiKey && validateApiKey(apiKeys.letsbonkApiKey)) {
-        validKeys.letsbonkApiKey = apiKeys.letsbonkApiKey
+      if (
+        apiKeys.twoCaptchaApiKey &&
+        validateApiKey(apiKeys.twoCaptchaApiKey)
+      ) {
+        validKeys.twoCaptchaApiKey = apiKeys.twoCaptchaApiKey
+      }
+      if (apiKeys.headlessTimeout) {
+        validKeys.headlessTimeout = apiKeys.headlessTimeout
       }
 
       // Save to localStorage
@@ -639,18 +645,39 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <Label>LetsBonk API Key</Label>
+              <Label>2Captcha API Key</Label>
               <Input
                 type={showKeys ? 'text' : 'password'}
-                value={apiKeys.letsbonkApiKey || ''}
+                value={apiKeys.twoCaptchaApiKey || ''}
                 onChange={(e) =>
-                  setApiKeys({ ...apiKeys, letsbonkApiKey: e.target.value })
+                  setApiKeys({ ...apiKeys, twoCaptchaApiKey: e.target.value })
                 }
-                placeholder="Your LetsBonk API key"
+                placeholder="Your 2Captcha API key"
                 className="bg-black/50 border-aqua/30 font-mono text-sm"
               />
               <p className="text-xs text-gray-400 mt-1">
-                Optional - For launching tokens on LetsBonk
+                Required for automatic captcha solving
+              </p>
+            </div>
+
+            <div>
+              <Label>Headless Timeout (seconds)</Label>
+              <Input
+                type="number"
+                value={apiKeys.headlessTimeout || 30}
+                onChange={(e) =>
+                  setApiKeys({
+                    ...apiKeys,
+                    headlessTimeout: parseInt(e.target.value) || 30,
+                  })
+                }
+                placeholder="30"
+                min="10"
+                max="120"
+                className="bg-black/50 border-aqua/30 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Timeout for headless browser operations (10-120 seconds)
               </p>
             </div>
 

@@ -89,7 +89,8 @@ export async function createToken(
           {
             name,
             symbol,
-            description: metadata.description || `${name} - Created with The Keymaker`,
+            description:
+              metadata.description || `${name} - Created with The Keymaker`,
             imageUrl: metadata.image || '',
             twitter: metadata.twitter,
             telegram: metadata.telegram,

@@ -56,7 +56,7 @@ export function FeeEstimator({
     setError(null)
 
     try {
-              const connection = connectionManager.getConnection()
+      const connection = connectionManager.getConnection()
 
       // Create a sample transaction to estimate fees
       const sampleTx = new Transaction()

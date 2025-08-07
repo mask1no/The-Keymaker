@@ -1,34 +1,4 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# Run lint check
-echo "Running lint check..."
-npm run lint
-
-# Check for lint errors
-if [ $? -ne 0 ]; then
-  echo "❌ Lint check failed. Please fix errors before committing."
-  exit 1
-fi
-
-# Run ts-prune to check for unused exports
-echo "Running ts-prune check..."
-npx ts-prune --project tsconfig.json > /tmp/ts-prune-output.txt 2>&1
-
-# Check if ts-prune found any unused exports
-if [ -s /tmp/ts-prune-output.txt ]; then
-  echo "⚠️  Warning: Unused exports detected:"
-  cat /tmp/ts-prune-output.txt | head -10
-  echo "Consider removing unused exports to keep the codebase clean."
-fi
-
-# Run type check
-echo "Running type check..."
-npx tsc --noEmit
-
-if [ $? -ne 0 ]; then
-  echo "❌ Type check failed. Please fix type errors before committing."
-  exit 1
-fi
-
-echo "✅ All pre-commit checks passed!"
+npm run lint && npx ts-prune --error
