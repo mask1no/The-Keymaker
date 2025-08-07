@@ -1,8 +1,8 @@
-# The Keymaker v1.4.0 - Production-Grade Solana Bundler
+# The Keymaker v1.3.0 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.4.0-orange)
+![Version](https://img.shields.io/badge/version-1.3.0-orange)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-80%25-yellowgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
@@ -28,7 +28,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 - **Theme Support**: Persistent dark and light theme options with smooth transitions
 - **Intelligent Retry Logic**: Automatic RPC retry with progressive rate limiting
 
-## Version 1.4.0 Release Candidate
+## Version 1.3.0
 
 ### Latest Updates
 
@@ -157,7 +157,7 @@ Tracks all buy and sell transactions in SQLite database, calculating real-time p
 
 ```
 GET /api/health
-Response: { "ok": true, "version": "1.4.0", "rpc": true, "jito": true, "db": true, "puppeteer": true, "timestamp": "..." }
+Response: { "ok": true, "version": "1.3.0", "rpc": true, "jito": true, "db": true, "puppeteer": true, "timestamp": "2025-01-01T00:00:00.000Z" }
 ```
 
 ### Proxy Service
@@ -257,7 +257,7 @@ node scripts/canaryTrade.js
 
 ## System Status
 
-The Keymaker v1.4.0 represents a fully operational, production-ready platform:
+The Keymaker v1.3.0 represents a fully operational, production-ready platform:
 
 ✅ Complete blockchain integration with real-time data  
 ✅ All application routes tested and functional  
