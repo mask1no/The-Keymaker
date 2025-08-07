@@ -54,5 +54,3 @@ const pro = JSON.parse(JSON.stringify(base))
 pro.apiKeys.jitoWsUrl = 'https://custom-jito.example.com'
 pro.bundleConfig.jitoTipLamports = 60000
 logResult('non-free high tip', pro)
-
-

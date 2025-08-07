@@ -32,7 +32,8 @@ class BirdeyeService extends EventEmitter {
   private loadConfig() {
     // const settings = useSettingsStore.getState() - not needed
     const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    const birdeyeApiKey = process.env.BIRDEYE_API_KEY || process.env.NEXT_PUBLIC_BIRDEYE_API_KEY
+    const birdeyeApiKey =
+      process.env.BIRDEYE_API_KEY || process.env.NEXT_PUBLIC_BIRDEYE_API_KEY
     if (birdeyeApiKey && network !== 'devnet') {
       this.config = {
         apiKey: birdeyeApiKey,

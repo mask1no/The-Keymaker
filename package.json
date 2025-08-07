@@ -1,6 +1,6 @@
 {
   "name": "the-keymaker",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "dev": "next dev",

@@ -68,7 +68,10 @@ export function StatusCards() {
       await connection.getLatestBlockhash()
       const latency = Date.now() - start
       return {
-        status: (latency < 500 ? 'online' : 'slow') as 'online' | 'slow' | 'offline',
+        status: (latency < 500 ? 'online' : 'slow') as
+          | 'online'
+          | 'slow'
+          | 'offline',
         latency,
       }
     } catch {
@@ -95,7 +98,10 @@ export function StatusCards() {
           clearTimeout(timeout)
           ws.close()
           resolve({
-            status: (latency < 1000 ? 'online' : 'slow') as 'online' | 'slow' | 'offline',
+            status: (latency < 1000 ? 'online' : 'slow') as
+              | 'online'
+              | 'slow'
+              | 'offline',
             latency,
           })
         }
@@ -130,7 +136,10 @@ export function StatusCards() {
       if (response.ok) {
         const latency = Date.now() - start
         return {
-          status: (latency < 1000 ? 'online' : 'slow') as 'online' | 'slow' | 'offline',
+          status: (latency < 1000 ? 'online' : 'slow') as
+            | 'online'
+            | 'slow'
+            | 'offline',
           latency,
         }
       }
@@ -151,7 +160,10 @@ export function StatusCards() {
       await connection.getVersion()
       const latency = Date.now() - start
       return {
-        status: (latency < 500 ? 'online' : 'slow') as 'online' | 'slow' | 'offline',
+        status: (latency < 500 ? 'online' : 'slow') as
+          | 'online'
+          | 'slow'
+          | 'offline',
         latency,
       }
     } catch {

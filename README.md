@@ -1,8 +1,8 @@
-# The Keymaker v1.3.0 - Production-Grade Solana Bundler
+# The Keymaker v1.4.0 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.3.0-orange)
+![Version](https://img.shields.io/badge/version-1.4.0-orange)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-80%25-yellowgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
@@ -28,7 +28,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 - **Theme Support**: Persistent dark and light theme options with smooth transitions
 - **Intelligent Retry Logic**: Automatic RPC retry with progressive rate limiting
 
-## Version 1.3.0 Release Candidate
+## Version 1.4.0 Release Candidate
 
 ### Latest Updates
 
@@ -64,18 +64,21 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/mask1no/The-Keymaker.git
 cd the-keymaker
 ```
 
 2. Configure environment variables:
+
 ```bash
 cp env.example .env
 # Edit .env with your API keys
 ```
 
 3. Install dependencies and run:
+
 ```bash
 pnpm install
 pnpm dev
@@ -123,15 +126,19 @@ TWOCAPTCHA_API_KEY=your_2captcha_key
 ### Core Services
 
 #### Bundle Service
+
 Orchestrates transaction execution through Jito Block Engine, supporting batched transactions with sophisticated retry logic and real-time status monitoring.
 
 #### Wallet Service
+
 Comprehensive wallet management system that encrypts private keys using AES-256-GCM with PBKDF2 key derivation utilizing 100,000 iterations.
 
 #### Platform Service
+
 Manages SPL token creation across multiple blockchain platforms, handling liquidity pool creation and platform-specific requirements.
 
 #### Analytics Service
+
 Tracks all buy and sell transactions in SQLite database, calculating real-time profit and loss metrics with export capabilities.
 
 ## Application Routes
@@ -147,12 +154,14 @@ Tracks all buy and sell transactions in SQLite database, calculating real-time p
 ## API Reference
 
 ### Health Check
+
 ```
 GET /api/health
-Response: { "ok": true, "version": "1.3.0", "checks": {...} }
+Response: { "ok": true, "version": "1.4.0", "rpc": true, "jito": true, "db": true, "puppeteer": true, "timestamp": "..." }
 ```
 
 ### Proxy Service
+
 ```
 POST /api/proxy
 Body: {
@@ -178,35 +187,42 @@ pnpm test:a11y
 ## Operations
 
 ### Key Rotation
+
 Rotate API keys (`HELIUS_API_KEY`, `BIRDEYE_API_KEY`, `JUPITER_API_KEY`, `TWO_CAPTCHA_KEY`, `PUMP_FUN_API_KEY`) on a monthly cadence or upon incident.
 
 ### Jito Tip Policy
+
 On free-tier endpoint (`mainnet.block-engine.jito.wtf`), tip ≤ 50,000 lamports (enforced via Zod).
 
 ### Security
+
 - Deterministic wallets for testing only (never commit private keys)
 - 429 Sentinel: Auto-skip after 3× HTTP 429 errors
 
 ## Development
 
 ### Local Setup
+
 ```bash
 npm install
 npm run dev
 ```
 
 ### Database Initialization
+
 ```bash
 npm run db:init
 ```
 
 ### Code Quality
+
 ```bash
 npm run type-check
 npm run lint
 ```
 
 ### Canary Testing
+
 ```bash
 node scripts/canaryTrade.js
 ```
@@ -214,16 +230,19 @@ node scripts/canaryTrade.js
 ## Security Considerations
 
 ### Wallet Security
+
 - AES-256-GCM encryption with unique salt and IV per wallet
 - PBKDF2 key derivation with 100,000 iterations
 - Local-only transaction signing
 
 ### API Security
+
 - Rate limiting and CORS protection
 - Input validation and sanitization
 - Sensitive data excluded from logs
 
 ### Transaction Security
+
 - Pre-execution simulation
 - No private key transmission
 - MEV protection through Jito
@@ -238,7 +257,7 @@ node scripts/canaryTrade.js
 
 ## System Status
 
-The Keymaker v1.3.0 represents a fully operational, production-ready platform:
+The Keymaker v1.4.0 represents a fully operational, production-ready platform:
 
 ✅ Complete blockchain integration with real-time data  
 ✅ All application routes tested and functional  
@@ -249,7 +268,7 @@ The Keymaker v1.3.0 represents a fully operational, production-ready platform:
 ✅ Jito bundle execution with MEV protection  
 ✅ Multi-platform token deployment  
 ✅ Comprehensive profit and loss tracking  
-✅ Robust error handling and recovery  
+✅ Robust error handling and recovery
 
 ## License
 

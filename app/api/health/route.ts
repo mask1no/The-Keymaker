@@ -57,7 +57,7 @@ export async function GET() {
 
   try {
     // Run health checks in parallel
-    const [/* dbOk */, rpcStatus, jitoOk] = await Promise.all([
+    const [dbOk, rpcStatus, jitoOk] = await Promise.all([
       checkDatabase(),
       checkRPC(),
       checkJito(),
@@ -78,10 +78,11 @@ export async function GET() {
     const health = {
       ok: true,
       puppeteer: puppeteerOk,
-      version: '1.3.0',
+      version: '1.4.0',
       timestamp: new Date().toISOString(),
       rpc: rpcStatus.connected,
       jito: jitoOk,
+      db: dbOk,
     }
 
     return NextResponse.json(health, {
@@ -92,10 +93,11 @@ export async function GET() {
       {
         ok: false,
         puppeteer: false,
-        version: '1.3.0',
+        version: '1.4.0',
         timestamp: new Date().toISOString(),
         rpc: false,
         jito: false,
+        db: false,
       },
       { status: 503 },
     )

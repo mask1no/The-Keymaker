@@ -617,7 +617,9 @@ export default function SettingsPage() {
               <Input
                 type={showKeys ? 'text' : 'password'}
                 value={apiKeys.twoCaptchaKey || ''}
-                onChange={(e) => setApiKeys({ ...apiKeys, twoCaptchaKey: e.target.value })}
+                onChange={(e) =>
+                  setApiKeys({ ...apiKeys, twoCaptchaKey: e.target.value })
+                }
                 placeholder="Your 2Captcha API key"
                 className="bg-black/50 border-aqua/30 font-mono text-sm"
               />
@@ -743,7 +745,8 @@ export default function SettingsPage() {
               <Select
                 value={network === 'mainnet-beta' ? 'main-net' : 'dev-net'}
                 onValueChange={(value: 'main-net' | 'dev-net') => {
-                  const mappedValue = value === 'main-net' ? 'mainnet-beta' : 'devnet'
+                  const mappedValue =
+                    value === 'main-net' ? 'mainnet-beta' : 'devnet'
                   setNetwork(mappedValue as 'mainnet-beta' | 'devnet')
                 }}
               >
@@ -812,7 +815,7 @@ export default function SettingsPage() {
                     Tip amount for Jito bundles
                   </p>
                 </div>
-                
+
                 <div>
                   <Label>Jito Tip (Lamports)</Label>
                   <Input

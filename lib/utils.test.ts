@@ -81,7 +81,7 @@ describe('Utils', () => {
       const startTime = Date.now()
       await sleep(100)
       const endTime = Date.now()
-      
+
       expect(endTime - startTime).toBeGreaterThanOrEqual(95) // Account for timing variance
     })
 
@@ -89,7 +89,7 @@ describe('Utils', () => {
       const startTime = Date.now()
       await sleep(0)
       const endTime = Date.now()
-      
+
       expect(endTime - startTime).toBeLessThan(50)
     })
   })

@@ -41,7 +41,7 @@ async function test(name: string, fn: () => Promise<boolean>) {
 // Test 1: Health check
 async function testHealthCheck(): Promise<boolean> {
   const response = await fetch(`${BASE_URL}/api/health`)
-  const data = await response.json() as { ok: boolean }
+  const data = (await response.json()) as { ok: boolean }
   return response.status === 200 && data.ok === true
 }
 

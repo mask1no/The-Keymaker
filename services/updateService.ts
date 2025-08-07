@@ -58,12 +58,22 @@ class UpdateService {
 
   private isNewerVersion(latest: string, current: string): boolean {
     try {
-      const [latestMajor, latestMinor, latestPatch] = latest.split('.').map(Number)
-      const [currentMajor, currentMinor, currentPatch] = current.split('.').map(Number)
+      const [latestMajor, latestMinor, latestPatch] = latest
+        .split('.')
+        .map(Number)
+      const [currentMajor, currentMinor, currentPatch] = current
+        .split('.')
+        .map(Number)
 
       if (latestMajor > currentMajor) return true
-      if (latestMajor === currentMajor && latestMinor > currentMinor) return true
-      if (latestMajor === currentMajor && latestMinor === currentMinor && latestPatch > currentPatch) return true
+      if (latestMajor === currentMajor && latestMinor > currentMinor)
+        return true
+      if (
+        latestMajor === currentMajor &&
+        latestMinor === currentMinor &&
+        latestPatch > currentPatch
+      )
+        return true
 
       return false
     } catch (error) {

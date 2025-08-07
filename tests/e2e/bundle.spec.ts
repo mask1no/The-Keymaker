@@ -17,7 +17,10 @@ test.describe('Devnet bundle click', () => {
     await page.goto('/')
     // set deterministic seed and dev-net in UI/localStorage if available
     await page.addInitScript(() => {
-      localStorage.setItem('KEYMAKER_DETERMINISTIC_SEED', 'episode-kingdom-sunshine-alpha')
+      localStorage.setItem(
+        'KEYMAKER_DETERMINISTIC_SEED',
+        'episode-kingdom-sunshine-alpha',
+      )
       localStorage.setItem('KEYMAKER_NETWORK', 'devnet')
     })
     // Basic health presence
@@ -35,5 +38,3 @@ test.describe('Devnet bundle click', () => {
     }
   })
 })
-
-

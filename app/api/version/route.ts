@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 
-const LATEST_VERSION = '1.1.0'
+const LATEST_VERSION = '1.4.0'
 
 export async function GET() {
   return NextResponse.json({
     version: LATEST_VERSION,
-    releaseDate: '2024-01-15',
-    downloadUrl: 'https://github.com/yourusername/keymaker/releases/latest',
+    releaseDate: new Date().toISOString().slice(0, 10),
+    downloadUrl: 'https://github.com/mask1no/The-Keymaker/releases/latest',
     releaseNotes: [
       'Launch Wizard with preset saving',
       'Advanced trading condition builder',

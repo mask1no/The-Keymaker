@@ -29,5 +29,3 @@ server.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`ciServer listening on :${port}`)
 })
-
-

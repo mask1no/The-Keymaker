@@ -54,7 +54,7 @@ describe('SafeBigInt Utils', () => {
       const result = safeToBufferLE(0, 4)
       expect(result).toBeInstanceOf(Buffer)
       expect(result.length).toBe(4)
-      expect(result.every(byte => byte === 0)).toBe(true)
+      expect(result.every((byte) => byte === 0)).toBe(true)
     })
 
     it('should handle invalid input gracefully', () => {

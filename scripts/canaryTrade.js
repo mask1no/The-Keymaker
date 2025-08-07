@@ -10,7 +10,8 @@ let rateErrors = 0
 
 async function main() {
   const amountSol = process.env.CANARY_AMOUNT || '0.001'
-  const seed = process.env.DETERMINISTIC_SEED || 'episode-kingdom-sunshine-alpha'
+  const seed =
+    process.env.DETERMINISTIC_SEED || 'episode-kingdom-sunshine-alpha'
   const network = process.env.NETWORK || 'dev-net'
 
   // Simulate an RPC ping as liveness check
@@ -35,5 +36,3 @@ main().catch((e) => {
   console.error(e)
   process.exit(1)
 })
-
-

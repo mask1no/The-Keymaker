@@ -8,7 +8,9 @@ import BN from 'bn.js'
 /**
  * Safely convert buffer to BigInt with bounds checking
  */
-export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint {
+export function safeToBigIntLE(
+  input: Buffer | number | string | bigint,
+): bigint {
   // Buffer path (canonical conversion)
   if (Buffer.isBuffer(input)) {
     const buffer = input
@@ -192,8 +194,7 @@ export const SafeMath = {
   },
   percentage(amount: bigint | number, bps: bigint | number): bigint {
     const amt = typeof amount === 'bigint' ? amount : BigInt(Math.trunc(amount))
-    const basisPoints =
-      typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps))
+    const basisPoints = typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps))
     if (amt === 0n || basisPoints === 0n) return 0n
     return (amt * basisPoints) / 100n
   },
