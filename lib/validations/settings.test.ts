@@ -52,7 +52,7 @@ describe('Settings Validation', () => {
     it('should require valid heliusRpc URL', () => {
       const invalidUrl = clone(validSettings)
       invalidUrl.apiKeys.heliusRpc = 'invalid-url'
-      
+
       const result = settingsSchema.safeParse(invalidUrl)
       expect(result.success).toBe(false)
     })
@@ -60,7 +60,7 @@ describe('Settings Validation', () => {
     it('should require birdeyeApiKey', () => {
       const missingKey = clone(validSettings)
       missingKey.apiKeys.birdeyeApiKey = ''
-      
+
       const result = settingsSchema.safeParse(missingKey)
       expect(result.success).toBe(false)
     })
@@ -68,7 +68,7 @@ describe('Settings Validation', () => {
     it('should validate twoCaptchaKey length when provided', () => {
       const shortKey = clone(validSettings)
       shortKey.apiKeys.twoCaptchaKey = 'short'
-      
+
       const result = settingsSchema.safeParse(shortKey)
       expect(result.success).toBe(false)
     })
@@ -78,7 +78,7 @@ describe('Settings Validation', () => {
       delete minimalSettings.apiKeys.twoCaptchaKey
       delete minimalSettings.apiKeys.jupiterApiKey
       delete minimalSettings.apiKeys.jitoAuthToken
-      
+
       const result = settingsSchema.safeParse(minimalSettings)
       if (!result.success) {
         // eslint-disable-next-line no-console
@@ -91,7 +91,7 @@ describe('Settings Validation', () => {
   describe('network validation', () => {
     it('should only accept dev-net or main-net', () => {
       const invalidNetwork = { ...clone(validSettings), network: 'invalid' }
-      
+
       const result = settingsSchema.safeParse(invalidNetwork)
       expect(result.success).toBe(false)
     })
@@ -100,21 +100,24 @@ describe('Settings Validation', () => {
   describe('URL validation', () => {
     it('should validate RPC URLs', () => {
       const invalidRpcUrl = { ...clone(validSettings), rpcUrl: 'not-a-url' }
-      
+
       const result = settingsSchema.safeParse(invalidRpcUrl)
       expect(result.success).toBe(false)
     })
 
     it('should validate WebSocket URLs', () => {
       const invalidWsUrl = { ...clone(validSettings), wsUrl: 'http://not-ws' }
-      
+
       const result = settingsSchema.safeParse(invalidWsUrl)
       expect(result.success).toBe(false)
     })
 
     it('should accept valid WebSocket URLs', () => {
-      const validWsUrl = { ...clone(validSettings), wsUrl: 'wss://api.solana.com' }
-      
+      const validWsUrl = {
+        ...clone(validSettings),
+        wsUrl: 'wss://api.solana.com',
+      }
+
       const result = settingsSchema.safeParse(validWsUrl)
       if (!result.success) {
         // eslint-disable-next-line no-console
@@ -130,7 +133,7 @@ describe('Settings Validation', () => {
       // Use free-tier URL so the cap applies
       tooHigh.apiKeys.jitoWsUrl = 'https://mainnet.block-engine.jito.wtf/api'
       tooHigh.bundleConfig.jitoTipLamports = 100000
-      
+
       const result = settingsSchema.safeParse(tooHigh)
       expect(result.success).toBe(false)
     })
@@ -138,7 +141,7 @@ describe('Settings Validation', () => {
     it('should validate negative jitoTipLamports', () => {
       const negative = clone(validSettings)
       negative.bundleConfig.jitoTipLamports = -1000
-      
+
       const result = settingsSchema.safeParse(negative)
       expect(result.success).toBe(false)
     })
@@ -146,7 +149,7 @@ describe('Settings Validation', () => {
     it('should validate bundle size limits', () => {
       const tooLarge = clone(validSettings)
       tooLarge.bundleConfig.bundleSize = 25
-      
+
       const result = settingsSchema.safeParse(tooLarge)
       expect(result.success).toBe(false)
     })
@@ -156,7 +159,7 @@ describe('Settings Validation', () => {
     it('should validate jupiterFeeBps range', () => {
       const tooHigh = clone(validSettings)
       tooHigh.jupiterConfig.jupiterFeeBps = 150
-      
+
       const result = settingsSchema.safeParse(tooHigh)
       expect(result.success).toBe(false)
     })
@@ -164,7 +167,7 @@ describe('Settings Validation', () => {
     it('should validate negative jupiterFeeBps', () => {
       const negative = clone(validSettings)
       negative.jupiterConfig.jupiterFeeBps = -5
-      
+
       const result = settingsSchema.safeParse(negative)
       expect(result.success).toBe(false)
     })
@@ -174,16 +177,25 @@ describe('Settings Validation', () => {
     it('should require pumpfunApiKey on mainnet', () => {
       const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
       delete mainnetSettings.apiKeys.pumpfunApiKey
-      
+
+      const result = settingsSchema.safeParse(mainnetSettings)
+      expect(result.success).toBe(false)
+    })
+
+    it('should require jupiterApiKey on mainnet', () => {
+      const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
+      delete mainnetSettings.apiKeys.jupiterApiKey
+
       const result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
     })
 
     it('should enforce free-tier Jito limits', () => {
       const freeSettings = clone(validSettings)
-      freeSettings.apiKeys.jitoWsUrl = 'https://mainnet.block-engine.jito.wtf/api'
+      freeSettings.apiKeys.jitoWsUrl =
+        'https://mainnet.block-engine.jito.wtf/api'
       freeSettings.bundleConfig.jitoTipLamports = 60000
-      
+
       const result = settingsSchema.safeParse(freeSettings)
       expect(result.success).toBe(false)
     })
@@ -192,7 +204,7 @@ describe('Settings Validation', () => {
       const proSettings = clone(validSettings)
       proSettings.apiKeys.jitoWsUrl = 'https://custom-jito.example.com'
       proSettings.bundleConfig.jitoTipLamports = 60000
-      
+
       const result = settingsSchema.safeParse(proSettings)
       if (!result.success) {
         // eslint-disable-next-line no-console
