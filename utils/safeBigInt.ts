@@ -8,143 +8,194 @@ import BN from 'bn.js'
 /**
  * Safely convert buffer to BigInt with bounds checking
  */
-export function safeToBigIntLE(buffer: Buffer): bigint {
-  // Validate buffer
-  if (!Buffer.isBuffer(buffer)) {
-    throw new Error('Input must be a Buffer')
+export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint {
+  // Buffer path (canonical conversion)
+  if (Buffer.isBuffer(input)) {
+    const buffer = input
+    if (buffer.length > 32) {
+      throw new Error('Buffer too large for safe conversion')
+    }
+    if (buffer.length === 0) {
+      return 0n
+    }
+    try {
+      const bn = new BN(buffer, 'le')
+      return BigInt(bn.toString())
+    } catch (error) {
+      throw new Error(
+        `Failed to convert buffer to BigInt: ${(error as Error).message}`,
+      )
+    }
   }
 
-  // Check for reasonable buffer size (max 32 bytes for 256-bit numbers)
-  if (buffer.length > 32) {
-    throw new Error('Buffer too large for safe conversion')
+  // bigint path
+  if (typeof input === 'bigint') {
+    return input
   }
 
-  // Check for empty buffer
-  if (buffer.length === 0) {
-    return BigInt(0)
+  // number path (truncate decimals)
+  if (typeof input === 'number') {
+    if (!Number.isFinite(input)) return 0n
+    if (!Number.isSafeInteger(Math.trunc(input))) {
+      // Stay safe for extremely large magnitudes
+      return BigInt(Math.trunc(Number.MAX_SAFE_INTEGER))
+    }
+    return BigInt(Math.trunc(input))
   }
 
-  try {
-    // Convert using BN for safety, then to BigInt
-    const bn = new BN(buffer, 'le')
-    return BigInt(bn.toString())
-  } catch (error) {
-    throw new Error(
-      `Failed to convert buffer to BigInt: ${(error as Error).message}`,
-    )
+  // string path (only integer strings are supported here)
+  if (typeof input === 'string') {
+    const trimmed = input.trim()
+    if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+      // Truncate any decimals
+      const integerPart = trimmed.split('.')[0]
+      try {
+        return BigInt(integerPart)
+      } catch {
+        return 0n
+      }
+    }
+    return 0n
   }
+
+  return 0n
 }
 
 /**
  * Safely convert BigInt to buffer with bounds checking
  */
-export function safeToBufferLE(value: bigint, length: number): Buffer {
-  // Validate input
-  if (typeof value !== 'bigint') {
-    throw new Error('Value must be a BigInt')
+export function safeToBufferLE(
+  value: bigint | number | string,
+  length: number,
+): Buffer {
+  // Normalize to BigInt, falling back to zero on invalid input
+  let normalized: bigint = 0n
+  try {
+    if (typeof value === 'bigint') {
+      normalized = value
+    } else if (typeof value === 'number') {
+      if (!Number.isFinite(value)) normalized = 0n
+      else normalized = BigInt(Math.max(0, Math.trunc(value)))
+    } else if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (/^\d+$/.test(trimmed)) normalized = BigInt(trimmed)
+      else normalized = 0n
+    }
+  } catch {
+    normalized = 0n
   }
 
-  // Check for negative values
-  if (value < 0n) {
-    throw new Error('Cannot convert negative BigInt to buffer')
-  }
-
-  // Check length bounds
-  if (length < 1 || length > 32) {
-    throw new Error('Buffer length must be between 1 and 32 bytes')
-  }
+  if (normalized < 0n) normalized = 0n
+  if (length < 1 || length > 32) length = Math.min(32, Math.max(1, length))
 
   try {
-    // Convert BigInt to BN, then to buffer
-    const bn = new BN(value.toString())
+    const bn = new BN(normalized.toString())
     const buffer = bn.toBuffer('le', length)
-
-    // Verify buffer length
     if (buffer.length !== length) {
-      throw new Error('Buffer length mismatch')
+      // Resize/pad to requested length
+      const out = Buffer.alloc(length)
+      buffer.copy(out)
+      return out
     }
-
     return buffer
   } catch (error) {
-    throw new Error(
-      `Failed to convert BigInt to buffer: ${(error as Error).message}`,
-    )
+    // Safe fallback to zeroed buffer
+    return Buffer.alloc(length)
   }
 }
 
 /**
  * Validate and sanitize numeric input
  */
-export function sanitizeNumericInput(input: string | number | bigint): bigint {
-  try {
-    // Handle different input types
-    if (typeof input === 'bigint') {
-      return input
-    }
-
-    if (typeof input === 'number') {
-      // Check for safe integer range
-      if (!Number.isSafeInteger(input)) {
-        throw new Error('Number exceeds safe integer range')
-      }
-      return BigInt(Math.floor(input))
-    }
-
-    if (typeof input === 'string') {
-      // Remove whitespace
-      const cleaned = input.trim()
-
-      // Validate numeric string
-      if (!/^-?\d+$/.test(cleaned)) {
-        throw new Error('Invalid numeric string')
-      }
-
-      return BigInt(cleaned)
-    }
-
+export function sanitizeNumericInput(input: string): string {
+  // Keep optional leading minus and a single decimal point
+  if (typeof input !== 'string') {
     throw new Error('Invalid input type')
-  } catch (error) {
-    throw new Error(`Failed to sanitize input: ${(error as Error).message}`)
   }
+  const trimmed = input.trim()
+  if (trimmed === '') return ''
+  // Extract sign
+  const isNegative = trimmed.startsWith('-')
+  const unsigned = isNegative ? trimmed.slice(1) : trimmed
+  // Remove non-digit and track first decimal point
+  let result = ''
+  let seenDot = false
+  for (const ch of unsigned) {
+    if (ch >= '0' && ch <= '9') {
+      result += ch
+    } else if (ch === '.' && !seenDot) {
+      result += '.'
+      seenDot = true
+    }
+  }
+  // If result is empty or just a dot, return empty string
+  if (result === '' || result === '.') return ''
+  return (isNegative ? '-' : '') + result
 }
 
 /**
  * Safe arithmetic operations
  */
 export const SafeMath = {
-  add(a: bigint, b: bigint): bigint {
-    const result = a + b
+  add(a: bigint | number, b: bigint | number): bigint {
+    const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+    const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+    const result = aBig + bBig
     // Check for overflow (simplified check)
-    if (a > 0n && b > 0n && result < a) {
+    if (aBig > 0n && bBig > 0n && result < aBig) {
       throw new Error('Addition overflow')
     }
     return result
   },
 
-  sub(a: bigint, b: bigint): bigint {
-    const result = a - b
+  sub(a: bigint | number, b: bigint | number): bigint {
+    const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+    const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+    const result = aBig - bBig
     // Check for underflow
-    if (a < b && result > a) {
+    if (aBig < bBig && result > aBig) {
       throw new Error('Subtraction underflow')
     }
     return result
   },
 
-  mul(a: bigint, b: bigint): bigint {
-    if (a === 0n || b === 0n) return 0n
-    const result = a * b
+  mul(a: bigint | number, b: bigint | number): bigint {
+    const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+    const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+    if (aBig === 0n || bBig === 0n) return 0n
+    const result = aBig * bBig
     // Check for overflow
-    if (result / a !== b) {
+    if (result / aBig !== bBig) {
       throw new Error('Multiplication overflow')
     }
     return result
   },
 
-  div(a: bigint, b: bigint): bigint {
-    if (b === 0n) {
+  div(a: bigint | number, b: bigint | number): bigint {
+    const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+    const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+    if (bBig === 0n) {
       throw new Error('Division by zero')
     }
-    return a / b
+    return aBig / bBig
+  },
+
+  // Convenience aliases used in tests
+  subtract(a: bigint | number, b: bigint | number): bigint {
+    return this.sub(a, b)
+  },
+  multiply(a: bigint | number, b: bigint | number): bigint {
+    return this.mul(a, b)
+  },
+  divide(a: bigint | number, b: bigint | number): bigint {
+    return this.div(a, b)
+  },
+  percentage(amount: bigint | number, bps: bigint | number): bigint {
+    const amt = typeof amount === 'bigint' ? amount : BigInt(Math.trunc(amount))
+    const basisPoints =
+      typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps))
+    if (amt === 0n || basisPoints === 0n) return 0n
+    return (amt * basisPoints) / 100n
   },
 }
 

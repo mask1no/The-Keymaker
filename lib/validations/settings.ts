@@ -32,14 +32,20 @@ export const settingsSchema = z
       .string()
       .min(1, 'WebSocket URL is required')
       .refine(
-        (val) => val.startsWith('ws://') || val.startsWith('wss://'),
+        (val) => {
+          const ok = val.startsWith('ws://') || val.startsWith('wss://')
+          if (process.env.DEBUG_SETTINGS === '1' && !ok) {
+            // eslint-disable-next-line no-console
+            console.log('DEBUG wsUrl failed:', val)
+          }
+          return ok
+        },
         'Must be a valid WebSocket URL',
       ),
     bundleConfig: z.object({
       jitoTipLamports: z
         .number()
-        .min(0, 'Jito tip must be non-negative')
-        .max(50000, 'Jito tip cannot exceed 50,000 lamports on free tier'),
+        .min(0, 'Jito tip must be non-negative'),
       bundleSize: z.number().min(1).max(20),
       retries: z.number().min(1).max(10),
       timeout: z.number().min(5000).max(60000),
@@ -59,6 +65,10 @@ export const settingsSchema = z
     (data) => {
       // Require Pump.fun API key on mainnet
       if (data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) {
+        if (process.env.DEBUG_SETTINGS === '1') {
+          // eslint-disable-next-line no-console
+          console.log('DEBUG pumpfunApiKey missing on mainnet')
+        }
         return false
       }
       return true
@@ -73,8 +83,12 @@ export const settingsSchema = z
       // Bundle-cost cap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpoint
       const jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
       const isFreeTier = jitoUrl.includes('mainnet.block-engine.jito.wtf')
-      
+
       if (isFreeTier && data.bundleConfig.jitoTipLamports > 50000) {
+        if (process.env.DEBUG_SETTINGS === '1') {
+          // eslint-disable-next-line no-console
+          console.log('DEBUG jito free-tier cap violated', { jitoUrl, tip: data.bundleConfig.jitoTipLamports })
+        }
         return false
       }
       return true

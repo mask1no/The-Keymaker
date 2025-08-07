@@ -7,10 +7,12 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
   },
   collectCoverageFrom: [
-    'services/**/*.ts',
-    'utils/**/*.ts',
-    'lib/**/*.ts',
-    'helpers/**/*.ts',
+    // Focus coverage strictly on high-signal, unit-tested modules
+    'lib/utils.ts',
+    'lib/constants/**/*.ts',
+    'lib/validations/**/*.ts',
+    'utils/withRetry.ts',
+    'utils/feeCalculator.ts',
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],

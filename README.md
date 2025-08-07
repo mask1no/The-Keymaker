@@ -1,3 +1,38 @@
+## Keymaker v1.3.0 — Solana Bundler
+
+Status: CI matrix (linux/mac/win) + Docker verify + unit/e2e tests.
+
+Badges: [build status], [coverage], [docker]
+
+### Quickstart
+1. Copy env.example to .env and fill keys
+2. Install deps and run
+
+```bash
+pnpm install
+pnpm dev
+```
+
+### Environment
+Copy `env.example` to `.env` and populate values.
+
+### Tests
+```bash
+pnpm test:coverage
+pnpm test:e2e
+```
+
+### Docker
+```bash
+docker build -t keymaker:ci .
+docker run --rm keymaker:ci
+```
+
+### Canary
+```bash
+node scripts/canaryTrade.js
+```
+
 # The Keymaker v1.3.0 - Production-Grade Solana Bundler
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)

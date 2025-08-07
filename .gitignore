@@ -11,6 +11,9 @@ node_modules/
 
 # Testing
 /coverage
+playwright-report/
+blob-report/
+.test-results/
 
 # Misc
 .DS_Store

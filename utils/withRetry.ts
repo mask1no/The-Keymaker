@@ -2,18 +2,17 @@ import { logger } from '@/lib/logger'
 
 export interface RetryOptions {
   maxRetries?: number
-  initialDelay?: number
-  backoffMultiplier?: number
-  maxDelay?: number
+  delayMs?: number
+  exponentialBackoff?: boolean
   shouldRetry?: (error: unknown) => boolean
+  onRetry?: (error: unknown, attempt: number) => void
 }
 
-const DEFAULT_OPTIONS: Required<RetryOptions> = {
+const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'onRetry'>> = {
   maxRetries: 3,
-  initialDelay: 1000,
-  backoffMultiplier: 2,
-  maxDelay: 30000,
-  shouldRetry: () => true,
+  delayMs: 1000,
+  exponentialBackoff: true,
+  shouldRetry: isRetryableError,
 }
 
 /**
@@ -39,10 +38,9 @@ export async function withRetry<T>(
         throw error
       }
 
-      const delay = Math.min(
-        config.initialDelay * Math.pow(config.backoffMultiplier, attempt),
-        config.maxDelay,
-      )
+      const delay = config.exponentialBackoff
+        ? config.delayMs * Math.pow(2, attempt)
+        : config.delayMs
 
       logger.warn(
         `Retry attempt ${attempt + 1}/${config.maxRetries} after ${delay}ms`,
@@ -50,6 +48,11 @@ export async function withRetry<T>(
           error: error instanceof Error ? error.message : String(error),
         },
       )
+
+      if (typeof options.onRetry === 'function') {
+        // Best-effort callback; ignore callback errors
+        options.onRetry(error, attempt + 1)
+      }
 
       await new Promise((resolve) => setTimeout(resolve, delay))
     }
@@ -69,6 +72,7 @@ export function isRetryableError(error: unknown): boolean {
     if (
       message.includes('network') ||
       message.includes('timeout') ||
+      message.includes('connection') ||
       message.includes('econnrefused') ||
       message.includes('enotfound')
     ) {

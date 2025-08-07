@@ -6,7 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number): string {
-  if (value >= 1e9) {
+  if (value < 0) {
+    return `-$${Math.abs(value).toFixed(2)}`
+  } else if (value >= 1e9) {
     return `$${(value / 1e9).toFixed(2)}B`
   } else if (value >= 1e6) {
     return `$${(value / 1e6).toFixed(2)}M`
@@ -15,4 +17,17 @@ export function formatCurrency(value: number): string {
   } else {
     return `$${value.toFixed(2)}`
   }
+}
+
+export function formatNumber(value: number): string {
+  const abs = Math.abs(value)
+  const sign = value < 0 ? '-' : ''
+  if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(2)}B`
+  if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(2)}M`
+  if (abs >= 1e3) return `${sign}${(abs / 1e3).toFixed(2)}K`
+  return `${sign}${abs.toFixed(2)}`.replace(/^-?0\./, `${sign}0.`)
+}
+
+export async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms))
 }
