@@ -1,8 +1,13 @@
 ## Keymaker v1.3.0 — Solana Bundler
 
+[![CI](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml/badge.svg?branch=opus/v1.3.0)](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-20.x-blue.svg)](https://nodejs.org/)
+
 Status: CI matrix (linux/mac/win) + Docker verify + unit/e2e tests.
 
-Badges: [build status], [coverage], [docker]
+### Environment
+Copy `env.example` to `.env` and populate values. See Operations for key rotation policy and limits.
 
 ### Quickstart
 1. Copy env.example to .env and fill keys
@@ -12,9 +17,6 @@ Badges: [build status], [coverage], [docker]
 pnpm install
 pnpm dev
 ```
-
-### Environment
-Copy `env.example` to `.env` and populate values.
 
 ### Tests
 ```bash
@@ -32,6 +34,21 @@ docker run --rm keymaker:ci
 ```bash
 node scripts/canaryTrade.js
 ```
+
+## Operations
+
+- Key Rotation: Rotate `HELIUS_API_KEY`, `BIRDEYE_API_KEY`, `JUPITER_API_KEY`, `TWO_CAPTCHA_KEY`, `PUMP_FUN_API_KEY` on a monthly cadence or upon incident. Update CI secrets and local `.env` together. Validate with `npm run test:coverage` and `/api/health`.
+- Jito Tip Policy: On free-tier endpoint (`mainnet.block-engine.jito.wtf`), tip ≤ 50,000 lamports (enforced via Zod). Higher tips allowed on non-free-tier endpoints.
+- Deterministic Wallets (Testing): Tests use `DETERMINISTIC_SEED`. Never commit private keys.
+- 429 Sentinel: If any external call fails 3× with HTTP ≥ 429, label `blocked-external` and skip the step.
+
+## Architecture (Brief)
+
+- Frontend: Next.js 14, React 18, Tailwind CSS. Core UI: Dashboard, BundleEngine, PnL Panel, MarketCapCard (ARIA), Settings.
+- Services: Bundling (Jito), Jupiter swaps, Pump.fun fallback (Puppeteer + 2Captcha), PnL tracking (SQLite), rate limiting & retries.
+- Data: SQLite for analytics/PnL; Zustand store for client state.
+- Tests: Jest unit (≥80% coverage focused), Playwright e2e with 500 ms lag proxy.
+- CI: GitHub Actions matrix (ubuntu/mac/win), Docker build/verify, canary trade, baseline tag/comment.
 
 # The Keymaker v1.3.0 - Production-Grade Solana Bundler
 

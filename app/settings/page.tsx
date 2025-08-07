@@ -406,11 +406,8 @@ export default function SettingsPage() {
         validKeys.pumpfunApiKey = apiKeys.pumpfunApiKey
       }
 
-      if (
-        apiKeys.twoCaptchaApiKey &&
-        validateApiKey(apiKeys.twoCaptchaApiKey)
-      ) {
-        validKeys.twoCaptchaApiKey = apiKeys.twoCaptchaApiKey
+      if (apiKeys.twoCaptchaKey && validateApiKey(apiKeys.twoCaptchaKey)) {
+        validKeys.twoCaptchaKey = apiKeys.twoCaptchaKey
       }
       if (apiKeys.headlessTimeout) {
         validKeys.headlessTimeout = apiKeys.headlessTimeout
@@ -619,10 +616,8 @@ export default function SettingsPage() {
               <Label>2Captcha API Key</Label>
               <Input
                 type={showKeys ? 'text' : 'password'}
-                value={apiKeys.twoCaptchaApiKey || ''}
-                onChange={(e) =>
-                  setApiKeys({ ...apiKeys, twoCaptchaApiKey: e.target.value })
-                }
+                value={apiKeys.twoCaptchaKey || ''}
+                onChange={(e) => setApiKeys({ ...apiKeys, twoCaptchaKey: e.target.value })}
                 placeholder="Your 2Captcha API key"
                 className="bg-black/50 border-aqua/30 font-mono text-sm"
               />

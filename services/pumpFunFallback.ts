@@ -27,7 +27,7 @@ export class PumpFunFallbackService {
     }
 
     const settings = useSettingsStore.getState()
-    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaApiKey
+    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaKey
 
     if (!captchaApiKey) {
       throw new Error('2Captcha API key not configured in settings')
@@ -85,7 +85,7 @@ export class PumpFunFallbackService {
 
   async solveCaptcha(siteKey: string, pageUrl: string): Promise<string> {
     const settings = useSettingsStore.getState()
-    const apiKey = settings.twoCaptchaApiKey
+    const apiKey = settings.twoCaptchaKey
 
     if (!apiKey) {
       throw new Error('2Captcha API key not configured')
