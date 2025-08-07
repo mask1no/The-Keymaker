@@ -130,9 +130,10 @@ class AutoLockService {
 
     // Clear any in-memory stores
     if (typeof window !== 'undefined') {
-      // Force reload stores to clear state
-      (window as any).__keystoreCache = null
-      ;(window as any).__walletCache = null
+      // Force reload stores to clear state without leading paren edge-cases
+      const winAny = window as unknown as Record<string, unknown>
+      winAny.__keystoreCache = null
+      winAny.__walletCache = null
     }
   }
 

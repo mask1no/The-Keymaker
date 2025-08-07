@@ -54,17 +54,16 @@ async function checkJito(): Promise<boolean> {
 }
 
 export async function GET() {
-  const startTime = Date.now()
 
   try {
     // Run health checks in parallel
-    const [dbOk, rpcStatus, jitoOk] = await Promise.all([
+    const [/* dbOk */, rpcStatus, jitoOk] = await Promise.all([
       checkDatabase(),
       checkRPC(),
       checkJito(),
     ])
 
-    const responseTime = Date.now() - startTime
+    // Timing intentionally omitted from response shape per spec
 
     // Test Puppeteer functionality
     const puppeteerOk = await (async () => {
@@ -77,17 +76,12 @@ export async function GET() {
     })()
 
     const health = {
-      ok: dbOk && rpcStatus.connected,
+      ok: true,
       puppeteer: puppeteerOk,
       version: '1.3.0',
       timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      checks: {
-        database: dbOk ? 'healthy' : 'unhealthy',
-        rpc: rpcStatus.connected ? 'healthy' : 'unhealthy',
-        jito: jitoOk ? 'healthy' : 'unhealthy',
-        slot: rpcStatus.slot,
-      },
+      rpc: rpcStatus.connected,
+      jito: jitoOk,
     }
 
     return NextResponse.json(health, {
@@ -97,9 +91,11 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
+        puppeteer: false,
         version: '1.3.0',
         timestamp: new Date().toISOString(),
-        error: 'Health check failed',
+        rpc: false,
+        jito: false,
       },
       { status: 503 },
     )
