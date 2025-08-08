@@ -1,4 +1,7 @@
-import { getComputeUnitPriceLamports, createComputeBudgetInstructions } from '../../lib/priorityFee'
+import {
+  getComputeUnitPriceLamports,
+  createComputeBudgetInstructions,
+} from '../../lib/priorityFee'
 
 describe('priorityFee', () => {
   test('price table', () => {
@@ -13,5 +16,3 @@ describe('priorityFee', () => {
     expect(ix.length).toBe(2)
   })
 })
-
-

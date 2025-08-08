@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/UI/dialog'
-import { createToken as pumpfunCreate } from '../../services/pumpfunService'
+// Use server route to avoid exposing secrets in the browser
 import { createToken as letsbonkCreate } from '../../services/letsbonkService'
 import { useKeymakerStore } from '@/lib/store'
 import { AlertCircle } from 'lucide-react'
@@ -140,12 +140,25 @@ export default function TokenForm() {
         }
 
         case 'Pump.fun':
-          tokenAddr = await pumpfunCreate(
-            name,
-            symbol,
-            parseInt(supply),
-            metadata,
-          )
+          {
+            const r = await fetch('/api/pumpfun/launch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name,
+                symbol,
+                supply: parseInt(supply),
+                metadata,
+              }),
+            })
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({}))
+              throw new Error(err?.error || 'Pump.fun launch failed')
+            }
+            const j = await r.json()
+            tokenAddr = j.mint
+            break
+          }
           break
 
         case 'LetsBonk.fun':

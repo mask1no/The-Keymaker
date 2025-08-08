@@ -50,7 +50,7 @@ export async function createToken(
       requestData,
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PUMPFUN_API_KEY || ''}`,
+          Authorization: `Bearer ${process.env.PUMPFUN_API_KEY || ''}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000, // 30 seconds for token creation
@@ -184,7 +184,7 @@ export async function buyToken(
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_PUMPFUN_API_KEY || ''}`,
+            Authorization: `Bearer ${process.env.PUMPFUN_API_KEY || ''}`,
             'Content-Type': 'application/json',
           },
           timeout: 30000,
@@ -238,7 +238,7 @@ export async function createLiquidityPool(
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PUMPFUN_API_KEY || ''}`,
+          Authorization: `Bearer ${process.env.PUMPFUN_API_KEY || ''}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000,
@@ -274,7 +274,7 @@ export async function getTokenInfo(tokenAddress: string): Promise<{
       `${NEXT_PUBLIC_PUMP_API_URL}/token/${tokenAddress}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PUMPFUN_API_KEY || ''}`,
+          Authorization: `Bearer ${process.env.PUMPFUN_API_KEY || ''}`,
         },
         timeout: 10000,
       },

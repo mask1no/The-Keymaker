@@ -19,5 +19,3 @@ describe('bundleService buildBundle', () => {
     expect(sorted).toHaveLength(3)
   })
 })
-
-

@@ -104,7 +104,7 @@ NEXT_PUBLIC_BIRDEYE_API_KEY=your_birdeye_api_key
 BIRDEYE_API_KEY=your_birdeye_api_key
 
 # Optional Services
-NEXT_PUBLIC_PUMPFUN_API_KEY=your_pumpfun_key
+PUMPFUN_API_KEY=your_pumpfun_key
 PUMPFUN_API_KEY=your_pumpfun_key
 JITO_AUTH_TOKEN=your_jito_token
 TWOCAPTCHA_API_KEY=your_2captcha_key

@@ -8,5 +8,3 @@ describe('sellService helpers', () => {
     expect(calculatePnL(2, 1, 5)).toBeCloseTo(-50)
   })
 })
-
-

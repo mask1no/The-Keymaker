@@ -24,11 +24,11 @@ export function createComputeBudgetInstructions(
   priority: PriorityLevel = 'medium',
   unitLimit: number = getDefaultComputeUnitLimit(),
 ): TransactionInstruction[] {
-  const setLimit = ComputeBudgetProgram.setComputeUnitLimit({ units: unitLimit })
+  const setLimit = ComputeBudgetProgram.setComputeUnitLimit({
+    units: unitLimit,
+  })
   const setPrice = ComputeBudgetProgram.setComputeUnitPrice({
     microLamports: getComputeUnitPriceLamports(priority),
   })
   return [setLimit, setPrice]
 }
-
-

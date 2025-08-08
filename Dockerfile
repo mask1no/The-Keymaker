@@ -20,6 +20,8 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # System deps for runtime (Puppeteer + sqlite + healthcheck)
 RUN apk add --no-cache curl tini chromium nss freetype harfbuzz ca-certificates ttf-freefont sqlite
@@ -40,7 +42,7 @@ USER node
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -fsS http://localhost:3000/api/health || exit 1
+  CMD curl -fsS http://127.0.0.1:3000/api/health || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["./docker-entrypoint.sh"]

@@ -18,9 +18,7 @@ const envSchema = z
     JUPITER_FEE_BPS: z
       .preprocess((v) => Number(v), z.number().min(0).max(100))
       .default(5),
-    DETERMINISTIC_SEED: z
-      .string()
-      .default('episode-kingdom-sunshine-alpha'),
+    DETERMINISTIC_SEED: z.string().default('episode-kingdom-sunshine-alpha'),
   })
   .refine((data) => {
     if (data.NETWORK === 'main-net' && !data.JUPITER_API_KEY) return false
@@ -35,7 +33,9 @@ const parsed = envSchema.safeParse(process.env)
 
 if (!parsed.success) {
   // Collect a compact message to aid local dev; don't throw in production unless explicitly desired
-  const messages = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)
+  const messages = parsed.error.issues.map(
+    (i) => `${i.path.join('.')}: ${i.message}`,
+  )
   // eslint-disable-next-line no-console
   console.warn('[env] Validation warnings:', messages.join('; '))
 }
@@ -58,5 +58,3 @@ export const env = parsed.success
     }))()
 
 export type Env = typeof env
-
-
