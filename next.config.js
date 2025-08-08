@@ -22,6 +22,10 @@ const nextConfig = {
         util: false,
         dns: false,
         module: false,
+        http: false,
+        https: false,
+        assert: false,
+        'child_process': false,
       }
 
       // Ignore native modules
@@ -32,6 +36,10 @@ const nextConfig = {
         dns: 'commonjs dns',
         module: 'commonjs module',
         'child_process': 'commonjs child_process',
+        http: 'commonjs http',
+        https: 'commonjs https',
+        assert: 'commonjs assert',
+        fs: 'commonjs fs',
       })
     }
 
