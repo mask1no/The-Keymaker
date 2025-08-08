@@ -27,7 +27,6 @@ import {
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
-import { launchToken } from '@/services/platformService'
 import { fundWalletGroup } from '@/services/fundingService'
 import { batchSellTokens } from '@/services/sellService'
 import { logEvent } from '@/lib/clientLogger'
@@ -156,7 +155,7 @@ export function ControlPanel() {
     setPendingAction(null)
   }
 
-  const executeLaunchToken = async (password: string) => {
+  const executeLaunchToken = async (_password: string) => {
     try {
       updatePhase('launching')
       startExecution()
@@ -177,42 +176,28 @@ export function ControlPanel() {
 
       // Launch token
       logger.info('Launching token', { config: tokenConfig })
-      const result = await launchToken(
-        connection,
-        payer,
-        {
-          name: tokenConfig.name,
-          symbol: tokenConfig.symbol,
-          decimals: tokenConfig.decimals,
-          supply: tokenConfig.supply,
-          description: `${tokenConfig.name} - Launched by The Keymaker`,
-          imageUrl: '',
-          website: '',
-          twitter: '',
-          telegram: '',
-        },
-        {
-          platform: tokenConfig.platform as
-            | 'pump.fun'
-            | 'raydium'
-            | 'letsbonk.fun',
-          solAmount: tokenConfig.solAmount,
-          tokenAmount: tokenConfig.tokenAmount,
-        },
-      )
+      let mintAddress = ''
+      if (tokenConfig.platform === 'pumpfun' || tokenConfig.platform === 'pump.fun') {
+        const r = await fetch('/api/pumpfun/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: tokenConfig.name,
+            symbol: tokenConfig.symbol,
+            supply: tokenConfig.supply,
+            metadata: { description: `${tokenConfig.name} - Launched by The Keymaker` },
+          }),
+        })
+        const j = await r.json()
+        if (!r.ok || !j?.mint) throw new Error(j?.error || 'Launch failed')
+        mintAddress = j.mint
+      } else {
+        throw new Error('Use Pump.fun for launch in this build')
+      }
 
-      setState((prev) => ({
-        ...prev,
-        tokenMint: result.token.mintAddress,
-        txSignatures: [result.token.txSignature],
-      }))
+      setState((prev) => ({ ...prev, tokenMint: mintAddress, txSignatures: [] }))
 
-      // Update store
-      setTokenLaunchData({
-        ...tokenLaunchData!,
-        mintAddress: result.token.mintAddress,
-        txSignature: result.token.txSignature,
-      })
+      setTokenLaunchData({ ...tokenLaunchData!, mintAddress, txSignature: '' })
 
       await logEvent({
         phase: 'token_launch',
@@ -222,9 +207,7 @@ export function ControlPanel() {
         status: 'success',
       })
 
-      toast.success(
-        `Token launched! Mint: ${result.token.mintAddress.slice(0, 8)}...`,
-      )
+      toast.success(`Token launched! Mint: ${mintAddress.slice(0, 8)}...`)
       updatePhase('idle')
     } catch (error) {
       logger.error('Token launch failed', { error })

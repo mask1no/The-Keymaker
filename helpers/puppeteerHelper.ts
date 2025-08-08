@@ -3,7 +3,16 @@
  * Uses 2Captcha service for hCaptcha solving on Pump.fun and LetsBonk
  */
 
-import puppeteer, { Browser, Page } from 'puppeteer'
+// Avoid importing puppeteer on the client bundle
+let puppeteer: any
+try {
+  // Dynamic require so Next.js client build doesn't try to bundle it
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  puppeteer = require('puppeteer')
+} catch {
+  puppeteer = null
+}
+import type { Browser, Page } from 'puppeteer'
 const TwoCaptcha = require('2captcha')
 import { logger } from '@/lib/logger'
 
@@ -43,6 +52,7 @@ class PuppeteerHelper {
     if (this.browser) return
 
     try {
+      if (!puppeteer) throw new Error('Puppeteer not available in this runtime')
       this.browser = await puppeteer.launch({
         headless: this.config.headless,
         args: [
