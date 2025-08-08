@@ -36,6 +36,14 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={theme}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "!function(){try{var s=localStorage.getItem('theme');if(!s&&window.matchMedia){s=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'};document.documentElement.className=s||'dark'}catch(e){document.documentElement.className='dark'}}()",
+          }}
+        />
+      </head>
       <body className="bg-gradient-to-br dark:from-green-900 dark:to-black from-green-100 to-white dark:text-white/90 text-gray-900 transition-colors duration-300">
         <I18nProvider>
           <WalletContext>

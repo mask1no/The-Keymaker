@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server'
 import path from 'path'
+import { rateLimit } from '../../rate-limit'
 
 export async function POST(req: Request) {
   try {
+    // Simple per-IP limiter
+    const ip = (req.headers.get('x-forwarded-for') || 'local').split(',')[0]
+    const rl = rateLimit(`pnl-track:${ip}`, 60, 60_000)
+    if (!rl.ok) return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
     const body = await req.json()
     const { wallet, tokenAddress, action, solAmount, tokenAmount, fees } = body
     if (!wallet || !tokenAddress || !action) {
