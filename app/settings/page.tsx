@@ -49,6 +49,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useKeymakerStore } from '@/lib/store'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 import {
   Select,
   SelectContent,
@@ -118,6 +119,10 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showKeys, setShowKeys] = useState(false)
+
+  // Hotkeys editable state
+  const { hotkeys, setHotkeys, jitoTipLamports, setSettings } = useSettingsStore()
+  const [hotkeyForm, setHotkeyForm] = useState(hotkeys)
 
   // Health monitoring states
   const [rpcHealth, setRpcHealth] = useState<HealthStatus>({
@@ -974,6 +979,95 @@ export default function SettingsPage() {
                 Reset to Defaults
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Hotkeys Section */}
+        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Hotkeys
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(
+              [
+                ['openSellMonitor', 'Open Sell Monitor'],
+                ['fundGroup', 'Fund Group'],
+                ['startBundle', 'Start Bundle'],
+                ['exportCsv', 'Export CSV'],
+                ['walletToggle', 'Wallet Connect/Disconnect'],
+                ['commandPalette', 'Command Palette'],
+              ] as const
+            ).map(([key, label]) => (
+              <div key={key} className="grid grid-cols-3 items-center gap-3">
+                <Label>{label}</Label>
+                <Input
+                  value={(hotkeyForm as any)[key]}
+                  onChange={(e) =>
+                    setHotkeyForm({ ...hotkeyForm, [key]: e.target.value })
+                  }
+                  placeholder="e.g. meta+e,ctrl+e"
+                  className="col-span-2 bg-black/50 border-aqua/30 font-mono text-sm"
+                />
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setHotkeys(hotkeyForm)
+                  toast.success('Hotkeys updated')
+                }}
+              >
+                Save Hotkeys
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const defaults = {
+                    openSellMonitor: 'meta+e,ctrl+e',
+                    fundGroup: 'g',
+                    startBundle: 'b',
+                    exportCsv: 'e',
+                    walletToggle: 'w',
+                    commandPalette: 'meta+k,ctrl+k',
+                  }
+                  setHotkeyForm(defaults)
+                  setHotkeys(defaults)
+                  toast.success('Hotkeys reset to defaults')
+                }}
+              >
+                Reset Defaults
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Jito Tip Section */}
+        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20 mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5" /> Jito Tip
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 items-center gap-3">
+              <Label>Tip (Lamports)</Label>
+              <Input
+                type="number"
+                value={jitoTipLamports}
+                onChange={(e) =>
+                  setSettings({ jitoTipLamports: parseInt(e.target.value || '0') })
+                }
+                min={0}
+                max={50000}
+                className="col-span-2 bg-black/50 border-aqua/30"
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              Max 50,000 lamports recommended on free tier. This affects bundle priority.
+            </p>
           </CardContent>
         </Card>
 

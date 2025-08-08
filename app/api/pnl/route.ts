@@ -5,34 +5,47 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    // Dynamic import server-only deps to avoid bundling
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    const db = await open({
-      filename: path.join(process.cwd(), 'data', 'analytics.db'),
-      driver: sqlite3.Database,
-    })
-
-    // Ensure table exists
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS pnl_tracking (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        wallet TEXT NOT NULL,
-        token_address TEXT NOT NULL,
-        action TEXT NOT NULL,
-        sol_amount REAL NOT NULL,
-        token_amount REAL NOT NULL,
-        price REAL NOT NULL,
-        fees REAL DEFAULT 0,
-        gas_fee REAL DEFAULT 0,
-        jito_tip REAL DEFAULT 0,
-        timestamp INTEGER NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
-
     const dayAgo = Date.now() - 24 * 60 * 60 * 1000
-    const entries = await db.all<any[]>(`SELECT * FROM pnl_tracking`)
+    let entries: any[] = []
+    try {
+      // Primary path: sqlite
+      const sqlite3 = (await import('sqlite3')).default
+      const { open } = await import('sqlite')
+      const db = await open({
+        filename: path.join(process.cwd(), 'data', 'analytics.db'),
+        driver: sqlite3.Database,
+      })
+
+      await db.exec(`
+        CREATE TABLE IF NOT EXISTS pnl_tracking (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          wallet TEXT NOT NULL,
+          token_address TEXT NOT NULL,
+          action TEXT NOT NULL,
+          sol_amount REAL NOT NULL,
+          token_amount REAL NOT NULL,
+          price REAL NOT NULL,
+          fees REAL DEFAULT 0,
+          gas_fee REAL DEFAULT 0,
+          jito_tip REAL DEFAULT 0,
+          timestamp INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+
+      entries = await db.all<any[]>(`SELECT * FROM pnl_tracking`)
+      await db.close()
+    } catch (err) {
+      // Fallback: JSON file storage for dev environments without sqlite bindings
+      const fs = await import('fs/promises')
+      const file = path.join(process.cwd(), 'data', 'analytics.json')
+      try {
+        const raw = await fs.readFile(file, 'utf8')
+        entries = JSON.parse(raw)
+      } catch {
+        entries = []
+      }
+    }
 
     const walletsSet = new Set(entries.map((e) => e.wallet))
     const wallets = Array.from(walletsSet)
@@ -85,8 +98,6 @@ export async function GET() {
       if (pnl > 0) profitableWallets++
     }
     const pnlPercentage = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0
-
-    await db.close()
 
     return NextResponse.json({
       wallets: walletSummaries,

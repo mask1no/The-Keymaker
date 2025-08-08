@@ -8,6 +8,8 @@ interface TokenData {
   fdv: number
   marketCap: number
   volume24h: number
+  liquidityUSD?: number
+  holders?: number
   priceHistory: { time: number; price: number }[]
 }
 
@@ -80,6 +82,8 @@ class BirdeyeService extends EventEmitter {
         fdv: data.data.fdv || 0,
         marketCap: data.data.marketCap || 0,
         volume24h: data.data.volume24h || 0,
+        liquidityUSD: data.data.liquidity || data.data.liquidityUsd || 0,
+        holders: data.data.holders || data.data.holdersCount || 0,
         priceHistory: [],
       }
 

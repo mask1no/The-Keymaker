@@ -135,7 +135,7 @@ export function MarketCapCard({ tokenMint, tokenSymbol }: MarketCapCardProps) {
 
   return (
     <div
-      className="bg-black/40 backdrop-blur-sm border border-aqua/20 rounded-xl p-6"
+      className="bg-black/40 backdrop-blur-sm border border-aqua/20 rounded-2xl p-6"
       role="region"
       aria-label="Market cap"
     >
@@ -249,6 +249,22 @@ export function MarketCapCard({ tokenMint, tokenSymbol }: MarketCapCardProps) {
               >
                 {priceChange >= 0 ? '+' : ''}
                 {priceChange.toFixed(2)}%
+              </div>
+            </div>
+          </div>
+
+          {/* Secondary Metrics */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/5 rounded-lg p-3" aria-label={`Liquidity: ${formatCurrency(tokenData.liquidityUSD || 0)}`}>
+              <div className="text-xs text-gray-400">Liquidity</div>
+              <div className="font-semibold text-sm">
+                {formatCurrency(tokenData.liquidityUSD || 0)}
+              </div>
+            </div>
+            <div className="bg-white/5 rounded-lg p-3" aria-label={`Holders: ${(tokenData.holders || 0).toLocaleString()}`}>
+              <div className="text-xs text-gray-400">Holders</div>
+              <div className="font-semibold text-sm">
+                {(tokenData.holders || 0).toLocaleString()}
               </div>
             </div>
           </div>

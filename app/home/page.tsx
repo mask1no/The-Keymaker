@@ -323,10 +323,10 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              {/* Market Data and Quick Actions Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Bento Grid */}
+              <div className="grid grid-cols-12 gap-6">
                 {/* Market Cap Card */}
-                <div className="lg:col-span-1">
+                <div className="col-span-12 md:col-span-6 lg:col-span-4">
                   <MarketCapCard
                     tokenMint={tokenLaunchData?.mintAddress}
                     tokenSymbol={tokenLaunchData?.symbol}
@@ -334,15 +334,15 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quick Actions */}
-                <Card className="bg-black/40 backdrop-blur-md border-white/10 lg:col-span-2">
+                <Card className="bg-black/40 backdrop-blur-md border-white/10 col-span-12 md:col-span-6 lg:col-span-8">
                   <CardHeader>
                     <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-12 gap-4">
                       <button
                         onClick={() => router.push('/dashboard/bundle')}
-                        className="p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all"
+                        className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl border border-purple-500/20 hover:border-purple-500/40 transition-all"
                       >
                         <PlayCircle className="h-8 w-8 mb-3 text-purple-400" />
                         <h3 className="font-medium">Launch Full Sequence</h3>
@@ -353,7 +353,7 @@ export default function DashboardPage() {
 
                       <button
                         onClick={() => router.push('/dashboard/wallets')}
-                        className="p-6 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-lg border border-green-500/20 hover:border-green-500/40 transition-all"
+                        className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-2xl border border-green-500/20 hover:border-green-500/40 transition-all"
                       >
                         <Wallet className="h-8 w-8 mb-3 text-green-400" />
                         <h3 className="font-medium">Manage Wallets</h3>
@@ -364,7 +364,7 @@ export default function DashboardPage() {
 
                       <button
                         onClick={() => router.push('/dashboard/create')}
-                        className="p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-lg border border-blue-500/20 hover:border-blue-500/40 transition-all"
+                        className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-2xl border border-blue-500/20 hover:border-blue-500/40 transition-all"
                       >
                         <Rocket className="h-8 w-8 mb-3 text-blue-400" />
                         <h3 className="font-medium">Create Token</h3>

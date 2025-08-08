@@ -3,16 +3,18 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useRouter } from 'next/navigation'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useKeymakerStore } from '@/lib/store'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 export function GlobalHotkeys() {
   const router = useRouter()
   const { connected, disconnect } = useWallet()
   // Access store to keep hook order; do not use value to avoid lint error
   useKeymakerStore()
+  const { hotkeys } = useSettingsStore()
 
   // ⌘+E or Ctrl+E to open Sell Monitor
   useHotkeys(
-    'meta+e,ctrl+e',
+    hotkeys.openSellMonitor,
     (e) => {
       e.preventDefault()
       router.push('/dashboard/sell-monitor')
@@ -22,7 +24,7 @@ export function GlobalHotkeys() {
 
   // g = Fund Group (open wallets page)
   useHotkeys(
-    'g',
+    hotkeys.fundGroup,
     (e) => {
       e.preventDefault()
       router.push('/wallets')
@@ -32,7 +34,7 @@ export function GlobalHotkeys() {
 
   // b = Start Bundle (go to /bundle)
   useHotkeys(
-    'b',
+    hotkeys.startBundle,
     (e) => {
       e.preventDefault()
       router.push('/bundle')
@@ -42,7 +44,7 @@ export function GlobalHotkeys() {
 
   // e = Export CSV (PnL)
   useHotkeys(
-    'e',
+    hotkeys.exportCsv,
     (e) => {
       e.preventDefault()
       window.dispatchEvent(new Event('KEYMAKER_EXPORT_CSV'))
@@ -52,11 +54,21 @@ export function GlobalHotkeys() {
 
   // w = Connect/Disconnect Wallet (if connected → disconnect; else focus connect button)
   useHotkeys(
-    'w',
+    hotkeys.walletToggle,
     (e) => {
       e.preventDefault()
       if (connected) disconnect()
       else document.querySelector('button[aria-label="Connect Wallet"], .wallet-adapter-button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    },
+    { enableOnFormTags: true },
+  )
+
+  // Command palette (placeholder routing for now)
+  useHotkeys(
+    hotkeys.commandPalette,
+    (e) => {
+      e.preventDefault()
+      router.push('/search')
     },
     { enableOnFormTags: true },
   )
