@@ -13,7 +13,7 @@ try {
   puppeteer = null
 }
 import type { Browser, Page } from 'puppeteer'
-const TwoCaptcha = require('2captcha')
+let TwoCaptcha: any = null
 import { logger } from '@/lib/logger'
 
 interface CaptchaSolverConfig {
@@ -41,7 +41,15 @@ class PuppeteerHelper {
     }
 
     if (config.twoCaptchaApiKey) {
-      this.solver = new TwoCaptcha(config.twoCaptchaApiKey)
+      try {
+        // Lazy require to avoid bundling errors when dependency is not installed
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        if (!TwoCaptcha) TwoCaptcha = require('2captcha')
+        this.solver = new TwoCaptcha(config.twoCaptchaApiKey)
+      } catch (err) {
+        logger.warn('2Captcha module not available; captcha solving disabled')
+        this.solver = null
+      }
     }
   }
 

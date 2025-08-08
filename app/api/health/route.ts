@@ -75,6 +75,7 @@ export async function GET() {
     ])
 
     // Test Puppeteer functionality
+    // Puppeteer is optional locally; ignore failure to avoid 500 in dev
     const puppeteerOk = await (async () => {
       try {
         const helper = getPuppeteerHelper()
@@ -85,7 +86,7 @@ export async function GET() {
     })()
 
     const health = {
-      ok: true,
+      ok: rpcStatus.connected && dbOk,
       puppeteer: puppeteerOk,
       version: '1.3.0',
       timestamp: new Date().toISOString(),
