@@ -155,7 +155,7 @@ export function ControlPanel() {
     setPendingAction(null)
   }
 
-  const executeLaunchToken = async (_password: string) => {
+  const executeLaunchToken = async (password: string) => {
     try {
       updatePhase('launching')
       startExecution()
@@ -172,12 +172,15 @@ export function ControlPanel() {
         throw new Error('Failed to decrypt master wallet')
       }
 
-      const payer = keypairs[0]
+      // const payer = keypairs[0] // not used here; decryption verifies access
 
       // Launch token
       logger.info('Launching token', { config: tokenConfig })
       let mintAddress = ''
-      if (tokenConfig.platform === 'pumpfun' || tokenConfig.platform === 'pump.fun') {
+      if (
+        tokenConfig.platform === 'pumpfun' ||
+        tokenConfig.platform === 'pump.fun'
+      ) {
         const r = await fetch('/api/pumpfun/launch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -185,7 +188,9 @@ export function ControlPanel() {
             name: tokenConfig.name,
             symbol: tokenConfig.symbol,
             supply: tokenConfig.supply,
-            metadata: { description: `${tokenConfig.name} - Launched by The Keymaker` },
+            metadata: {
+              description: `${tokenConfig.name} - Launched by The Keymaker`,
+            },
           }),
         })
         const j = await r.json()
@@ -195,14 +200,22 @@ export function ControlPanel() {
         throw new Error('Use Pump.fun for launch in this build')
       }
 
-      setState((prev) => ({ ...prev, tokenMint: mintAddress, txSignatures: [] }))
+      setState((prev) => ({
+        ...prev,
+        tokenMint: mintAddress,
+        txSignatures: [],
+      }))
 
-      setTokenLaunchData({ ...tokenLaunchData!, mintAddress, txSignature: '' })
+      setTokenLaunchData({
+        ...(tokenLaunchData || {}),
+        mintAddress,
+        txSignature: '',
+      })
 
       await logEvent({
         phase: 'token_launch',
         action: 'create_token',
-        token_address: result.token.mintAddress,
+        token_address: mintAddress,
         wallet_address: masterWallet.publicKey,
         status: 'success',
       })

@@ -25,7 +25,7 @@ const nextConfig = {
         http: false,
         https: false,
         assert: false,
-        'child_process': false,
+        child_process: false,
       }
 
       // Ignore native modules
@@ -35,7 +35,7 @@ const nextConfig = {
         // Puppeteer-only node modules shouldn't be bundled client-side
         dns: 'commonjs dns',
         module: 'commonjs module',
-        'child_process': 'commonjs child_process',
+        child_process: 'commonjs child_process',
         http: 'commonjs http',
         https: 'commonjs https',
         assert: 'commonjs assert',

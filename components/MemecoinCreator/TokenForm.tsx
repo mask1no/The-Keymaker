@@ -25,7 +25,6 @@ import {
 // Use server route to avoid exposing secrets in the browser
 import { useKeymakerStore } from '@/lib/store'
 import { AlertCircle } from 'lucide-react'
-import { Keypair } from '@solana/web3.js'
 
 export default function TokenForm() {
   const { publicKey } = useWallet()
@@ -34,7 +33,7 @@ export default function TokenForm() {
   const [deployedToken, setDeployedToken] = useState<string | null>(null)
 
   // Zustand store
-  const { setTokenLaunchData, wallets } = useKeymakerStore()
+  const { setTokenLaunchData } = useKeymakerStore()
 
   // Form fields
   const [name, setName] = useState('')
@@ -171,7 +170,9 @@ export default function TokenForm() {
                 params: {
                   name,
                   symbol,
-                  description: metadata.description || `${name} - Created with The Keymaker`,
+                  description:
+                    metadata.description ||
+                    `${name} - Created with The Keymaker`,
                   twitter: metadata.twitter || '',
                   telegram: metadata.telegram || '',
                   website: metadata.website || '',
