@@ -1,4 +1,5 @@
 import { Keypair } from '@solana/web3.js'
+import 'server-only'
 import bs58 from 'bs58'
 import crypto from 'crypto'
 import sqlite3 from 'sqlite3'

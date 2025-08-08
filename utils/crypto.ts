@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { Keypair } from '@solana/web3.js'
 
 const IV_LENGTH = 16
 const SALT_LENGTH = 32
@@ -69,6 +70,26 @@ export function decryptAES256(encryptedData: string, password: string): string {
   } catch (error) {
     throw new Error('Invalid password or corrupted data')
   }
+}
+
+export async function decryptAES256ToKeypair(
+  encryptedBase64: string,
+  password: string,
+): Promise<Keypair> {
+  const decrypted = decryptAES256(encryptedBase64, password)
+  // decrypted is base58 or JSON array string; try both
+  try {
+    if (decrypted.startsWith('[')) {
+      const arr = JSON.parse(decrypted)
+      return Keypair.fromSecretKey(new Uint8Array(arr))
+    }
+  } catch (err) {
+    // fall back to base58 path
+  }
+  // Assume base58 string
+  const bs58 = (await import('bs58')).default
+  const secret = bs58.decode(decrypted)
+  return Keypair.fromSecretKey(secret)
 }
 
 /**

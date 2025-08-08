@@ -3,12 +3,12 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useRouter } from 'next/navigation'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useKeymakerStore } from '@/lib/store'
-import { exportPnLData } from '@/services/pnlService'
 
 export function GlobalHotkeys() {
   const router = useRouter()
   const { connected, disconnect } = useWallet()
-  const { walletGroups } = useKeymakerStore()
+  // Access store to keep hook order; do not use value to avoid lint error
+  useKeymakerStore()
 
   // ⌘+E or Ctrl+E to open Sell Monitor
   useHotkeys(
@@ -43,19 +43,9 @@ export function GlobalHotkeys() {
   // e = Export CSV (PnL)
   useHotkeys(
     'e',
-    async (e) => {
+    (e) => {
       e.preventDefault()
-      try {
-        const data = await exportPnLData('csv')
-        const blob = new Blob([data], { type: 'text/csv' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `pnl-report-${Date.now()}.csv`
-        a.click()
-      } catch {
-        // ignore in global shortcut
-      }
+      window.dispatchEvent(new Event('KEYMAKER_EXPORT_CSV'))
     },
     { enableOnFormTags: true },
   )

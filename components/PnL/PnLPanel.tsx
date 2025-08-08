@@ -22,7 +22,16 @@ import {
   BarChart3,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { getAllWalletsPnL, getSessionPnL, type WalletPnL } from '@/services/pnlService'
+type WalletPnL = {
+  wallet: string
+  totalInvested: number
+  totalReturned: number
+  netPnL: number
+  pnlPercentage: number
+  trades: number
+  totalGasFees: number
+  totalJitoTips: number
+}
 import { toCsv, downloadCsv } from '@/lib/csv'
 
 export function PnLPanel() {
@@ -40,10 +49,9 @@ export function PnLPanel() {
   const loadPnLData = async () => {
     try {
       setRefreshing(true)
-      const [wallets, session] = await Promise.all([
-        getAllWalletsPnL(),
-        getSessionPnL(),
-      ])
+      const res = await fetch('/api/pnl', { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to fetch PnL')
+      const { wallets, session } = await res.json()
 
       setWalletPnL(wallets.sort((a, b) => b.netPnL - a.netPnL))
       setSessionData(session)

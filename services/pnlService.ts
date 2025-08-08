@@ -1,3 +1,4 @@
+import 'server-only'
 import { Connection } from '@solana/web3.js'
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'

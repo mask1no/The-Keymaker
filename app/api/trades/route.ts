@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+// server-only route
+import 'server-only'
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 import path from 'path'

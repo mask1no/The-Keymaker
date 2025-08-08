@@ -68,8 +68,7 @@ import {
   WSOL_MINT,
   convertToLamports,
 } from '@/services/jupiterService'
-import { trackBuy, trackSell } from '@/services/pnlService'
-import { getKeypair } from '@/services/walletService'
+// PnL tracking must be server-side only; call API instead
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { useKeymakerStore } from '@/lib/store'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
@@ -371,7 +370,12 @@ export function BundleEngine() {
             }
 
             try {
-              const keypair = await getKeypair(encryptedWallet, password)
+              // Decrypt on client using utils/crypto (no sqlite)
+              const { decryptAES256ToKeypair } = await import('@/utils/crypto')
+              const keypair = await decryptAES256ToKeypair(
+                encryptedWallet.encryptedPrivateKey,
+                password,
+              )
               signers.push(keypair)
             } catch (error) {
               throw new Error(
@@ -451,13 +455,18 @@ export function BundleEngine() {
           const wallet = tx.wallet || publicKey.toBase58()
 
           try {
-            if (tx.action === 'buy') {
-              // For buys, amount is SOL spent
-              await trackBuy(wallet, tx.tokenAddress, tx.amount, 0) // Token amount would need to be calculated
-            } else {
-              // For sells, amount is tokens sold
-              await trackSell(wallet, tx.tokenAddress, 0, tx.amount) // SOL received would need to be calculated
-            }
+            await fetch('/api/pnl/track', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                wallet,
+                tokenAddress: tx.tokenAddress,
+                action: tx.action,
+                solAmount: tx.action === 'buy' ? tx.amount : 0,
+                tokenAmount: tx.action === 'sell' ? tx.amount : 0,
+                fees: { gas: 0, jito: 0 },
+              }),
+            })
           } catch (error) {
             console.error('Failed to track PnL:', error)
           }

@@ -1,4 +1,5 @@
 import { open, Database } from 'sqlite'
+import 'server-only'
 import sqlite3 from 'sqlite3'
 import path from 'path'
 

@@ -65,7 +65,9 @@ export function NotificationCenter() {
       try {
         const p = JSON.parse(saved)
         setPos({ x: p.x || 0, y: p.y || 0 })
-      } catch {}
+      } catch (err) {
+        // ignore malformed saved position
+      }
     }
   }, [])
 
