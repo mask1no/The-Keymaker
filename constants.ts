@@ -1,11 +1,21 @@
+// Resolve Helius RPC with sensible fallbacks
+// Priority: NEXT_PUBLIC_HELIUS_RPC > HELIUS_API_KEY-composed URL > public devnet RPC
 export const NEXT_PUBLIC_HELIUS_RPC =
   process.env.NEXT_PUBLIC_HELIUS_RPC ||
-  'https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY'
+  (process.env.HELIUS_API_KEY
+    ? `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
+    : 'https://api.devnet.solana.com')
+
+// Resolve Jito endpoint with fallback to well-known public endpoint
+// Priority: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engine
 export const NEXT_PUBLIC_JITO_ENDPOINT =
   process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
+  process.env.JITO_RPC_URL ||
   'https://mainnet.block-engine.jito.wtf'
+
+// Birdeye api key (used client-side in some flows)
 export const NEXT_PUBLIC_BIRDEYE_API_KEY =
-  process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || ''
+  process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || process.env.BIRDEYE_API_KEY || ''
 export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
 export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'
 export const JITO_TIP_ACCOUNTS = [

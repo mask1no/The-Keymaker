@@ -1,4 +1,6 @@
-import sqlite3 from 'sqlite3'
+// Defer sqlite imports to runtime to avoid native bindings during unit tests
+// and to prevent loading on mere import.
+// Do not import sqlite3 at module scope.
 import { open } from 'sqlite'
 import path from 'path'
 
@@ -56,6 +58,7 @@ interface PnLRecord {
 }
 
 async function getDb() {
+  const sqlite3 = (await import('sqlite3')).default
   return open({
     filename: path.join(process.cwd(), 'data', 'analytics.db'),
     driver: sqlite3.Database,
@@ -413,5 +416,7 @@ export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
   }
 }
 
-// Initialize tables on module load
-initializeTables().catch(console.error)
+// Initialize tables unless running tests
+if (process.env.NODE_ENV !== 'test') {
+  initializeTables().catch(console.error)
+}

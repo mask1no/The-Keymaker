@@ -170,7 +170,7 @@ class PuppeteerHelper {
 
           // Inject captcha response
           await page.evaluate((response) => {
-            ;(window as any).hcaptcha.setResponse(response)
+            (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           // Submit form again
@@ -271,7 +271,7 @@ class PuppeteerHelper {
 
           // Inject captcha response
           await page.evaluate((response) => {
-            ;(window as any).hcaptcha.setResponse(response)
+            (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           // Submit form again
@@ -346,7 +346,7 @@ class PuppeteerHelper {
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
 
           await page.evaluate((response) => {
-            ;(window as any).hcaptcha.setResponse(response)
+            (window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           await page.click('#buy-button')

@@ -22,6 +22,7 @@ import bs58 from 'bs58'
 //   JitoAuthKeypair
 // } from 'jito-ts';
 import { JITO_TIP_ACCOUNTS, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants'
+import { createComputeBudgetInstructions, type PriorityLevel } from '@/lib/priorityFee'
 import { logBundleExecution } from './executionLogService'
 import { getConnection } from '@/lib/network'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
@@ -55,7 +56,37 @@ type ExecutionResult = {
 }
 
 // Jito REST API configuration
-const JITO_API_URL = 'https://mainnet.block-engine.jito.wtf/api/v1'
+import { getJitoEndpoint } from '@/lib/network'
+const JITO_API_URL = `${getJitoEndpoint()}/api/v1`
+
+/**
+ * Attempt to align submission with an upcoming leader slot.
+ * Best-effort: if the endpoint is unavailable, this is a no-op.
+ */
+async function maybeWaitForLeader(
+  connection: Connection,
+  logger: (msg: string) => void,
+): Promise<void> {
+  try {
+    const currentSlot = await connection.getSlot('processed')
+    const res = await axios.get(`${JITO_API_URL}/leaders/next`, {
+      timeout: 2000,
+      headers: getJitoHeaders(),
+    })
+    const nextLeaderSlot: number | undefined = res.data?.next_leader_slot
+    if (!nextLeaderSlot || nextLeaderSlot <= currentSlot) return
+
+    const slotsToWait = Math.max(0, nextLeaderSlot - currentSlot - 1)
+    if (slotsToWait === 0) return
+    const delayMs = Math.min(5000, Math.round(slotsToWait * 400))
+    logger(
+      `Waiting ~${Math.round(delayMs / 100) / 10}s for upcoming leader slot ${nextLeaderSlot}...`,
+    )
+    await new Promise((r) => setTimeout(r, delayMs))
+  } catch {
+    // Ignore on failure
+  }
+}
 
 /**
  * Get Jito API headers
@@ -108,7 +139,7 @@ async function validateToken(tokenAddress: string): Promise<boolean> {
     return hasLiquidity && isValid
   } catch (error) {
     console.error('Token validation failed:', error)
-    return true // Allow transaction on error
+    return false // Fail-closed on validation error
   }
 }
 
@@ -231,13 +262,17 @@ async function convertToVersionedTransactions(
   connection: Connection,
   tipAmount?: number,
   feePayer?: PublicKey,
+  priority: PriorityLevel = 'high',
 ): Promise<VersionedTransaction[]> {
   const { blockhash } = await connection.getLatestBlockhash('confirmed')
   const versionedTxs: VersionedTransaction[] = []
 
   for (let i = 0; i < txs.length; i++) {
     const tx = txs[i]
-    const instructions = [...tx.instructions]
+    const instructions = [
+      ...createComputeBudgetInstructions(priority),
+      ...tx.instructions,
+    ]
 
     // Add tip instruction to the last transaction
     if (i === txs.length - 1 && tipAmount) {
@@ -270,27 +305,16 @@ async function submitBundleToJito(
       bs58.encode(tx.serialize()),
     )
 
-    // Submit bundle via REST API
+    // Submit bundle via REST API (transactions array)
     const response = await axios.post(
       `${JITO_API_URL}/bundles`,
-      {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'sendBundle',
-        params: [serializedTransactions],
-      },
-      {
-        headers: getJitoHeaders(),
-        timeout: 10000,
-      },
+      { transactions: serializedTransactions },
+      { headers: getJitoHeaders(), timeout: 10000 },
     )
 
-    if (response.data.error) {
-      throw new Error(`Jito error: ${response.data.error.message}`)
-    }
-
-    const bundleId = response.data.result
-    if (!bundleId) {
+    const bundleId =
+      response.data?.bundle_id || response.data?.result || response.data?.id
+    if (!bundleId || typeof bundleId !== 'string') {
       throw new Error('No bundle ID returned from Jito')
     }
 
@@ -394,6 +418,7 @@ export async function executeBundle(
       conn,
       tipAmount,
       options.feePayer,
+      'high',
     )
 
     // Sign all transactions
@@ -556,10 +581,11 @@ export async function executeBundle(
 
     logger('All transactions simulated successfully')
 
-    // Try Jito submission with retries
+    // Try Jito submission with retries and exponential backoff
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         logger(`Attempt ${attempt}: Submitting bundle to Jito`)
+        await maybeWaitForLeader(conn, logger)
 
         // Submit bundle using Jito REST API
         bundleId = await submitBundleToJito(versionedTxs)
@@ -599,10 +625,11 @@ export async function executeBundle(
         }
 
         if (attempt < retries) {
+          const delayMs = Math.min(8000, 1000 * Math.pow(2, attempt - 1))
           logger(
-            `Bundle execution incomplete, retrying in ${2 * attempt} seconds...`,
+            `Bundle execution incomplete, retrying in ${Math.round(delayMs / 1000)}s...`,
           )
-          await new Promise((resolve) => setTimeout(resolve, 2000 * attempt))
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
         }
       } catch (error: unknown) {
         Sentry.captureException(error)
@@ -651,9 +678,8 @@ export async function executeBundle(
                   signatures.push('')
                   results.push('failed')
                 }
-                await new Promise((resolve) =>
-                  setTimeout(resolve, 1000 * fbAttempt),
-                )
+                const backoff = Math.min(4000, 500 * Math.pow(2, fbAttempt - 1))
+                await new Promise((resolve) => setTimeout(resolve, backoff))
               }
             }
           }

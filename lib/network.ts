@@ -9,6 +9,13 @@ export const DEVNET_WS = 'wss://api.devnet.solana.com'
 export const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf'
 export const JITO_DEVNET_URL = 'https://amsterdam.devnet.block-engine.jito.wtf'
 
+export function getJitoEndpoint(): string {
+  const store = useKeymakerStore.getState()
+  const configured = process.env.JITO_RPC_URL
+  if (configured) return configured
+  return store.network === 'devnet' ? JITO_DEVNET_URL : JITO_MAINNET_URL
+}
+
 export function getNetworkEndpoint(network: 'mainnet-beta' | 'devnet'): string {
   const store = useKeymakerStore.getState()
 

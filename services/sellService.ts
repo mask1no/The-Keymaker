@@ -70,6 +70,13 @@ export async function getTokenPrice(
   try {
     const response = await axios.get(
       `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}`,
+      {
+        headers: {
+          ...(process.env.JUPITER_API_KEY
+            ? { 'X-API-KEY': process.env.JUPITER_API_KEY }
+            : {}),
+        },
+      },
     )
 
     const data = response.data?.data?.[tokenMint]
@@ -230,6 +237,11 @@ async function calculateDynamicSlippage(
           onlyDirectRoutes: false,
           asLegacyTransaction: false,
         },
+        headers: {
+          ...(process.env.JUPITER_API_KEY
+            ? { 'X-API-KEY': process.env.JUPITER_API_KEY }
+            : {}),
+        },
       },
     )
 
@@ -299,6 +311,11 @@ async function getSwapQuote(
         onlyDirectRoutes: false,
         asLegacyTransaction: false,
       },
+      headers: {
+        ...(process.env.JUPITER_API_KEY
+          ? { 'X-API-KEY': process.env.JUPITER_API_KEY }
+          : {}),
+      },
     })
 
     return response.data
@@ -319,19 +336,30 @@ async function executeSwap(
 ): Promise<string> {
   try {
     // Get serialized transaction from Jupiter
-    const { data } = await axios.post(`${NEXT_PUBLIC_JUPITER_API_URL}/swap`, {
-      quoteResponse,
-      userPublicKey: wallet.publicKey.toBase58(),
-      wrapAndUnwrapSol: true,
-      prioritizationFeeLamports:
-        priorityLevel === 'veryHigh'
-          ? 1000000
-          : priorityLevel === 'high'
-            ? 500000
-            : priorityLevel === 'medium'
-              ? 100000
-              : 10000,
-    })
+    const { data } = await axios.post(
+      `${NEXT_PUBLIC_JUPITER_API_URL}/swap`,
+      {
+        quoteResponse,
+        userPublicKey: wallet.publicKey.toBase58(),
+        wrapAndUnwrapSol: true,
+        prioritizationFeeLamports:
+          priorityLevel === 'veryHigh'
+            ? 1_000_000
+            : priorityLevel === 'high'
+              ? 500_000
+              : priorityLevel === 'medium'
+                ? 100_000
+                : 10_000,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.JUPITER_API_KEY
+            ? { 'X-API-KEY': process.env.JUPITER_API_KEY }
+            : {}),
+        },
+      },
+    )
 
     const { swapTransaction } = data
 
