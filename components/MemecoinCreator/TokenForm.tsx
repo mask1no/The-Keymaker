@@ -23,7 +23,6 @@ import {
   DialogTitle,
 } from '@/components/UI/dialog'
 // Use server route to avoid exposing secrets in the browser
-import { createToken as letsbonkCreate } from '../../services/letsbonkService'
 import { useKeymakerStore } from '@/lib/store'
 import { AlertCircle } from 'lucide-react'
 import { Keypair } from '@solana/web3.js'
@@ -163,20 +162,28 @@ export default function TokenForm() {
 
         case 'LetsBonk.fun':
           {
-            // For LetsBonk, we need a keypair - use master wallet or create temp
-            const masterWallet = wallets.find((w) => w.role === 'master')
-            if (!masterWallet) {
-              throw new Error('Master wallet not found')
+            // Delegate to backend proxy to avoid exposing secrets in the client
+            const r = await fetch('/api/proxy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                method: 'launch-token',
+                params: {
+                  name,
+                  symbol,
+                  description: metadata.description || `${name} - Created with The Keymaker`,
+                  twitter: metadata.twitter || '',
+                  telegram: metadata.telegram || '',
+                  website: metadata.website || '',
+                  imageUrl: metadata.image || '',
+                },
+              }),
+            })
+            const j = await r.json()
+            if (!r.ok || !j?.mintAddress) {
+              throw new Error(j?.error || 'LetsBonk launch failed')
             }
-            // Create a temporary keypair for now - in production this should use the actual wallet
-            const tempKeypair = Keypair.generate()
-            tokenAddr = await letsbonkCreate(
-              name,
-              symbol,
-              parseInt(supply),
-              metadata,
-              tempKeypair,
-            )
+            tokenAddr = j.mintAddress
           }
           break
 
