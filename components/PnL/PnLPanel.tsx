@@ -95,6 +95,13 @@ export function PnLPanel() {
     }
   }
 
+  // Listen for Action Dock export signal
+  useEffect(() => {
+    const handler = () => handleExport('csv')
+    window.addEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
+    return () => window.removeEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
+  }, [walletPnL])
+
   const formatSOL = (amount: number) => {
     const formatted = amount.toFixed(4)
     return amount >= 0 ? `+${formatted}` : formatted
