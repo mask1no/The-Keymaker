@@ -15,10 +15,9 @@ services:
       NEXT_PUBLIC_JITO_ENDPOINT: ${NEXT_PUBLIC_JITO_ENDPOINT:-https://mainnet.block-engine.jito.wtf}
 
       # API Keys
-      NEXT_PUBLIC_BIRDEYE_API_KEY: ${NEXT_PUBLIC_BIRDEYE_API_KEY}
+      # Birdeye key should be server-only
       BIRDEYE_API_KEY: ${BIRDEYE_API_KEY}
       PUMPFUN_API_KEY: ${PUMPFUN_API_KEY}
-      NEXT_PUBLIC_MOONSHOT_API_KEY: ${NEXT_PUBLIC_MOONSHOT_API_KEY}
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
 
       # Optional Services

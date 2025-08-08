@@ -30,8 +30,13 @@ export function Topbar({ toggleTheme, theme }: TopbarProps) {
   }
 
   return (
-    <header className="flex justify-between items-center p-4 bg-glass/30 backdrop-blur border-b border-white/10">
-      <h1 className="text-xl font-bold text-gradient-green">The Keymaker</h1>
+    <header className="sticky top-0 z-40 flex justify-between items-center h-14 px-4 bg-black/50 backdrop-blur border-b border-white/10">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+          <span className="text-white font-bold text-lg">K</span>
+        </div>
+        <h1 className="text-lg font-bold">Keymaker</h1>
+      </div>
       <div className="flex items-center space-x-4">
         <NotificationCenter />
         <Button

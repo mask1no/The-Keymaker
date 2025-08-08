@@ -22,12 +22,8 @@ import {
   BarChart3,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import {
-  getAllWalletsPnL,
-  getSessionPnL,
-  exportPnLData,
-  type WalletPnL,
-} from '@/services/pnlService'
+import { getAllWalletsPnL, getSessionPnL, type WalletPnL } from '@/services/pnlService'
+import { toCsv, downloadCsv } from '@/lib/csv'
 
 export function PnLPanel() {
   const [walletPnL, setWalletPnL] = useState<WalletPnL[]>([])
@@ -70,15 +66,29 @@ export function PnLPanel() {
 
   const handleExport = async (format: 'json' | 'csv') => {
     try {
-      const data = await exportPnLData(format)
-      const blob = new Blob([data], {
-        type: format === 'json' ? 'application/json' : 'text/csv',
-      })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `pnl-report-${Date.now()}.${format}`
-      a.click()
+      if (format === 'json') {
+        const blob = new Blob([JSON.stringify(walletPnL, null, 2)], {
+          type: 'application/json',
+        })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `pnl-report-${Date.now()}.json`
+        a.click()
+      } else {
+        const rows = walletPnL.map((w) => ({
+          wallet: w.wallet,
+          invested: w.totalInvested.toFixed(4),
+          returned: w.totalReturned.toFixed(4),
+          gas_fees: w.totalGasFees.toFixed(4),
+          jito_tips: w.totalJitoTips.toFixed(4),
+          net_pnl: w.netPnL.toFixed(4),
+          pnl_percent: w.pnlPercentage.toFixed(2),
+          trades: w.trades,
+        }))
+        const csv = toCsv(rows)
+        downloadCsv(csv, `pnl-report-${Date.now()}.csv`)
+      }
       toast.success('P&L data exported successfully')
     } catch (error) {
       toast.error('Failed to export P&L data')

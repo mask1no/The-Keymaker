@@ -32,6 +32,9 @@ export function NotificationCenter() {
     markNotificationAsRead,
   } = useKeymakerStore()
   const [isOpen, setIsOpen] = useState(false)
+  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
+  const dragStart = useRef<{ x: number; y: number } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -55,6 +58,43 @@ export function NotificationCenter() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('notif-pos')
+    if (saved) {
+      try {
+        const p = JSON.parse(saved)
+        setPos({ x: p.x || 0, y: p.y || 0 })
+      } catch {}
+    }
+  }, [])
+
+  const clamp = (x: number, y: number) => {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const width = 384 // ~w-96
+    const height = 520 // header + list
+    const nx = Math.min(Math.max(0, x), Math.max(0, vw - width - 16))
+    const ny = Math.min(Math.max(0, y), Math.max(0, vh - height - 16))
+    return { x: nx, y: ny }
+  }
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    setDragging(true)
+    dragStart.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }
+  }
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragging || !dragStart.current) return
+    const nx = e.clientX - dragStart.current.x
+    const ny = e.clientY - dragStart.current.y
+    const c = clamp(nx, ny)
+    setPos(c)
+  }
+  const onMouseUp = () => {
+    if (!dragging) return
+    setDragging(false)
+    localStorage.setItem('notif-pos', JSON.stringify(pos))
+  }
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen)
@@ -119,15 +159,19 @@ export function NotificationCenter() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed z-[9999]"
+            style={{ left: pos.x, top: pos.y }}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
           >
             <Card className="w-96 max-h-[500px] overflow-hidden shadow-xl border-gray-800 bg-gray-900/95 backdrop-blur-md">
               {/* Header */}
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+              <div className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
+                   onMouseDown={onMouseDown}>
                 <h3 className="font-semibold text-lg">Notifications</h3>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (

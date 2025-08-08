@@ -42,17 +42,17 @@ export default function RootLayout({
             <GlobalHotkeys />
             <ErrorBoundary>
               <ConnectionBanner />
-              <div className="flex min-h-screen">
-                <div className="hidden md:block">
+              <div className="min-h-screen grid grid-cols-12">
+                <div className="hidden md:block col-span-2">
                   <Sidebar />
                 </div>
-                <div className="flex-1 flex flex-col">
+                <div className="col-span-12 md:col-span-10 flex flex-col min-h-screen" style={{ marginLeft: 0 }}>
                   <Topbar toggleTheme={toggleTheme} theme={theme} />
                   <motion.main
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="flex-1 p-4 pb-20 md:pb-4"
+                    className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 pb-16"
                   >
                     {children}
                   </motion.main>
