@@ -36,6 +36,7 @@ import { logger } from '@/lib/logger'
 import { PasswordDialog } from '@/components/UI/PasswordDialog'
 import { executeBundle } from '@/services/bundleService'
 import { buildSwapTransaction } from '@/services/jupiterService'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 type Phase =
   | 'idle'
@@ -71,6 +72,7 @@ function prepareWalletsForKeypairs(wallets: WalletData[]): Array<{
 }
 
 export function ControlPanel() {
+  const { jitoTipLamports, jupiterFeeBps } = useSettingsStore.getState()
   const {
     wallets,
     walletGroups,
@@ -340,6 +342,7 @@ export function ControlPanel() {
             keypair.publicKey.toBase58(),
             bundleConfig.slippage * 100, // Convert to basis points
             bundleConfig.priorityFee * LAMPORTS_PER_SOL,
+            jupiterFeeBps,
           )
 
           // Convert VersionedTransaction to Transaction for bundle execution
@@ -371,7 +374,7 @@ export function ControlPanel() {
         keypairs,
         {
           connection,
-          tipAmount: tipAmount * LAMPORTS_PER_SOL,
+          tipAmount: jitoTipLamports,
           retries: 3,
           logger: (msg) => logger.info(`[Bundle] ${msg}`),
         },

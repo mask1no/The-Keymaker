@@ -74,6 +74,7 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { useKeymakerStore } from '@/lib/store'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
 import { FeeEstimator } from '@/components/FeeEstimator'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 interface TransactionInput {
   tokenAddress: string
@@ -96,7 +97,8 @@ export function BundleEngine() {
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
 
   // Zustand store
-  const { wallets: globalWallets, jitoEnabled, tipAmount } = useKeymakerStore()
+  const { wallets: globalWallets, jitoEnabled } = useKeymakerStore()
+  const { jitoTipLamports, jupiterFeeBps } = useSettingsStore()
 
   const [transactions, setTransactions] = useState<TransactionInput[]>([])
   const [preview, setPreview] = useState<PreviewResult[]>([])
@@ -223,6 +225,7 @@ export function BundleEngine() {
             feePayer.toBase58(),
             Math.floor(input.slippage * 100), // Convert percentage to basis points
             input.priorityFee,
+            jupiterFeeBps,
           )
           txs.push(swapTx)
         } else {
@@ -234,6 +237,7 @@ export function BundleEngine() {
             feePayer.toBase58(),
             Math.floor(input.slippage * 100),
             input.priorityFee,
+            jupiterFeeBps,
           )
           txs.push(swapTx)
         }
@@ -387,7 +391,7 @@ export function BundleEngine() {
           signers,
           {
             feePayer: publicKey,
-            tipAmount: jitoEnabled ? tipAmount * 1e9 : 0, // Convert SOL to lamports
+            tipAmount: jitoEnabled ? jitoTipLamports : 0,
             logger: (msg: string) => console.log(`[Bundle] ${msg}`),
             connection,
             walletAdapter: {
@@ -409,7 +413,7 @@ export function BundleEngine() {
           signers,
           {
             feePayer: publicKey,
-            tipAmount: jitoEnabled ? tipAmount * 1e9 : 0, // Convert SOL to lamports
+            tipAmount: jitoEnabled ? jitoTipLamports : 0,
             logger: (msg: string) => console.log(`[Bundle] ${msg}`),
             connection,
             walletAdapter: {

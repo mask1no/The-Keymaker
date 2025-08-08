@@ -1,0 +1,60 @@
+name: keymaker-ci
+on:
+  push:
+    branches: [opus/v1.3.0]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: build-and-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: true
+      - run: pnpm format && pnpm lint
+      - run: pnpm tsc --noEmit
+      - run: npx ts-prune | tee docs/QA/ts-prune.log
+      - run: pnpm test -- --coverage
+
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: true
+      - run: pnpm exec playwright install --with-deps
+      - run: pnpm exec playwright test
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t keymaker:ci .
+      - run: docker run --rm -p 3000:3000 keymaker:ci node dist/scripts/verifyApp.js || node scripts/verifyApp.js
+
+  tauri:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tauri-apps/tauri-action@v2
+        with:
+          releaseId: ${{ github.run_id }}

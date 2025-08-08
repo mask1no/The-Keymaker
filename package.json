@@ -20,7 +20,7 @@
     "verify": "ts-node --project tsconfig.node.json scripts/verifyApp.ts",
     "verify:js": "node dist/scripts/verifyApp.js",
     "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
-    "postinstall": "npm run db:init",
+    "postinstall": "node -e \"console.log('Skipping db:init on postinstall; will initialize DB at runtime/verify')\"",
     "prepare": "husky && husky install"
   },
   "dependencies": {

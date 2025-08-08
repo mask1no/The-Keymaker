@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { token_address, tx_ids, wallets, sol_in, sol_out, pnl } = body
+    const { token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees = 0, gas_fee = 0, jito_tip = 0 } = body
 
     if (
       !token_address ||
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     })
 
     const result = await db.run(
-      `INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees, gas_fee, jito_tip) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         token_address,
         JSON.stringify(tx_ids),
@@ -66,6 +66,9 @@ export async function POST(request: NextRequest) {
         sol_in,
         sol_out,
         pnl,
+        Number(fees) || 0,
+        Number(gas_fee) || 0,
+        Number(jito_tip) || 0,
       ],
     )
 

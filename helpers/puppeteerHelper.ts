@@ -345,9 +345,9 @@ class PuppeteerHelper {
           const siteKey = siteKeyMatch[1]
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
 
-          await page.evaluate((response) => {
-            (window as any).hcaptcha.setResponse(response)
-          }, captchaResponse)
+      await page.evaluate((response) => {
+        (window as any).hcaptcha.setResponse(response)
+      }, captchaResponse)
 
           await page.click('#buy-button')
         }

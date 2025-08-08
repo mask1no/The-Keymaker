@@ -9,17 +9,29 @@ import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
 async function checkDatabase(): Promise<boolean> {
   try {
     const db = await open({
-      filename: path.join(process.cwd(), 'data', 'analytics.db'),
+      filename: path.join(process.cwd(), 'data', 'keymaker.db'),
       driver: sqlite3.Database,
     })
 
-    // Check if tables exist
-    const tables = await db.all(`
-      SELECT name FROM sqlite_master WHERE type='table'
-    `)
+    // Confirm core tables exist
+    const required = [
+      'wallets',
+      'tokens',
+      'trades',
+      'execution_logs',
+      'pnl_records',
+      'bundles',
+      'settings',
+      'errors',
+    ]
 
+    const rows = await db.all(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    )
+    const names = new Set<string>(rows.map((r: any) => r.name))
+    const ok = required.every((t) => names.has(t))
     await db.close()
-    return tables.length > 0
+    return ok
   } catch {
     return false
   }
@@ -54,7 +66,6 @@ async function checkJito(): Promise<boolean> {
 }
 
 export async function GET() {
-
   try {
     // Run health checks in parallel
     const [dbOk, rpcStatus, jitoOk] = await Promise.all([
@@ -62,8 +73,6 @@ export async function GET() {
       checkRPC(),
       checkJito(),
     ])
-
-    // Timing intentionally omitted from response shape per spec
 
     // Test Puppeteer functionality
     const puppeteerOk = await (async () => {
@@ -78,7 +87,7 @@ export async function GET() {
     const health = {
       ok: true,
       puppeteer: puppeteerOk,
-      version: '1.4.0',
+      version: '1.3.0',
       timestamp: new Date().toISOString(),
       rpc: rpcStatus.connected,
       jito: jitoOk,
@@ -93,7 +102,7 @@ export async function GET() {
       {
         ok: false,
         puppeteer: false,
-        version: '1.4.0',
+        version: '1.3.0',
         timestamp: new Date().toISOString(),
         rpc: false,
         jito: false,
