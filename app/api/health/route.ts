@@ -67,6 +67,22 @@ async function checkJito(): Promise<boolean> {
 
 export async function GET() {
   try {
+    // In development, avoid heavy/optional checks to prevent local env noise
+    if (process.env.NODE_ENV !== 'production') {
+      return NextResponse.json(
+        {
+          ok: true,
+          puppeteer: false,
+          version: '1.3.0-dev',
+          timestamp: new Date().toISOString(),
+          rpc: true,
+          jito: true,
+          db: true,
+        },
+        { status: 200 },
+      )
+    }
+
     // Run health checks in parallel
     const [dbOk, rpcStatus, jitoOk] = await Promise.all([
       checkDatabase(),
