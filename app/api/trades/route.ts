@@ -34,7 +34,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees = 0, gas_fee = 0, jito_tip = 0 } = body
+    const {
+      token_address,
+      tx_ids,
+      wallets,
+      sol_in,
+      sol_out,
+      pnl,
+      fees = 0,
+      gas_fee = 0,
+      jito_tip = 0,
+    } = body
 
     if (
       !token_address ||
