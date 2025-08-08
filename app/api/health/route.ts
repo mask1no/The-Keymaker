@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { Connection } from '@solana/web3.js'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
+// Use dynamic imports later to avoid ESM/CJS issues in Next dev
 import path from 'path'
 import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants'
 import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
 
 async function checkDatabase(): Promise<boolean> {
   try {
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     const db = await open({
       filename: path.join(process.cwd(), 'data', 'keymaker.db'),
       driver: sqlite3.Database,
