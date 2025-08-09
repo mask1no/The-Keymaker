@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 // server-only route
 import 'server-only'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
 import path from 'path'
 
 export async function GET(request: NextRequest) {
@@ -11,6 +9,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
     }
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,

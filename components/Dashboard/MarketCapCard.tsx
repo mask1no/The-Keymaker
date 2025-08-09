@@ -21,6 +21,8 @@ interface TokenData {
   fdv: number
   marketCap: number
   volume24h: number
+  liquidityUSD?: number
+  holders?: number
   priceHistory: { time: number; price: number }[]
 }
 
@@ -255,13 +257,19 @@ export function MarketCapCard({ tokenMint, tokenSymbol }: MarketCapCardProps) {
 
           {/* Secondary Metrics */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/5 rounded-lg p-3" aria-label={`Liquidity: ${formatCurrency(tokenData.liquidityUSD || 0)}`}>
+            <div
+              className="bg-white/5 rounded-lg p-3"
+              aria-label={`Liquidity: ${formatCurrency(tokenData.liquidityUSD || 0)}`}
+            >
               <div className="text-xs text-gray-400">Liquidity</div>
               <div className="font-semibold text-sm">
                 {formatCurrency(tokenData.liquidityUSD || 0)}
               </div>
             </div>
-            <div className="bg-white/5 rounded-lg p-3" aria-label={`Holders: ${(tokenData.holders || 0).toLocaleString()}`}>
+            <div
+              className="bg-white/5 rounded-lg p-3"
+              aria-label={`Holders: ${(tokenData.holders || 0).toLocaleString()}`}
+            >
               <div className="text-xs text-gray-400">Holders</div>
               <div className="font-semibold text-sm">
                 {(tokenData.holders || 0).toLocaleString()}

@@ -34,7 +34,9 @@ export function createComputeBudgetInstructions(
 }
 
 // Experimental: dynamic CU price suggestion based on recent slots (if caller provides)
-export function suggestPriorityFromRecentMicroLamports(avgMicroLamports: number): PriorityLevel {
+export function suggestPriorityFromRecentMicroLamports(
+  avgMicroLamports: number,
+): PriorityLevel {
   if (avgMicroLamports >= 800_000) return 'veryHigh'
   if (avgMicroLamports >= 300_000) return 'high'
   if (avgMicroLamports >= 60_000) return 'medium'

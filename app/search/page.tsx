@@ -17,7 +17,8 @@ export default function CommandPalettePage() {
   const [q, setQ] = useState('')
   const router = useRouter()
   const filtered = useMemo(
-    () => entries.filter((e) => e.label.toLowerCase().includes(q.toLowerCase())),
+    () =>
+      entries.filter((e) => e.label.toLowerCase().includes(q.toLowerCase())),
     [q],
   )
 
@@ -60,5 +61,3 @@ export default function CommandPalettePage() {
     </div>
   )
 }
-
-

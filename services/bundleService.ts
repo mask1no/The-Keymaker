@@ -22,7 +22,10 @@ import bs58 from 'bs58'
 //   JitoAuthKeypair
 // } from 'jito-ts';
 import { JITO_TIP_ACCOUNTS, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants'
-import { createComputeBudgetInstructions, type PriorityLevel } from '@/lib/priorityFee'
+import {
+  createComputeBudgetInstructions,
+  type PriorityLevel,
+} from '@/lib/priorityFee'
 import { logBundleExecution } from './executionLogService'
 import { getConnection } from '@/lib/network'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'

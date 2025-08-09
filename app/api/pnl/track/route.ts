@@ -7,7 +7,8 @@ export async function POST(req: Request) {
     // Simple per-IP limiter
     const ip = (req.headers.get('x-forwarded-for') || 'local').split(',')[0]
     const rl = rateLimit(`pnl-track:${ip}`, 60, 60_000)
-    if (!rl.ok) return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
+    if (!rl.ok)
+      return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
     const body = await req.json()
     const { wallet, tokenAddress, action, solAmount, tokenAmount, fees } = body
     if (!wallet || !tokenAddress || !action) {
@@ -71,5 +72,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
 }
-
-

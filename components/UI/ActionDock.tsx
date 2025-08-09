@@ -90,7 +90,11 @@ export function ActionDock() {
   if (isMobile)
     return (
       <div className="fixed bottom-4 right-4 z-[999]">
-        {open && <div className="mb-2 flex flex-col items-end gap-2">{DockButtons}</div>}
+        {open && (
+          <div className="mb-2 flex flex-col items-end gap-2">
+            {DockButtons}
+          </div>
+        )}
         <Button
           aria-label="Open Action Dock"
           className="rounded-full h-12 w-12"
@@ -103,5 +107,3 @@ export function ActionDock() {
 
   return <div className="fixed bottom-4 right-4 z-[999]">{DockButtons}</div>
 }
-
-

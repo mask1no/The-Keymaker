@@ -97,7 +97,8 @@ export async function GET() {
       totalVolume += v.invested + v.returned
       if (pnl > 0) profitableWallets++
     }
-    const pnlPercentage = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0
+    const pnlPercentage =
+      totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0
 
     return NextResponse.json({
       wallets: walletSummaries,
@@ -113,5 +114,3 @@ export async function GET() {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
 }
-
-

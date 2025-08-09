@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import 'server-only'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
 import path from 'path'
 
 export async function POST(request: NextRequest) {
@@ -32,6 +30,8 @@ export async function POST(request: NextRequest) {
     }
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,

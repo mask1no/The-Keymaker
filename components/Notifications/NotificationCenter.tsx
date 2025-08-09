@@ -172,8 +172,10 @@ export function NotificationCenter() {
           >
             <Card className="w-96 max-h-[500px] overflow-hidden shadow-xl border-gray-800 bg-gray-900/95 backdrop-blur-md">
               {/* Header */}
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
-                   onMouseDown={onMouseDown}>
+              <div
+                className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
+                onMouseDown={onMouseDown}
+              >
                 <h3 className="font-semibold text-lg">Notifications</h3>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (

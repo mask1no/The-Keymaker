@@ -207,7 +207,13 @@ export function ControlPanel() {
       }))
 
       setTokenLaunchData({
-        ...(tokenLaunchData || {}),
+        name: tokenLaunchData?.name || 'Token',
+        symbol: tokenLaunchData?.symbol || 'TKN',
+        decimals: tokenLaunchData?.decimals || 9,
+        supply: tokenLaunchData?.supply || 0,
+        platform: tokenLaunchData?.platform || 'pump.fun',
+        lpAmount: tokenLaunchData?.lpAmount || 0,
+        walletPublicKey: tokenLaunchData?.walletPublicKey || masterWallet.publicKey,
         mintAddress,
         txSignature: '',
       })

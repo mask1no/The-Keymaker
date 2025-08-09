@@ -58,7 +58,12 @@ export function GlobalHotkeys() {
     (e) => {
       e.preventDefault()
       if (connected) disconnect()
-      else document.querySelector('button[aria-label="Connect Wallet"], .wallet-adapter-button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      else
+        document
+          .querySelector(
+            'button[aria-label="Connect Wallet"], .wallet-adapter-button',
+          )
+          ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     },
     { enableOnFormTags: true },
   )

@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Use default output locally to avoid Windows symlink EPERM issues
+  // output: 'standalone',
   reactStrictMode: true,
   images: {
     domains: ['localhost'],

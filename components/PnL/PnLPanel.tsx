@@ -107,7 +107,8 @@ export function PnLPanel() {
   useEffect(() => {
     const handler = () => handleExport('csv')
     window.addEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
-    return () => window.removeEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
+    return () =>
+      window.removeEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
   }, [walletPnL])
 
   const formatSOL = (amount: number) => {

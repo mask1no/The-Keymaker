@@ -1,9 +1,6 @@
 import { Keypair } from '@solana/web3.js'
-import 'server-only'
 import bs58 from 'bs58'
 import crypto from 'crypto'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
 import path from 'path'
 
 interface WalletData {
@@ -420,6 +417,8 @@ export async function importWalletGroup(
  */
 async function getDb() {
   const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+  const sqlite3 = (await import('sqlite3')).default
+  const { open } = await import('sqlite')
   return open({
     filename: dbPath,
     driver: sqlite3.Database,

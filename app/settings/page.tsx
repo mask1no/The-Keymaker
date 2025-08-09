@@ -121,7 +121,8 @@ export default function SettingsPage() {
   const [showKeys, setShowKeys] = useState(false)
 
   // Hotkeys editable state
-  const { hotkeys, setHotkeys, jitoTipLamports, setSettings } = useSettingsStore()
+  const { hotkeys, setHotkeys, jitoTipLamports, setSettings } =
+    useSettingsStore()
   const [hotkeyForm, setHotkeyForm] = useState(hotkeys)
 
   // Health monitoring states
@@ -1058,7 +1059,9 @@ export default function SettingsPage() {
                 type="number"
                 value={jitoTipLamports}
                 onChange={(e) =>
-                  setSettings({ jitoTipLamports: parseInt(e.target.value || '0') })
+                  setSettings({
+                    jitoTipLamports: parseInt(e.target.value || '0'),
+                  })
                 }
                 min={0}
                 max={50000}
@@ -1066,7 +1069,8 @@ export default function SettingsPage() {
               />
             </div>
             <p className="text-xs text-gray-400">
-              Max 50,000 lamports recommended on free tier. This affects bundle priority.
+              Max 50,000 lamports recommended on free tier. This affects bundle
+              priority.
             </p>
           </CardContent>
         </Card>

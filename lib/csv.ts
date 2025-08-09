@@ -1,4 +1,7 @@
-export function toCsv<T extends Record<string, any>>(rows: T[], headers?: string[]): string {
+export function toCsv<T extends Record<string, any>>(
+  rows: T[],
+  headers?: string[],
+): string {
   if (!rows || rows.length === 0) return ''
   const cols = headers || Object.keys(rows[0])
   const escape = (val: any) => {
@@ -16,7 +19,10 @@ export function toCsv<T extends Record<string, any>>(rows: T[], headers?: string
   return lines.join('\n')
 }
 
-export function downloadCsv(content: string, filename = `export-${Date.now()}.csv`) {
+export function downloadCsv(
+  content: string,
+  filename = `export-${Date.now()}.csv`,
+) {
   const blob = new Blob([content], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -24,4 +30,3 @@ export function downloadCsv(content: string, filename = `export-${Date.now()}.cs
   a.download = filename
   a.click()
 }
-
