@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
   { name: 'Bundle', href: '/bundle', icon: Zap },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
   { name: 'SPL Creator', href: '/spl-creator', icon: Coins },
-  { name: 'Trade History', href: '/logs', icon: Activity },
+  { name: 'Trade History', href: '/trade-history', icon: Activity },
   { name: 'PNL', href: '/pnl', icon: BarChart2 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]

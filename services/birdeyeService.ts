@@ -34,8 +34,7 @@ class BirdeyeService extends EventEmitter {
   private loadConfig() {
     // const settings = useSettingsStore.getState() - not needed
     const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    const birdeyeApiKey =
-      process.env.BIRDEYE_API_KEY || process.env.NEXT_PUBLIC_BIRDEYE_API_KEY
+    const birdeyeApiKey = process.env.BIRDEYE_API_KEY
     if (birdeyeApiKey && network !== 'devnet') {
       this.config = {
         apiKey: birdeyeApiKey,
@@ -60,15 +59,18 @@ class BirdeyeService extends EventEmitter {
     }
 
     try {
-      const response = await fetch(
-        `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress}`,
-        {
-          headers: {
-            'X-API-KEY': this.config.apiKey,
-            Accept: 'application/json',
-          },
-        },
-      )
+      // Use server proxy to avoid exposing API key in client
+      const params = {
+        method: 'GET',
+        service: 'birdeye',
+        path: `/defi/token_overview`,
+        params: { address: tokenAddress },
+      }
+      const response = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      })
 
       if (!response.ok) {
         throw new Error(`Birdeye API error: ${response.status}`)

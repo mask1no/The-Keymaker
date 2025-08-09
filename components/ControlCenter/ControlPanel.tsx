@@ -213,7 +213,8 @@ export function ControlPanel() {
         supply: tokenLaunchData?.supply || 0,
         platform: tokenLaunchData?.platform || 'pump.fun',
         lpAmount: tokenLaunchData?.lpAmount || 0,
-        walletPublicKey: tokenLaunchData?.walletPublicKey || masterWallet.publicKey,
+        walletPublicKey:
+          tokenLaunchData?.walletPublicKey || masterWallet.publicKey,
         mintAddress,
         txSignature: '',
       })

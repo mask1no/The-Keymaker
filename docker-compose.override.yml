@@ -9,8 +9,7 @@ services:
       NEXT_PUBLIC_JITO_ENDPOINT: https://mainnet.block-engine.jito.wtf
       RPC_URL: https://mainnet.helius-rpc.com/?api-key=67256d4f-7c51-444c-aba5-bdbb4f45bfa2Y
 
-      # Birdeye API
-      NEXT_PUBLIC_BIRDEYE_API_KEY: 8920f9fb048d4f84b1c7fcf2765335a1
+      # Birdeye API (server-only)
       BIRDEYE_API_KEY: 8920f9fb048d4f84b1c7fcf2765335a1
 
       # Pump.fun API
@@ -18,13 +17,12 @@ services:
       PUMPFUN_API_KEY: dnn58vv9at9mphvh90v6ehhh9hx4watramvq8u226t972tkb9mtn4e3gch85ccab5d36jcjqe126rx1ke17qcy1m71t70tbdc9b56ghtcnp66cupedrmwdvbct87jjuna5mn2mkmcwykua8nk6wjfdrwn2hu785hp4atqe46wr6cp1getbpgkbma9hn2t9tcd9jpd3aexkkuf8
 
       # Optional services (add keys when you have them)
-      NEXT_PUBLIC_MOONSHOT_API_KEY: ''
       MOONSHOT_API_KEY: ''
       JITO_AUTH_TOKEN: ''
       HELIUS_API_KEY: 67256d4f-7c51-444c-aba5-bdbb4f45bfa2Y
       KEYPAIR: ''
       SENTRY_DSN: ''
-      NEXT_PUBLIC_SENTRY_DSN: ''
+      # Do not expose Sentry DSN to client by default
 
     # Security measures
     security_opt:

@@ -44,7 +44,7 @@ export default function Home() {
       icon: <FileText className="h-8 w-8" />,
       title: 'Execution Logs',
       description: 'Detailed logs of all operations',
-      href: '/logs',
+      href: '/trade-history',
     },
     {
       icon: <Settings className="h-8 w-8" />,

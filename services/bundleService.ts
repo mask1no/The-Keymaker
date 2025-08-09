@@ -21,7 +21,7 @@ import bs58 from 'bs58'
 //   bundleStatusesURL,
 //   JitoAuthKeypair
 // } from 'jito-ts';
-import { JITO_TIP_ACCOUNTS, NEXT_PUBLIC_BIRDEYE_API_KEY } from '../constants'
+import { JITO_TIP_ACCOUNTS } from '../constants'
 import {
   createComputeBudgetInstructions,
   type PriorityLevel,
@@ -115,7 +115,8 @@ function getRandomTipAccount(): PublicKey {
 }
 
 async function validateToken(tokenAddress: string): Promise<boolean> {
-  if (!NEXT_PUBLIC_BIRDEYE_API_KEY) {
+  const serverBirdeyeKey = process.env.BIRDEYE_API_KEY
+  if (!serverBirdeyeKey) {
     console.warn('Birdeye API key not configured')
     return true // Allow transaction if API key not set
   }
@@ -125,7 +126,7 @@ async function validateToken(tokenAddress: string): Promise<boolean> {
       `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress}`,
       {
         headers: {
-          'X-API-KEY': NEXT_PUBLIC_BIRDEYE_API_KEY,
+          'X-API-KEY': serverBirdeyeKey,
           Accept: 'application/json',
         },
         timeout: 5000,

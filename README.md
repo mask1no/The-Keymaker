@@ -1,16 +1,16 @@
-# The Keymaker v1.3.0 - Production-Grade Solana Bundler
+# The Keymaker v1.4.0 - Production-Grade Solana Bundler
 
 <!-- CI re-run trigger: ensure Actions picks up latest lint fixes -->
 
 ![The Keymaker](https://img.shields.io/badge/Solana-Mainnet-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.3.0-orange)
+![Version](https://img.shields.io/badge/version-1.4.0-orange)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-80%25-yellowgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![A11y](https://img.shields.io/badge/a11y-compliant-brightgreen)
-[![CI](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml/badge.svg?branch=opus/v1.3.0)](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml)
+[![CI](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mask1no/The-Keymaker/actions/workflows/ci.yml)
 
 ## Overview
 
@@ -30,7 +30,7 @@ The Keymaker is a production-ready Solana bundler application engineered for hig
 - **Theme Support**: Persistent dark and light theme options with smooth transitions
 - **Intelligent Retry Logic**: Automatic RPC retry with progressive rate limiting
 
-## Version 1.3.0
+## Version 1.4.0
 
 ### Latest Updates
 
@@ -101,15 +101,16 @@ Copy `env.example` to `.env` and populate with your keys:
 
 ```env
 # Required Configuration
-NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-NEXT_PUBLIC_BIRDEYE_API_KEY=your_birdeye_api_key
-BIRDEYE_API_KEY=your_birdeye_api_key
+HELIUS_API_KEY=
+BIRDEYE_API_KEY=
+JITO_RPC_URL=https://mainnet.block-engine.jito.wtf/
 
-# Optional Services
-PUMPFUN_API_KEY=your_pumpfun_key
-PUMPFUN_API_KEY=your_pumpfun_key
-JITO_AUTH_TOKEN=your_jito_token
-TWOCAPTCHA_API_KEY=your_2captcha_key
+# Optional (required on main-net)
+JUPITER_API_KEY=
+PUMP_FUN_API_KEY=
+
+# Puppeteer fallback (LetsBonk captcha)
+TWO_CAPTCHA_KEY=
 ```
 
 ## Architecture
@@ -149,7 +150,7 @@ Tracks all buy and sell transactions in SQLite database, calculating real-time p
 - **Bundle Engine** (`/bundle`): Execute Jito bundles with fee estimation
 - **Wallet Manager** (`/wallets`): Create and manage encrypted wallets
 - **Token Creator** (`/spl-creator`): Deploy SPL tokens on mainnet
-- **Transaction History** (`/logs`): Complete transaction audit trail
+- **Trade History** (`/trade-history`): Complete transaction audit trail
 - **Analytics** (`/pnl`): Real-time profit and loss tracking
 - **Settings** (`/settings`): Centralized configuration management
 
@@ -159,7 +160,7 @@ Tracks all buy and sell transactions in SQLite database, calculating real-time p
 
 ```
 GET /api/health
-Response: { "ok": true, "version": "1.3.0", "rpc": true, "jito": true, "db": true, "puppeteer": true, "timestamp": "2025-01-01T00:00:00.000Z" }
+Response: { "ok": true, "version": "1.4.0", "rpc": true, "jito": true, "db": true, "puppeteer": true, "timestamp": "2025-01-01T00:00:00.000Z" }
 ```
 
 ### Proxy Service
@@ -206,21 +207,21 @@ On free-tier endpoint (`mainnet.block-engine.jito.wtf`), tip ≤ 50,000 lamports
 ### Local Setup
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ### Database Initialization
 
 ```bash
-npm run db:init
+pnpm db:init
 ```
 
 ### Code Quality
 
 ```bash
-npm run type-check
-npm run lint
+pnpm type-check
+pnpm lint
 ```
 
 ### Canary Testing
@@ -259,7 +260,7 @@ node scripts/canaryTrade.js
 
 ## System Status
 
-The Keymaker v1.3.0 represents a fully operational, production-ready platform:
+The Keymaker v1.4.0 represents a fully operational, production-ready platform:
 
 ✅ Complete blockchain integration with real-time data  
 ✅ All application routes tested and functional  

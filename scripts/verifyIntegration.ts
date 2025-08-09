@@ -53,7 +53,7 @@ async function testRoutes(): Promise<boolean> {
     '/bundle',
     '/wallets',
     '/spl-creator',
-    '/logs',
+    '/trade-history',
     '/pnl',
     '/settings',
   ]

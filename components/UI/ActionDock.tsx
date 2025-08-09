@@ -23,7 +23,7 @@ export function ActionDock() {
     // Inform PnL/History to export visible table
     window.dispatchEvent(new CustomEvent('KEYMAKER_EXPORT_CSV'))
     // If not on PnL or History, navigate to PnL and then trigger
-    if (!pathname?.startsWith('/pnl') && !pathname?.startsWith('/logs')) {
+    if (!pathname?.startsWith('/pnl') && !pathname?.startsWith('/trade-history')) {
       router.push('/pnl')
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('KEYMAKER_EXPORT_CSV'))

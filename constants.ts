@@ -13,9 +13,7 @@ export const NEXT_PUBLIC_JITO_ENDPOINT =
   process.env.JITO_RPC_URL ||
   'https://mainnet.block-engine.jito.wtf'
 
-// Birdeye api key (used client-side in some flows)
-export const NEXT_PUBLIC_BIRDEYE_API_KEY =
-  process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || process.env.BIRDEYE_API_KEY || ''
+// Do not expose Birdeye API key in client bundles; use server proxy
 export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
 export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'
 export const JITO_TIP_ACCOUNTS = [

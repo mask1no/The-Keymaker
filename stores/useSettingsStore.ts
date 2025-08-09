@@ -27,8 +27,8 @@ interface SettingsState {
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   heliusRpc: process.env.NEXT_PUBLIC_HELIUS_RPC || '',
-  birdeyeApiKey: process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || '',
-  pumpfunApiKey: process.env.NEXT_PUBLIC_PUMP_API_KEY,
+  birdeyeApiKey: '', // Do not expose via client env; server proxy is used
+  pumpfunApiKey: process.env.PUMPFUN_API_KEY,
   jupiterApiKey: process.env.JUPITER_API_KEY,
   jitoAuthToken: process.env.JITO_AUTH_TOKEN,
   jitoWsUrl: process.env.JITO_WS_URL,
