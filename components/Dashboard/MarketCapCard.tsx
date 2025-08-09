@@ -59,7 +59,7 @@ export function MarketCapCard({ tokenMint, tokenSymbol }: MarketCapCardProps) {
     }
 
     fetchInitialData()
-    birdeyeService.subscribeToToken(tokenMint)
+    // Skip WS subscribe; rely on REST updates via proxy to avoid client key exposure
 
     const handlePriceUpdate = ({
       address,

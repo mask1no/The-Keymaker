@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NEXT_PUBLIC_JITO_ENDPOINT, NEXT_PUBLIC_HELIUS_RPC } from '../constants'
 import { getConnection } from '@/lib/network'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 type Status = 'healthy' | 'degraded' | 'error'
 
@@ -11,6 +12,7 @@ export function useSystemStatus() {
   const [rtt, setRtt] = useState({ rpc: 0, ws: 0, jito: 0 })
 
   useEffect(() => {
+    const { jitoWsUrl: configuredWs } = useSettingsStore.getState()
     const checkStatus = async () => {
       // Check RPC
       try {
@@ -28,7 +30,8 @@ export function useSystemStatus() {
       // Check WebSocket (simple open/close test)
       try {
         const startTime = Date.now()
-        const wsUrl = (NEXT_PUBLIC_HELIUS_RPC || '').replace('https', 'wss')
+        const wsUrl =
+          configuredWs || (NEXT_PUBLIC_HELIUS_RPC || '').replace('https', 'wss')
         const ws = new WebSocket(wsUrl)
         ws.onopen = () => {
           const endTime = Date.now()

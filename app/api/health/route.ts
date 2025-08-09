@@ -3,6 +3,7 @@ import { Connection } from '@solana/web3.js'
 // Use dynamic imports later to avoid ESM/CJS issues in Next dev
 import path from 'path'
 import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants'
+import { getServerRpc } from '@/lib/server/rpc'
 import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
 
 async function checkDatabase(): Promise<boolean> {
@@ -40,7 +41,8 @@ async function checkDatabase(): Promise<boolean> {
 
 async function checkRPC(): Promise<{ connected: boolean; slot?: number }> {
   try {
-    const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+    const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
+    const connection = new Connection(rpc, 'confirmed')
     const slot = await connection.getSlot()
     return { connected: true, slot }
   } catch {
@@ -68,13 +70,14 @@ async function checkJito(): Promise<boolean> {
 
 export async function GET() {
   try {
+    const { version } = await import('../../../package.json')
     // In development, avoid heavy/optional checks to prevent local env noise
     if (process.env.NODE_ENV !== 'production') {
       return NextResponse.json(
         {
           ok: true,
           puppeteer: false,
-          version: '1.3.0-dev',
+          version,
           timestamp: new Date().toISOString(),
           rpc: true,
           jito: true,
@@ -105,7 +108,7 @@ export async function GET() {
     const health = {
       ok: rpcStatus.connected && dbOk,
       puppeteer: puppeteerOk,
-      version: '1.3.0',
+      version,
       timestamp: new Date().toISOString(),
       rpc: rpcStatus.connected,
       jito: jitoOk,
@@ -120,7 +123,7 @@ export async function GET() {
       {
         ok: false,
         puppeteer: false,
-        version: '1.3.0',
+        version: 'unknown',
         timestamp: new Date().toISOString(),
         rpc: false,
         jito: false,

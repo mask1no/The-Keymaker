@@ -31,6 +31,7 @@ export async function createToken(
   symbol: string,
   supply: number,
   metadata: TokenMetadata,
+  launcherWalletPublicKey?: string,
 ): Promise<string> {
   try {
     const requestData = {
@@ -69,7 +70,7 @@ export async function createToken(
       platform: 'Pump.fun',
       supply: supply.toString(),
       decimals: 9, // Pump.fun uses 9 decimals
-      launcherWallet: '', // Would need to be passed in
+      launcherWallet: launcherWalletPublicKey || '',
       transactionSignature: response.data.signature || '',
       liquidityPoolAddress: response.data.poolAddress,
     })
@@ -109,7 +110,7 @@ export async function createToken(
           platform: 'Pump.fun (Puppeteer)',
           supply: supply.toString(),
           decimals: 9,
-          launcherWallet: '',
+          launcherWallet: launcherWalletPublicKey || '',
           transactionSignature: puppeteerResult.txHash,
           liquidityPoolAddress: '',
         })
@@ -139,7 +140,7 @@ export async function createToken(
             platform: 'Pump.fun (GUI)',
             supply: supply.toString(),
             decimals: 9,
-            launcherWallet: '',
+            launcherWallet: launcherWalletPublicKey || '',
             transactionSignature: fallbackResult.txSignature,
             liquidityPoolAddress: fallbackResult.lpAddress,
           })

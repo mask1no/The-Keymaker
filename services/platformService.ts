@@ -136,6 +136,7 @@ export async function launchToken(
           tokenParams.symbol,
           tokenParams.supply,
           metadata,
+          payer.publicKey.toBase58(),
         )
         txSignature = tokenAddress
         decimals = 9 // Pump.fun uses 9 decimals

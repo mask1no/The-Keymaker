@@ -1,10 +1,7 @@
-// Resolve Helius RPC with sensible fallbacks
-// Priority: NEXT_PUBLIC_HELIUS_RPC > HELIUS_API_KEY-composed URL > public devnet RPC
+// Client RPC must never be composed from server secrets.
+// Use explicit public URL or safe default.
 export const NEXT_PUBLIC_HELIUS_RPC =
-  process.env.NEXT_PUBLIC_HELIUS_RPC ||
-  (process.env.HELIUS_API_KEY
-    ? `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
-    : 'https://api.devnet.solana.com')
+  process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
 
 // Resolve Jito endpoint with fallback to well-known public endpoint
 // Priority: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engine

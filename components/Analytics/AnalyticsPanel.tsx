@@ -82,9 +82,22 @@ export default function AnalyticsPanel() {
   }, [debouncedFetch])
 
   const handleExport = async () => {
-    // Fetch real trades from execution logs
-    const trades: Trade[] = [] // Would need to implement fetching from execution logs
-    await exportToCsv(trades)
+    try {
+      const res = await fetch('/api/trades?limit=200', { cache: 'no-store' })
+      const { trades } = (await res.json()) as { trades: any[] }
+      const rows: Trade[] = trades.map((t) => ({
+        id: String(t.id ?? t.rowid ?? ''),
+        tokenAddress: t.token_address ?? t.tokenAddress ?? '',
+        amount: Number(t.sol_in ?? 0) + Number(t.sol_out ?? 0),
+        price: 0,
+        timestamp: t.executed_at ?? new Date().toISOString(),
+        wallet: Array.isArray(t.wallets) ? t.wallets[0] : t.wallets,
+        type: (Number(t.sol_out ?? 0) > 0 ? 'sell' : 'buy') as 'buy' | 'sell',
+      }))
+      await exportToCsv(rows)
+    } catch (e) {
+      console.error('CSV export failed', e)
+    }
   }
 
   return (

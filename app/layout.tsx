@@ -8,6 +8,7 @@ import { Topbar } from '@/components/UI/Topbar'
 import { ConnectionBanner } from '@/components/UI/ConnectionBanner'
 import { MobileNav } from '@/components/UI/MobileNav'
 import { ActionDock } from '@/components/UI/ActionDock'
+import { StatusCluster } from '@/components/UI/StatusCluster'
 import { motion } from 'framer-motion'
 import { useTheme } from '@/hooks/useTheme'
 import { verifySecrets } from '@/lib/secrets'
@@ -71,6 +72,7 @@ export default function RootLayout({
                 </div>
               </div>
               <MobileNav />
+              <StatusCluster />
               <ActionDock />
             </ErrorBoundary>
           </WalletContext>

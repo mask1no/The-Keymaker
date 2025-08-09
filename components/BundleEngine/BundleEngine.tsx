@@ -110,6 +110,7 @@ export function BundleEngine() {
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState('5')
   const [selectedWallet, setSelectedWallet] = useState('')
+  const [sniperMultiplier, setSniperMultiplier] = useState('1.5')
   const [action, setAction] = useState<'buy' | 'sell'>('buy')
   const [priorityFee, setPriorityFee] = useState('0.00001')
 
@@ -216,11 +217,19 @@ export function BundleEngine() {
 
       try {
         if (input.action === 'buy') {
-          // Buy token with SOL
+          // Buy token with SOL (apply sniper multiplier)
+          const walletRole = wallets.find(
+            (w) => w.publicKey === input.wallet,
+          )?.role
+          const isSniper = walletRole === 'sniper'
+          const mult = isSniper
+            ? Math.max(1, parseFloat(sniperMultiplier) || 1.5)
+            : 1
+          const adjustedAmount = input.amount * mult
           const swapTx = await buildSwapTransaction(
             WSOL_MINT,
             input.tokenAddress,
-            convertToLamports(input.amount), // SOL amount in lamports
+            convertToLamports(adjustedAmount), // SOL amount in lamports (adjusted for sniper)
             feePayer.toBase58(),
             Math.floor(input.slippage * 100), // Convert percentage to basis points
             input.priorityFee,
@@ -562,6 +571,18 @@ export function BundleEngine() {
             onChange={(e) => setTokenAddress(e.target.value)}
             placeholder="Token mint address"
             className="bg-black/50 border-aqua/30 font-mono text-sm"
+          />
+        </div>
+
+        <div>
+          <Label>Sniper Multiplier (Buy Size)</Label>
+          <Input
+            type="number"
+            value={sniperMultiplier}
+            onChange={(e) => setSniperMultiplier(e.target.value)}
+            placeholder="1.5"
+            step="0.1"
+            className="bg-black/50 border-aqua/30"
           />
         </div>
 

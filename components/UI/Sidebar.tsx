@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { name: 'Trade History', href: '/trade-history', icon: Activity },
   { name: 'PNL', href: '/pnl', icon: BarChart2 },
   { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Guide', href: '/guide', icon: Settings },
 ]
 
 export function Sidebar() {
