@@ -721,7 +721,7 @@ export function BundleEngine() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-aqua flex items-center gap-2">
-                Bundle Transactions ({transactions.length}/20)
+                Bundle Transactions ({transactions.length}/{getBundleTxLimit()})
                 {transactions.some((t) =>
                   wallets.find(
                     (w) => w.publicKey === t.wallet && w.role === 'sniper',
@@ -737,7 +737,7 @@ export function BundleEngine() {
             {/* Fee Estimator */}
             <FeeEstimator
               transactionCount={transactions.length}
-              tipAmount={10000} // Default 0.01 SOL per transaction
+              tipAmount={jitoEnabled ? jitoTipLamports : 0}
               className="w-80"
             />
           </div>

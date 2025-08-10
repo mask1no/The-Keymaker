@@ -1,7 +1,7 @@
 // Bundle configuration constants
 export const BUNDLE_CONFIG = {
   // Default bundle transaction limit
-  DEFAULT_TX_LIMIT: 5,
+  DEFAULT_TX_LIMIT: 20,
 
   // Maximum allowed transactions per bundle
   MAX_TX_LIMIT: 20,
