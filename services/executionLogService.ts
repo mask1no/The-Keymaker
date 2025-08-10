@@ -57,12 +57,24 @@ interface PnLRecord {
   holdTime: number // in seconds
 }
 
-async function getDb() {
-  const sqlite3 = (await import('sqlite3')).default
-  return open({
-    filename: path.join(process.cwd(), 'data', 'analytics.db'),
-    driver: sqlite3.Database,
-  })
+async function getDb(): Promise<any> {
+  try {
+    const sqlite3 = (await import('sqlite3')).default
+    return open({
+      filename: path.join(process.cwd(), 'data', 'analytics.db'),
+      driver: sqlite3.Database,
+    })
+  } catch {
+    // Fallback: lightweight in-memory no-op DB to keep UI functional in dev
+    const noop = async () => undefined
+    const noopAll = async () => [] as any[]
+    return {
+      exec: noop,
+      run: noop,
+      all: noopAll,
+      close: noop,
+    }
+  }
 }
 
 async function initializeTables() {

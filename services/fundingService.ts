@@ -6,7 +6,7 @@ import {
   Keypair,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
-import { logFundingEvent } from './executionLogService'
+// Avoid pulling sqlite3 during SSR; log dynamically when needed
 
 interface WalletWithRole {
   publicKey: string
@@ -171,7 +171,8 @@ export async function fundWalletGroup(
     await connection.confirmTransaction(sig, 'confirmed')
   }
 
-  // Log funding event
+  // Log funding event (dynamic import to avoid native deps during SSR)
+  const { logFundingEvent } = await import('./executionLogService')
   await logFundingEvent({
     fromWallet: masterWallet.publicKey.toBase58(),
     toWallets: distributions.map((d) => d.wallet),

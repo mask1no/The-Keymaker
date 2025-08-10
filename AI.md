@@ -6,4 +6,3 @@
 - Do not add mocks or placeholders. Remove dead code promptly.
 - Prefer server routes for paid APIs (Helius/Birdeye/Pump/Jupiter). Avoid NEXT_PUBLIC secrets for these services.
 - Before pushing, run: pnpm format; pnpm lint; pnpm tsc --noEmit; npx ts-prune.
-

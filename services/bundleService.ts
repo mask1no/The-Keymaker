@@ -115,35 +115,29 @@ function getRandomTipAccount(): PublicKey {
 }
 
 async function validateToken(tokenAddress: string): Promise<boolean> {
-  const serverBirdeyeKey = process.env.BIRDEYE_API_KEY
-  if (!serverBirdeyeKey) {
-    console.warn('Birdeye API key not configured')
-    return true // Allow transaction if API key not set
-  }
-
   try {
-    const response = await axios.get(
-      `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress}`,
+    // Use server proxy to avoid bundling paid keys on the client
+    const response = await axios.post(
+      '/api/proxy',
       {
-        headers: {
-          'X-API-KEY': serverBirdeyeKey,
-          Accept: 'application/json',
-        },
-        timeout: 5000,
+        service: 'birdeye',
+        path: '/defi/token_overview',
+        method: 'GET',
+        params: { address: tokenAddress },
       },
+      { timeout: 5000 },
     )
 
     const data = response.data?.data
     if (!data) return false
 
-    // Check if token has sufficient liquidity and isn't blacklisted
     const hasLiquidity = data.liquidity && data.liquidity > 1000
-    const isValid = data.v24hUSD && data.v24hUSD > 100 // Has some trading volume
+    const isValid = data.v24hUSD && data.v24hUSD > 100
 
     return hasLiquidity && isValid
   } catch (error) {
     console.error('Token validation failed:', error)
-    return false // Fail-closed on validation error
+    return false
   }
 }
 

@@ -1,11 +1,9 @@
+import 'server-only'
 export function verifySecrets() {
   const requiredKeys = [
     'NEXT_PUBLIC_HELIUS_RPC',
     'NEXT_PUBLIC_JITO_ENDPOINT',
-    'PUMPFUN_API_KEY',
-    'LETSBONK_API_KEY',
-    // Client key removed for hygiene; Birdeye should be server-only
-    'HELIUS_API_KEY',
+    // Paid/server-only keys must be checked on the server, not in client bundles
   ]
   requiredKeys.forEach((key) => {
     if (!process.env[key]) {

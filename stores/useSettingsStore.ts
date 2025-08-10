@@ -27,12 +27,14 @@ interface SettingsState {
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   heliusRpc: process.env.NEXT_PUBLIC_HELIUS_RPC || '',
-  birdeyeApiKey: '', // Do not expose via client env; server proxy is used
-  pumpfunApiKey: process.env.PUMPFUN_API_KEY,
-  jupiterApiKey: process.env.JUPITER_API_KEY,
-  jitoAuthToken: process.env.JITO_AUTH_TOKEN,
-  jitoWsUrl: process.env.JITO_WS_URL,
-  twoCaptchaKey: process.env.TWO_CAPTCHA_KEY,
+  birdeyeApiKey: '',
+  // Do not read server-only secrets on the client; keep undefined
+  pumpfunApiKey: undefined,
+  jupiterApiKey: undefined,
+  jitoAuthToken: undefined,
+  // Public endpoint only
+  jitoWsUrl: process.env.NEXT_PUBLIC_JITO_ENDPOINT,
+  twoCaptchaKey: undefined,
   headlessTimeout: parseInt(process.env.HEADLESS_TIMEOUT || '30'),
   jitoTipLamports: parseInt(process.env.JITO_TIP_LAMPORTS || '5000'),
   jupiterFeeBps: parseInt(process.env.JUPITER_FEE_BPS || '5'),

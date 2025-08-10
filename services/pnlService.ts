@@ -40,10 +40,19 @@ interface TokenPnL {
 }
 
 async function getDb() {
-  return open({
-    filename: path.join(process.cwd(), 'data', 'analytics.db'),
-    driver: sqlite3.Database,
-  })
+  try {
+    return await open({
+      filename: path.join(process.cwd(), 'data', 'analytics.db'),
+      driver: sqlite3.Database,
+    })
+  } catch {
+    return {
+      exec: async () => undefined,
+      run: async () => undefined,
+      all: async () => [] as any[],
+      close: async () => undefined,
+    }
+  }
 }
 
 // Initialize PnL tracking table

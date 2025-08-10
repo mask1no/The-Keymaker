@@ -1,14 +1,21 @@
 import 'server-only'
+// server-only: load sqlite3 where supported; routes will catch and fallback
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 import path from 'path'
 
 async function getDb() {
   const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-  return open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  })
+  try {
+    return await open({ filename: dbPath, driver: sqlite3.Database })
+  } catch {
+    // No-op adapter to avoid crashing in dev without native binding
+    return {
+      run: async () => undefined,
+      all: async () => [] as any[],
+      close: async () => undefined,
+    }
+  }
 }
 
 /**

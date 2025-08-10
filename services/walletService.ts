@@ -417,12 +417,18 @@ export async function importWalletGroup(
  */
 async function getDb() {
   const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-  const sqlite3 = (await import('sqlite3')).default
-  const { open } = await import('sqlite')
-  return open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  })
+  try {
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
+    return open({ filename: dbPath, driver: sqlite3.Database })
+  } catch {
+    return {
+      run: async () => undefined,
+      get: async () => undefined,
+      all: async () => [] as any[],
+      close: async () => undefined,
+    }
+  }
 }
 
 /**

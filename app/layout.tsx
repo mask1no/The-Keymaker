@@ -11,7 +11,6 @@ import { ActionDock } from '@/components/UI/ActionDock'
 import { StatusCluster } from '@/components/UI/StatusCluster'
 import { motion } from 'framer-motion'
 import { useTheme } from '@/hooks/useTheme'
-import { verifySecrets } from '@/lib/secrets'
 import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys'
 import { updateService } from '@/services/updateService'
 import { I18nProvider } from '@/services/i18nService'
@@ -25,8 +24,6 @@ export default function RootLayout({
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
-    verifySecrets()
-
     // Start auto-update checks
     updateService.initialize()
 

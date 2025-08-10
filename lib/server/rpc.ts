@@ -4,5 +4,3 @@ export function getServerRpc(): string {
   }
   return process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
 }
-
-

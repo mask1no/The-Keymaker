@@ -328,22 +328,29 @@ async function testJitoEndpoint() {
 }
 
 async function testBirdeyeAPI() {
-  const apiKey = process.env.NEXT_PUBLIC_BIRDEYE_API_KEY
+  // Server-only key. If absent, skip; we never require a public key in client bundles.
+  const apiKey = process.env.BIRDEYE_API_KEY
 
-  if (!apiKey || apiKey === 'YOUR_BIRDEYE_API_KEY') {
-    addTest('Birdeye API', 'fail', 'NEXT_PUBLIC_BIRDEYE_API_KEY not configured')
+  if (!apiKey) {
+    addTest('Birdeye API', 'skip', 'BIRDEYE_API_KEY not configured; skipping')
     return
   }
 
   try {
-    // Test with SOL token
+    // Test with SOL token via Birdeye public API
     const response = await axios.get(
       'https://public-api.birdeye.so/public/price?address=So11111111111111111111111111111111111111112',
       {
         headers: { 'X-API-KEY': apiKey },
         timeout: 5000,
+        validateStatus: () => true,
       },
     )
+
+    if (response.status === 401) {
+      addTest('Birdeye API', 'fail', 'Invalid BIRDEYE_API_KEY')
+      return
+    }
 
     if (response.data && response.data.data) {
       addTest('Birdeye API', 'pass', 'API key valid and working')
@@ -351,15 +358,11 @@ async function testBirdeyeAPI() {
       addTest(
         'Birdeye API',
         'warning',
-        'API responded but with unexpected format',
+        `Unexpected response (status ${response.status})`,
       )
     }
   } catch (error: any) {
-    if (error.response?.status === 401) {
-      addTest('Birdeye API', 'fail', 'Invalid API key')
-    } else {
-      addTest('Birdeye API', 'fail', `API error: ${error.message}`)
-    }
+    addTest('Birdeye API', 'fail', `API error: ${error.message}`)
   }
 }
 
