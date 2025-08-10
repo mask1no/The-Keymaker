@@ -185,6 +185,20 @@ export function WalletManager() {
       return toast.error('Maximum 20 wallets per group')
     }
 
+    // Enforce role limits: one master, one dev, up to 3 snipers
+    const numMasters = wallets.filter((w) => w.role === 'master').length
+    const numDevs = wallets.filter((w) => w.role === 'dev').length
+    const numSnipers = wallets.filter((w) => w.role === 'sniper').length
+    if (role === 'master' && numMasters >= 1) {
+      return toast.error('Only one master wallet is allowed in a group')
+    }
+    if (role === 'dev' && numDevs >= 1) {
+      return toast.error('Only one dev wallet is allowed in a group')
+    }
+    if (role === 'sniper' && numSnipers >= 3) {
+      return toast.error('Up to 3 sniper wallets are allowed in a group')
+    }
+
     try {
       setLoading(true)
       const { publicKey, encryptedPrivateKey } = await createWallet(
@@ -222,6 +236,23 @@ export function WalletManager() {
   }
 
   const updateWalletRole = (walletPubkey: string, newRole: WalletRole) => {
+    // Enforce role limits before applying change
+    const current = wallets.find((w) => w.publicKey === walletPubkey)
+    if (!current) return
+    const withoutCurrent = wallets.filter((w) => w.publicKey !== walletPubkey)
+    const numMasters = withoutCurrent.filter((w) => w.role === 'master').length
+    const numDevs = withoutCurrent.filter((w) => w.role === 'dev').length
+    const numSnipers = withoutCurrent.filter((w) => w.role === 'sniper').length
+    if (newRole === 'master' && numMasters >= 1) {
+      return toast.error('Only one master wallet is allowed in a group')
+    }
+    if (newRole === 'dev' && numDevs >= 1) {
+      return toast.error('Only one dev wallet is allowed in a group')
+    }
+    if (newRole === 'sniper' && numSnipers >= 3) {
+      return toast.error('Up to 3 sniper wallets are allowed in a group')
+    }
+
     const updatedWallets = wallets.map((w) =>
       w.publicKey === walletPubkey ? { ...w, role: newRole } : w,
     )
