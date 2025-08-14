@@ -13,7 +13,9 @@ const envSchema = z
     JUPITER_API_KEY: z.string().optional(),
     PUMPFUN_API_KEY: z.string().optional(),
     TWO_CAPTCHA_KEY: z.string().optional(),
-    NETWORK: z.enum(['devnet', 'mainnet-beta']).default('devnet'),
+    NETWORK: z
+      .enum(['devnet', 'mainnet-beta', 'dev-net', 'main-net'])
+      .default('devnet'),
     JITO_TIP_LAMPORTS: z
       .preprocess((v) => Number(v), z.number().min(0).max(50000))
       .default(5000),
@@ -31,7 +33,12 @@ const envSchema = z
     return true
   }, 'PUMPFUN_API_KEY is required on mainnet-beta')
 
-const parsed = envSchema.safeParse(process.env)
+// Normalize NETWORK synonyms before validation
+const normalizedEnv = { ...process.env }
+if (normalizedEnv.NETWORK === 'dev-net') normalizedEnv.NETWORK = 'devnet'
+if (normalizedEnv.NETWORK === 'main-net') normalizedEnv.NETWORK = 'mainnet-beta'
+
+const parsed = envSchema.safeParse(normalizedEnv)
 
 if (!parsed.success) {
   // Collect a compact message to aid local dev; don't throw in production unless explicitly desired
@@ -43,7 +50,14 @@ if (!parsed.success) {
 }
 
 export const env = parsed.success
-  ? parsed.data
+  ? ((): z.infer<typeof envSchema> => ({
+      ...parsed.data,
+      NETWORK: (parsed.data.NETWORK === 'dev-net'
+        ? 'devnet'
+        : parsed.data.NETWORK === 'main-net'
+          ? 'mainnet-beta'
+          : parsed.data.NETWORK) as 'devnet' | 'mainnet-beta',
+    }))()
   : ((): z.infer<typeof envSchema> => ({
       HELIUS_API_KEY: process.env.HELIUS_API_KEY || '',
       BIRDEYE_API_KEY: process.env.BIRDEYE_API_KEY || '',
@@ -53,7 +67,12 @@ export const env = parsed.success
       JUPITER_API_KEY: process.env.JUPITER_API_KEY,
       PUMPFUN_API_KEY: process.env.PUMPFUN_API_KEY,
       TWO_CAPTCHA_KEY: process.env.TWO_CAPTCHA_KEY,
-      NETWORK: (process.env.NETWORK as 'devnet' | 'mainnet-beta') || 'devnet',
+      NETWORK: ((): 'devnet' | 'mainnet-beta' => {
+        const raw = process.env.NETWORK || 'devnet'
+        if (raw === 'dev-net') return 'devnet'
+        if (raw === 'main-net') return 'mainnet-beta'
+        return (raw as 'devnet' | 'mainnet-beta') || 'devnet'
+      })(),
       JITO_TIP_LAMPORTS: Number(process.env.JITO_TIP_LAMPORTS || 5000),
       JUPITER_FEE_BPS: Number(process.env.JUPITER_FEE_BPS || 5),
       DETERMINISTIC_SEED:

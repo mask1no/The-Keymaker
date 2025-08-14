@@ -27,8 +27,10 @@ class I18nService {
     try {
       // In a real app, these would be loaded from files
       // For now, we'll use inline translations
-      this.translations.en = await import('@/lang/en.json')
-      this.translations.es = await import('@/lang/es.json')
+      const enModule: any = await import('@/lang/en.json')
+      const esModule: any = await import('@/lang/es.json')
+      this.translations.en = enModule?.default ?? enModule ?? {}
+      this.translations.es = esModule?.default ?? esModule ?? {}
     } catch (error) {
       console.error('Failed to load translations:', error)
     }
