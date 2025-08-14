@@ -4,24 +4,24 @@ services:
       # Core Configuration
       NODE_ENV: production
 
-      # Your actual API keys
-      NEXT_PUBLIC_HELIUS_RPC: https://mainnet.helius-rpc.com/?api-key=67256d4f-7c51-444c-aba5-bdbb4f45bfa2Y
+      # Public RPC endpoint (do not compose from secret keys here)
+      NEXT_PUBLIC_HELIUS_RPC: https://api.mainnet-beta.solana.com
       NEXT_PUBLIC_JITO_ENDPOINT: https://mainnet.block-engine.jito.wtf
-      RPC_URL: https://mainnet.helius-rpc.com/?api-key=67256d4f-7c51-444c-aba5-bdbb4f45bfa2Y
+      # Server RPC can be a secret-backed URL; prefer configuring via .env
+      RPC_URL: ${RPC_URL}
 
-      # Birdeye API (server-only)
-      BIRDEYE_API_KEY: 8920f9fb048d4f84b1c7fcf2765335a1
+      # Server-only secrets (configure via .env; do not commit real values)
+      BIRDEYE_API_KEY: ${BIRDEYE_API_KEY}
 
-      # Pump.fun API
-      # PUMPFUN_API_KEY set via local compose .env; avoid exposing via NEXT_PUBLIC
-      PUMPFUN_API_KEY: dnn58vv9at9mphvh90v6ehhh9hx4watramvq8u226t972tkb9mtn4e3gch85ccab5d36jcjqe126rx1ke17qcy1m71t70tbdc9b56ghtcnp66cupedrmwdvbct87jjuna5mn2mkmcwykua8nk6wjfdrwn2hu785hp4atqe46wr6cp1getbpgkbma9hn2t9tcd9jpd3aexkkuf8
+      # Pump.fun API (server-only)
+      PUMPFUN_API_KEY: ${PUMPFUN_API_KEY}
 
       # Optional services (add keys when you have them)
-      MOONSHOT_API_KEY: ''
-      JITO_AUTH_TOKEN: ''
-      HELIUS_API_KEY: 67256d4f-7c51-444c-aba5-bdbb4f45bfa2Y
-      KEYPAIR: ''
-      SENTRY_DSN: ''
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
+      JITO_AUTH_TOKEN: ${JITO_AUTH_TOKEN}
+      HELIUS_API_KEY: ${HELIUS_API_KEY}
+      KEYPAIR: ${KEYPAIR}
+      SENTRY_DSN: ${SENTRY_DSN}
       # Do not expose Sentry DSN to client by default
 
     # Security measures

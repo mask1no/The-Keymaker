@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validatePublicKey, sanitizeString } from '@/lib/validation'
 import { spawn } from 'child_process'
 import path from 'path'
+import { getServerRpc } from '@/lib/server/rpc'
 
 // Supported API services
 const API_SERVICES = {
@@ -11,7 +12,8 @@ const API_SERVICES = {
     allowedPaths: ['/token', '/defi/price', '/defi/token_overview'],
   },
   helius: {
-    baseUrl: process.env.HELIUS_RPC_URL || 'https://mainnet.helius-rpc.com',
+    // Never compose client RPC from secret; server can construct secret-backed RPC safely
+    baseUrl: getServerRpc(),
     apiKey: process.env.HELIUS_API_KEY,
     allowedPaths: ['/'],
   },

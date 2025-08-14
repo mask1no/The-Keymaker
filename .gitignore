@@ -1,68 +1,67 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Production
-/build
-/dist
-/.next
-/out
-
-# Testing
-/coverage
-playwright-report/
-blob-report/
-.test-results/
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Sentry
-.env.sentry-build-plugin
-.sentryclirc
-
-# Database
-data/
-*.db
-*.db-journal
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Private keys and wallets
-wallets/
-*.json
+﻿
+!components.json
 !package.json
 !tsconfig.json
-!components.json
+# Database
+# Debug
+# Dependencies
+# IDE
+# Local env files
+# Logs
+# Misc
+# OS
+# Private keys and wallets
+# Production
+# Sentry
+# Testing
+# TypeScript
+# Vercel
+*.db
+*.db-journal
+*.DS_Store
+*.json
+*.log
+*.pem
+*.swo
+*.swp
+*.tmp
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+.env.development.local
+.env.local
+.env.production.local
+.env.sentry-build-plugin
+.env.test.local
+.idea/
+.next
+.pnp
+.pnp.js
+.pnpm-store
+.sentryclirc
+.test-results/
+.turbo
+.vercel
+.vscode/
+/.next
+/build
+/coverage
+/dist
+/out
+blob-report/
+coverage
+data/
+dist
+logs/
+next-env.d.ts
+node_modules
+node_modules/
+npm-debug.log*
+out
+playwright-report/
+pnpm-lock.yaml
+Thumbs.db
+wallets/
+yarn-debug.log*
+yarn-error.log*

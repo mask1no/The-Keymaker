@@ -4,14 +4,16 @@ const envSchema = z
   .object({
     HELIUS_API_KEY: z.string().min(1, 'HELIUS_API_KEY is required'),
     BIRDEYE_API_KEY: z.string().min(1, 'BIRDEYE_API_KEY is required'),
-    JITO_RPC_URL: z
+    RPC_URL: z
       .string()
-      .min(1, 'JITO_RPC_URL is required')
-      .url('JITO_RPC_URL must be a valid URL'),
+      .min(1, 'RPC_URL is required')
+      .url('RPC_URL must be a valid URL'),
+    JITO_RPC_URL: z.string().url('JITO_RPC_URL must be a valid URL').optional(),
+    JITO_AUTH_TOKEN: z.string().optional(),
     JUPITER_API_KEY: z.string().optional(),
-    PUMP_FUN_API_KEY: z.string().optional(),
+    PUMPFUN_API_KEY: z.string().optional(),
     TWO_CAPTCHA_KEY: z.string().optional(),
-    NETWORK: z.enum(['dev-net', 'main-net']).default('dev-net'),
+    NETWORK: z.enum(['devnet', 'mainnet-beta']).default('devnet'),
     JITO_TIP_LAMPORTS: z
       .preprocess((v) => Number(v), z.number().min(0).max(50000))
       .default(5000),
@@ -21,13 +23,13 @@ const envSchema = z
     DETERMINISTIC_SEED: z.string().default('episode-kingdom-sunshine-alpha'),
   })
   .refine((data) => {
-    if (data.NETWORK === 'main-net' && !data.JUPITER_API_KEY) return false
+    if (data.NETWORK === 'mainnet-beta' && !data.JUPITER_API_KEY) return false
     return true
-  }, 'JUPITER_API_KEY is required on main-net')
+  }, 'JUPITER_API_KEY is required on mainnet-beta')
   .refine((data) => {
-    if (data.NETWORK === 'main-net' && !data.PUMP_FUN_API_KEY) return false
+    if (data.NETWORK === 'mainnet-beta' && !data.PUMPFUN_API_KEY) return false
     return true
-  }, 'PUMP_FUN_API_KEY is required on main-net')
+  }, 'PUMPFUN_API_KEY is required on mainnet-beta')
 
 const parsed = envSchema.safeParse(process.env)
 
@@ -45,12 +47,13 @@ export const env = parsed.success
   : ((): z.infer<typeof envSchema> => ({
       HELIUS_API_KEY: process.env.HELIUS_API_KEY || '',
       BIRDEYE_API_KEY: process.env.BIRDEYE_API_KEY || '',
-      JITO_RPC_URL:
-        process.env.JITO_RPC_URL || 'https://mainnet.block-engine.jito.wtf/',
+      RPC_URL: process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+      JITO_RPC_URL: process.env.JITO_RPC_URL,
+      JITO_AUTH_TOKEN: process.env.JITO_AUTH_TOKEN,
       JUPITER_API_KEY: process.env.JUPITER_API_KEY,
-      PUMP_FUN_API_KEY: process.env.PUMP_FUN_API_KEY,
+      PUMPFUN_API_KEY: process.env.PUMPFUN_API_KEY,
       TWO_CAPTCHA_KEY: process.env.TWO_CAPTCHA_KEY,
-      NETWORK: (process.env.NETWORK as 'dev-net' | 'main-net') || 'dev-net',
+      NETWORK: (process.env.NETWORK as 'devnet' | 'mainnet-beta') || 'devnet',
       JITO_TIP_LAMPORTS: Number(process.env.JITO_TIP_LAMPORTS || 5000),
       JUPITER_FEE_BPS: Number(process.env.JUPITER_FEE_BPS || 5),
       DETERMINISTIC_SEED:

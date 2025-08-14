@@ -208,7 +208,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-5xl font-black bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent hover:from-green-400 hover:to-cyan-500 transition-all duration-500 cursor-default">
-                The Keymaker
+                Dashboard
               </h1>
               <p className="text-lg text-white/60 mt-2 tracking-wider">
                 Solana Memecoin Orchestration Platform

@@ -53,13 +53,14 @@ export async function getSwapTransaction(
   feeAccount?: string,
   prioritizationFeeLamports?: number,
   feeBps?: number,
+  asLegacyTransaction = false,
 ): Promise<SwapResponse> {
   try {
     const body: any = {
       quoteResponse: quote,
       userPublicKey,
       wrapAndUnwrapSol,
-      asLegacyTransaction: false,
+      asLegacyTransaction,
       computeUnitPriceMicroLamports: 'auto',
       dynamicComputeUnitLimit: true,
     }

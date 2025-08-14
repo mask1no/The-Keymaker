@@ -457,11 +457,18 @@ export function BundleEngine() {
         }
       }
 
-      // Track PnL for successful transactions
+      // Track PnL for successful transactions, including gas fee estimation and distributed Jito tip
+      const perTxJitoTip =
+        (jitoEnabled ? jitoTipLamports : 0) / transactions.length
       for (let i = 0; i < transactions.length; i++) {
         if (executionResult.results[i] === 'success') {
           const tx = transactions[i]
           const wallet = tx.wallet || publicKey.toBase58()
+
+          // Heuristic gas: ~5000 lamports base fee + priority fee portion
+          const estimatedGasLamports =
+            5000 + Math.floor((tx.priorityFee || 0) / 10)
+          const jitoLamports = Math.floor(perTxJitoTip)
 
           try {
             await fetch('/api/pnl/track', {
@@ -473,7 +480,10 @@ export function BundleEngine() {
                 action: tx.action,
                 solAmount: tx.action === 'buy' ? tx.amount : 0,
                 tokenAmount: tx.action === 'sell' ? tx.amount : 0,
-                fees: { gas: 0, jito: 0 },
+                fees: {
+                  gas: estimatedGasLamports / 1e9,
+                  jito: jitoLamports / 1e9,
+                },
               }),
             })
           } catch (error) {
