@@ -21,7 +21,7 @@
     "verify:js": "node dist/scripts/verifyApp.js",
     "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
     "postinstall": "node scripts/postinstall-safe.js",
-    "browsers:install": "PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
+    "browsers:install": "cross-env PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
     "prepare": "husky && husky install",
     "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev"
   },
@@ -66,7 +66,6 @@
     "next": "^14.2.0",
     "pino-pretty": "^10.0.0",
     "postcss": "^8.5.6",
-    
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.0",
@@ -108,7 +107,8 @@
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "ts-prune": "^0.10.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "cross-env": "^7.0.3"
   },
   "overrides": {
     "bigint-buffer": "1.1.5"
