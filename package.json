@@ -1,6 +1,6 @@
 {
   "name": "the-keymaker",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "dev": "next dev",
@@ -20,8 +20,10 @@
     "verify": "ts-node --project tsconfig.node.json scripts/verifyApp.ts",
     "verify:js": "node dist/scripts/verifyApp.js",
     "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
-    "postinstall": "node -e \"console.log('Skipping db:init on postinstall; will initialize DB at runtime/verify')\"",
-    "prepare": "husky && husky install"
+    "postinstall": "node scripts/postinstall-safe.js",
+    "browsers:install": "PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
+    "prepare": "husky && husky install",
+    "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -64,7 +66,7 @@
     "next": "^14.2.0",
     "pino-pretty": "^10.0.0",
     "postcss": "^8.5.6",
-    "puppeteer": "^24.15.0",
+    
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.0",
@@ -99,6 +101,7 @@
     "jest": "^30.0.5",
     "node-fetch": "^3.3.2",
     "playwright": "^1.54.2",
+    "puppeteer": "^24.15.0",
     "prettier": "^3.0.0",
     "semver": "^7.7.2",
     "tailwindcss-animate": "^1.0.7",

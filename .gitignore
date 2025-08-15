@@ -65,3 +65,18 @@ Thumbs.db
 wallets/
 yarn-debug.log*
 yarn-error.log*
+
+# binaries & installers
+*.exe
+*.dll
+*.so
+*.dylib
+*.node
+*.msi
+*.pkg
+
+# archives & dumps
+*.zip
+*.7z
+*.tar
+*.gz

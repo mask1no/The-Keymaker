@@ -1,0 +1,10 @@
+FROM node:20-bullseye
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --ignore-scripts
+COPY . .
+EXPOSE 3000
+CMD ["pnpm","dev"]
+
