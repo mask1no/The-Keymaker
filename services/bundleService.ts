@@ -725,6 +725,76 @@ export async function executeBundle(
   }
 }
 
+/**
+ * Execute transactions sequentially via standard RPC with small jitter between sends
+ */
+export async function executeBundleRegular(
+  txs: Transaction[],
+  signers: (Signer | Keypair)[],
+  conn: Connection = getConnection('confirmed'),
+  jitterMs: [number, number] = [250, 650],
+): Promise<ExecutionResult> {
+  const start = Date.now()
+  const signatures: string[] = []
+  const results: ('success' | 'failed')[] = []
+  for (let i = 0; i < txs.length; i++) {
+    try {
+      const { blockhash, lastValidBlockHeight } =
+        await conn.getLatestBlockhash('confirmed')
+      txs[i].recentBlockhash = blockhash
+      if (signers[i]) {
+        txs[i].sign(signers[i] as Keypair)
+      }
+      const sig = await conn.sendTransaction(txs[i], {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      })
+      await conn.confirmTransaction(
+        { signature: sig, blockhash, lastValidBlockHeight },
+        'confirmed',
+      )
+      signatures.push(sig)
+      results.push('success')
+    } catch (e) {
+      signatures.push('')
+      results.push('failed')
+    }
+    const delay = Math.floor(
+      Math.random() * (jitterMs[1] - jitterMs[0]) + jitterMs[0],
+    )
+    await new Promise((r) => setTimeout(r, delay))
+  }
+  const executionTime = Date.now() - start
+  return {
+    usedJito: false,
+    slotTargeted: await conn.getSlot('confirmed'),
+    bundleId: undefined,
+    signatures,
+    results,
+    explorerUrls: signatures.map((s) => (s ? `https://solscan.io/tx/${s}` : '')),
+    metrics: {
+      estimatedCost: ((txs.length + 1) * 5000) / 1e9,
+      successRate: results.filter((r) => r === 'success').length / results.length,
+      executionTime,
+    },
+  }
+}
+
+/**
+ * Execute transactions sequentially with fixed delay between each send
+ */
+export async function executeBundleDelayed(
+  txs: Transaction[],
+  signers: (Signer | Keypair)[],
+  delayMs = 5000,
+  conn?: Connection,
+): Promise<ExecutionResult> {
+  return executeBundleRegular(txs, signers, conn ?? getConnection('confirmed'), [
+    delayMs,
+    delayMs,
+  ])
+}
+
 export {
   validateToken,
   getBundleFees,

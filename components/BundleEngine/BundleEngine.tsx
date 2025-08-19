@@ -57,10 +57,12 @@ import {
   DialogTitle,
 } from '@/components/UI/dialog'
 import {
-  previewBundle,
-  executeBundle,
-  type PreviewResult,
-  type ExecutionResult,
+	previewBundle,
+	executeBundle,
+	executeBundleRegular,
+	executeBundleDelayed,
+	type PreviewResult,
+	type ExecutionResult,
 } from '@/services/bundleService'
 import { exportExecutionLog } from '@/lib/clientLogger'
 import {
@@ -73,6 +75,7 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { useKeymakerStore } from '@/lib/store'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
 import { FeeEstimator } from '@/components/FeeEstimator'
+import { ManualBuyTable } from './ManualBuyTable'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
 interface TransactionInput {
@@ -339,6 +342,17 @@ export function BundleEngine() {
 
       let executionResult: ExecutionResult | null = null
 
+      // Determine dev wallet from group meta (localStorage)
+      let devOverride: string | null = null
+      try {
+        const stored = localStorage.getItem('walletGroups')
+        if (stored) {
+          const groups = JSON.parse(stored)
+          const active = groups[activeGroup]
+          if (active?.meta?.devWallet) devOverride = active.meta.devWallet
+        }
+      } catch {}
+
       if (usesImportedWallets) {
         // Request password for decrypting wallets
         const password = await requestWalletPassword()
@@ -379,8 +393,10 @@ export function BundleEngine() {
             }
 
             try {
-              // Decrypt on client using utils/crypto (no sqlite)
-              const { decryptAES256ToKeypair } = await import('@/utils/crypto')
+              // Decrypt on client using browser WebCrypto (no Node crypto)
+              const { decryptAES256ToKeypair } = await import(
+                '@/utils/browserCrypto'
+              )
               const keypair = await decryptAES256ToKeypair(
                 encryptedWallet.encryptedPrivateKey,
                 password,
@@ -397,44 +413,88 @@ export function BundleEngine() {
           }
         }
 
-        // Execute bundle with proper signers
-        executionResult = await executeBundle(
-          legacyTxs,
-          wallets.map((w) => ({ publicKey: w.publicKey, role: w.role })),
-          signers,
-          {
-            feePayer: publicKey,
-            tipAmount: jitoEnabled ? jitoTipLamports : 0,
-            logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+        // Prepare wallet roles with dev override
+        const walletRoles = wallets.map((w) => ({
+          publicKey: w.publicKey,
+          role: devOverride && w.publicKey === devOverride ? ('dev' as const) : w.role,
+        }))
+
+        // Execute bundle with selected mode
+        const mode = useKeymakerStore.getState().bundleMode
+        if (mode === 'manual' /* delayed */) {
+          executionResult = await executeBundleDelayed(
+            legacyTxs,
+            signers as Keypair[],
+            5000,
             connection,
-            walletAdapter: {
-              publicKey,
-              signTransaction: signTransaction!,
+          )
+        } else if (mode === 'stealth' /* map to regular */) {
+          executionResult = await executeBundleRegular(
+            legacyTxs,
+            signers as Keypair[],
+            connection,
+          )
+        } else {
+          executionResult = await executeBundle(
+            legacyTxs,
+            walletRoles,
+            signers,
+            {
+              feePayer: publicKey,
+              tipAmount: jitoEnabled ? jitoTipLamports : 0,
+              logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+              connection,
+              walletAdapter: {
+                publicKey,
+                signTransaction: signTransaction!,
+              },
             },
-          },
-        )
+          )
+        }
       } else {
         // Only connected wallet transactions
         const signers: (Keypair | null)[] = new Array(transactions.length).fill(
           null,
         )
 
-        // Execute bundle
-        executionResult = await executeBundle(
-          legacyTxs,
-          wallets.map((w) => ({ publicKey: w.publicKey, role: w.role })),
-          signers,
-          {
-            feePayer: publicKey,
-            tipAmount: jitoEnabled ? jitoTipLamports : 0,
-            logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+        // Prepare wallet roles with dev override
+        const walletRoles = wallets.map((w) => ({
+          publicKey: w.publicKey,
+          role: devOverride && w.publicKey === devOverride ? ('dev' as const) : w.role,
+        }))
+
+        // Execute bundle with selected mode
+        const mode = useKeymakerStore.getState().bundleMode
+        if (mode === 'manual' /* delayed */) {
+          executionResult = await executeBundleDelayed(
+            legacyTxs,
+            new Array(legacyTxs.length).fill(null) as any,
+            5000,
             connection,
-            walletAdapter: {
-              publicKey,
-              signTransaction: signTransaction!,
+          )
+        } else if (mode === 'stealth' /* map to regular */) {
+          executionResult = await executeBundleRegular(
+            legacyTxs,
+            new Array(legacyTxs.length).fill(null) as any,
+            connection,
+          )
+        } else {
+          executionResult = await executeBundle(
+            legacyTxs,
+            walletRoles,
+            signers,
+            {
+              feePayer: publicKey,
+              tipAmount: jitoEnabled ? jitoTipLamports : 0,
+              logger: (msg: string) => console.log(`[Bundle] ${msg}`),
+              connection,
+              walletAdapter: {
+                publicKey,
+                signTransaction: signTransaction!,
+              },
             },
-          },
-        )
+          )
+        }
       }
 
       // Set results and show success/error messages
@@ -680,7 +740,7 @@ export function BundleEngine() {
         </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         <Button
           onClick={addTransaction}
           disabled={loading}
@@ -723,6 +783,27 @@ export function BundleEngine() {
         <Button onClick={clearBundle} disabled={loading} variant="destructive">
           Clear Bundle
         </Button>
+
+        {/* Mode selector */}
+        <div className="ml-auto flex items-center gap-2 text-sm">
+          <span className="text-gray-400">Mode:</span>
+          {(
+            [
+              { key: 'flash', label: 'Instant' },
+              { key: 'stealth', label: 'Regular' },
+              { key: 'manual', label: 'Delayed' },
+            ] as const
+          ).map((m) => (
+            <Button
+              key={m.key}
+              size="sm"
+              variant={useKeymakerStore.getState().bundleMode === (m.key as any) ? 'default' : 'outline'}
+              onClick={() => useKeymakerStore.getState().setBundleMode(m.key as any)}
+            >
+              {m.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Transaction List */}
@@ -968,6 +1049,11 @@ export function BundleEngine() {
           </div>
         </motion.div>
       )}
+
+      {/* Manual Buy / Sell Controls per wallet */}
+      <div className="mt-6">
+        <ManualBuyTable />
+      </div>
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>

@@ -54,6 +54,7 @@ export function WalletGroups({
   const [groupDescription, setGroupDescription] = useState('')
   const [selectedWallets, setSelectedWallets] = useState<string[]>([])
   const [selectedColor, setSelectedColor] = useState(groupColors[0])
+  const [devPubkey, setDevPubkey] = useState('')
 
   const createGroup = () => {
     if (!groupName.trim()) {
@@ -66,6 +67,11 @@ export function WalletGroups({
       return
     }
 
+    if (selectedWallets.length > 20) {
+      toast.error('Max 20 wallets per group')
+      return
+    }
+
     const newGroup: WalletGroup = {
       id: Date.now().toString(),
       name: groupName,
@@ -74,13 +80,29 @@ export function WalletGroups({
       color: selectedColor,
     }
 
-    onGroupsChange([...groups, newGroup])
+    const next = [...groups, newGroup]
+    // Persist dev in localStorage meta for BundleEngine to prioritize
+    try {
+      const raw = localStorage.getItem('walletGroups')
+      if (raw) {
+        const obj = JSON.parse(raw)
+        obj[ groupName ] = { ...(obj[groupName]||{}), wallets: selectedWallets.map((pk)=>({publicKey:pk})), meta: { devWallet: devPubkey || undefined } }
+        localStorage.setItem('walletGroups', JSON.stringify(obj))
+      }
+    } catch {}
+
+    onGroupsChange(next)
     toast.success(`Group "${groupName}" created`)
     resetDialog()
   }
 
   const updateGroup = () => {
     if (!editingGroup || !groupName.trim()) return
+
+    if (selectedWallets.length > 20) {
+      toast.error('Max 20 wallets per group')
+      return
+    }
 
     const updatedGroups = groups.map((g) =>
       g.id === editingGroup.id
@@ -95,6 +117,15 @@ export function WalletGroups({
     )
 
     onGroupsChange(updatedGroups)
+    try {
+      const raw = localStorage.getItem('walletGroups')
+      if (raw) {
+        const obj = JSON.parse(raw)
+        if (!obj[groupName]) obj[groupName] = {}
+        obj[groupName].meta = { ...(obj[groupName].meta||{}), devWallet: devPubkey || undefined }
+        localStorage.setItem('walletGroups', JSON.stringify(obj))
+      }
+    } catch {}
     toast.success(`Group "${groupName}" updated`)
     resetDialog()
   }
@@ -365,6 +396,22 @@ export function WalletGroups({
                   })}
                 </div>
               </div>
+            </div>
+
+            <div>
+              <Label className="mt-2">Dev wallet</Label>
+              <select
+                className="bg-black/40 border p-2 rounded w-full mt-1"
+                value={devPubkey}
+                onChange={(e) => setDevPubkey(e.target.value)}
+              >
+                <option value="">(none)</option>
+                {selectedWallets.map((pk) => (
+                  <option key={pk} value={pk}>
+                    {pk}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

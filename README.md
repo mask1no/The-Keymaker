@@ -226,13 +226,13 @@ pnpm lint
 
 ### Safe Install on Windows / Strict AV
 
-1) Clone the repo (avoid downloading zip to dodge SmartScreen flags):
+1. Clone the repo (avoid downloading zip to dodge SmartScreen flags):
    `git clone https://github.com/<owner>/<repo>.git`
-2) Install without running postinstall:
+2. Install without running postinstall:
    `pnpm install --ignore-scripts`
-3) (Optional) Install browsers explicitly when needed:
+3. (Optional) Install browsers explicitly when needed:
    `pnpm browsers:install`
-4) Run dev:
+4. Run dev:
    `pnpm dev`
 
 Why this helps: many AV engines flag automatic browser/native downloads (Puppeteer/Playwright/SWC). Keymaker disables them by default via `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` and a guarded postinstall.

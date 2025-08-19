@@ -13,10 +13,11 @@ import { Input } from '@/components/UI/input'
 import { useKeymakerStore } from '@/lib/store'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { Connection, Keypair } from '@solana/web3.js'
-import { decryptPrivateKey } from '@/services/walletService'
+// Use browser-safe crypto for client-side key decryption
+import { decryptAES256ToKeypair } from '@/utils/browserCrypto'
 import { logEvent } from '@/lib/clientLogger'
 import toast from 'react-hot-toast'
-import { Loader2, ShoppingCart } from 'lucide-react'
+import { Loader2, ShoppingCart, DollarSign } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { PasswordDialog } from '@/components/UI/PasswordDialog'
@@ -38,6 +39,13 @@ export function ManualBuyTable() {
     wallet: any
     lamports: number
   } | null>(null)
+
+  // Manual Sell dialog state
+  const [sellDialogOpen, setSellDialogOpen] = useState(false)
+  const [pendingSell, setPendingSell] = useState<{ wallet: any } | null>(null)
+  const [sellMint, setSellMint] = useState('')
+  const [sellAll, setSellAll] = useState(true)
+  const [sellPassword, setSellPassword] = useState('')
 
   const handleAmountChange = (pubkey: string, amount: string) => {
     setBuyStates((prev) => ({
@@ -78,12 +86,11 @@ export function ManualBuyTable() {
     try {
       const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC)
 
-      // Decrypt wallet
-      const privateKeyArray = decryptPrivateKey(
+      // Decrypt wallet (browser crypto)
+      const keypair = await decryptAES256ToKeypair(
         wallet.encryptedPrivateKey,
         password,
       )
-      const keypair = Keypair.fromSecretKey(privateKeyArray)
 
       // Build swap transaction
       const versionedTransaction = await buildSwapTransaction(
@@ -144,6 +151,72 @@ export function ManualBuyTable() {
       }))
       setPendingBuy(null)
       setPasswordDialogOpen(false)
+    }
+  }
+
+  const openSell = (wallet: any) => {
+    setPendingSell({ wallet })
+    setSellDialogOpen(true)
+  }
+
+  const executeSell = async () => {
+    if (!pendingSell) return
+    if (!sellMint) {
+      toast.error('Enter token mint to sell')
+      return
+    }
+    try {
+      const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+      const keypair = await decryptAES256ToKeypair(
+        pendingSell.wallet.encryptedPrivateKey,
+        sellPassword,
+      )
+      // Use sellService with manualSell condition, sell all by passing a very large amount to clamp to balance
+      const { sellToken } = await import('@/services/sellService')
+      const { PublicKey } = await import('@solana/web3.js')
+      const result = await sellToken(connection, {
+        wallet: keypair,
+        tokenMint: new PublicKey(sellMint),
+        amount: sellAll ? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER,
+        slippage: 1,
+        conditions: { manualSell: true },
+        priority: 'high',
+      })
+      if (result.success) {
+        addNotification({
+          type: 'success',
+          title: 'Manual Sell Executed',
+          message: `${pendingSell.wallet.publicKey.slice(0, 8)}... sold; tx ${
+            (result.txSignature || '').slice(0, 8)
+          }...`,
+        })
+        // Track PnL
+        try {
+          await fetch('/api/pnl/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              wallet: pendingSell.wallet.publicKey,
+              tokenAddress: sellMint,
+              action: 'sell',
+              solAmount: result.outputAmount,
+              tokenAmount: 0,
+              fees: { gas: 0.00001, jito: 0 },
+            }),
+          })
+        } catch {}
+        toast.success('Sell submitted')
+      } else {
+        toast.error(result.error || 'Sell failed')
+      }
+    } catch (e: any) {
+      toast.error(`Sell failed: ${e.message || e}`)
+    } finally {
+      setSellDialogOpen(false)
+      setPendingSell(null)
+      setSellPassword('')
+      setSellMint('')
+      setSellAll(true)
     }
   }
 
@@ -209,7 +282,7 @@ export function ManualBuyTable() {
                           }
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="space-x-2">
                         <Button
                           onClick={() => handleBuy(wallet)}
                           disabled={
@@ -225,6 +298,15 @@ export function ManualBuyTable() {
                           ) : (
                             'BUY'
                           )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openSell(wallet)}
+                          aria-label="Sell token from this wallet"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          <span className="ml-1 hidden md:inline">SELL</span>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -250,6 +332,37 @@ export function ManualBuyTable() {
         description="Enter your password to decrypt the wallet and execute the buy."
         mode="unlock"
       />
+
+      {/* Manual Sell Dialog */}
+      <Dialog open={sellDialogOpen} onOpenChange={setSellDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manual Sell</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Token Mint</Label>
+              <Input value={sellMint} onChange={(e) => setSellMint(e.target.value)} placeholder="Token mint address" />
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={sellAll} onChange={(e) => setSellAll(e.target.checked)} />
+              <Label>Sell all balance</Label>
+            </div>
+            <div>
+              <Label>Password</Label>
+              <Input type="password" value={sellPassword} onChange={(e) => setSellPassword(e.target.value)} placeholder="Wallet password" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSellDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={executeSell} disabled={!sellPassword || !sellMint}>
+              Sell Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

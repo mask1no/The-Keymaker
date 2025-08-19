@@ -17,7 +17,11 @@ import toast from 'react-hot-toast'
 import {
   type SellConditions,
   checkSellConditions,
+  sellToken,
 } from '@/services/sellService'
+import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
+import { decryptAES256ToKeypair } from '@/utils/browserCrypto'
 import { logger } from '@/lib/logger'
 
 interface TokenHolding {
@@ -97,11 +101,46 @@ export function SellMonitor() {
               icon: '🔔',
             })
 
-            // Here you would trigger the actual sell
-            logger.info('Sell signal triggered', {
-              holding: holding.tokenAddress,
-              reason: result.reason,
-            })
+            try {
+              // Decrypt a dev or master wallet keypair for selling
+              const groupsRaw = localStorage.getItem('walletGroups')
+              if (!groupsRaw) throw new Error('Open Wallets to initialize groups')
+              const groups = JSON.parse(groupsRaw)
+              const anyGroup = Object.values(groups)[0] as any
+              const dev = anyGroup.wallets.find((w: any) => w.role === 'dev')
+              const master = anyGroup.wallets.find(
+                (w: any) => w.role === 'master',
+              )
+              const seller = dev || master
+              if (!seller?.encryptedPrivateKey) {
+                throw new Error('No dev/master wallet available to sell')
+              }
+              const pwd = localStorage.getItem('walletPassword') || ''
+              if (!pwd) {
+                toast.error('Set a wallet password in Wallets to allow auto-sell')
+                return
+              }
+              const keypair: Keypair = await decryptAES256ToKeypair(
+                seller.encryptedPrivateKey,
+                pwd,
+              )
+              const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+              await sellToken(connection, {
+                wallet: keypair,
+                tokenMint: new PublicKey(holding.tokenAddress),
+                amount: Math.floor(holding.amount),
+                slippage: 1,
+                conditions: { manualSell: true },
+                priority: 'high',
+              })
+              logger.info('Auto sell executed', {
+                token: holding.tokenAddress,
+                amount: holding.amount,
+              })
+            } catch (err) {
+              toast.error('Auto sell failed')
+              logger.error('Auto sell error', { error: err })
+            }
           }
         } catch (error) {
           logger.error('Error checking sell conditions', {

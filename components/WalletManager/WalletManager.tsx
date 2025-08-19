@@ -50,6 +50,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { NEXT_PUBLIC_HELIUS_RPC } from '../../constants'
+// Use browser-safe crypto helpers for client-side encryption/decryption
+// import { encryptAES256, decryptAES256ToBytes } from '@/utils/browserCrypto'
 import { useKeymakerStore } from '@/lib/store'
 
 type WalletRole = 'master' | 'dev' | 'sniper' | 'normal'
