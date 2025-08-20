@@ -351,7 +351,9 @@ export function BundleEngine() {
           const active = groups[activeGroup]
           if (active?.meta?.devWallet) devOverride = active.meta.devWallet
         }
-      } catch {}
+      } catch (e) {
+        void 0
+      }
 
       if (usesImportedWallets) {
         // Request password for decrypting wallets

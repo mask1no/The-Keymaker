@@ -1,5 +1,5 @@
 'use client'
-import LogsPanel from '@/components/ExecutionLog/LogsPanel'
+import { LogsPanel } from '@/components/ExecutionLog/LogsPanel'
 import { StatusCluster } from '@/components/UI/StatusCluster'
 
 export default function Page() {

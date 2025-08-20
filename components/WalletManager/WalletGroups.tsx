@@ -89,7 +89,9 @@ export function WalletGroups({
         obj[ groupName ] = { ...(obj[groupName]||{}), wallets: selectedWallets.map((pk)=>({publicKey:pk})), meta: { devWallet: devPubkey || undefined } }
         localStorage.setItem('walletGroups', JSON.stringify(obj))
       }
-    } catch {}
+    } catch (e) {
+      void 0
+    }
 
     onGroupsChange(next)
     toast.success(`Group "${groupName}" created`)
@@ -125,7 +127,9 @@ export function WalletGroups({
         obj[groupName].meta = { ...(obj[groupName].meta||{}), devWallet: devPubkey || undefined }
         localStorage.setItem('walletGroups', JSON.stringify(obj))
       }
-    } catch {}
+    } catch (e) {
+      void 0
+    }
     toast.success(`Group "${groupName}" updated`)
     resetDialog()
   }

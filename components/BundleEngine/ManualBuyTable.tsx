@@ -10,9 +10,10 @@ import {
 } from '@/components/UI/table'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
 import { useKeymakerStore } from '@/lib/store'
 import { buildSwapTransaction } from '@/services/jupiterService'
-import { Connection, Keypair } from '@solana/web3.js'
+import { Connection } from '@solana/web3.js'
 // Use browser-safe crypto for client-side key decryption
 import { decryptAES256ToKeypair } from '@/utils/browserCrypto'
 import { logEvent } from '@/lib/clientLogger'
@@ -21,6 +22,13 @@ import { Loader2, ShoppingCart, DollarSign } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { PasswordDialog } from '@/components/UI/PasswordDialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/UI/dialog'
 
 interface WalletBuyState {
   [pubkey: string]: {
@@ -204,7 +212,9 @@ export function ManualBuyTable() {
               fees: { gas: 0.00001, jito: 0 },
             }),
           })
-        } catch {}
+        } catch (ignore) {
+          // intentionally ignore PnL tracking errors in UI flow
+        }
         toast.success('Sell submitted')
       } else {
         toast.error(result.error || 'Sell failed')
