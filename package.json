@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:standalone": "cross-env NEXT_STANDALONE=1 next build",
+    "analyze": "cross-env ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
@@ -108,7 +110,8 @@
     "ts-node": "^10.9.2",
     "ts-prune": "^0.10.3",
     "typescript": "^5.8.3",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "@next/bundle-analyzer": "^14.2.0"
   },
   "overrides": {
     "bigint-buffer": "1.1.5"

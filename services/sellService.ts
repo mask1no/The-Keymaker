@@ -1,9 +1,4 @@
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  VersionedTransaction,
-} from '@solana/web3.js'
+import { Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token'
 import axios from 'axios'
 import * as Sentry from '@sentry/nextjs'
@@ -59,6 +54,17 @@ export interface TokenPriceInfo {
   marketCap: number
   volume24h: number
   priceChange24h: number
+}
+
+function base64ToBytes(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
+    return Uint8Array.from((Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'))
+  }
+  const binary = typeof atob !== 'undefined' ? atob(base64) : ''
+  const len = binary.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes
 }
 
 /**
@@ -364,7 +370,7 @@ async function executeSwap(
     const { swapTransaction } = data
 
     // Deserialize and sign transaction
-    const transactionBuf = Buffer.from(swapTransaction, 'base64')
+    const transactionBuf = base64ToBytes(swapTransaction)
     const transaction = VersionedTransaction.deserialize(transactionBuf)
     transaction.sign([wallet])
 

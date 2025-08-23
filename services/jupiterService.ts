@@ -1,9 +1,20 @@
-import { VersionedTransaction } from '@solana/web3.js'
+import { VersionedTransaction, Transaction } from '@solana/web3.js'
 import axios from 'axios'
 import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
 import { QuoteResponse, SwapResponse } from '@/lib/types'
 
 const WSOL_MINT = 'So11111111111111111111111111111111111111112'
+
+function base64ToBytes(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
+    return Uint8Array.from((Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'))
+  }
+  const binary = typeof atob !== 'undefined' ? atob(base64) : ''
+  const len = binary.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes
+}
 
 export async function getQuote(
   inputMint: string,
@@ -106,6 +117,7 @@ export async function buildSwapTransaction(
   slippageBps = 50,
   priorityFee?: number,
   feeBps?: number,
+  asLegacyTransaction = false,
 ): Promise<VersionedTransaction> {
   // Get quote
   const quote = await getQuote(
@@ -123,12 +135,46 @@ export async function buildSwapTransaction(
     undefined,
     priorityFee,
     feeBps,
+    asLegacyTransaction,
   )
 
   // Deserialize the transaction
-  const swapTransactionBuf = Buffer.from(swap.swapTransaction, 'base64')
+  const swapTransactionBuf = base64ToBytes(swap.swapTransaction)
   const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
 
+  return transaction
+}
+
+export async function buildSwapLegacyTransaction(
+  inputMint: string,
+  outputMint: string,
+  amountLamports: number,
+  userPublicKey: string,
+  slippageBps = 50,
+  priorityFee?: number,
+  feeBps?: number,
+): Promise<Transaction> {
+  // Get quote
+  const quote = await getQuote(
+    inputMint,
+    outputMint,
+    amountLamports,
+    slippageBps,
+  )
+
+  // Get legacy swap transaction
+  const swap = await getSwapTransaction(
+    quote,
+    userPublicKey,
+    true,
+    undefined,
+    priorityFee,
+    feeBps,
+    true,
+  )
+
+  const swapTransactionBuf = base64ToBytes(swap.swapTransaction)
+  const transaction = Transaction.from(swapTransactionBuf)
   return transaction
 }
 

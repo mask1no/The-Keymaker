@@ -730,25 +730,47 @@ export async function executeBundle(
  */
 export async function executeBundleRegular(
   txs: Transaction[],
-  signers: (Signer | Keypair)[],
+  signers: (Signer | Keypair | null)[],
   conn: Connection = getConnection('confirmed'),
   jitterMs: [number, number] = [250, 650],
+  options: {
+    walletAdapter?: {
+      publicKey: PublicKey
+      signTransaction: (tx: Transaction) => Promise<Transaction>
+    }
+    logger?: (msg: string) => void
+  } = {},
 ): Promise<ExecutionResult> {
   const start = Date.now()
   const signatures: string[] = []
   const results: ('success' | 'failed')[] = []
   for (let i = 0; i < txs.length; i++) {
     try {
-      const { blockhash, lastValidBlockHeight } =
-        await conn.getLatestBlockhash('confirmed')
-      txs[i].recentBlockhash = blockhash
+      const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(
+        'confirmed',
+      )
+      const tx = txs[i]
+      tx.recentBlockhash = blockhash
+      let toSend = tx
       if (signers[i]) {
-        txs[i].sign(signers[i] as Keypair)
+        toSend.sign(signers[i] as Keypair)
+      } else if (options.walletAdapter) {
+        // Sign with connected wallet adapter when no explicit signer provided
+        if (
+          toSend.feePayer &&
+          toSend.feePayer.equals(options.walletAdapter.publicKey)
+        ) {
+          toSend = await options.walletAdapter.signTransaction(toSend)
+        }
       }
-      const sig = await conn.sendTransaction(txs[i], {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
-      })
+      const sig = await conn.sendTransaction(
+        toSend,
+        signers[i] ? ([signers[i] as Signer] as Signer[]) : [],
+        {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+        },
+      )
       await conn.confirmTransaction(
         { signature: sig, blockhash, lastValidBlockHeight },
         'confirmed',
@@ -785,14 +807,24 @@ export async function executeBundleRegular(
  */
 export async function executeBundleDelayed(
   txs: Transaction[],
-  signers: (Signer | Keypair)[],
+  signers: (Signer | Keypair | null)[],
   delayMs = 5000,
   conn?: Connection,
+  options: {
+    walletAdapter?: {
+      publicKey: PublicKey
+      signTransaction: (tx: Transaction) => Promise<Transaction>
+    }
+    logger?: (msg: string) => void
+  } = {},
 ): Promise<ExecutionResult> {
-  return executeBundleRegular(txs, signers, conn ?? getConnection('confirmed'), [
-    delayMs,
-    delayMs,
-  ])
+  return executeBundleRegular(
+    txs,
+    signers,
+    conn ?? getConnection('confirmed'),
+    [delayMs, delayMs],
+    options,
+  )
 }
 
 export {

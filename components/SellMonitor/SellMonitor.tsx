@@ -96,6 +96,11 @@ export function SellMonitor() {
           )
 
           if (result.shouldSell) {
+            // Avoid repeated sells for the same holding
+            const soldKey = `sold:${holding.tokenAddress}`
+            if (localStorage.getItem(soldKey)) {
+              continue
+            }
             toast.success(`Sell signal: ${result.reason}`, {
               duration: 10000,
               icon: '🔔',
@@ -125,7 +130,7 @@ export function SellMonitor() {
                 pwd,
               )
               const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
-              await sellToken(connection, {
+              const res = await sellToken(connection, {
                 wallet: keypair,
                 tokenMint: new PublicKey(holding.tokenAddress),
                 amount: Math.floor(holding.amount),
@@ -133,6 +138,25 @@ export function SellMonitor() {
                 conditions: { manualSell: true },
                 priority: 'high',
               })
+              if (res.success) {
+                localStorage.setItem(soldKey, '1')
+                try {
+                  await fetch('/api/pnl/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      wallet: keypair.publicKey.toBase58(),
+                      tokenAddress: holding.tokenAddress,
+                      action: 'sell',
+                      solAmount: res.outputAmount,
+                      tokenAmount: 0,
+                      fees: { gas: 0.00001, jito: 0 },
+                    }),
+                  })
+                } catch (_e) {
+                  // ignore tracking failure
+                }
+              }
               logger.info('Auto sell executed', {
                 token: holding.tokenAddress,
                 amount: holding.amount,

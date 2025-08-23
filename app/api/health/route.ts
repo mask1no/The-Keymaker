@@ -43,7 +43,7 @@ async function checkRPC(): Promise<{ connected: boolean; slot?: number }> {
   try {
     const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
     const connection = new Connection(rpc, 'confirmed')
-    const slot = await connection.getSlot()
+    const slot = await connection.getLatestBlockhash('processed').then(()=>connection.getSlot())
     return { connected: true, slot }
   } catch {
     return { connected: false }
@@ -88,10 +88,16 @@ export async function GET() {
     }
 
     // Run health checks in parallel
-    const [dbOk, rpcStatus, jitoOk] = await Promise.all([
+    const [dbOk, rpcStatus, jitoOk, tipOk] = await Promise.all([
       checkDatabase(),
       checkRPC(),
       checkJito(),
+      (async()=>{
+        try{
+          const res = await fetch(`${NEXT_PUBLIC_JITO_ENDPOINT}/api/v1/bundles/tip_floor`,{signal:AbortSignal.timeout(4000)})
+          return res.ok
+        }catch{return false}
+      })(),
     ])
 
     // Test Puppeteer functionality
@@ -110,9 +116,10 @@ export async function GET() {
       puppeteer: puppeteerOk,
       version,
       timestamp: new Date().toISOString(),
-      rpc: rpcStatus.connected,
-      jito: jitoOk,
-      db: dbOk,
+      rpc: rpcStatus.connected ? 'healthy' : 'down',
+      be: jitoOk ? 'healthy' : 'down',
+      tipping: tipOk ? 'healthy' : 'down',
+      db: dbOk ? 'healthy' : 'down',
     }
 
     return NextResponse.json(health, {

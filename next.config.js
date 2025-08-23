@@ -3,6 +3,7 @@ const nextConfig = {
   // Use default output locally to avoid Windows symlink EPERM issues
   // output: 'standalone',
   reactStrictMode: true,
+  output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   images: {
     domains: ['localhost'],
   },
@@ -55,7 +56,12 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
     serverComponentsExternalPackages: ['sqlite3', 'sqlite'],
+    optimizePackageImports: ['lucide-react', 'date-fns'],
   },
 }
 
-module.exports = nextConfig
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+module.exports = withBundleAnalyzer(nextConfig)

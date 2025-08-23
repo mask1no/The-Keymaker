@@ -1,10 +1,10 @@
 // Bundle configuration constants
 export const BUNDLE_CONFIG = {
   // Default bundle transaction limit
-  DEFAULT_TX_LIMIT: 20,
+  DEFAULT_TX_LIMIT: 5,
 
   // Maximum allowed transactions per bundle
-  MAX_TX_LIMIT: 20,
+  MAX_TX_LIMIT: 5,
 
   // Minimum transactions required for a bundle
   MIN_TX_LIMIT: 1,
@@ -45,3 +45,7 @@ export function getBundleTxLimit(): number {
   }
   return BUNDLE_CONFIG.DEFAULT_TX_LIMIT
 }
+
+export const MAX_TX_PER_BUNDLE = 5
+export const DEFAULT_INTER_BUNDLE_STAGGER_MS = 60
+export const INSTANT_STAGGER_RANGE_MS: [number, number] = [0, 10]
