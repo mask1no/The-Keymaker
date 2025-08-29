@@ -6,6 +6,7 @@ import { Sun, Moon, Copy } from 'lucide-react'
 import { Button } from '@/components/UI/button'
 import { useKeymakerStore } from '@/lib/store'
 import { NotificationCenter } from '@/components/Notifications/NotificationCenter'
+import { StatusCluster } from '@/components/UI/StatusCluster'
 
 interface TopbarProps {
   toggleTheme: () => void
@@ -30,8 +31,12 @@ export function Topbar({ toggleTheme, theme }: TopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex justify-between items-center h-14 px-4 bg-black/50 backdrop-blur border-b border-white/10">
-      <div />
+    <header className="sticky top-0 z-40 flex justify-between items-center h-16 px-4 bg-black/50 backdrop-blur border-b border-white/10">
+      <div className="max-w-7xl mx-auto flex-1 flex items-center">
+        <div className="w-full">
+          <StatusCluster />
+        </div>
+      </div>
       <div className="flex items-center space-x-4">
         <NotificationCenter />
         <Button

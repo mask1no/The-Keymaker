@@ -1,37 +1,24 @@
 'use client'
-import {
-  Home,
-  Zap,
-  Wallet,
-  Coins,
-  Activity,
-  BarChart2,
-  Settings,
-} from 'lucide-react'
+import { Boxes, Sparkles, Clock, LineChart, Settings, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { TooltipProvider } from '@/components/UI/tooltip'
 import { useKeymakerStore } from '@/lib/store'
-import { StatusCards } from './StatusCards'
 
 interface NavItem {
   name: string
   href: string
   icon: React.ComponentType<{ className?: string }>
-  badge?: string
-  tooltip?: string
 }
 
 const navItems: NavItem[] = [
-  { name: 'Home', href: '/home', icon: Home },
-  { name: 'Bundle', href: '/bundle', icon: Zap },
-  { name: 'Wallets', href: '/wallets', icon: Wallet },
-  { name: 'SPL Creator', href: '/spl-creator', icon: Coins },
-  { name: 'Trade History', href: '/trade-history', icon: Activity },
-  { name: 'PNL', href: '/pnl', icon: BarChart2 },
+  { name: 'Bundler', href: '/bundle', icon: Boxes },
+  { name: 'SPL Creator', href: '/creator', icon: Sparkles },
+  { name: 'Trade History', href: '/history', icon: Clock },
+  { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Guide', href: '/guide', icon: Settings },
+  { name: 'Guide', href: '/guide', icon: BookOpen },
 ]
 
 export function Sidebar() {
@@ -71,10 +58,7 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* Status Cards - 2x2 Bento */}
-        <div className="mt-8">
-          <StatusCards />
-        </div>
+        {/* Status cards removed to avoid duplication; see Topbar status cluster */}
 
         {/* Spacer to push content up */}
         <div className="flex-1" />

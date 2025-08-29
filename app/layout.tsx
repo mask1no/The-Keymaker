@@ -69,7 +69,6 @@ export default function RootLayout({
                 </div>
               </div>
               <MobileNav />
-              <StatusCluster />
               <ActionDock />
             </ErrorBoundary>
           </WalletContext>
