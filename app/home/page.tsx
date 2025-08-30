@@ -44,7 +44,7 @@ type TabView =
 export default function DashboardPage() {
   const { wallets, totalInvested, totalReturned, tokenLaunchData, rpcUrl } =
     useKeymakerStore()
-  const { rpcStatus, wsStatus, jitoStatus } = useSystemStatus()
+  useSystemStatus()
   const [activeTab, setActiveTab] = useState<TabView>('overview')
   interface Trade {
     pnl: number

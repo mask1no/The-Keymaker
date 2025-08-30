@@ -6,7 +6,7 @@ export function useSystemStatus() {
   const [rpcStatus, setRpcStatus] = useState<Status>('healthy')
   const [wsStatus, setWsStatus] = useState<Status>('healthy')
   const [jitoStatus, setJitoStatus] = useState<Status>('healthy')
-  const [rtt, setRtt] = useState({ rpc: 0, ws: 0, jito: 0 })
+  const [rtt] = useState({ rpc: 0, ws: 0, jito: 0 })
 
   useEffect(() => {
     const checkStatus = async () => {

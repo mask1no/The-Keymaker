@@ -87,11 +87,15 @@ export async function getBundleStatuses(region: string, bundleIds: string[], max
   const isStale = now - cache.lastFetchMs > maxAgeMs
   if (isStale) {
     // Fire and forget update; caller gets whatever is cached
-    fetchStatuses(region, bundleIds).catch(() => {})
+    fetchStatuses(region, bundleIds).catch(() => {
+      // Silent failure for background updates
+    })
   } else {
     // ensure all requested ids exist
     const missing = bundleIds.filter((id) => !cache.entries.has(id))
-    if (missing.length) fetchStatuses(region, bundleIds).catch(() => {})
+    if (missing.length) fetchStatuses(region, bundleIds).catch(() => {
+      // Silent failure for missing bundle status fetches
+    })
   }
   return bundleIds.map((id) => cache.entries.get(id) || { bundle_id: id, status: 'pending' })
 }

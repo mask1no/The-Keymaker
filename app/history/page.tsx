@@ -2,10 +2,11 @@
 export const dynamic = 'force-dynamic'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { LogsPanel } from '@/components/ExecutionLog/LogsPanel'
 
 export default function HistoryPage(){
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Trade History</CardTitle>
@@ -14,21 +15,9 @@ export default function HistoryPage(){
           <p className="text-sm text-muted-foreground">No attempts yet.</p>
         </CardContent>
       </Card>
+      <LogsPanel />
     </div>
   )
-}
-
-'use client'
-import { LogsPanel } from '@/components/ExecutionLog/LogsPanel'
-import { StatusCluster } from '@/components/UI/StatusCluster'
-
-export default function Page() {
-	return (
-		<div className="container mx-auto p-6 space-y-6">
-			<LogsPanel />
-			<StatusCluster />
-		</div>
-	)
 }
 
 

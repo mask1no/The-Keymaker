@@ -1,4 +1,4 @@
-export async function deriveKey(password: string, salt: Uint8Array) {
+export async function deriveKey(password: string, salt: BufferSource) {
   const encoder = new TextEncoder()
   const keyMaterial = await crypto.subtle.importKey(
     'raw',

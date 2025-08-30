@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
-import { BookOpenText, CheckCircle, ArrowRight, Zap, DollarSign } from 'lucide-react'
+import { BookOpen, CheckCircle, ArrowRight, Zap } from 'lucide-react'
 
 export default function GuidePage() {
   const steps = [
@@ -49,7 +49,7 @@ export default function GuidePage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <BookOpenText className="w-6 h-6" />
+        <BookOpen className="w-6 h-6" />
         <h1 className="text-2xl font-bold">Guide</h1>
       </div>
 
