@@ -20,19 +20,48 @@ import {
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
-// Mock data - in real app, this would come from API
-const mockRecentActivity = [
-  { id: '1', status: 'success', slot: 123456789, latency: 45 },
-  { id: '2', status: 'success', slot: 123456788, latency: 52 },
-  { id: '3', status: 'failed', slot: 123456787, latency: 120 }
-]
-
 // Fetcher function for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+// Fetch recent bundle activity from telemetry
+async function fetchRecentActivity(): Promise<any[]> {
+  try {
+    // Import the service dynamically to avoid issues in client-side
+    const { getExecutionHistory } = await import('@/services/executionLogService')
+    const executions = await getExecutionHistory(3) // Get last 3 executions
+
+    // Transform the data to match the expected format
+    return executions.map((exec: any) => ({
+      id: exec.bundle_id || `bundle_${exec.id}`,
+      status: exec.status === 'success' ? 'success' : exec.status === 'failed' ? 'failed' : 'pending',
+      slot: exec.slot || 0,
+      latency: exec.execution_time || 0,
+      tipLamports: 0, // Will be added when we integrate with more detailed telemetry
+      createdAt: exec.created_at
+    }))
+  } catch (error) {
+    console.warn('Failed to fetch recent activity:', error)
+    // Return empty array on error
+    return []
+  }
+}
+
+// Compute bundle partitions from active wallets
+function partitions(active: number, cap: number = 5): number[] {
+  const out: number[] = []
+  let left = active
+  while (left > 0) {
+    const take = Math.min(cap, left)
+    out.push(take)
+    left -= take
+  }
+  return out
+}
 
 export default function Dashboard() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
 
   // Fetch tip data from API
   const { data: tipData, error: tipError, isLoading: tipLoading } = useSWR(
@@ -46,6 +75,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     setMounted(true)
+
+    // Fetch recent activity on mount
+    fetchRecentActivity().then((activity) => {
+      setRecentActivity(activity)
+    }).catch((error) => {
+      console.warn('Failed to load recent activity:', error)
+    })
   }, [])
 
   // Calculate chosen tip based on Regular mode (P50 × 1.2)
@@ -116,10 +152,10 @@ export default function Dashboard() {
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Partition</span>
-                  <span className="text-sm font-mono">5/5/5/5</span>
+                  <span className="text-sm font-mono">{partitions(19).join('/')}</span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
-                  {[5, 5, 5, 5].map((count, index) => (
+                  {partitions(19).map((count, index) => (
                     <div
                       key={index}
                       className="h-2 bg-primary/20 rounded-full"
@@ -209,27 +245,35 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockRecentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50"
-                >
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(activity.status)}
-                    <div>
-                      <div className="text-sm font-medium">
-                        Bundle #{activity.id.slice(-4)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Slot {activity.slot.toLocaleString()}
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(activity.status)}
+                      <div>
+                        <div className="text-sm font-medium">
+                          Bundle #{activity.id.slice(-4)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Slot {activity.slot.toLocaleString()}
+                        </div>
                       </div>
                     </div>
+                    <div className={`text-sm font-mono ${getStatusColor(activity.status)}`}>
+                      {activity.latency}ms
+                    </div>
                   </div>
-                  <div className={`text-sm font-mono ${getStatusColor(activity.status)}`}>
-                    {activity.latency}ms
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <div className="text-sm">No recent bundle activity</div>
+                  <div className="text-xs mt-1">Execute some bundles to see activity here</div>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </motion.div>

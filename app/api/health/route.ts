@@ -39,12 +39,30 @@ async function checkDatabase(): Promise<boolean> {
   }
 }
 
-async function checkRPC(): Promise<{ connected: boolean; slot?: number }> {
+async function checkRPC(): Promise<{ connected: boolean; slot?: number; latency_ms?: number }> {
   try {
     const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
+    const startTime = Date.now()
     const connection = new Connection(rpc, 'confirmed')
     const slot = await connection.getLatestBlockhash('processed').then(()=>connection.getSlot())
-    return { connected: true, slot }
+    const latency = Date.now() - startTime
+    return { connected: true, slot, latency_ms: latency }
+  } catch {
+    return { connected: false }
+  }
+}
+
+async function checkWS(): Promise<{ connected: boolean; latency_ms?: number }> {
+  try {
+    const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
+    const startTime = Date.now()
+    const connection = new Connection(rpc, 'confirmed')
+    // Test WebSocket connection by subscribing to slot updates
+    const subscriptionId = await connection.onSlotChange(() => {})
+    // Clean up the subscription immediately
+    connection.removeSlotChangeListener(subscriptionId)
+    const latency = Date.now() - startTime
+    return { connected: true, latency_ms: latency }
   } catch {
     return { connected: false }
   }
@@ -79,18 +97,23 @@ export async function GET() {
           puppeteer: false,
           version,
           timestamp: new Date().toISOString(),
-          rpc: true,
-          jito: true,
-          db: true,
+          rpc: 'healthy',
+          rpc_latency_ms: 150,
+          ws: 'healthy',
+          ws_latency_ms: 200,
+          be: 'healthy',
+          tipping: 'healthy',
+          db: 'healthy',
         },
         { status: 200 },
       )
     }
 
     // Run health checks in parallel
-    const [dbOk, rpcStatus, jitoOk, tipOk] = await Promise.all([
+    const [dbOk, rpcStatus, wsStatus, jitoOk, tipOk] = await Promise.all([
       checkDatabase(),
       checkRPC(),
+      checkWS(),
       checkJito(),
       (async()=>{
         try{
@@ -117,6 +140,9 @@ export async function GET() {
       version,
       timestamp: new Date().toISOString(),
       rpc: rpcStatus.connected ? 'healthy' : 'down',
+      rpc_latency_ms: rpcStatus.latency_ms,
+      ws: wsStatus.connected ? 'healthy' : 'down',
+      ws_latency_ms: wsStatus.latency_ms,
       be: jitoOk ? 'healthy' : 'down',
       tipping: tipOk ? 'healthy' : 'down',
       db: dbOk ? 'healthy' : 'down',
