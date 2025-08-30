@@ -9,7 +9,7 @@ import {
   Clock,
   LineChart,
   Settings,
-  BookOpenText
+  BookOpen
 } from 'lucide-react'
 
 const navigation = [
@@ -46,7 +46,7 @@ const navigation = [
   {
     name: 'Guide',
     href: '/guide',
-    icon: BookOpenText,
+    icon: BookOpen,
     description: 'User guide and glossary'
   }
 ]

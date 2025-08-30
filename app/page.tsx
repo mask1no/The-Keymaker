@@ -18,6 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 // Mock data - in real app, this would come from API
 const mockRecentActivity = [
@@ -26,20 +27,35 @@ const mockRecentActivity = [
   { id: '3', status: 'failed', slot: 123456787, latency: 120 }
 ]
 
-const mockTipData = {
-  p25: 0.000030,
-  p50: 0.000050,
-  p75: 0.000075,
-  chosen: 0.000060 // p50 × 1.2
-}
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export default function Dashboard() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
+  // Fetch tip data from API
+  const { data: tipData, error: tipError, isLoading: tipLoading } = useSWR(
+    '/api/jito/tipfloor?region=ffm',
+    fetcher,
+    {
+      refreshInterval: 10000, // Refresh every 10 seconds
+      revalidateOnFocus: false,
+    }
+  )
+
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Calculate chosen tip based on Regular mode (P50 × 1.2)
+  const getChosenTip = () => {
+    if (!tipData || tipLoading || tipError) {
+      return 0.000060 // Default fallback
+    }
+    const p50 = tipData.p50 || tipData.median || 0.000050
+    return Math.max(0.00005, Math.min(0.002, p50 * 1.2))
+  }
 
   if (!mounted) {
     return null // Prevent hydration mismatch
@@ -100,10 +116,10 @@ export default function Dashboard() {
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Partition</span>
-                  <span className="text-sm font-mono">5/5/5/4</span>
+                  <span className="text-sm font-mono">5/5/5/5</span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
-                  {[5, 5, 5, 4].map((count, index) => (
+                  {[5, 5, 5, 5].map((count, index) => (
                     <div
                       key={index}
                       className="h-2 bg-primary/20 rounded-full"
@@ -130,31 +146,48 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">P25</div>
-                  <div className="text-sm font-mono">{mockTipData.p25.toFixed(6)} SOL</div>
+              {tipLoading ? (
+                <div className="grid grid-cols-4 gap-4 text-center">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="text-xs text-muted-foreground mb-1">...</div>
+                      <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">P50</div>
-                  <div className="text-sm font-mono">{mockTipData.p50.toFixed(6)} SOL</div>
+              ) : tipError ? (
+                <div className="text-center text-muted-foreground text-sm">
+                  Unable to fetch tip data
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">P75</div>
-                  <div className="text-sm font-mono">{mockTipData.p75.toFixed(6)} SOL</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Chosen</div>
-                  <div className="text-sm font-mono text-primary font-semibold">
-                    {mockTipData.chosen.toFixed(6)} SOL
+              ) : (
+                <>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">P25</div>
+                      <div className="text-sm font-mono">{(tipData?.p25 || tipData?.p25th || 0.000030).toFixed(6)} SOL</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">P50</div>
+                      <div className="text-sm font-mono">{(tipData?.p50 || tipData?.median || 0.000050).toFixed(6)} SOL</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">P75</div>
+                      <div className="text-sm font-mono">{(tipData?.p75 || tipData?.p75th || 0.000075).toFixed(6)} SOL</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Chosen</div>
+                      <div className="text-sm font-mono text-primary font-semibold">
+                        {getChosenTip().toFixed(6)} SOL
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-border">
-                <div className="text-xs text-muted-foreground">
-                  Rule: P50 × 1.2 (Regular mode)
-                </div>
-              </div>
+                  <div className="pt-2 border-t border-border">
+                    <div className="text-xs text-muted-foreground">
+                      Rule: P50 × 1.2 (Regular mode) | Clamped [50k, 2M] lamports
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </motion.div>

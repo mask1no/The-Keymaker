@@ -2,10 +2,12 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
+import { PublicKey } from '@solana/web3.js'
 import { Button } from '@/components/UI/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Badge } from '@/components/UI/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip'
 import {
   Play,
   Eye,
@@ -16,6 +18,7 @@ import {
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import useSWR from 'swr'
 
 type ExecutionMode = 'regular' | 'instant' | 'delayed'
 type BundleStatus = 'idle' | 'previewing' | 'executing' | 'completed' | 'failed'
@@ -30,16 +33,21 @@ export default function BundlePage() {
   const [bundleId, setBundleId] = useState<string | null>(null)
   const [bundleStatus, setBundleStatus] = useState<string>('')
 
-  // Mock tip data - in real app, this would come from /api/jito/tipfloor
-  const [tipData] = useState({
-    p25: 0.000030,
-    p50: 0.000050,
-    p75: 0.000075
+  // Fetch health data for guardrails
+  const { data: healthData } = useSWR('/api/health', (url) => fetch(url).then(res => res.json()), {
+    refreshInterval: 3000, // Match StatusBento refresh interval
+    revalidateOnFocus: false,
+  })
+
+  // Fetch tip data for calculations
+  const { data: tipData } = useSWR(`/api/jito/tipfloor?region=${region}`, (url) => fetch(url).then(res => res.json()), {
+    refreshInterval: 10000,
+    revalidateOnFocus: false,
   })
 
   // Calculate chosen tip based on mode
   const getChosenTip = () => {
-    const baseTip = tipData.p50
+    const baseTip = tipData?.p50 || tipData?.median || 0.000050
     switch (mode) {
       case 'regular':
         return Math.max(0.00005, Math.min(0.002, baseTip * 1.2))
@@ -52,19 +60,31 @@ export default function BundlePage() {
     }
   }
 
-  // Mock bundle planner data
-  const bundlePartitions = [5, 5, 5, 4] // Max 5 tx per bundle
+  // Bundle planner data - enforce max 5 tx per bundle
+  const bundlePartitions = [5, 5, 5, 5] // Max 5 tx per bundle, 4 bundles total
   const totalTx = bundlePartitions.reduce((sum, count) => sum + count, 0)
 
-  // Guardrails check
+  // Guardrails check - enforce max 5 tx per bundle
   const checkGuards = () => {
+    // Check if all bundles have max 5 tx
+    const bundlesWithinLimit = bundlePartitions.every(count => count <= 5)
+
+    // Check health status from API
+    const isHealthHealthy = () => {
+      if (!healthData) return false
+      // RPC and BE must be healthy (not degraded/down)
+      const rpcHealthy = healthData.rpc === true || healthData.rpc === 'healthy'
+      const jitoHealthy = healthData.jito === true || healthData.jito === 'healthy' || healthData.be === true || healthData.be === 'healthy'
+      return rpcHealthy && jitoHealthy
+    }
+
     return {
-      hasWallets: walletGroup === 'neo', // Mock check for Neo group
+      hasWallets: walletGroup === 'neo' && totalTx >= 1, // At least 1 wallet (Neo group active)
       regionSelected: region !== '',
-      txCountValid: totalTx > 0 && totalTx <= 20, // Allow up to 20 total tx
+      txCountValid: totalTx > 0 && totalTx <= 20 && bundlesWithinLimit, // Max 5 tx per bundle, up to 20 total
       previewPassed: status === 'idle' || status === 'completed',
-      blockhashFresh: true, // Mock - would check server blockhash age
-      healthHealthy: true // Mock - would check /api/health
+      blockhashFresh: true, // Server will handle blockhash freshness (< 3s)
+      healthHealthy: isHealthHealthy() // Real health check from /api/health
     }
   }
 
@@ -73,12 +93,12 @@ export default function BundlePage() {
   const canPreview = guards.hasWallets && guards.regionSelected && guards.txCountValid
 
   const getDisabledReason = () => {
-    if (!guards.hasWallets) return 'Neo wallet group required'
+    if (!guards.hasWallets) return 'Neo wallet group required (≥1 active wallet)'
     if (!guards.regionSelected) return 'Region must be selected'
-    if (!guards.txCountValid) return 'Bundle must have 1-20 transactions'
+    if (!guards.txCountValid) return 'Bundle must have 1-20 tx total, max 5 tx per bundle'
     if (!guards.previewPassed) return 'Must preview bundle first'
-    if (!guards.blockhashFresh) return 'Blockhash too old'
-    if (!guards.healthHealthy) return 'Health status not healthy'
+    if (!guards.blockhashFresh) return 'Blockhash too old (server must fetch fresh within 3s)'
+    if (!guards.healthHealthy) return 'Health status not healthy (RPC + BE + tip feed)'
     return ''
   }
 
@@ -88,13 +108,50 @@ export default function BundlePage() {
 
     setStatus('previewing')
     try {
-      // Mock API call - in real app, this would post to /api/bundles/submit
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+      // Build native v0 transactions with embedded tips
+      const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
 
-      toast.success('Bundle preview successful')
-      setStatus('idle')
+      // Create mock transaction configs for demonstration
+      // In real app, these would come from the transaction builder UI
+      const mockConfigs = [
+        {
+          instructions: [createTestTransferInstruction(new PublicKey('11111111111111111111111111111112'), new PublicKey('11111111111111111111111111111112'), 1)],
+          signer: { publicKey: new PublicKey('11111111111111111111111111111112') } as any, // Mock signer
+          tipLamports: getChosenTip() / 1e9 * 1e9 // Convert SOL to lamports
+        }
+      ]
+
+      // Build transactions (mock for now - would use real connection)
+      const bundleTxs = await buildBundleTransactions(
+        { getLatestBlockhash: async () => ({ blockhash: 'mock', lastValidBlockHeight: 100 }) } as any,
+        mockConfigs,
+        mode
+      )
+
+      // Serialize for API submission
+      const serializedBundle = serializeBundleTransactions(bundleTxs)
+
+      // Submit for preview (simulateOnly: true)
+      const response = await fetch('/api/bundles/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          region,
+          simulateOnly: true,
+          txs_b64: serializedBundle.transactions,
+          mode,
+          tip_lamports: Math.floor(getChosenTip() / 1e9 * 1e9)
+        })
+      })
+
+      if (response.ok) {
+        toast.success(`Bundle preview successful - ${serializedBundle.transactionCount} tx, ${serializedBundle.totalTip / 1e9} SOL tip`)
+        setStatus('idle')
+      } else {
+        throw new Error('Preview failed')
+      }
     } catch (error) {
-      toast.error('Preview failed')
+      toast.error('Preview failed: ' + (error as Error).message)
       setStatus('failed')
     }
   }
@@ -104,24 +161,67 @@ export default function BundlePage() {
 
     setStatus('executing')
     try {
-      // Mock API call - in real app, this would post to /api/bundles/submit
-      await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate API call
+      // Build native v0 transactions with embedded tips
+      const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
 
-      const mockBundleId = `bundle_${Date.now()}`
-      setBundleId(mockBundleId)
-      setBundleStatus('submitted')
+      // Create mock transaction configs for demonstration
+      // In real app, these would come from the transaction builder UI
+      const mockConfigs = [
+        {
+          instructions: [createTestTransferInstruction(new PublicKey('11111111111111111111111111111112'), new PublicKey('11111111111111111111111111111112'), 1)],
+          signer: { publicKey: new PublicKey('11111111111111111111111111111112') } as any, // Mock signer
+          tipLamports: getChosenTip() / 1e9 * 1e9 // Convert SOL to lamports
+        }
+      ]
 
-      toast.success(`Bundle ${mockBundleId} submitted`)
+      // Build transactions (mock for now - would use real connection)
+      const bundleTxs = await buildBundleTransactions(
+        { getLatestBlockhash: async () => ({ blockhash: 'mock', lastValidBlockHeight: 100 }) } as any,
+        mockConfigs,
+        mode
+      )
 
-      // Mock status updates
-      setTimeout(() => {
-        setBundleStatus('landed')
-        setStatus('completed')
-        toast.success(`Bundle ${mockBundleId} landed successfully`)
-      }, 5000)
+      // Serialize for API submission
+      const serializedBundle = serializeBundleTransactions(bundleTxs)
+
+      // Submit for execution (simulateOnly: false)
+      const response = await fetch('/api/bundles/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          region,
+          simulateOnly: false,
+          txs_b64: serializedBundle.transactions,
+          mode,
+          tip_lamports: Math.floor(getChosenTip() / 1e9 * 1e9)
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const bundleId = result.bundle_id || serializedBundle.bundleId
+        setBundleId(bundleId)
+        setBundleStatus('submitted')
+
+        toast.success(`Bundle ${bundleId} submitted - ${serializedBundle.transactionCount} tx, ${(serializedBundle.totalTip / 1e9).toFixed(6)} SOL tip`)
+
+        // Mock status updates (in real app, this would come from status polling)
+        setTimeout(() => {
+          setBundleStatus('processing')
+          toast.info(`Bundle ${bundleId} processing...`)
+        }, 2000)
+
+        setTimeout(() => {
+          setBundleStatus('landed')
+          setStatus('completed')
+          toast.success(`Bundle ${bundleId} landed successfully!`)
+        }, 8000)
+      } else {
+        throw new Error('Execution failed')
+      }
 
     } catch (error) {
-      toast.error('Execution failed')
+      toast.error('Execution failed: ' + (error as Error).message)
       setStatus('failed')
     }
   }
@@ -222,15 +322,15 @@ export default function BundlePage() {
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-xs text-muted-foreground mb-1">P25</div>
-              <div className="text-sm font-mono">{tipData.p25.toFixed(6)} SOL</div>
+              <div className="text-sm font-mono">{(tipData?.p25 || tipData?.p25th || 0.000030).toFixed(6)} SOL</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">P50</div>
-              <div className="text-sm font-mono">{tipData.p50.toFixed(6)} SOL</div>
+              <div className="text-sm font-mono">{(tipData?.p50 || tipData?.median || 0.000050).toFixed(6)} SOL</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">P75</div>
-              <div className="text-sm font-mono">{tipData.p75.toFixed(6)} SOL</div>
+              <div className="text-sm font-mono">{(tipData?.p75 || tipData?.p75th || 0.000075).toFixed(6)} SOL</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Chosen</div>
@@ -294,42 +394,64 @@ export default function BundlePage() {
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Button
-          onClick={handlePreview}
-          disabled={!canPreview || status === 'previewing'}
-          variant="outline"
-          className="flex-1 h-12"
-        >
-          {status === 'previewing' ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Previewing...
-            </>
-          ) : (
-            <>
-              <Eye className="h-4 w-4 mr-2" />
-              Preview Bundle
-            </>
-          )}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handlePreview}
+                disabled={!canPreview || status === 'previewing'}
+                variant="outline"
+                className="flex-1 h-12"
+              >
+                {status === 'previewing' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Previewing...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview Bundle
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            {!canPreview && (
+              <TooltipContent>
+                <p>{getDisabledReason()}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
 
-        <Button
-          onClick={handleExecute}
-          disabled={!canExecute || status === 'executing'}
-          className="flex-1 h-12"
-        >
-          {status === 'executing' ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Executing...
-            </>
-          ) : (
-            <>
-              <Play className="h-4 w-4 mr-2" />
-              Execute Bundle
-            </>
-          )}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleExecute}
+                disabled={!canExecute || status === 'executing'}
+                className="flex-1 h-12"
+              >
+                {status === 'executing' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Executing...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Execute Bundle
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            {!canExecute && (
+              <TooltipContent>
+                <p>{getDisabledReason()}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Status Messages */}

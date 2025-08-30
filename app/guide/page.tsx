@@ -16,7 +16,8 @@ import {
   Shield,
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Settings
 } from 'lucide-react'
 
 export default function GuidePage() {
