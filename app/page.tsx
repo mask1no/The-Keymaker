@@ -1,130 +1,263 @@
 'use client'
+
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/UI/button'
-import { Card } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Badge } from '@/components/UI/badge'
 import {
-  Rocket,
-  Wallet,
   Package,
-  TrendingUp,
-  FileText,
+  Zap,
+  Clock,
+  ArrowRight,
+  Play,
+  Sparkles,
   Settings,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-export default function Home() {
+// Mock data - in real app, this would come from API
+const mockRecentActivity = [
+  { id: '1', status: 'success', slot: 123456789, latency: 45 },
+  { id: '2', status: 'success', slot: 123456788, latency: 52 },
+  { id: '3', status: 'failed', slot: 123456787, latency: 120 }
+]
+
+const mockTipData = {
+  p25: 0.000030,
+  p50: 0.000050,
+  p75: 0.000075,
+  chosen: 0.000060 // p50 × 1.2
+}
+
+export default function Dashboard() {
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
 
-  const features = [
-    {
-      icon: <Wallet className="h-8 w-8" />,
-      title: 'Wallet Management',
-      description: 'Manage wallet groups with roles and automated funding',
-      href: '/wallets',
-    },
-    {
-      icon: <Rocket className="h-8 w-8" />,
-      title: 'Token Launch',
-      description: 'Deploy tokens on pump.fun, letsbonk, or Raydium',
-      href: '/spl-creator',
-    },
-    {
-      icon: <Package className="h-8 w-8" />,
-      title: 'Bundle Engine',
-      description: 'Execute bundled transactions with Jito integration',
-      href: '/bundle',
-    },
-    {
-      icon: <TrendingUp className="h-8 w-8" />,
-      title: 'PnL Tracking',
-      description: 'Real-time profit and loss monitoring',
-      href: '/pnl',
-    },
-    {
-      icon: <FileText className="h-8 w-8" />,
-      title: 'Execution Logs',
-      description: 'Detailed logs of all operations',
-      href: '/trade-history',
-    },
-    {
-      icon: <Settings className="h-8 w-8" />,
-      title: 'Control Center',
-      description: 'Orchestrate the entire Keymaker flow',
-      href: '/home',
-    },
-  ]
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null // Prevent hydration mismatch
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-400" />
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-400" />
+      default:
+        return <AlertCircle className="h-4 w-4 text-amber-400" />
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success':
+        return 'text-green-400'
+      case 'failed':
+        return 'text-red-400'
+      default:
+        return 'text-amber-400'
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-black to-green-950">
-      <div className="container mx-auto px-4 py-16">
-        {/* Hero Section */}
+    <div className="space-y-6">
+      {/* Top Row - Big Bento Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bundle Planner */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.4 }}
         >
-          <h1 className="text-7xl font-bold text-white mb-4">The Keymaker</h1>
-          <p className="text-2xl text-green-400 mb-8">
-            Production-Ready Solana Memecoin Orchestration Engine
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => router.push('/home')}
-            >
-              <Rocket className="mr-2 h-5 w-5" />
-              Launch Control Center
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-white border-white hover:bg-white hover:text-black"
-              onClick={() => router.push('/wallets')}
-            >
-              <Wallet className="mr-2 h-5 w-5" />
-              Manage Wallets
-            </Button>
-          </div>
+          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Bundle Planner
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Wallet Group</span>
+                <Badge variant="outline">Neo (ID: 19)</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Region</span>
+                <Badge variant="outline">Frankfurt (ffm)</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Mode</span>
+                <Badge variant="secondary">Regular</Badge>
+              </div>
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Partition</span>
+                  <span className="text-sm font-mono">5/5/5/4</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[5, 5, 5, 4].map((count, index) => (
+                    <div
+                      key={index}
+                      className="h-2 bg-primary/20 rounded-full"
+                      style={{ width: `${(count / 5) * 100}%` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-            >
-              <Card
-                className="p-6 bg-black/40 border-green-600/30 hover:border-green-400/50 transition-all cursor-pointer backdrop-blur-sm"
-                onClick={() => router.push(feature.href)}
-              >
-                <div className="text-green-400 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-400">{feature.description}</p>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Status Section */}
+        {/* Tip Preview */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-600/20 rounded-full border border-green-600/30">
-            <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-green-400 text-sm">
-              System Ready • Connected to Solana Mainnet
-            </span>
-          </div>
+          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Tip Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">P25</div>
+                  <div className="text-sm font-mono">{mockTipData.p25.toFixed(6)} SOL</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">P50</div>
+                  <div className="text-sm font-mono">{mockTipData.p50.toFixed(6)} SOL</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">P75</div>
+                  <div className="text-sm font-mono">{mockTipData.p75.toFixed(6)} SOL</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Chosen</div>
+                  <div className="text-sm font-mono text-primary font-semibold">
+                    {mockTipData.chosen.toFixed(6)} SOL
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border">
+                <div className="text-xs text-muted-foreground">
+                  Rule: P50 × 1.2 (Regular mode)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Bottom Row - Small Bento Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {mockRecentActivity.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50"
+                >
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(activity.status)}
+                    <div>
+                      <div className="text-sm font-medium">
+                        Bundle #{activity.id.slice(-4)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Slot {activity.slot.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`text-sm font-mono ${getStatusColor(activity.status)}`}>
+                    {activity.latency}ms
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Shortcuts */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
+          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <ArrowRight className="h-5 w-5" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-3">
+              <Button
+                onClick={() => router.push('/bundle')}
+                className="h-auto p-4 justify-start"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <Play className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Start Bundling</div>
+                    <div className="text-xs text-muted-foreground">Execute transactions</div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => router.push('/creator')}
+                className="h-auto p-4 justify-start"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Create Token</div>
+                    <div className="text-xs text-muted-foreground">Launch SPL token</div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => router.push('/settings')}
+                className="h-auto p-4 justify-start"
+                variant="outline"
+              >
+                <div className="flex items-center gap-3">
+                  <Settings className="h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Settings</div>
+                    <div className="text-xs text-muted-foreground">Configure system</div>
+                  </div>
+                </div>
+              </Button>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </div>

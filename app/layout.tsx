@@ -3,8 +3,8 @@ import React, { useEffect } from 'react'
 import { WalletContext } from '@/components/Wallet/WalletContext'
 import { Toaster } from 'react-hot-toast'
 import { ErrorBoundary } from '@/components/UI/ErrorBoundary'
-import { Sidebar } from '@/components/UI/Sidebar'
-import { Topbar } from '@/components/UI/Topbar'
+import { SideNav } from '@/components/layout/SideNav'
+import { Topbar } from '@/components/layout/Topbar'
 import { ConnectionBanner } from '@/components/UI/ConnectionBanner'
 import { MobileNav } from '@/components/UI/MobileNav'
 import { ActionDock } from '@/components/UI/ActionDock'
@@ -42,34 +42,38 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-gradient-to-br dark:from-green-900 dark:to-black from-green-100 to-white dark:text-white/90 text-gray-900 transition-colors duration-300">
+      <body className="bg-background text-foreground">
         <I18nProvider>
           <WalletContext>
             <Toaster position="top-right" />
             <GlobalHotkeys />
             <ErrorBoundary>
-              <ConnectionBanner />
-              <div className="min-h-screen grid grid-cols-12">
-                <div className="hidden md:block col-span-2">
-                  <Sidebar />
-                </div>
-                <div
-                  className="col-span-12 md:col-span-10 flex flex-col min-h-screen"
-                  style={{ marginLeft: 0 }}
-                >
-                  <Topbar toggleTheme={toggleTheme} theme={theme} />
+              <div className="min-h-screen flex">
+                {/* Sidebar - fixed width */}
+                <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50 bg-card/50 backdrop-blur-sm border-r border-border">
+                  <SideNav className="flex-1" />
+                </aside>
+
+                {/* Main content area */}
+                <div className="flex-1 md:ml-64">
+                  <Topbar className="sticky top-0 z-40" />
                   <motion.main
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 pb-16"
+                    className="max-w-7xl mx-auto px-6 py-6 pb-16 space-y-6"
                   >
                     {children}
                   </motion.main>
                 </div>
               </div>
-              <MobileNav />
-              <ActionDock />
+
+              {/* Mobile navigation */}
+              <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-sm border-t border-border p-4">
+                <div className="flex justify-around">
+                  {/* Mobile nav items will be added here */}
+                </div>
+              </div>
             </ErrorBoundary>
           </WalletContext>
         </I18nProvider>

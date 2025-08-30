@@ -26,29 +26,30 @@
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 142 76% 36%;
-    --radius: 0.5rem;
+    --radius: 1rem; /* rounded-2xl */
   }
 
+  /* Dark theme only - no light mode */
   .dark {
-    --background: 20 14.3% 4.1%;
+    --background: 210 20% 6%; /* #0b0f14 */
     --foreground: 0 0% 95%;
-    --card: 24 9.8% 10%;
+    --card: 210 15% 10%; /* #0f141b */
     --card-foreground: 0 0% 95%;
-    --popover: 0 0% 9%;
+    --popover: 210 15% 10%;
     --popover-foreground: 0 0% 95%;
-    --primary: 142 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 142 70.6% 45.3%;
+    --primary: 210 60% 50%; /* low saturation violet/cyan */
+    --primary-foreground: 0 0% 95%;
+    --secondary: 210 15% 15%; /* #1b2530 */
+    --secondary-foreground: 0 0% 95%;
+    --muted: 210 15% 15%;
+    --muted-foreground: 210 15% 60%; /* #8aa0b3 */
+    --accent: 210 60% 45%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 210 15% 18%; /* #1b2530 */
+    --input: 210 15% 18%;
+    --ring: 210 60% 50%;
   }
 
   /* Typography */
@@ -78,8 +79,12 @@
   * {
     @apply border-border;
   }
+  html {
+    @apply dark; /* Force dark theme globally */
+  }
   body {
-    @apply bg-gray-900 text-foreground;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
