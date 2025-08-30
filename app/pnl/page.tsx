@@ -9,7 +9,6 @@ import { Badge } from '@/components/UI/badge'
 import {
   BarChart3,
   TrendingUp,
-  TrendingDown,
   MapPin,
   Zap,
   Clock,

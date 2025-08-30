@@ -16,7 +16,6 @@ import {
   Zap,
   Shield,
   Activity,
-  AlertTriangle,
   CheckCircle,
   RefreshCw,
   Eye,

@@ -1,8 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { Button } from '@/components/UI/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Badge } from '@/components/UI/badge'
@@ -12,9 +11,6 @@ import {
   Eye,
   Package,
   Zap,
-  Users,
-  MapPin,
-  Clock,
   CheckCircle,
   AlertCircle,
   Loader2

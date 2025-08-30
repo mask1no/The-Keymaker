@@ -13,14 +13,10 @@ import {
   Zap,
   Package,
   Target,
-  Clock,
   Shield,
   AlertTriangle,
   ChevronDown,
-  ChevronUp,
-  Users,
-  MapPin,
-  DollarSign
+  ChevronUp
 } from 'lucide-react'
 
 export default function GuidePage() {

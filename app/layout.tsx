@@ -5,9 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import { ErrorBoundary } from '@/components/UI/ErrorBoundary'
 import { SideNav } from '@/components/layout/SideNav'
 import { Topbar } from '@/components/layout/Topbar'
-import { ConnectionBanner } from '@/components/UI/ConnectionBanner'
-import { MobileNav } from '@/components/UI/MobileNav'
-import { ActionDock } from '@/components/UI/ActionDock'
+
 
 import { motion } from 'framer-motion'
 import { useTheme } from '@/hooks/useTheme'
@@ -21,7 +19,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
 
   useEffect(() => {
     // Start auto-update checks

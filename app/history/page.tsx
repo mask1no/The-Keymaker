@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Badge } from '@/components/UI/badge'
@@ -96,7 +96,7 @@ const mockHistory: BundleAttempt[] = [
 ]
 
 export default function HistoryPage() {
-  const [history, setHistory] = useState<BundleAttempt[]>(mockHistory)
+  const [history] = useState<BundleAttempt[]>(mockHistory)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [regionFilter, setRegionFilter] = useState<string>('all')
