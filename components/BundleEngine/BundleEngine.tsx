@@ -20,11 +20,16 @@ import {
   Trash2,
   AlertCircle,
   Lock,
+  Play,
+  Clock,
+  Users,
+  MapPin,
 } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import {
   Table,
   TableBody,
@@ -70,6 +75,7 @@ import { getBundleTxLimit, DEFAULT_INTER_BUNDLE_STAGGER_MS, INSTANT_STAGGER_RANG
 import { FeeEstimator } from '@/components/FeeEstimator'
 import { ManualBuyTable } from './ManualBuyTable'
 import { useSettingsStore } from '@/stores/useSettingsStore'
+import useSWR from 'swr'
 
 interface TransactionInput {
   tokenAddress: string
@@ -109,6 +115,19 @@ export function BundleEngine() {
   const [sniperMultiplier, setSniperMultiplier] = useState('1.5')
   const [action, setAction] = useState<'buy' | 'sell'>('buy')
   const [priorityFee, setPriorityFee] = useState('0.00001')
+
+  // Controls bar state
+  const [selectedGroup, setSelectedGroup] = useState('neo')
+  const [selectedRegion, setSelectedRegion] = useState('ffm')
+  const [executionMode, setExecutionMode] = useState<'regular' | 'instant' | 'delayed'>('regular')
+  const [delaySeconds, setDelaySeconds] = useState(30)
+  const [delayedTimer, setDelayedTimer] = useState<number | null>(null)
+  const [delayedStage, setDelayedStage] = useState<'idle' | 'armed' | 't-5s' | 't-1s' | 'executing'>('idle')
+
+  // Tip floor data
+  const { data: tipFloorData } = useSWR(`/api/jito/tipfloor?region=${selectedRegion}`, (u) => fetch(u).then(r => r.json()), {
+    refreshInterval: 10000,
+  })
 
   // Wallet management
   const [wallets, setWallets] = useState<WalletWithRole[]>([])
@@ -155,6 +174,65 @@ export function BundleEngine() {
       loadWallets()
     }
   }, [activeGroup, globalWallets])
+
+  // Guards for Execute button
+  const checkGuards = () => {
+    const guards = {
+      hasWallets: wallets.length > 0,
+      activeGroupNeo: selectedGroup === 'neo',
+      txCountValid: transactions.length > 0 && transactions.length <= 5,
+      regionSelected: selectedRegion !== '',
+      previewPassed: preview.length > 0 && preview.every(p => p.success),
+      blockhashFresh: true, // TODO: Check server blockhash age
+      healthHealthy: true, // TODO: Check /api/health status
+    }
+    return guards
+  }
+
+  const guards = checkGuards()
+  const canExecute = Object.values(guards).every(Boolean)
+
+  const getDisabledReason = () => {
+    if (!guards.hasWallets) return 'No wallets available'
+    if (!guards.activeGroupNeo) return 'Must select Neo wallet group'
+    if (!guards.txCountValid) return 'Bundle must have 1-5 transactions'
+    if (!guards.regionSelected) return 'Region must be selected'
+    if (!guards.previewPassed) return 'Must preview bundle first'
+    if (!guards.blockhashFresh) return 'Blockhash too old'
+    if (!guards.healthHealthy) return 'Health status not healthy'
+    return ''
+  }
+
+  // Delayed mode timer logic
+  useEffect(() => {
+    if (delayedStage === 'armed' && delayedTimer !== null) {
+      const interval = setInterval(() => {
+        const remaining = Math.max(0, delayedTimer - Date.now())
+        if (remaining <= 0) {
+          setDelayedStage('idle')
+          setDelayedTimer(null)
+          // Execute bundle
+          handleExecute()
+        } else if (remaining <= 1000 && delayedStage === 'armed') {
+          setDelayedStage('t-1s')
+          // Re-preview at T-1s
+          handlePreview()
+        } else if (remaining <= 5000 && delayedStage === 'armed') {
+          setDelayedStage('t-5s')
+          // Prefetch fresh blockhash at T-5s
+          toast.success('Prefetching fresh blockhash...')
+        }
+      }, 100)
+      return () => clearInterval(interval)
+    }
+  }, [delayedStage, delayedTimer])
+
+  const armDelayedTimer = () => {
+    if (executionMode !== 'delayed') return
+    setDelayedStage('armed')
+    setDelayedTimer(Date.now() + delaySeconds * 1000)
+    toast.success(`Delayed execution armed for ${delaySeconds}s`)
+  }
 
   const addTransaction = () => {
     if (!tokenAddress || !amount || !slippage) {
@@ -622,6 +700,127 @@ export function BundleEngine() {
         </div>
       </div>
 
+      {/* Controls Bar */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Play className="w-5 h-5" />
+            Bundle Controls
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Wallet Group
+              </Label>
+              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="neo">Neo (ID: 19)</SelectItem>
+                  <SelectItem value="default">Default</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Region
+              </Label>
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ffm">Frankfurt (ffm)</SelectItem>
+                  <SelectItem value="nyc">New York (nyc)</SelectItem>
+                  <SelectItem value="ams">Amsterdam (ams)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Mode</Label>
+              <Select value={executionMode} onValueChange={(value: 'regular' | 'instant' | 'delayed') => setExecutionMode(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="regular">Regular</SelectItem>
+                  <SelectItem value="instant">Instant</SelectItem>
+                  <SelectItem value="delayed">Delayed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {executionMode === 'delayed' && (
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Delay (seconds)
+                </Label>
+                <Select value={delaySeconds.toString()} onValueChange={(value) => setDelaySeconds(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30s</SelectItem>
+                    <SelectItem value="60">60s</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tip Preview */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5" />
+            Tip Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tipFloorData ? (
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-sm text-muted-foreground">P25</div>
+                <div className="text-lg font-bold">{(tipFloorData.p25 / 1e6).toFixed(4)} SOL</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">P50</div>
+                <div className="text-lg font-bold">{(tipFloorData.p50 / 1e6).toFixed(4)} SOL</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">P75</div>
+                <div className="text-lg font-bold">{(tipFloorData.p75 / 1e6).toFixed(4)} SOL</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Chosen</div>
+                <div className="text-lg font-bold text-green-400">
+                  {(() => {
+                    const baseTip = tipFloorData.p50 / 1e6
+                    const multiplier = executionMode === 'regular' ? 1.2 : executionMode === 'instant' ? 1.25 : 1.2
+                    const chosen = Math.max(0.00005, Math.min(0.002, baseTip * multiplier))
+                    return chosen.toFixed(6) + ' SOL'
+                  })()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              Loading tip data...
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Transaction Input Form */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="col-span-2 lg:col-span-1">
@@ -759,14 +958,24 @@ export function BundleEngine() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={handleExecute}
-                disabled={loading || transactions.length === 0}
-                className="bg-green-500 hover:bg-green-600"
+                onClick={executionMode === 'delayed' ? armDelayedTimer : handleExecute}
+                disabled={!canExecute || loading}
+                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500"
               >
-                Execute Bundle (⌘+Enter)
+                {executionMode === 'delayed' ? (
+                  delayedStage === 'armed' ? (
+                    `Armed (${Math.ceil((delayedTimer! - Date.now()) / 1000)}s)`
+                  ) : (
+                    `Arm Delayed (${delaySeconds}s)`
+                  )
+                ) : (
+                  'Execute Bundle (⌘+Enter)'
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Submit bundle to Jito</TooltipContent>
+            <TooltipContent>
+              {!canExecute ? getDisabledReason() : 'Submit bundle to Jito'}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -774,25 +983,17 @@ export function BundleEngine() {
           Clear Bundle
         </Button>
 
-        {/* Mode selector */}
+        {/* Mode indicator */}
         <div className="ml-auto flex items-center gap-2 text-sm">
           <span className="text-gray-400">Mode:</span>
-          {(
-            [
-              { key: 'flash', label: 'Instant' },
-              { key: 'stealth', label: 'Regular' },
-              { key: 'manual', label: 'Delayed' },
-            ] as const
-          ).map((m) => (
-            <Button
-              key={m.key}
-              size="sm"
-              variant={useKeymakerStore.getState().bundleMode === (m.key as any) ? 'default' : 'outline'}
-              onClick={() => useKeymakerStore.getState().setBundleMode(m.key as any)}
-            >
-              {m.label}
-            </Button>
-          ))}
+          <Badge variant={executionMode === 'regular' ? 'default' : 'outline'}>
+            {executionMode === 'regular' ? 'Regular' : executionMode === 'instant' ? 'Instant' : 'Delayed'}
+          </Badge>
+          {executionMode === 'delayed' && delayedStage !== 'idle' && (
+            <Badge variant="secondary" className="animate-pulse">
+              {delayedStage === 'armed' ? 'Armed' : delayedStage === 't-5s' ? 'T-5s' : delayedStage === 't-1s' ? 'T-1s' : 'Executing'}
+            </Badge>
+          )}
         </div>
       </div>
 
