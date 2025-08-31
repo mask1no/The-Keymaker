@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, startTransition } from 'react'
 import { PublicKey } from '@solana/web3.js'
 import { Button } from '@/components/UI/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
@@ -118,7 +118,7 @@ export default function BundlePage() {
   const handlePreview = async () => {
     if (!canPreview) return
 
-    setStatus('previewing')
+    startTransition(() => setStatus('previewing'))
     try {
       // Build native v0 transactions with embedded tips
       const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
@@ -171,7 +171,7 @@ export default function BundlePage() {
   const handleExecute = async () => {
     if (!canExecute) return
 
-    setStatus('executing')
+    startTransition(() => setStatus('executing'))
     try {
       // Build native v0 transactions with embedded tips
       const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
@@ -414,6 +414,7 @@ export default function BundlePage() {
                 disabled={!canPreview || status === 'previewing'}
                 variant="outline"
                 className="flex-1 h-12"
+                aria-busy={status === 'previewing'}
               >
                 {status === 'previewing' ? (
                   <>
@@ -443,6 +444,7 @@ export default function BundlePage() {
                 onClick={handleExecute}
                 disabled={!canExecute || status === 'executing'}
                 className="flex-1 h-12"
+                aria-busy={status === 'executing'}
               >
                 {status === 'executing' ? (
                   <>

@@ -399,6 +399,82 @@ export default function GuidePage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Troubleshooting */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+      >
+        <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Troubleshooting
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">Execute Button Disabled</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Preview not passed:</strong> Always click Preview before Execute to validate bundle</p>
+                  <p><strong>Too many transactions:</strong> Bundles must have ≤5 transactions. Check bundle planner.</p>
+                  <p><strong>Stale blockhash:</strong> Server fetches fresh blockhash within 3s. Try again if timeout.</p>
+                  <p><strong>No active wallets:</strong> Select Neo group (19 wallets) or ensure wallet group has active wallets.</p>
+                  <p><strong>Health status not healthy:</strong> Check status bento - RPC, WS, and Jito must be green.</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">Invalid Bundle / AccountInUse</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Keep conflict_aware:</strong> Use same wallet group to reduce account conflicts</p>
+                  <p><strong>Reduce same-pool collisions:</strong> Spread transactions across different account pools</p>
+                  <p><strong>Try Instant mode:</strong> Higher priority for faster execution if racing other bundles</p>
+                  <p><strong>Check tip levels:</strong> Ensure tip is sufficient for current network congestion</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">RPC Connection Issues</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Status bento shows RPC red:</strong> Switch region (FFM/AMS/LDN) in bundle controls</p>
+                  <p><strong>High latency:</strong> RPC status turns amber when latency &gt;400ms. Switch regions.</p>
+                  <p><strong>WebSocket stale:</strong> WS status shows latency in status bento. Restart dev server if stuck.</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">Tip Too Low</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Bump tip level:</strong> Use P75 × 1.25 for Regular mode or raise max tip clamp</p>
+                  <p><strong>Switch to Instant mode:</strong> Higher tip multiplier (P75 × 1.25) for urgent execution</p>
+                  <p><strong>Check tip floor API:</strong> Verify /api/jito/tipfloor returns current market rates</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">Empty History/P&L</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>No bundles executed:</strong> Execute your first bundle to populate history</p>
+                  <p><strong>API not responding:</strong> Check /api/history and /api/pnl endpoints</p>
+                  <p><strong>Database empty:</strong> Execution logs are stored in SQLite. Check db file.</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-primary">Performance & UX</h4>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p><strong>Slow navigation:</strong> SideNav links use prefetch for instant page loads</p>
+                  <p><strong>Button lag:</strong> Heavy operations use React.startTransition for smooth UI</p>
+                  <p><strong>Status not updating:</strong> Status bento refreshes every 3s from /api/health</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

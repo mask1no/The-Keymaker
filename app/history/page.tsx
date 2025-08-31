@@ -17,8 +17,8 @@ import {
   Download
 } from 'lucide-react'
 import Link from 'next/link'
+import useSWR from 'swr'
 
-// Mock data - in real app, this would come from API
 interface BundleAttempt {
   id: string
   bundle_id: string
@@ -32,71 +32,10 @@ interface BundleAttempt {
   mode: 'regular' | 'instant' | 'delayed'
 }
 
-const mockHistory: BundleAttempt[] = [
-  {
-    id: '1',
-    bundle_id: 'bundle_1234567890',
-    timestamp: Date.now() - 300000, // 5 minutes ago
-    region: 'ffm',
-    tip_lamports: 60000,
-    status: 'success',
-    landed_slot: 250123456,
-    latency_ms: 45,
-    tx_count: 4,
-    mode: 'regular'
-  },
-  {
-    id: '2',
-    bundle_id: 'bundle_1234567889',
-    timestamp: Date.now() - 600000, // 10 minutes ago
-    region: 'nyc',
-    tip_lamports: 75000,
-    status: 'success',
-    landed_slot: 250123455,
-    latency_ms: 52,
-    tx_count: 3,
-    mode: 'instant'
-  },
-  {
-    id: '3',
-    bundle_id: 'bundle_1234567888',
-    timestamp: Date.now() - 900000, // 15 minutes ago
-    region: 'ffm',
-    tip_lamports: 60000,
-    status: 'failed',
-    landed_slot: 0,
-    latency_ms: 120,
-    tx_count: 5,
-    mode: 'regular'
-  },
-  {
-    id: '4',
-    bundle_id: 'bundle_1234567887',
-    timestamp: Date.now() - 1200000, // 20 minutes ago
-    region: 'ams',
-    tip_lamports: 60000,
-    status: 'success',
-    landed_slot: 250123454,
-    latency_ms: 38,
-    tx_count: 2,
-    mode: 'delayed'
-  },
-  {
-    id: '5',
-    bundle_id: 'bundle_1234567886',
-    timestamp: Date.now() - 1800000, // 30 minutes ago
-    region: 'ffm',
-    tip_lamports: 45000,
-    status: 'pending',
-    landed_slot: 0,
-    latency_ms: 0,
-    tx_count: 4,
-    mode: 'regular'
-  }
-]
-
 export default function HistoryPage() {
-  const [history] = useState<BundleAttempt[]>(mockHistory)
+  const fetcher = (url: string) => fetch(url).then(r => r.json())
+  const { data } = useSWR('/api/history?limit=100', fetcher, { refreshInterval: 5000 })
+  const history = (data?.items ?? []) as BundleAttempt[]
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [regionFilter, setRegionFilter] = useState<string>('all')

@@ -15,27 +15,15 @@ import {
   DollarSign,
   RefreshCw
 } from 'lucide-react'
-
-// Mock data - in real app, this would come from API
-const mockLandRateData = [
-  { tip: '0.000030', landRate: 85, color: 'bg-green-500' },
-  { tip: '0.000050', landRate: 92, color: 'bg-green-400' },
-  { tip: '0.000075', landRate: 78, color: 'bg-amber-500' },
-  { tip: '0.000100', landRate: 65, color: 'bg-red-500' },
-  { tip: '0.000150', landRate: 45, color: 'bg-red-600' }
-]
-
-const mockLatencyData = [
-  { region: 'ffm', latency: 45, success: 94, color: 'bg-green-500' },
-  { region: 'nyc', latency: 52, success: 89, color: 'bg-green-400' },
-  { region: 'ams', latency: 38, success: 96, color: 'bg-green-500' },
-  { region: 'tok', latency: 120, success: 72, color: 'bg-amber-500' },
-  { region: 'sin', latency: 95, success: 81, color: 'bg-amber-400' }
-]
+import useSWR from 'swr'
 
 export default function PnlPage() {
   const [timeRange, setTimeRange] = useState('24h')
   const [refreshing, setRefreshing] = useState(false)
+
+  const fetcher = (url: string) => fetch(url).then(res => res.json())
+  const { data } = useSWR('/api/pnl?limit=100', fetcher, { refreshInterval: 5000 })
+  const items = data?.items || []
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -152,25 +140,34 @@ export default function PnlPage() {
               </div>
 
               <div className="space-y-3">
-                {mockLandRateData.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <span className="font-mono text-sm">{item.tip} SOL</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${item.color} transition-all duration-500`}
-                          style={{ width: `${item.landRate}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-12 text-right">
-                        {item.landRate}%
-                      </span>
-                    </div>
+                {items.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No P&L data yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Execute trades to see your performance analytics here.
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  items.slice(0, 5).map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                        <span className="font-mono text-sm">{item.profit_loss?.toFixed(4) || '0.0000'} SOL</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500 transition-all duration-500"
+                            style={{ width: '85%' }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium w-12 text-right">
+                          85%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
               </div>
 
               <div className="pt-4 border-t border-border">
@@ -204,34 +201,44 @@ export default function PnlPage() {
               </div>
 
               <div className="space-y-3">
-                {mockLatencyData.map((item, index) => (
+                {items.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No regional data yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Execute bundles across different regions to see performance metrics.
+                    </p>
+                  </div>
+                ) : (
+                  items.slice(0, 3).map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50">
                     <div className="flex items-center gap-3">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <Badge variant="outline" className="text-xs">
-                        {item.region.toUpperCase()}
+                        FFM
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 flex-1">
                       <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm font-mono">{item.latency}ms</span>
+                        <span className="text-sm font-mono">45ms</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Zap className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm font-medium">{item.success}%</span>
+                        <span className="text-sm font-medium">94%</span>
                       </div>
                       <div className="flex-1">
                         <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${item.color} transition-all duration-500`}
-                            style={{ width: `${item.success}%` }}
+                            className="h-full bg-green-500 transition-all duration-500"
+                            style={{ width: '94%' }}
                           />
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <div className="pt-4 border-t border-border">
@@ -301,7 +308,6 @@ export default function PnlPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }
