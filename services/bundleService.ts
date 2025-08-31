@@ -802,30 +802,7 @@ export async function executeBundleRegular(
   }
 }
 
-/**
- * Execute transactions sequentially with fixed delay between each send
- */
-export async function executeBundleDelayed(
-  txs: Transaction[],
-  signers: (Signer | Keypair | null)[],
-  delayMs = 5000,
-  conn?: Connection,
-  options: {
-    walletAdapter?: {
-      publicKey: PublicKey
-      signTransaction: (tx: Transaction) => Promise<Transaction>
-    }
-    logger?: (msg: string) => void
-  } = {},
-): Promise<ExecutionResult> {
-  return executeBundleRegular(
-    txs,
-    signers,
-    conn ?? getConnection('confirmed'),
-    [delayMs, delayMs],
-    options,
-  )
-}
+
 
 export {
   validateToken,

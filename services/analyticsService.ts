@@ -36,21 +36,7 @@ export async function getLivePrices(): Promise<PriceData> {
   }
 }
 
-export async function calculatePnL(trades: Trade[]): Promise<number> {
-  try {
-    let pnl = 0
-    for (const trade of trades) {
-      pnl +=
-        trade.type === 'buy'
-          ? -trade.amount * trade.price
-          : trade.amount * trade.price
-    }
-    return pnl
-  } catch (error) {
-    logger.error('Failed to calculate PnL', { error })
-    return 0
-  }
-}
+
 
 export async function exportToCsv(trades: Trade[]): Promise<void> {
   const csv = trades
