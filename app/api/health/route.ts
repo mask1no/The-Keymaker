@@ -58,7 +58,9 @@ async function checkWS(): Promise<{ connected: boolean; latency_ms?: number }> {
     const startTime = Date.now()
     const connection = new Connection(rpc, 'confirmed')
     // Test WebSocket connection by subscribing to slot updates
-    const subscriptionId = await connection.onSlotChange(() => {})
+    const subscriptionId = await connection.onSlotChange(() => {
+      // Callback for slot changes - not needed for health check
+    })
     // Clean up the subscription immediately
     connection.removeSlotChangeListener(subscriptionId)
     const latency = Date.now() - startTime
