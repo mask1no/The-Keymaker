@@ -61,7 +61,19 @@ export default function BundlePage() {
   }
 
   // Bundle planner data - enforce max 5 tx per bundle
-  const bundlePartitions = [5, 5, 5, 5] // Max 5 tx per bundle, 4 bundles total
+  const partitions = (active: number, cap = 5) => {
+    const out: number[] = []
+    let left = active
+    while (left > 0) {
+      const take = Math.min(cap, left)
+      out.push(take)
+      left -= take
+    }
+    return out // e.g., 19 => [5,5,5,4]
+  }
+
+  const activeWallets = walletGroup === 'neo' ? 19 : 0 // Neo group has 19 active wallets
+  const bundlePartitions = partitions(activeWallets, 5) // Max 5 tx per bundle
   const totalTx = bundlePartitions.reduce((sum, count) => sum + count, 0)
 
   // Guardrails check - enforce max 5 tx per bundle
@@ -79,7 +91,7 @@ export default function BundlePage() {
     }
 
     return {
-      hasWallets: walletGroup === 'neo' && totalTx >= 1, // At least 1 wallet (Neo group active)
+      hasWallets: activeWallets >= 1, // At least 1 active wallet
       regionSelected: region !== '',
       txCountValid: totalTx > 0 && totalTx <= 20 && bundlesWithinLimit, // Max 5 tx per bundle, up to 20 total
       previewPassed: status === 'idle' || status === 'completed',
@@ -93,7 +105,7 @@ export default function BundlePage() {
   const canPreview = guards.hasWallets && guards.regionSelected && guards.txCountValid
 
   const getDisabledReason = () => {
-    if (!guards.hasWallets) return 'Neo wallet group required (≥1 active wallet)'
+    if (!guards.hasWallets) return 'Active wallets required (≥1 wallet in selected group)'
     if (!guards.regionSelected) return 'Region must be selected'
     if (!guards.txCountValid) return 'Bundle must have 1-20 tx total, max 5 tx per bundle'
     if (!guards.previewPassed) return 'Must preview bundle first'

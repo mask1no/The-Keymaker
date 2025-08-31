@@ -1,6 +1,6 @@
 'use client'
 
-import { StatusBento } from '@/components/ui/StatusBento'
+import { StatusBento } from '@/components/UI/StatusBento'
 import { Badge } from '@/components/UI/badge'
 
 interface TopbarProps {

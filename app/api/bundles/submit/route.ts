@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { PublicKey, VersionedTransaction, Connection, ComputeBudgetProgram, Transaction } from '@solana/web3.js'
 import { getServerRpc } from '@/lib/server/rpc'
-import { getJitoEndpoint } from '@/lib/network'
+import { bundlesUrl } from '@/lib/server/jito'
 import { logEvent } from '@/services/executionLogService'
 import { JITO_TIP_ACCOUNTS } from '@/constants'
 
@@ -126,7 +126,8 @@ export async function POST(req: Request) {
     }
 
     // Submit bundle via Jito JSON-RPC
-    const endpoint = `${getJitoEndpoint()}/api/v1/bundles`
+    const region = (body.region ?? 'ffm') as any
+    const endpoint = bundlesUrl(region, 'mainnet')
     const payload = {
       jsonrpc: '2.0',
       id: Date.now(),
