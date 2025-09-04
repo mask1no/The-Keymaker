@@ -22,6 +22,7 @@
     "verify": "ts-node --project tsconfig.node.json scripts/verifyApp.ts",
     "verify:js": "node dist/scripts/verifyApp.js",
     "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
+    "smoke": "tsx scripts/smokeBundle.ts",
     "postinstall": "node scripts/postinstall-safe.js",
     "browsers:install": "cross-env PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
     "prepare": "husky && husky install",
