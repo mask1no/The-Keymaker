@@ -2,18 +2,14 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
-import { Badge } from '@/components/UI/badge'
 import {
   BarChart3,
-  TrendingUp,
-  MapPin,
-  Zap,
   Clock,
   DollarSign,
-  RefreshCw
+  RefreshCw,
+  TrendingUp
 } from 'lucide-react'
 import useSWR from 'swr'
 
@@ -22,8 +18,7 @@ export default function PnlPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const fetcher = (url: string) => fetch(url).then(res => res.json())
-  const { data } = useSWR('/api/pnl?limit=100', fetcher, { refreshInterval: 5000 })
-  const items = data?.items || []
+  useSWR('/api/pnl?limit=100', fetcher, { refreshInterval: 5000 })
 
   const handleRefresh = async () => {
     setRefreshing(true)
