@@ -16,8 +16,8 @@ type SubmitBody = {
 }
 
 function hasStaticTipKey(vt: VersionedTransaction): boolean {
-  const msg = vt.message
-  const staticKeys: string[] = (msg.staticAccountKeys || []).map((k: PublicKey) => k.toBase58())
+  // @ts-ignore
+  const staticKeys: string[] = (vt.message.staticAccountKeys || []).map((k: PublicKey) => k.toBase58())
   const tipSet = new Set(JITO_TIP_ACCOUNTS)
   return staticKeys.some(k => tipSet.has(k))
 }
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as SubmitBody
     const region = (body.region || 'ffm').toLowerCase()
+    const tipLamports = Math.max(Number(body.tip_lamports || 0), 1000)
     const simulateOnly = !!body.simulateOnly
     const mode = (body.mode || 'regular') as 'regular' | 'instant' | 'delayed'
     const delaySec = Math.max(0, Math.min(120, Number(body.delay_seconds || 0)))

@@ -50,7 +50,7 @@ export async function getBundleStatuses(region: string, ids: string[]): Promise<
           transactions: Array.isArray(v.transactions) ? v.transactions : undefined,
         })
       }
-    } catch { /* ignore */ }
+    } catch {}
   }
 
   if (stale && ids.length) {
@@ -66,7 +66,7 @@ export async function getBundleStatuses(region: string, ids: string[]): Promise<
         })
       }
       cache.lastFetchMs = now
-    } catch { /* ignore */ }
+    } catch {}
   }
 
   return ids.map(id => cache.entries.get(id) || ({ bundle_id: id, status: 'pending' }))
