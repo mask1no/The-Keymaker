@@ -1,8 +1,9 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState, startTransition } from 'react'
+import { useState, startTransition, useMemo } from 'react'
 import { PublicKey } from '@solana/web3.js'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { Button } from '@/components/UI/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Badge } from '@/components/UI/badge'
@@ -24,6 +25,9 @@ type ExecutionMode = 'regular' | 'instant' | 'delayed'
 type BundleStatus = 'idle' | 'previewing' | 'executing' | 'completed' | 'failed'
 
 export default function BundlePage() {
+  // Wallet integration
+  const { publicKey, signTransaction, connected } = useWallet()
+
   // State management
   const [mode, setMode] = useState<ExecutionMode>('regular')
   const [delay, setDelay] = useState(30)
@@ -35,18 +39,20 @@ export default function BundlePage() {
 
   // Fetch health data for guardrails
   const { data: healthData } = useSWR('/api/health', (url) => fetch(url).then(res => res.json()), {
-    refreshInterval: 3000, // Match StatusBento refresh interval
+    refreshInterval: 30000, // Reduce frequency to improve performance
     revalidateOnFocus: false,
+    dedupingInterval: 5000,
   })
 
-  // Fetch tip data for calculations
-  const { data: tipData } = useSWR(`/api/jito/tipfloor?region=${region}`, (url) => fetch(url).then(res => res.json()), {
-    refreshInterval: 10000,
+  // Fetch tip data for calculations (optimize to reduce refetches)
+  const { data: tipData } = useSWR('/api/jito/tipfloor', (url) => fetch(url).then(res => res.json()), {
+    refreshInterval: 30000, // Reduce frequency and remove region dependency
     revalidateOnFocus: false,
+    dedupingInterval: 10000,
   })
 
-  // Calculate chosen tip based on mode
-  const getChosenTip = () => {
+  // Calculate chosen tip based on mode (memoized for performance)
+  const chosenTip = useMemo(() => {
     const baseTip = tipData?.p50 || tipData?.median || 0.000050
     switch (mode) {
       case 'regular':
@@ -101,10 +107,11 @@ export default function BundlePage() {
   }
 
   const guards = checkGuards()
-  const canExecute = Object.values(guards).every(Boolean)
+  const canExecute = Object.values(guards).every(Boolean) && connected
   const canPreview = guards.hasWallets && guards.regionSelected && guards.txCountValid
 
   const getDisabledReason = () => {
+    if (!connected) return 'Wallet must be connected'
     if (!guards.hasWallets) return 'Active wallets required (≥1 wallet in selected group)'
     if (!guards.regionSelected) return 'Region must be selected'
     if (!guards.txCountValid) return 'Bundle must have 1-20 tx total, max 5 tx per bundle'
@@ -122,23 +129,23 @@ export default function BundlePage() {
     try {
       // Build native v0 transactions with embedded tips
       const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
+      const { getConnection } = await import('@/lib/network')
 
-      // Create mock transaction configs for demonstration
-      // In real app, these would come from the transaction builder UI
-      const mockConfigs = [
+      // Create test transaction configs
+      const testRecipient = new PublicKey('11111111111111111111111111111112') // System program for testing
+
+      const transactionConfigs = [
         {
-          instructions: [createTestTransferInstruction(new PublicKey('11111111111111111111111111111112'), new PublicKey('11111111111111111111111111111112'), 1)],
-          signer: { publicKey: new PublicKey('11111111111111111111111111111112') } as any, // Mock signer
-          tipLamports: getChosenTip() / 1e9 * 1e9 // Convert SOL to lamports
+          instructions: [createTestTransferInstruction(testRecipient, testRecipient, 1)], // 1 lamport test transfer
+          signer: publicKey ? { publicKey, signTransaction } : { publicKey: testRecipient }, // Use real wallet if connected
+          tipLamports: Math.floor(chosenTip * LAMPORTS_PER_SOL), // Convert SOL to lamports
+          mode
         }
       ]
 
-      // Build transactions (mock for now - would use real connection)
-      const bundleTxs = await buildBundleTransactions(
-        { getLatestBlockhash: async () => ({ blockhash: 'mock', lastValidBlockHeight: 100 }) } as any,
-        mockConfigs,
-        mode
-      )
+      // Build transactions with real connection
+      const connection = getConnection()
+      const bundleTxs = await buildBundleTransactions(connection, transactionConfigs, mode)
 
       // Serialize for API submission
       const serializedBundle = serializeBundleTransactions(bundleTxs)
@@ -152,7 +159,7 @@ export default function BundlePage() {
           simulateOnly: true,
           txs_b64: serializedBundle.transactions,
           mode,
-          tip_lamports: Math.floor(getChosenTip() / 1e9 * 1e9)
+          tip_lamports: Math.floor(chosenTip / 1e9 * 1e9)
         })
       })
 
@@ -175,23 +182,23 @@ export default function BundlePage() {
     try {
       // Build native v0 transactions with embedded tips
       const { buildBundleTransactions, serializeBundleTransactions, createTestTransferInstruction } = await import('@/lib/transactionBuilder')
+      const { getConnection } = await import('@/lib/network')
 
-      // Create mock transaction configs for demonstration
-      // In real app, these would come from the transaction builder UI
-      const mockConfigs = [
+      // Create test transaction configs
+      const testRecipient = new PublicKey('11111111111111111111111111111112') // System program for testing
+
+      const transactionConfigs = [
         {
-          instructions: [createTestTransferInstruction(new PublicKey('11111111111111111111111111111112'), new PublicKey('11111111111111111111111111111112'), 1)],
-          signer: { publicKey: new PublicKey('11111111111111111111111111111112') } as any, // Mock signer
-          tipLamports: getChosenTip() / 1e9 * 1e9 // Convert SOL to lamports
+          instructions: [createTestTransferInstruction(testRecipient, testRecipient, 1)], // 1 lamport test transfer
+          signer: publicKey ? { publicKey, signTransaction } : { publicKey: testRecipient }, // Use real wallet if connected
+          tipLamports: Math.floor(chosenTip * LAMPORTS_PER_SOL), // Convert SOL to lamports
+          mode
         }
       ]
 
-      // Build transactions (mock for now - would use real connection)
-      const bundleTxs = await buildBundleTransactions(
-        { getLatestBlockhash: async () => ({ blockhash: 'mock', lastValidBlockHeight: 100 }) } as any,
-        mockConfigs,
-        mode
-      )
+      // Build transactions with real connection
+      const connection = getConnection()
+      const bundleTxs = await buildBundleTransactions(connection, transactionConfigs, mode)
 
       // Serialize for API submission
       const serializedBundle = serializeBundleTransactions(bundleTxs)
@@ -205,7 +212,8 @@ export default function BundlePage() {
           simulateOnly: false,
           txs_b64: serializedBundle.transactions,
           mode,
-          tip_lamports: Math.floor(getChosenTip() / 1e9 * 1e9)
+          delay_seconds: mode === 'delayed' ? delay : undefined,
+          tip_lamports: Math.floor(chosenTip / 1e9 * 1e9)
         })
       })
 
@@ -217,17 +225,44 @@ export default function BundlePage() {
 
         toast.success(`Bundle ${bundleId} submitted - ${serializedBundle.transactionCount} tx, ${(serializedBundle.totalTip / 1e9).toFixed(6)} SOL tip`)
 
-        // Mock status updates (in real app, this would come from status polling)
-        setTimeout(() => {
-          setBundleStatus('processing')
-          toast.info(`Bundle ${bundleId} processing...`)
-        }, 2000)
+        // Real status polling
+        let pollCount = 0
+        const pollStatus = async () => {
+          try {
+            const response = await fetch(`/api/bundles/status/batch`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bundle_ids: [bundleId], region }),
+            })
+            if (response.ok) {
+              const data = await response.json()
+              const bundle = data.statuses?.[0]
+              if (bundle) {
+                setBundleStatus(bundle.status)
+                if (bundle.status === 'landed') {
+                  setStatus('completed')
+                  toast.success(`Bundle ${bundleId} landed in slot ${bundle.landed_slot}!`)
+                  return
+                } else if (bundle.status === 'failed' || bundle.status === 'invalid') {
+                  setStatus('failed')
+                  toast.error(`Bundle ${bundleId} ${bundle.status}`)
+                  return
+                }
+              }
+            }
+          } catch (error) {
+            console.warn('Status poll failed:', error)
+          }
 
-        setTimeout(() => {
-          setBundleStatus('landed')
-          setStatus('completed')
-          toast.success(`Bundle ${bundleId} landed successfully!`)
-        }, 8000)
+          pollCount++
+          if (pollCount < 30) { // Poll for up to 30 iterations
+            setTimeout(pollStatus, 2000) // Poll every 2 seconds
+          }
+        }
+
+        setBundleStatus('processing')
+        toast(`Bundle ${bundleId} processing...`)
+        pollStatus()
       } else {
         throw new Error('Execution failed')
       }
@@ -245,6 +280,16 @@ export default function BundlePage() {
         <div>
           <h1 className="text-3xl font-bold">Bundle Engine</h1>
           <p className="text-muted-foreground">Execute bundled transactions with Jito integration</p>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant={connected ? 'default' : 'destructive'}>
+              {connected ? '🟢' : '🔴'} Wallet {connected ? 'Connected' : 'Disconnected'}
+            </Badge>
+            {connected && publicKey && (
+              <Badge variant="outline">
+                {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-4)}
+              </Badge>
+            )}
+          </div>
         </div>
         {bundleId && (
           <Badge variant={bundleStatus === 'landed' ? 'default' : 'secondary'}>
@@ -347,7 +392,7 @@ export default function BundlePage() {
             <div>
               <div className="text-xs text-muted-foreground mb-1">Chosen</div>
               <div className="text-sm font-mono text-primary font-semibold">
-                {getChosenTip().toFixed(6)} SOL
+                {chosenTip.toFixed(6)} SOL
               </div>
             </div>
           </div>

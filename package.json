@@ -21,6 +21,7 @@
     "test:production": "ts-node --project tsconfig.node.json scripts/testProduction.ts",
     "verify": "ts-node --project tsconfig.node.json scripts/verifyApp.ts",
     "verify:js": "node dist/scripts/verifyApp.js",
+    "verify:no-ellipsis": "node scripts/verifyNoEllipsis.js",
     "release": "ts-node --project tsconfig.node.json scripts/publishRelease.ts",
     "smoke": "tsx scripts/smokeBundle.ts",
     "postinstall": "node scripts/postinstall-safe.js",
@@ -102,6 +103,7 @@
     "dotenv": "^17.2.1",
     "eslint": "^8.5.0",
     "eslint-config-next": "^14.2.0",
+    "glob": "^11.0.3",
     "husky": "^8.0.0",
     "jest": "^30.0.5",
     "node-fetch": "^3.3.2",
@@ -113,6 +115,7 @@
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "ts-prune": "^0.10.3",
+    "tsx": "^4.20.5",
     "typescript": "^5.8.3"
   },
   "overrides": {

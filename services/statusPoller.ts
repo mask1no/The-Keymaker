@@ -1,103 +1,73 @@
-import { getJitoEndpoint } from '@/lib/network'
+// services/statusPoller.ts
+import { bundlesUrl } from '@/lib/server/jito'
 
 export type BundleInflightStatus = {
   bundle_id: string
   status: 'pending' | 'landed' | 'failed' | 'invalid' | 'unknown'
-  landed_slot?: number
+  landed_slot?: number | null
   transactions?: string[]
 }
 
-type RegionCache = {
-  lastFetchMs: number
-  entries: Map<string, BundleInflightStatus>
-  inflight: Set<string>
-}
-
+type RegionCache = { lastFetchMs: number; entries: Map<string, BundleInflightStatus> }
 const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
 
-function getRegionCache(region: string): RegionCache {
-  let cache = REGION_TO_CACHE.get(region)
-  if (!cache) {
-    cache = { lastFetchMs: 0, entries: new Map(), inflight: new Set() }
-    REGION_TO_CACHE.set(region, cache)
-  }
-  return cache
+function endpoint(region: string) {
+  return bundlesUrl((region as any) || 'ffm')
 }
 
-async function fetchStatuses(region: string, bundleIds: string[]): Promise<void> {
-  const cache = getRegionCache(region)
-  const endpoint = `${getJitoEndpoint()}/api/v1/bundles`
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (process.env.JITO_AUTH_TOKEN) headers['Authorization'] = `Bearer ${process.env.JITO_AUTH_TOKEN}`
-
-  const inflightIds = bundleIds.filter((id) => !cache.entries.get(id) || cache.entries.get(id)?.status === 'pending')
-  if (inflightIds.length === 0) return
-
-  // getInflightBundleStatuses
-  try {
-    const inflightReq = {
-      jsonrpc: '2.0',
-      id: Date.now(),
-      method: 'getInflightBundleStatuses',
-      params: [inflightIds],
-    }
-    const res = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(inflightReq), signal: AbortSignal.timeout(8000) })
-    const j = await res.json()
-    const arr: any[] = Array.isArray(j?.result) ? j.result : []
-    for (const st of arr) {
-      const id = st?.bundle_id || st?.id
-      const status: BundleInflightStatus = {
-        bundle_id: id,
-        status: (st?.status || 'unknown') as BundleInflightStatus['status'],
-        landed_slot: st?.landed_slot || 0,
-      }
-      cache.entries.set(id, status)
-    }
-  } catch {
-    // ignore network errors
-  }
-
-  // For landed bundles, fetch transactions once via getBundleStatuses
-  const landed = inflightIds.filter((id) => cache.entries.get(id)?.status === 'landed')
-  if (landed.length > 0) {
-    try {
-      const req = { jsonrpc: '2.0', id: Date.now() + 1, method: 'getBundleStatuses', params: [landed] }
-      const res = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(req), signal: AbortSignal.timeout(8000) })
-      const j = await res.json()
-      const arr: any[] = Array.isArray(j?.result) ? j.result : []
-      for (const st of arr) {
-        const id = st?.bundle_id || st?.id
-        const txs: string[] = Array.isArray(st?.transactions) ? st.transactions : []
-        const prev = cache.entries.get(id)
-        if (prev) {
-          cache.entries.set(id, { ...prev, transactions: txs })
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  cache.lastFetchMs = Date.now()
+async function jrpc<T>(region: string, method: string, params: any[], timeout = 8000): Promise<T> {
+  const res = await fetch(endpoint(region), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
+    signal: AbortSignal.timeout(timeout),
+  })
+  if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`)
+  const j = await res.json()
+  if (j?.error) throw new Error(j.error?.message || `Jito ${method} error`)
+  return j.result
 }
 
-export async function getBundleStatuses(region: string, bundleIds: string[], maxAgeMs = 5000): Promise<BundleInflightStatus[]> {
-  const cache = getRegionCache(region)
+function cacheFor(region: string): RegionCache {
+  let c = REGION_TO_CACHE.get(region)
+  if (!c) { c = { lastFetchMs: 0, entries: new Map() }; REGION_TO_CACHE.set(region, c) }
+  return c
+}
+
+export async function getBundleStatuses(region: string, ids: string[]): Promise<BundleInflightStatus[]> {
+  const cache = cacheFor(region)
   const now = Date.now()
-  const isStale = now - cache.lastFetchMs > maxAgeMs
-  if (isStale) {
-    // Fire and forget update; caller gets whatever is cached
-    fetchStatuses(region, bundleIds).catch(() => {
-      // Silent failure for background updates
-    })
-  } else {
-    // ensure all requested ids exist
-    const missing = bundleIds.filter((id) => !cache.entries.has(id))
-    if (missing.length) fetchStatuses(region, bundleIds).catch(() => {
-      // Silent failure for missing bundle status fetches
-    })
+  const stale = now - cache.lastFetchMs > 1500
+
+  if (ids.length) {
+    try {
+      const r: any = await jrpc(region, 'getBundleStatuses', [ids])
+      for (const v of (r?.value ?? [])) {
+        cache.entries.set(v.bundle_id, {
+          bundle_id: v.bundle_id,
+          status: String(v.status || 'unknown').toLowerCase() as any,
+          landed_slot: v.landed_slot ?? null,
+          transactions: Array.isArray(v.transactions) ? v.transactions : undefined,
+        })
+      }
+    } catch { /* ignore */ }
   }
-  return bundleIds.map((id) => cache.entries.get(id) || { bundle_id: id, status: 'pending' })
+
+  if (stale && ids.length) {
+    try {
+      const r2: any = await jrpc(region, 'getInflightBundleStatuses', [ids])
+      for (const v of (r2?.value ?? [])) {
+        const prev = cache.entries.get(v.bundle_id)
+        cache.entries.set(v.bundle_id, {
+          bundle_id: v.bundle_id,
+          status: String(v.status || prev?.status || 'unknown').toLowerCase() as any,
+          landed_slot: v.landed_slot ?? prev?.landed_slot ?? null,
+          transactions: prev?.transactions,
+        })
+      }
+      cache.lastFetchMs = now
+    } catch { /* ignore */ }
+  }
+
+  return ids.map(id => cache.entries.get(id) || ({ bundle_id: id, status: 'pending' }))
 }
-
-

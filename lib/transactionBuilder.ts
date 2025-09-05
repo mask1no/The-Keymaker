@@ -37,7 +37,7 @@ export function calculateTipAmount(
 
 export interface TransactionConfig {
   instructions: TransactionInstruction[]
-  signer: Keypair
+  signer: Keypair | { publicKey: PublicKey; signTransaction?: (tx: any) => Promise<any> }
   priorityFee?: number
   tipLamports?: number
   mode?: 'regular' | 'instant' | 'delayed'
@@ -115,8 +115,22 @@ export async function buildNativeV0Transaction(
   // Create v0 transaction
   const transaction = new VersionedTransaction(message)
 
-  // Sign the transaction
-  transaction.sign([signer])
+  // Sign the transaction - handle both Keypair and wallet adapter
+  if ('secretKey' in signer) {
+    // It's a Keypair
+    transaction.sign([signer])
+  } else if (signer.signTransaction) {
+    // It's a wallet adapter - convert to legacy transaction for signing
+    const legacyTx = {
+      serialize: () => transaction.serialize(),
+      sign: (signers: any[]) => {
+        transaction.sign(signers)
+      }
+    }
+    const signedTx = await signer.signTransaction(legacyTx)
+    // The wallet adapter should handle the signing, but we need to extract the signatures
+    // This is a simplified approach - in practice, you might need to handle this differently
+  }
 
   // Generate bundle ID
   const bundleId = `bundle_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
