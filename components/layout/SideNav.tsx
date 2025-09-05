@@ -9,7 +9,8 @@ import {
   Clock,
   LineChart,
   Settings,
-  BookOpen
+  BookOpen,
+  Wallet
 } from 'lucide-react'
 
 const navigation = [
@@ -18,6 +19,12 @@ const navigation = [
     href: '/bundle',
     icon: Boxes,
     description: 'Bundle transactions for execution'
+  },
+  {
+    name: 'Wallets',
+    href: '/wallets',
+    icon: Wallet,
+    description: 'Manage encrypted wallets'
   },
   {
     name: 'SPL Creator',

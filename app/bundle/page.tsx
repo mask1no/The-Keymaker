@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import { useState, startTransition, useMemo } from 'react'
 import { PublicKey } from '@solana/web3.js'
@@ -64,10 +63,10 @@ export default function BundlePage() {
       default:
         return baseTip
     }
-  }
+  }, [mode, tipData])
 
   // Bundle planner data - enforce max 5 tx per bundle
-  const partitions = (active: number, cap = 5) => {
+  const partitions = (active: number, cap = 5): number[] => {
     const out: number[] = []
     let left = active
     while (left > 0) {

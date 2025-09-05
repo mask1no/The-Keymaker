@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
@@ -18,14 +17,22 @@ export default function PnlPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const fetcher = (url: string) => fetch(url).then(res => res.json())
-  useSWR('/api/pnl?limit=100', fetcher, { refreshInterval: 5000 })
+  const { data } = useSWR('/api/pnl?limit=100', fetcher, {
+    refreshInterval: 10000,
+    revalidateOnFocus: false
+  })
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await fetch('/api/pnl?limit=100').then(res => res.json())
     setRefreshing(false)
   }
+
+  const items = data?.items || []
+  const totalProfit = items.length > 0 ? items.reduce((sum: number, item: any) => sum + (item.profit || 0), 0) : 0
+  const successRate = items.length > 0 ? (items.filter((item: any) => item.success).length / items.length * 100) : 0
+  const avgLatency = items.length > 0 ? items.reduce((sum: number, item: any) => sum + (item.latency_ms || 0), 0) / items.length : 0
+  const totalTips = items.length > 0 ? items.reduce((sum: number, item: any) => sum + (item.tip_lamports || 0) / 1_000_000_000, 0) : 0
 
   return (
     <div className="space-y-6">
@@ -70,9 +77,11 @@ export default function PnlPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Profit</p>
-                <p className="text-2xl font-bold text-green-400">+2.45 SOL</p>
+                <p className={`text-2xl font-bold ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(4)} SOL
+                </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-400" />
+              <TrendingUp className={`h-8 w-8 ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`} />
             </div>
           </CardContent>
         </Card>
@@ -82,7 +91,7 @@ export default function PnlPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold text-primary">87.3%</p>
+                <p className="text-2xl font-bold text-primary">{successRate.toFixed(1)}%</p>
               </div>
               <BarChart3 className="h-8 w-8 text-primary" />
             </div>
@@ -94,7 +103,7 @@ export default function PnlPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Avg Latency</p>
-                <p className="text-2xl font-bold text-amber-400">52ms</p>
+                <p className="text-2xl font-bold text-amber-400">{avgLatency.toFixed(0)}ms</p>
               </div>
               <Clock className="h-8 w-8 text-amber-400" />
             </div>
@@ -106,7 +115,7 @@ export default function PnlPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Tips</p>
-                <p className="text-2xl font-bold text-primary">0.0234 SOL</p>
+                <p className="text-2xl font-bold text-primary">{totalTips.toFixed(4)} SOL</p>
               </div>
               <DollarSign className="h-8 w-8 text-primary" />
             </div>
@@ -114,26 +123,38 @@ export default function PnlPage() {
         </Card>
       </div>
 
-      {/* Simple placeholder for complex sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-          <CardHeader>
-            <CardTitle>Analytics Coming Soon</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Advanced analytics will be available here.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-          <CardHeader>
-            <CardTitle>Performance Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Performance data will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Trade History */}
+      <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
+        <CardHeader>
+          <CardTitle>Recent Trades</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {items.length > 0 ? (
+            <div className="space-y-2">
+              {items.slice(0, 10).map((item: any, i: number) => (
+                <div key={i} className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                  <div>
+                    <div className="font-medium">{item.bundle_id?.slice(0, 8)}...</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(item.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-medium ${item.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {item.profit >= 0 ? '+' : ''}{item.profit?.toFixed(4) || '0.0000'} SOL
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {item.latency_ms || 0}ms • {item.success ? '✓' : '✗'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No metrics yet. Start trading to see your P&L data.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

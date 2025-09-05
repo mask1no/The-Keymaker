@@ -1,0 +1,132 @@
+[35m3[m[36m:[m[32m1[m[36m:[m[35mREADME.md[m[36m:[m[32m564[m[36m:[m🚀 Starting The Keymaker smoke test[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m2[m[36m:[m[35mREADME.md[m[36m:[m[32m571[m[36m:[m🔄 Fetching recent blockhash[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m3[m[36m:[m[35mREADME.md[m[36m:[m[32m572[m[36m:[m📝 Creating transaction 1: Self-transfer (1 lamport)[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m4[m[36m:[m[35mREADME.md[m[36m:[m[32m573[m[36m:[m💰 Creating transaction 2: Tip transfer (1000 lamports)[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m5[m[36m:[m[35mREADME.md[m[36m:[m[32m579[m[36m:[m🚀 Submitting bundle[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m6[m[36m:[m[35mREADME.md[m[36m:[m[32m582[m[36m:[m🔍 Monitoring bundle status[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m7[m[36m:[m[35mapp/api/proxy/route.ts[m[36m:[m[32m127[m[36m:[m          [1;31m[1;31m...[m[mprocess.env,
+[35m3[m[36m:[m[32m8[m[36m:[m[35mapp/bundle/page.tsx[m[36m:[m[32m225[m[36m:[m          toast(`Bundle ${bundleId} processing[1;31m[1;31m...[m[m`)
+[35m3[m[36m:[m[32m9[m[36m:[m[35mapp/bundle/page.tsx[m[36m:[m[32m424[m[36m:[m                    Previewing[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m10[m[36m:[m[35mapp/bundle/page.tsx[m[36m:[m[32m454[m[36m:[m                    Executing[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m11[m[36m:[m[35mapp/creator/page.tsx[m[36m:[m[32m216[m[36m:[m                Creating Token[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m12[m[36m:[m[35mapp/history/page.tsx[m[36m:[m[32m113[m[36m:[m                  placeholder="Search bundle ID or region[1;31m[1;31m...[m[m"
+[35m3[m[36m:[m[32m13[m[36m:[m[35mapp/home/page.tsx[m[36m:[m[32m236[m[36m:[m                  Master: {masterWallet.publicKey.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m14[m[36m:[m[35mapp/home/page.tsx[m[36m:[m[32m390[m[36m:[m                      {[[1;31m[1;31m...[m[mArray(3)].map((_, i) => (
+[35m3[m[36m:[m[32m15[m[36m:[m[35mapp/home/page.tsx[m[36m:[m[32m407[m[36m:[m                              {trade.token_address.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m16[m[36m:[m[35mapp/page.tsx[m[36m:[m[32m189[m[36m:[m                      <div className="text-xs text-muted-foreground mb-1">[1;31m[1;31m...[m[m</div>
+[35m3[m[36m:[m[32m17[m[36m:[m[35mapp/search/page.tsx[m[36m:[m[32m40[m[36m:[m              placeholder="Type to search actions[1;31m[1;31m...[m[m"
+[35m3[m[36m:[m[32m18[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m118[m[36m:[m      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m19[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m120[m[36m:[m        [1;31m[1;31m...[m[mprev[mode],
+[35m3[m[36m:[m[32m20[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m155[m[36m:[m            {saving ? 'Saving[1;31m[1;31m...[m[m' : 'Save Settings'}
+[35m3[m[36m:[m[32m21[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m231[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m22[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m245[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m23[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m347[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m24[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m366[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m25[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m389[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m26[m[36m:[m[35mapp/settings/page.tsx[m[36m:[m[32m407[m[36m:[m                      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m27[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m294[m[36m:[m                  setWizardData({ [1;31m[1;31m...[m[mwizardData, tokenName: e.target.value })
+[35m3[m[36m:[m[32m28[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m307[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m29[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m323[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m30[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m337[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m31[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m368[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m32[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m387[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m33[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m413[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m34[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m432[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m35[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m448[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m36[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m470[m[36m:[m                    [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m37[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m487[m[36m:[m                        [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m38[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m502[m[36m:[m                        [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m39[m[36m:[m[35mapp/wizard/page.tsx[m[36m:[m[32m517[m[36m:[m                        [1;31m[1;31m...[m[mwizardData,
+[35m3[m[36m:[m[32m40[m[36m:[m[35mcomponents/ActivityMonitor/ActivityMonitor.tsx[m[36m:[m[32m149[m[36m:[m        wallet: wallet.slice(0, 8) + '[1;31m[1;31m...[m[m' + wallet.slice(-4),
+[35m3[m[36m:[m[32m41[m[36m:[m[35mcomponents/ActivityMonitor/ActivityMonitor.tsx[m[36m:[m[32m156[m[36m:[m        const updated = [newActivity, [1;31m[1;31m...[m[mprev]
+[35m3[m[36m:[m[32m42[m[36m:[m[35mcomponents/ActivityMonitor/ActivityMonitor.tsx[m[36m:[m[32m236[m[36m:[m                  ? 'Waiting for activity[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m43[m[36m:[m[35mcomponents/Analytics/AnalyticsPanel.tsx[m[36m:[m[32m46[m[36m:[m        [1;31m[1;31m...[m[mprev.slice(-10),
+[35m3[m[36m:[m[32m44[m[36m:[m[35mcomponents/Analytics/AnalyticsPanel.tsx[m[36m:[m[32m127[m[36m:[m                    {wallet.slice(0, 8)}[1;31m[1;31m...[m[m{wallet.slice(-4)}:{' '}
+[35m3[m[36m:[m[32m45[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m223[m[36m:[m          toast.success('Prefetching fresh blockhash[1;31m[1;31m...[m[m')
+[35m3[m[36m:[m[32m46[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m263[m[36m:[m    setTransactions([[1;31m[1;31m...[m[mtransactions, newTx])
+[35m3[m[36m:[m[32m47[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m382[m[36m:[m        const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode([1;31m[1;31m...[m[mbytes))
+[35m3[m[36m:[m[32m48[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m511[m[36m:[m          const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode([1;31m[1;31m...[m[mbytes))
+[35m3[m[36m:[m[32m49[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m549[m[36m:[m          const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode([1;31m[1;31m...[m[mbytes))
+[35m3[m[36m:[m[32m50[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m818[m[36m:[m              Loading tip data[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m51[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m896[m[36m:[m                      {w.publicKey.slice(0, 6)}[1;31m[1;31m...[m[m{w.publicKey.slice(-4)}
+[35m3[m[36m:[m[32m52[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m1041[m[36m:[m                      {tx.tokenAddress.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m53[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m1109[m[36m:[m                            : [[1;31m[1;31m...[m[mprev, i],
+[35m3[m[36m:[m[32m54[m[36m:[m[35mcomponents/BundleEngine/BundleEngine.tsx[m[36m:[m[32m1158[m[36m:[m                    ? `${results.bundleId.slice(0, 12)}[1;31m[1;31m...[m[m`
+[35m3[m[36m:[m[32m55[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m60[m[36m:[m      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m56[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m61[m[36m:[m      [pubkey]: { [1;31m[1;31m...[m[mprev[pubkey], amount, loading: false },
+[35m3[m[36m:[m[32m57[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m90[m[36m:[m      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m58[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m91[m[36m:[m      [wallet.publicKey]: { [1;31m[1;31m...[m[mprev[wallet.publicKey], loading: true },
+[35m3[m[36m:[m[32m59[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m138[m[36m:[m        message: `Bought ${lamports / 1e9} SOL worth of tokens with ${wallet.publicKey.slice(0, 8)}[1;31m[1;31m...[m[m`,
+[35m3[m[36m:[m[32m60[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m143[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m61[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m147[m[36m:[m      toast.success(`Transaction: ${signature.slice(0, 8)}[1;31m[1;31m...[m[m`)
+[35m3[m[36m:[m[32m62[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m157[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m63[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m158[m[36m:[m        [wallet.publicKey]: { [1;31m[1;31m...[m[mprev[wallet.publicKey], loading: false },
+[35m3[m[36m:[m[32m64[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m197[m[36m:[m          message: `${pendingSell.wallet.publicKey.slice(0, 8)}[1;31m[1;31m...[m[m sold; tx ${
+[35m3[m[36m:[m[32m65[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m199[m[36m:[m          }[1;31m[1;31m...[m[m`,
+[35m3[m[36m:[m[32m66[m[36m:[m[35mcomponents/BundleEngine/ManualBuyTable.tsx[m[36m:[m[32m273[m[36m:[m                        {wallet.publicKey.slice(0, 4)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m67[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m184[m[36m:[m        'Deploying token and creating liquidity[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m68[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m220[m[36m:[m      updateStepStatus('fund', 'running', 'Funding sniper wallets[1;31m[1;31m...[m[m')
+[35m3[m[36m:[m[32m69[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m246[m[36m:[m        'Waiting for funds to settle[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m70[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m256[m[36m:[m        'Creating and executing bundle buys[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m71[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m305[m[36m:[m            'Executing instant bundle via Jito[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m72[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m331[m[36m:[m            'Executing stealth mode with delays[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m73[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m344[m[36m:[m              `Executing wallet ${i + 1}/${transactions.length}[1;31m[1;31m...[m[m`,
+[35m3[m[36m:[m[32m74[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m404[m[36m:[m          updateStepStatus('bundle', 'running', 'Executing regular bundle[1;31m[1;31m...[m[m')
+[35m3[m[36m:[m[32m75[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m492[m[36m:[m              [1;31m[1;31m...[m[mholdings[existingIndex],
+[35m3[m[36m:[m[32m76[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m495[m[36m:[m                [1;31m[1;31m...[m[mnew Set([
+[35m3[m[36m:[m[32m77[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m496[m[36m:[m                  [1;31m[1;31m...[m[mholdings[existingIndex].walletAddresses,
+[35m3[m[36m:[m[32m78[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m497[m[36m:[m                  [1;31m[1;31m...[m[mnewHolding.walletAddresses,
+[35m3[m[36m:[m[32m79[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m519[m[36m:[m          `Waiting ${autoSellDelay}s before selling[1;31m[1;31m...[m[m`,
+[35m3[m[36m:[m[32m80[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m525[m[36m:[m            `Waiting ${i}s before selling[1;31m[1;31m...[m[m`,
+[35m3[m[36m:[m[32m81[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m536[m[36m:[m          'Executing sells from sniper wallets[1;31m[1;31m...[m[m',
+[35m3[m[36m:[m[32m82[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m693[m[36m:[m                Executing[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m83[m[36m:[m[35mcomponents/ControlCenter/ControlCenter.tsx[m[36m:[m[32m714[m[36m:[m                  {mintAddress.slice(0, 8)}[1;31m[1;31m...[m[m{mintAddress.slice(-8)}
+[35m3[m[36m:[m[32m84[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m138[m[36m:[m      [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m85[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m140[m[36m:[m      errors: error ? [[1;31m[1;31m...[m[mprev.errors, error] : prev.errors,
+[35m3[m[36m:[m[32m86[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m204[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m87[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m230[m[36m:[m      toast.success(`Token launched! Mint: ${mintAddress.slice(0, 8)}[1;31m[1;31m...[m[m`)
+[35m3[m[36m:[m[32m88[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m284[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m89[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m285[m[36m:[m        txSignatures: [[1;31m[1;31m...[m[mprev.txSignatures, [1;31m[1;31m...[m[mresult],
+[35m3[m[36m:[m[32m90[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m387[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m91[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m389[m[36m:[m          [1;31m[1;31m...[m[mprev.txSignatures,
+[35m3[m[36m:[m[32m92[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m390[m[36m:[m          [1;31m[1;31m...[m[m(bundleResult.signatures || []),
+[35m3[m[36m:[m[32m93[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m445[m[36m:[m        [1;31m[1;31m...[m[mprev,
+[35m3[m[36m:[m[32m94[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m446[m[36m:[m        txSignatures: [[1;31m[1;31m...[m[mprev.txSignatures, [1;31m[1;31m...[m[msignatures],
+[35m3[m[36m:[m[32m95[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m523[m[36m:[m        return 'Launching Token[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m96[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m525[m[36m:[m        return 'Funding Wallets[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m97[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m527[m[36m:[m        return 'Bundling Buys[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m98[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m529[m[36m:[m        return 'Executing Sells[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m99[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m633[m[36m:[m                    setTokenConfig({ [1;31m[1;31m...[m[mtokenConfig, name: e.target.value })
+[35m3[m[36m:[m[32m100[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m644[m[36m:[m                    setTokenConfig({ [1;31m[1;31m...[m[mtokenConfig, symbol: e.target.value })
+[35m3[m[36m:[m[32m101[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m657[m[36m:[m                      [1;31m[1;31m...[m[mtokenConfig,
+[35m3[m[36m:[m[32m102[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m670[m[36m:[m                    setTokenConfig({ [1;31m[1;31m...[m[mtokenConfig, platform: e.target.value })
+[35m3[m[36m:[m[32m103[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m697[m[36m:[m                      [1;31m[1;31m...[m[mbundleConfig,
+[35m3[m[36m:[m[32m104[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m714[m[36m:[m                      [1;31m[1;31m...[m[mbundleConfig,
+[35m3[m[36m:[m[32m105[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m729[m[36m:[m                      [1;31m[1;31m...[m[mbundleConfig,
+[35m3[m[36m:[m[32m106[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m755[m[36m:[m                      [1;31m[1;31m...[m[msellConfig,
+[35m3[m[36m:[m[32m107[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m769[m[36m:[m                      [1;31m[1;31m...[m[msellConfig,
+[35m3[m[36m:[m[32m108[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m783[m[36m:[m                      [1;31m[1;31m...[m[msellConfig,
+[35m3[m[36m:[m[32m109[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m797[m[36m:[m                      [1;31m[1;31m...[m[msellConfig,
+[35m3[m[36m:[m[32m110[m[36m:[m[35mcomponents/ControlCenter/ControlPanel.tsx[m[36m:[m[32m920[m[36m:[m                        {sig.slice(0, 20)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m111[m[36m:[m[35mcomponents/ExecutionLog/ExecutionLog.tsx[m[36m:[m[32m276[m[36m:[m                            ? execution.bundle_id.slice(0, 8) + '[1;31m[1;31m...[m[m'
+[35m3[m[36m:[m[32m112[m[36m:[m[35mcomponents/ExecutionLog/ExecutionLog.tsx[m[36m:[m[32m322[m[36m:[m                        {record.wallet.slice(0, 6)}[1;31m[1;31m...[m[m{record.wallet.slice(-4)}
+[35m3[m[36m:[m[32m113[m[36m:[m[35mcomponents/ExecutionLog/ExecutionLog.tsx[m[36m:[m[32m325[m[36m:[m                        {record.token_address.slice(0, 6)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m114[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m94[m[36m:[m      [1;31m[1;31m...[m[mrows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+[35m3[m[36m:[m[32m115[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m181[m[36m:[m            {details.mint.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m116[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m198[m[36m:[m            {details.signature.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m117[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m210[m[36m:[m            {details.bundleId.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m118[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m297[m[36m:[m                  placeholder="Search logs[1;31m[1;31m...[m[m"
+[35m3[m[36m:[m[32m119[m[36m:[m[35mcomponents/ExecutionLog/LogsPanel.tsx[m[36m:[m[32m342[m[36m:[m              {[[1;31m[1;31m...[m[mArray(5)].map((_, i) => (
+[35m3[m[36m:[m[32m120[m[36m:[m[35mcomponents/FeeEstimator/FeeEstimator.tsx[m[36m:[m[32m180[m[36m:[m        <div className="text-sm text-gray-400">Calculating[1;31m[1;31m...[m[m</div>
+[35m3[m[36m:[m[32m121[m[36m:[m[35mcomponents/MemecoinCreator/TokenForm.tsx[m[36m:[m[32m223[m[36m:[m            [1;31m[1;31m...[m[mcurrentData,
+[35m3[m[36m:[m[32m122[m[36m:[m[35mcomponents/MemecoinCreator/TokenForm.tsx[m[36m:[m[32m434[m[36m:[m                  Deploying[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m123[m[36m:[m[35mcomponents/PnL/PnLPanel.tsx[m[36m:[m[32m274[m[36m:[m                        {wallet.wallet.slice(0, 8)}[1;31m[1;31m...[m[m{wallet.wallet.slice(-8)}
+[35m3[m[36m:[m[32m124[m[36m:[m[35mcomponents/SellConditions/ConditionBuilder.tsx[m[36m:[m[32m63[m[36m:[m    onConditionsChange([[1;31m[1;31m...[m[mconditions, newCondition])
+[35m3[m[36m:[m[32m125[m[36m:[m[35mcomponents/SellConditions/ConditionBuilder.tsx[m[36m:[m[32m68[m[36m:[m      conditions.map((c) => (c.id === id ? { [1;31m[1;31m...[m[mc, [1;31m[1;31m...[m[mupdates } : c)),
+[35m3[m[36m:[m[32m126[m[36m:[m[35mcomponents/SellMonitor/SellMonitor.tsx[m[36m:[m[32m293[m[36m:[m                      {holding.tokenAddress.slice(0, 8)}[1;31m[1;31m...[m[m
+[35m3[m[36m:[m[32m127[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m93[m[36m:[m                setLocalConfig({ [1;31m[1;31m...[m[mlocalConfig, bundleSize: value[0] })
+[35m3[m[36m:[m[32m128[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m105[m[36m:[m                  [1;31m[1;31m...[m[mlocalConfig,
+[35m3[m[36m:[m[32m129[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m138[m[36m:[m                [1;31m[1;31m...[m[mlocalConfig,
+[35m3[m[36m:[m[32m130[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m170[m[36m:[m                setLocalConfig({ [1;31m[1;31m...[m[mlocalConfig, retries: value[0] })
+[35m3[m[36m:[m[32m131[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m182[m[36m:[m                  [1;31m[1;31m...[m[mlocalConfig,
+[35m3[m[36m:[m[32m132[m[36m:[m[35mcomponents/Settings/BundleSettings.tsx[m[36m:[m[32m215[m[36m:[m                [1;31m[1;31m...[m[mlocalConfig,

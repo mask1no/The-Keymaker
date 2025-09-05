@@ -127,7 +127,7 @@ export async function buildNativeV0Transaction(
         transaction.sign(signers)
       }
     }
-    const signedTx = await signer.signTransaction(legacyTx)
+    await signer.signTransaction(legacyTx)
     // The wallet adapter should handle the signing, but we need to extract the signatures
     // This is a simplified approach - in practice, you might need to handle this differently
   }
