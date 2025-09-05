@@ -4,7 +4,16 @@ import * as Sentry from '@sentry/nextjs'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, symbol, supply, metadata } = body || {}
+    const {
+      name,
+      symbol,
+      supply,
+      metadata,
+      enableBundling,
+      buyAmount,
+      mode,
+      delay_seconds
+    } = body || {}
 
     if (!name || !symbol || !supply) {
       return NextResponse.json(
@@ -14,14 +23,54 @@ export async function POST(req: Request) {
     }
 
     const svc = await import('@/services/pumpfunService')
-    const mint = await svc.createToken(
+    const result = await svc.createToken(
       name,
       symbol,
       Number(supply),
       metadata || {},
     )
 
-    return NextResponse.json({ mint }, { status: 200 })
+    // If bundling is enabled, create and submit bundle
+    if (enableBundling && buyAmount > 0) {
+      try {
+        // Import the bundle service
+        const bundleSvc = await import('@/services/bundleService')
+
+        // Create a buy transaction for the new token
+        const buyTx = await bundleSvc.createBuyTransaction(
+          result.mint,
+          buyAmount,
+          mode || 'regular',
+          delay_seconds || 0
+        )
+
+        // Submit the bundle
+        const bundleResult = await bundleSvc.submitBundleWithMode(
+          [buyTx],
+          mode || 'regular',
+          delay_seconds || 0
+        )
+
+        return NextResponse.json({
+          mint: result.mint,
+          bundleId: bundleResult.bundleId,
+          mode: mode || 'regular',
+          delay: delay_seconds || 0,
+          buyAmount
+        }, { status: 200 })
+
+      } catch (bundleError: any) {
+        // Token was created but bundling failed - still return success with token
+        console.error('Bundling failed:', bundleError)
+        return NextResponse.json({
+          mint: result.mint,
+          bundleError: bundleError.message,
+          note: 'Token created but bundling failed'
+        }, { status: 200 })
+      }
+    }
+
+    return NextResponse.json({ mint: result.mint }, { status: 200 })
   } catch (error: any) {
     Sentry.captureException(error)
     return NextResponse.json(

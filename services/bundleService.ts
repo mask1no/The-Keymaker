@@ -804,6 +804,83 @@ export async function executeBundleRegular(
 
 
 
+// Create a buy transaction for a new token
+export async function createBuyTransaction(
+  mintAddress: string,
+  solAmount: number,
+  _mode: 'regular' | 'instant' | 'delayed' = 'regular',
+  _delaySeconds: number = 0
+): Promise<VersionedTransaction> {
+  const connection = getConnection()
+  // const _mint = new PublicKey(mintAddress) // Not used in current implementation
+
+  // Note: This is a placeholder implementation for Pump.fun buy transactions
+  // In production, you would need to:
+  // 1. Derive the bonding curve account for the token
+  // 2. Create the proper buy instruction data
+  // 3. Include all required accounts (user, mint, bonding curve, etc.)
+  // 4. Handle slippage and amount calculations
+
+  // For now, create a simple transfer to demonstrate the bundling flow
+  const tempKeypair = Keypair.generate() // In production, use actual user wallet
+  const transferInstruction = SystemProgram.transfer({
+    fromPubkey: tempKeypair.publicKey,
+    toPubkey: new PublicKey('11111111111111111111111111111112'), // Burn address as placeholder
+    lamports: Math.floor(solAmount * LAMPORTS_PER_SOL),
+  })
+
+  const message = new TransactionMessage({
+    payerKey: tempKeypair.publicKey,
+    recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+    instructions: [transferInstruction],
+  })
+
+  const transaction = new VersionedTransaction(message.compileToV0Message())
+  transaction.sign([tempKeypair]) // Sign with temp keypair
+
+  return transaction
+}
+
+// Submit bundle with mode and delay handling
+export async function submitBundleWithMode(
+  transactions: VersionedTransaction[],
+  mode: 'regular' | 'instant' | 'delayed' = 'regular',
+  delaySeconds: number = 0
+): Promise<{ bundleId: string; status: string }> {
+  // Convert transactions to base64
+  const txsB64 = transactions.map(tx => bs58.encode(tx.serialize()))
+
+  // Prepare bundle submission data
+  const submitData = {
+    region: 'ffm', // Default region
+    txs_b64: txsB64,
+    tip_lamports: 1000, // Default tip
+    mode,
+    delay_seconds: delaySeconds,
+  }
+
+  try {
+    const response = await fetch('/api/bundles/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submitData),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Bundle submission failed')
+    }
+
+    return {
+      bundleId: result.bundle_id,
+      status: 'submitted',
+    }
+  } catch (error: any) {
+    throw new Error(`Bundle submission failed: ${error.message}`)
+  }
+}
+
 export {
   validateToken,
   getBundleFees,
