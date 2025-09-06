@@ -24,28 +24,32 @@ export function useSystemStatus() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch('/api/health', {
+        // Check RPC directly
+        const rpcUrl = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+        const rpcCheck = await fetch(rpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getEpochInfo', params: [] }),
+          signal: AbortSignal.timeout(5000)
+        })
+
+        const rpcHealthy = rpcCheck.ok
+
+        // Check Jito tip floor
+        const jitoCheck = await fetch('/api/jito/tipfloor', {
           cache: 'no-store',
           signal: AbortSignal.timeout(5000)
         })
 
-        if (res.ok) {
-          const data = await res.json()
+        const jitoHealthy = jitoCheck.ok
 
-          setStatus({
-            rpc: data.rpc === 'healthy' || data.rpc === true ? 'healthy' : 'down',
-            ws: 'healthy', // WebSocket status - could be enhanced later
-            be: data.be === 'healthy' || data.jito === 'healthy' ? 'healthy' : 'down',
-            network: 'mainnet-beta', // Could be made dynamic from env
-            timestamp: data.timestamp
-          })
-        } else {
-          setStatus(prev => ({
-            ...prev,
-            rpc: 'down',
-            be: 'down'
-          }))
-        }
+        setStatus({
+          rpc: rpcHealthy ? 'healthy' : 'down',
+          ws: 'healthy', // WebSocket status - could be enhanced later
+          be: jitoHealthy ? 'healthy' : 'down',
+          network: 'mainnet-beta',
+          timestamp: new Date().toISOString()
+        })
       } catch (error) {
         setStatus(prev => ({
           ...prev,

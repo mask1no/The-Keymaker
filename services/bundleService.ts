@@ -26,7 +26,7 @@ import {
   createComputeBudgetInstructions,
   type PriorityLevel,
 } from '@/lib/priorityFee'
-import { logBundleExecution } from './executionLogService'
+// import { logBundleExecution } from './executionLogService' // Dynamic import below
 import { getConnection } from '@/lib/network'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
 
@@ -698,17 +698,23 @@ export async function executeBundle(
   )
 
   // Log to database
-  await logBundleExecution({
-    bundleId,
-    slot: slotTargeted,
-    signatures: signatures.filter((sig) => sig),
-    status:
-      successRate > 0.8 ? 'success' : successRate > 0 ? 'partial' : 'failed',
-    successCount,
-    failureCount: results.length - successCount,
-    usedJito,
-    executionTime,
-  })
+  try {
+    const { logBundleExecution } = await import('./executionLogService')
+    await logBundleExecution({
+      bundleId,
+      slot: slotTargeted,
+      signatures: signatures.filter((sig) => sig),
+      status:
+        successRate > 0.8 ? 'success' : successRate > 0 ? 'partial' : 'failed',
+      successCount,
+      failureCount: results.length - successCount,
+      usedJito,
+      executionTime,
+    })
+  } catch (e) {
+    // Logging failed, continue without error
+    console.warn('Failed to log bundle execution:', e)
+  }
 
   return {
     usedJito,

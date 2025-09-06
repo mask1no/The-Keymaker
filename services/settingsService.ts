@@ -1,7 +1,6 @@
 import 'server-only'
-import { open } from 'sqlite'
-import sqlite3 from 'sqlite3'
-import path from 'path'
+// import { open } from 'sqlite'
+// import sqlite3 from 'sqlite3' // Dynamic imports below
 import { toast } from 'react-hot-toast'
 
 export interface Settings {
@@ -38,7 +37,10 @@ const DEFAULT_SETTINGS: Settings = {
 }
 
 async function getDb() {
+  const path = (await import('path')).default
   const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+  const sqlite3 = (await import('sqlite3')).default
+  const { open } = await import('sqlite')
   return open({
     filename: dbPath,
     driver: sqlite3.Database,

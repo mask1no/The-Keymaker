@@ -3,7 +3,8 @@ import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token'
 import axios from 'axios'
 import * as Sentry from '@sentry/nextjs'
 import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
-import { logSellEvent } from './executionLogService'
+import { logger } from '@/lib/logger'
+// import { logSellEvent } from './executionLogService' // Dynamic import below
 
 export interface SellConditions {
   // PnL conditions
@@ -282,12 +283,12 @@ async function calculateDynamicSlippage(
       slippageBps = Math.min(5000, slippageBps * 1.5) // Max 50%
     }
 
-    console.log(
+    logger.info(
       `Dynamic slippage for ${amount} tokens: ${slippageBps} bps (price impact: ${priceImpact}%)`,
     )
     return slippageBps
   } catch (error) {
-    console.error('Error calculating dynamic slippage:', error)
+    logger.error('Error calculating dynamic slippage:', { error: error.message })
     // Fallback to conservative default
     return 300 // 3% default
   }
@@ -479,15 +480,21 @@ export async function sellToken(
       outputAmount / (actualAmount / Math.pow(10, quote.inputDecimals || 9))
 
     // Log execution
-    await logSellEvent({
-      wallet: params.wallet.publicKey.toBase58(),
-      tokenAddress: params.tokenMint.toBase58(),
-      amountSold: actualAmount.toString(),
-      solEarned: outputAmount,
-      marketCap: 0, // Would need to fetch this
-      profitPercentage: 0, // Would need entry price to calculate
-      transactionSignature: txSignature,
-    })
+    try {
+      const { logSellEvent } = await import('./executionLogService')
+      await logSellEvent({
+        wallet: params.wallet.publicKey.toBase58(),
+        tokenAddress: params.tokenMint.toBase58(),
+        amountSold: actualAmount.toString(),
+        solEarned: outputAmount,
+        marketCap: 0, // Would need to fetch this
+        profitPercentage: 0, // Would need entry price to calculate
+        transactionSignature: txSignature,
+      })
+    } catch (e) {
+      // Logging failed, continue without error
+      console.warn('Failed to log sell event:', e)
+    }
 
     return {
       success: true,

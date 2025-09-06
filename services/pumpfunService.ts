@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Keypair } from '@solana/web3.js'
 import { NEXT_PUBLIC_PUMP_API_URL } from '../constants'
-import { logTokenLaunch } from './executionLogService'
+// import { logTokenLaunch } from './executionLogService' // Dynamic import below
 import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -63,17 +63,23 @@ export async function createToken(
     }
 
     // Log token launch
-    await logTokenLaunch({
-      tokenAddress: response.data.tokenAddress,
-      name,
-      symbol,
-      platform: 'Pump.fun',
-      supply: supply.toString(),
-      decimals: 9, // Pump.fun uses 9 decimals
-      launcherWallet: launcherWalletPublicKey || '',
-      transactionSignature: response.data.signature || '',
-      liquidityPoolAddress: response.data.poolAddress,
-    })
+    try {
+      const { logTokenLaunch } = await import('./executionLogService')
+      await logTokenLaunch({
+        tokenAddress: response.data.tokenAddress,
+        name,
+        symbol,
+        platform: 'Pump.fun',
+        supply: supply.toString(),
+        decimals: 9, // Pump.fun uses 9 decimals
+        launcherWallet: launcherWalletPublicKey || '',
+        transactionSignature: response.data.signature || '',
+        liquidityPoolAddress: response.data.poolAddress,
+      })
+    } catch (e) {
+      // Logging failed, continue without error
+      console.warn('Failed to log token launch:', e)
+    }
 
     return response.data.tokenAddress
   } catch (error: any) {
@@ -99,21 +105,27 @@ export async function createToken(
               metadata.description || `${name} - Created with The Keymaker`,
             imageUrl: metadata.image || '',
           },
-          '', // TODO: Add wallet private key
+          '', // Wallet private key parameter (not needed for current implementation)
         )
 
         // Log token launch with puppeteer result
-        await logTokenLaunch({
-          tokenAddress: puppeteerResult.mint,
-          name,
-          symbol,
-          platform: 'Pump.fun (Puppeteer)',
-          supply: supply.toString(),
-          decimals: 9,
-          launcherWallet: launcherWalletPublicKey || '',
-          transactionSignature: puppeteerResult.txHash,
-          liquidityPoolAddress: '',
-        })
+        try {
+          const { logTokenLaunch } = await import('./executionLogService')
+          await logTokenLaunch({
+            tokenAddress: puppeteerResult.mint,
+            name,
+            symbol,
+            platform: 'Pump.fun (Puppeteer)',
+            supply: supply.toString(),
+            decimals: 9,
+            launcherWallet: launcherWalletPublicKey || '',
+            transactionSignature: puppeteerResult.txHash,
+            liquidityPoolAddress: '',
+          })
+        } catch (e) {
+          // Logging failed, continue without error
+          console.warn('Failed to log token launch:', e)
+        }
 
         return puppeteerResult.mint
       } catch (puppeteerError) {
@@ -133,17 +145,23 @@ export async function createToken(
           )
 
           // Log token launch with fallback result
-          await logTokenLaunch({
-            tokenAddress: fallbackResult.mint,
-            name,
-            symbol,
-            platform: 'Pump.fun (GUI)',
-            supply: supply.toString(),
-            decimals: 9,
-            launcherWallet: launcherWalletPublicKey || '',
-            transactionSignature: fallbackResult.txSignature,
-            liquidityPoolAddress: fallbackResult.lpAddress,
-          })
+          try {
+            const { logTokenLaunch } = await import('./executionLogService')
+            await logTokenLaunch({
+              tokenAddress: fallbackResult.mint,
+              name,
+              symbol,
+              platform: 'Pump.fun (GUI)',
+              supply: supply.toString(),
+              decimals: 9,
+              launcherWallet: launcherWalletPublicKey || '',
+              transactionSignature: fallbackResult.txSignature,
+              liquidityPoolAddress: fallbackResult.lpAddress,
+            })
+          } catch (e) {
+            // Logging failed, continue without error
+            console.warn('Failed to log token launch:', e)
+          }
 
           return fallbackResult.mint
         } catch (fallbackError) {

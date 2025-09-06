@@ -1,8 +1,7 @@
 import 'server-only'
 import { Connection } from '@solana/web3.js'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-import path from 'path'
+// import sqlite3 from 'sqlite3'
+// import { open } from 'sqlite' // Dynamic imports below
 import { getTokenPrice } from './jupiterService'
 
 interface PnLEntry {
@@ -41,6 +40,9 @@ interface TokenPnL {
 
 async function getDb() {
   try {
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
+    const path = (await import('path')).default
     return await open({
       filename: path.join(process.cwd(), 'data', 'analytics.db'),
       driver: sqlite3.Database,

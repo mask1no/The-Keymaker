@@ -1,4 +1,3 @@
-// services/statusPoller.ts
 import { bundlesUrl } from '@/lib/server/jito'
 
 export type BundleInflightStatus = {
@@ -11,9 +10,7 @@ export type BundleInflightStatus = {
 type RegionCache = { lastFetchMs: number; entries: Map<string, BundleInflightStatus> }
 const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
 
-function endpoint(region: string) {
-  return bundlesUrl((region as any) || 'ffm')
-}
+function endpoint(region: string) { return bundlesUrl((region as any) || 'ffm') }
 
 async function jrpc<T>(region: string, method: string, params: any[], timeout = 8000): Promise<T> {
   const res = await fetch(endpoint(region), {

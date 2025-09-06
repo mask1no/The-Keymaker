@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
         // Create a buy transaction for the new token
         const buyTx = await bundleSvc.createBuyTransaction(
-          result.mint,
+          result,
           buyAmount,
           mode || 'regular',
           delay_seconds || 0
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         )
 
         return NextResponse.json({
-          mint: result.mint,
+          mint: result,
           bundleId: bundleResult.bundleId,
           mode: mode || 'regular',
           delay: delay_seconds || 0,
@@ -63,14 +63,14 @@ export async function POST(req: Request) {
         // Token was created but bundling failed - still return success with token
         console.error('Bundling failed:', bundleError)
         return NextResponse.json({
-          mint: result.mint,
+          mint: result,
           bundleError: bundleError.message,
           note: 'Token created but bundling failed'
         }, { status: 200 })
       }
     }
 
-    return NextResponse.json({ mint: result.mint }, { status: 200 })
+    return NextResponse.json({ mint: result }, { status: 200 })
   } catch (error: any) {
     Sentry.captureException(error)
     return NextResponse.json(

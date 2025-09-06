@@ -1,12 +1,14 @@
 import 'server-only'
 // server-only: load sqlite3 where supported; routes will catch and fallback
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-import path from 'path'
+// import sqlite3 from 'sqlite3'
+// import { open } from 'sqlite' // Dynamic imports below
 
 async function getDb() {
+  const path = (await import('path')).default
   const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
   try {
+    const sqlite3 = (await import('sqlite3')).default
+    const { open } = await import('sqlite')
     return await open({ filename: dbPath, driver: sqlite3.Database })
   } catch {
     // No-op adapter to avoid crashing in dev without native binding

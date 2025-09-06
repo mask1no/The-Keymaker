@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { PublicKey } from '@solana/web3.js'
 import useSWR from 'swr'
 
 type Mode = 'regular' | 'instant' | 'delayed'

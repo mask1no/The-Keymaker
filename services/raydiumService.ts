@@ -15,7 +15,8 @@ import {
 } from '@solana/spl-token'
 import { SOL_MINT_ADDRESS } from '../constants'
 import { getConnection } from '@/lib/network'
-import { logTokenLaunch } from './executionLogService'
+// import { logTokenLaunch } from './executionLogService' // Dynamic import below
+import { logger } from '@/lib/logger'
 import bs58 from 'bs58'
 
 type TokenMetadata = {
@@ -112,16 +113,22 @@ export async function createToken(
     await connection.confirmTransaction(mintSig, 'confirmed')
 
     // Log token launch
-    await logTokenLaunch({
-      tokenAddress: mint.publicKey.toBase58(),
-      name,
-      symbol,
-      platform: 'Raydium',
-      supply: supply.toString(),
-      decimals,
-      launcherWallet: authority.publicKey.toBase58(),
-      transactionSignature: mintSig,
-    })
+    try {
+      const { logTokenLaunch } = await import('./executionLogService')
+      await logTokenLaunch({
+        tokenAddress: mint.publicKey.toBase58(),
+        name,
+        symbol,
+        platform: 'Raydium',
+        supply: supply.toString(),
+        decimals,
+        launcherWallet: authority.publicKey.toBase58(),
+        transactionSignature: mintSig,
+      })
+    } catch (e) {
+      // Logging failed, continue without error
+      console.warn('Failed to log token launch:', e)
+    }
 
     return mint.publicKey.toBase58()
   } catch (error) {
@@ -136,7 +143,7 @@ export async function createLiquidityPool(
   tokenAmount: number,
 ): Promise<string> {
   try {
-    console.log('Creating Raydium liquidity pool:', {
+    logger.info('Creating Raydium liquidity pool:', {
       token: tokenMint,
       solAmount,
       tokenAmount,
@@ -162,7 +169,7 @@ export async function createLiquidityPool(
     const poolId = bs58.encode(poolSeed.slice(0, 32))
 
     // Log the pool creation details
-    console.log('Raydium pool created (simplified):', {
+    logger.info('Raydium pool created (simplified):', {
       poolId,
       tokenMint,
       solAmount,

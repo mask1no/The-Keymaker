@@ -1,8 +1,8 @@
 // Defer sqlite imports to runtime to avoid native bindings during unit tests
 // and to prevent loading on mere import.
 // Do not import sqlite3 at module scope.
-import { open } from 'sqlite'
-import path from 'path'
+// import { open } from 'sqlite'
+// import path from 'path'
 
 interface BundleExecution {
   bundleId?: string
@@ -60,10 +60,13 @@ interface PnLRecord {
 async function getDb(): Promise<any> {
   try {
     const sqlite3 = (await import('sqlite3')).default
-    return open({
+    const { open } = await import('sqlite')
+    const path = (await import('path')).default
+    const db = await open({
       filename: path.join(process.cwd(), 'data', 'analytics.db'),
       driver: sqlite3.Database,
     })
+    return db
   } catch {
     // Fallback: lightweight in-memory no-op DB to keep UI functional in dev
     const noop = async () => undefined

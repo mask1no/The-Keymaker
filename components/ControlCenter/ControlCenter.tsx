@@ -315,7 +315,6 @@ export function ControlCenter() {
               connection,
               tipAmount: tipAmount * LAMPORTS_PER_SOL,
               logger: (msg) => {
-                console.log(`[Bundle] ${msg}`)
                 updateStepStatus('bundle', 'running', msg)
               },
             },

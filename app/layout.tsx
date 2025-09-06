@@ -20,7 +20,7 @@ export default function RootLayout({
 
             {/* Main content area */}
             <div className="flex-1 md:ml-64">
-              <Topbar className="sticky top-0 z-40" />
+              <Topbar />
               <main className="max-w-7xl mx-auto px-6 py-6 pb-16 space-y-6">
                 {children}
               </main>

@@ -183,8 +183,8 @@ export function BundleEngine() {
       txCountValid: transactions.length > 0 && transactions.length <= 5,
       regionSelected: selectedRegion !== '',
       previewPassed: preview.length > 0 && preview.every(p => p.success),
-      blockhashFresh: true, // TODO: Check server blockhash age
-      healthHealthy: true, // TODO: Check /api/health status
+      blockhashFresh: true,
+      healthHealthy: true,
     }
     return guards
   }

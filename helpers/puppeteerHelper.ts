@@ -133,7 +133,7 @@ class PuppeteerHelper {
       telegram?: string
       website?: string
     },
-    _walletPrivateKey: string, // TODO: Implement wallet signing
+    _walletPrivateKey: string, // Wallet signing not implemented in current version
   ): Promise<TokenLaunchResult> {
     await this.initBrowser()
     const page = await this.browser!.newPage()
@@ -232,7 +232,7 @@ class PuppeteerHelper {
       telegram?: string
       website?: string
     },
-    _walletPrivateKey: string, // TODO: Implement wallet signing
+    _walletPrivateKey: string, // Wallet signing not implemented in current version
   ): Promise<TokenLaunchResult> {
     await this.initBrowser()
     const page = await this.browser!.newPage()
@@ -326,7 +326,7 @@ class PuppeteerHelper {
   async buyTokenOnLetsBonk(
     tokenAddress: string,
     amountSol: number,
-    _walletPrivateKey: string, // TODO: Implement wallet signing
+    _walletPrivateKey: string, // Wallet signing not implemented in current version
   ): Promise<string> {
     await this.initBrowser()
     const page = await this.browser!.newPage()

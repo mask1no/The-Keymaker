@@ -39,7 +39,6 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as SubmitBody
     const region = (body.region || 'ffm').toLowerCase()
-    const tipLamports = Math.max(Number(body.tip_lamports || 0), 1000)
     const simulateOnly = !!body.simulateOnly
     const mode = (body.mode || 'regular') as 'regular' | 'instant' | 'delayed'
     const delaySec = Math.max(0, Math.min(120, Number(body.delay_seconds || 0)))
@@ -49,7 +48,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'txs_b64 must contain 1..5 base64 v0 transactions' }, { status: 400 })
     }
 
-    const decoded: VersionedTransaction[] = txs_b64.map(b64 => VersionedTransaction.deserialize(Buffer.from(b64, 'base64')))
+    const decoded = txs_b64.map(b64 => VersionedTransaction.deserialize(Buffer.from(b64, 'base64')))
     if (!hasStaticTipKey(decoded[decoded.length - 1])) {
       return NextResponse.json({ error: 'Tip account must be in static keys of the last tx (no ALT)' }, { status: 400 })
     }
@@ -59,7 +58,9 @@ export async function POST(req: Request) {
 
     if (simulateOnly) {
       const sim = await connection.simulateTransaction(decoded[0], { sigVerify: false })
-      if (sim.value.err) return NextResponse.json({ error: `Simulation failed: ${JSON.stringify(sim.value.err)}` }, { status: 400 })
+      if (sim.value.err) {
+        return NextResponse.json({ error: `Simulation failed: ${JSON.stringify(sim.value.err)}` }, { status: 400 })
+      }
       return NextResponse.json({ ok: true, simulation: sim.value })
     }
 

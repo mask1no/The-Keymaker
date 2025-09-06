@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Keypair } from '@solana/web3.js'
-import { logTokenLaunch } from './executionLogService'
+// import { logTokenLaunch } from './executionLogService' // Dynamic import below
 import { retryWithSlippage, DEFAULT_SLIPPAGE_CONFIGS } from './slippageRetry'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -57,17 +57,23 @@ export async function createToken(
     }
 
     // Log token launch
-    await logTokenLaunch({
-      tokenAddress: result.mintAddress,
-      name,
-      symbol,
-      platform: 'letsbonk.fun',
-      supply: supply.toString(),
-      decimals: result.decimals || 6,
-      launcherWallet: payer.publicKey.toBase58(),
-      transactionSignature: result.txSignature || '',
-      liquidityPoolAddress: result.poolAddress,
-    })
+    try {
+      const { logTokenLaunch } = await import('./executionLogService')
+      await logTokenLaunch({
+        tokenAddress: result.mintAddress,
+        name,
+        symbol,
+        platform: 'letsbonk.fun',
+        supply: supply.toString(),
+        decimals: result.decimals || 6,
+        launcherWallet: payer.publicKey.toBase58(),
+        transactionSignature: result.txSignature || '',
+        liquidityPoolAddress: result.poolAddress,
+      })
+    } catch (e) {
+      // Logging failed, continue without error
+      console.warn('Failed to log token launch:', e)
+    }
 
     return result.mintAddress
   } catch (error: any) {
@@ -100,17 +106,23 @@ export async function createToken(
         )
 
         // Log token launch with puppeteer result
-        await logTokenLaunch({
-          tokenAddress: puppeteerResult.mint,
-          name,
-          symbol,
-          platform: 'LetsBonk (Puppeteer)',
-          supply: supply.toString(),
-          decimals: 6,
-          launcherWallet: payer.publicKey.toBase58(),
-          transactionSignature: puppeteerResult.txHash || '',
-          liquidityPoolAddress: puppeteerResult.lp || '',
-        })
+        try {
+          const { logTokenLaunch } = await import('./executionLogService')
+          await logTokenLaunch({
+            tokenAddress: puppeteerResult.mint,
+            name,
+            symbol,
+            platform: 'LetsBonk (Puppeteer)',
+            supply: supply.toString(),
+            decimals: 6,
+            launcherWallet: payer.publicKey.toBase58(),
+            transactionSignature: puppeteerResult.txHash || '',
+            liquidityPoolAddress: puppeteerResult.lp || '',
+          })
+        } catch (e) {
+          // Logging failed, continue without error
+          console.warn('Failed to log token launch:', e)
+        }
 
         return puppeteerResult.mint
       } catch (puppeteerError) {
