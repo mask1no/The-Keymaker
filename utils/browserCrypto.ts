@@ -1,5 +1,4 @@
 const enc = new TextEncoder()
-const dec = new TextDecoder()
 
 function b64(a:ArrayBuffer){ return btoa(String.fromCharCode(...new Uint8Array(a))) }
 function ub64(s:string){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)) }

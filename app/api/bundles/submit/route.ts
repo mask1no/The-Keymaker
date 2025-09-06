@@ -16,7 +16,6 @@ type SubmitBody = {
 }
 
 function hasStaticTipKey(vt: VersionedTransaction): boolean {
-  // @ts-ignore
   const staticKeys: string[] = (vt.message.staticAccountKeys || []).map((k: PublicKey) => k.toBase58())
   const tipSet = new Set(JITO_TIP_ACCOUNTS)
   return staticKeys.some(k => tipSet.has(k))
