@@ -39,12 +39,18 @@ async function checkDatabase(): Promise<boolean> {
   }
 }
 
-async function checkRPC(): Promise<{ connected: boolean; slot?: number; latency_ms?: number }> {
+async function checkRPC(): Promise<{
+  connected: boolean
+  slot?: number
+  latency_ms?: number
+}> {
   try {
     const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
     const startTime = Date.now()
     const connection = new Connection(rpc, 'confirmed')
-    const slot = await connection.getLatestBlockhash('processed').then(()=>connection.getSlot())
+    const slot = await connection
+      .getLatestBlockhash('processed')
+      .then(() => connection.getSlot())
     const latency = Date.now() - startTime
     return { connected: true, slot, latency_ms: latency }
   } catch {
@@ -117,11 +123,16 @@ export async function GET() {
       checkRPC(),
       checkWS(),
       checkJito(),
-      (async()=>{
-        try{
-          const res = await fetch(`${NEXT_PUBLIC_JITO_ENDPOINT}/api/v1/bundles/tip_floor`,{signal:AbortSignal.timeout(4000)})
+      (async () => {
+        try {
+          const res = await fetch(
+            `${NEXT_PUBLIC_JITO_ENDPOINT}/api/v1/bundles/tip_floor`,
+            { signal: AbortSignal.timeout(4000) },
+          )
           return res.ok
-        }catch{return false}
+        } catch {
+          return false
+        }
       })(),
     ])
 

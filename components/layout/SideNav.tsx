@@ -10,7 +10,7 @@ import {
   LineChart,
   Settings,
   BookOpen,
-  Wallet
+  Wallet,
 } from 'lucide-react'
 
 const navigation = [
@@ -18,44 +18,44 @@ const navigation = [
     name: 'Bundler',
     href: '/bundle',
     icon: Boxes,
-    description: 'Bundle transactions for execution'
+    description: 'Bundle transactions for execution',
   },
   {
     name: 'Wallets',
     href: '/wallets',
     icon: Wallet,
-    description: 'Manage encrypted wallets'
+    description: 'Manage encrypted wallets',
   },
   {
     name: 'SPL Creator',
     href: '/creator',
     icon: Sparkles,
-    description: 'Create SPL tokens'
+    description: 'Create SPL tokens',
   },
   {
     name: 'Trade History',
     href: '/history',
     icon: Clock,
-    description: 'View execution history'
+    description: 'View execution history',
   },
   {
     name: 'P&L',
     href: '/pnl',
     icon: LineChart,
-    description: 'Profit & Loss analytics'
+    description: 'Profit & Loss analytics',
   },
   {
     name: 'Settings',
     href: '/settings',
     icon: Settings,
-    description: 'Application settings'
+    description: 'Application settings',
   },
   {
     name: 'Guide',
     href: '/guide',
     icon: BookOpen,
-    description: 'User guide and glossary'
-  }
+    description: 'User guide and glossary',
+  },
 ]
 
 interface SideNavProps {
@@ -82,7 +82,7 @@ export function SideNav({ className }: SideNavProps) {
               'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background',
               isActive
                 ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
             )}
             aria-current={isActive ? 'page' : undefined}
             title={item.description}

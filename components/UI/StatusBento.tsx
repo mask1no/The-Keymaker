@@ -37,7 +37,7 @@ const StatusCard = ({ item }: { item: StatusItem }) => {
     <div
       className={cn(
         'flex items-center gap-2 rounded-2xl border p-3 transition-all duration-200',
-        getStatusColor(item.state)
+        getStatusColor(item.state),
       )}
     >
       <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -56,7 +56,7 @@ export function StatusBento() {
     rpc: 'down',
     ws: 'down',
     be: 'down',
-    network: 'mainnet-beta'
+    network: 'mainnet-beta',
   })
 
   const [loading, setLoading] = useState(true)
@@ -66,23 +66,27 @@ export function StatusBento() {
       try {
         const response = await fetch('/api/health', {
           cache: 'no-store',
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(5000),
         })
 
         if (response.ok) {
           const data = await response.json()
           setStatus({
-            rpc: data.rpc === 'healthy' || data.rpc === true ? 'healthy' : 'down',
+            rpc:
+              data.rpc === 'healthy' || data.rpc === true ? 'healthy' : 'down',
             ws: 'healthy', // Placeholder - could be expanded later
-            be: data.be === 'healthy' || data.jito === 'healthy' ? 'healthy' : 'down',
+            be:
+              data.be === 'healthy' || data.jito === 'healthy'
+                ? 'healthy'
+                : 'down',
             network: 'mainnet-beta', // Could be made dynamic
-            timestamp: data.timestamp
+            timestamp: data.timestamp,
           })
         } else {
-          setStatus(prev => ({ ...prev, rpc: 'down', be: 'down' }))
+          setStatus((prev) => ({ ...prev, rpc: 'down', be: 'down' }))
         }
       } catch (error) {
-        setStatus(prev => ({ ...prev, rpc: 'down', be: 'down' }))
+        setStatus((prev) => ({ ...prev, rpc: 'down', be: 'down' }))
       } finally {
         setLoading(false)
       }
@@ -98,23 +102,23 @@ export function StatusBento() {
     {
       label: 'RPC',
       state: status.rpc,
-      icon: Cpu
+      icon: Cpu,
     },
     {
       label: 'WS',
       state: status.ws,
-      icon: Network
+      icon: Network,
     },
     {
       label: 'Jito',
       state: status.be,
-      icon: Rocket
+      icon: Rocket,
     },
     {
       label: status.network.toUpperCase(),
       state: 'healthy' as StatusState, // Network status is always healthy if connected
-      icon: Globe
-    }
+      icon: Globe,
+    },
   ]
 
   if (loading) {

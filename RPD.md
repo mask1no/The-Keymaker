@@ -9,18 +9,22 @@ The Keymaker is a **production-grade Solana bundler application** engineered for
 ## Vision & Mission
 
 ### Product Vision
+
 The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
+
 - **Military-grade reliability**
 - **Crystal-clear guardrails**
 - **Transparent health monitoring**
 - **Lightning-fast workflows**
 
 ### Mission Statement
+
 To provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
 
 ## Product Objectives
 
 ### Core Objectives
+
 - **Zero Mock Production**: Complete elimination of mock data - all operations execute on mainnet
 - **Enterprise Reliability**: 99.9% uptime with comprehensive error handling and recovery
 - **MEV Optimization**: Intelligent tip floor enforcement and bundle success maximization
@@ -28,6 +32,7 @@ To provide institutional-grade Solana execution tools that eliminate operational
 - **Performance Excellence**: Sub-3-second bundle execution with intelligent failover
 
 ### Success Metrics
+
 - **Bundle Success Rate**: ≥ 85% landing rate
 - **System Availability**: ≥ 99.9% uptime
 - **Average Latency**: ≤ 3 seconds per bundle
@@ -59,19 +64,20 @@ To provide institutional-grade Solana execution tools that eliminate operational
 
 ### Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Frontend** | Next.js 14.2, React 18, TypeScript | Modern web application framework |
-| **UI Framework** | Tailwind CSS, shadcn/ui | Responsive design system |
-| **State Management** | Zustand | Lightweight client state |
-| **Database** | SQLite | Analytics and transaction history |
-| **Security** | AES-256-GCM, PBKDF2 | Military-grade encryption |
-| **Monitoring** | Sentry | Error tracking and performance |
-| **Deployment** | Docker, Kubernetes | Container orchestration |
+| Component            | Technology                         | Purpose                           |
+| -------------------- | ---------------------------------- | --------------------------------- |
+| **Frontend**         | Next.js 14.2, React 18, TypeScript | Modern web application framework  |
+| **UI Framework**     | Tailwind CSS, shadcn/ui            | Responsive design system          |
+| **State Management** | Zustand                            | Lightweight client state          |
+| **Database**         | SQLite                             | Analytics and transaction history |
+| **Security**         | AES-256-GCM, PBKDF2                | Military-grade encryption         |
+| **Monitoring**       | Sentry                             | Error tracking and performance    |
+| **Deployment**       | Docker, Kubernetes                 | Container orchestration           |
 
 ## Core Workflows
 
 ### 1) Standard Bundle Execution
+
 **Create → Preview → Execute**
 
 ```
@@ -84,6 +90,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 ```
 
 #### Detailed Flow:
+
 1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
 2. **Preview**: Build native v0 transactions, simulate on server (`simulateOnly: true`)
 3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
@@ -91,6 +98,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 5. **Monitor**: Status updates from server poller with real-time feedback
 
 ### 2) Delayed Bundle Execution
+
 **Arm → Prefetch → Rebuild → Submit**
 
 ```
@@ -103,6 +111,7 @@ Operator Arms Timer → T-5s: Blockhash → T-1s: Rebuild → T=0: Submit
 ```
 
 ### 3) Smoke Testing Workflow
+
 **Validate → Test → Verify**
 
 ```
@@ -133,6 +142,7 @@ Health Sources → Aggregation → Caching → Distribution
 #### `/api/health` - System Health Endpoint
 
 **Response Structure:**
+
 ```json
 {
   "ok": true,
@@ -167,6 +177,7 @@ Health Sources → Aggregation → Caching → Distribution
 ```
 
 #### Health Thresholds
+
 - **Healthy**: All systems operational, latency < 400ms
 - **Degraded**: Non-critical system issues, latency 400-6000ms
 - **Down**: Critical system failure, latency > 6000ms or connection failed
@@ -185,12 +196,14 @@ System Health → UI State → User Actions → System Response
 ## UI/UX Design System
 
 ### Design Principles
+
 - **Clarity First**: Every action and state must be crystal clear
 - **Progressive Disclosure**: Show essential info first, details on demand
 - **Error Prevention**: Guardrails and validation prevent user errors
 - **Performance Feedback**: Real-time status updates and progress indicators
 
 ### Layout System
+
 - **Navigation**: Sidebar + topbar with max-width 7xl main content
 - **Cards**: Rounded-2xl with soft shadows and consistent spacing
 - **Status**: Compact cluster in topbar only with health indicators
@@ -203,18 +216,21 @@ System Health → UI State → User Actions → System Response
 ### Pre-Execution Validation Gates (All Must Pass)
 
 #### System Health Gates
+
 - [ ] **RPC Health**: Connection < 400ms latency, responsive endpoint
 - [ ] **Jito Status**: Block Engine operational across regions
 - [ ] **Database**: Read/write access confirmed, connection healthy
 - [ ] **Network**: Internet connectivity verified, DNS resolution working
 
 #### Bundle Configuration Gates
+
 - [ ] **Wallet Selection**: At least 1 wallet in active group (Neo or configured default)
 - [ ] **Transaction Limit**: ≤ 5 transactions per bundle (Jito limit)
 - [ ] **Region Selection**: Valid Jito region selected (default: ffm)
 - [ ] **Blockhash Freshness**: < 3 seconds old (server-side validation)
 
 #### Transaction Validation Gates
+
 - [ ] **Simulation Success**: All transactions simulate successfully on server
 - [ ] **Tip Account Validation**: Valid Jito tip account in static keys (no ALT dependencies)
 - [ ] **Compute Budget**: Proper ComputeBudgetProgram instructions first in v0 transactions
@@ -223,6 +239,7 @@ System Health → UI State → User Actions → System Response
 ### Gate Failure Response Strategy
 
 #### User Experience Management
+
 ```
 Gate Failure → UI State Change → User Guidance → Resolution Path
       │                       │                     │
@@ -238,11 +255,13 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 ### Dynamic Tip Floor Integration
 
 #### Real-Time Tip Floor Strategy
+
 - **Data Source**: `/api/jito/tipfloor` endpoint with live P25/P50/P75/EMA data
 - **Display**: Visual percentiles with chosen tip highlighting
 - **Enforcement**: Server-side tip floor enforcement (min: max(requested, ema50th, 1000))
 
 #### Execution Mode Strategies
+
 - **Regular Mode**: `P50 × 1.2` multiplier, 60ms stagger timing
 - **Delayed Mode**: `P50 × 1.2` multiplier, 30s countdown with fresh blockhash
 - **Instant Mode**: `P75 × 1.25` multiplier, random [0-10ms] stagger
@@ -251,6 +270,7 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 ### Performance Optimization Features
 
 #### Success Rate Correlation
+
 - **Historical Tracking**: Success rate vs tip amount analysis
 - **Dynamic Adjustment**: Automatic tip optimization based on performance
 - **Region Performance**: Best region selection based on current conditions
@@ -261,6 +281,7 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 ### Coalesced Polling Architecture
 
 #### Server-Side Status Management
+
 ```
 Client Requests → Server Aggregation → Jito API Calls → Cached Results
        │                       │                     │               │
@@ -271,6 +292,7 @@ Client Requests → Server Aggregation → Jito API Calls → Cached Results
 ```
 
 #### Batch Status API Specification
+
 ```json
 {
   "region": "ffm",
@@ -289,12 +311,14 @@ Client Requests → Server Aggregation → Jito API Calls → Cached Results
 ### Comprehensive Telemetry System
 
 #### Bundle Execution Metrics
+
 - **Performance**: `jitter_ms_used`, `health_snapshot`, `latency_ms`, `retries`
 - **Success Tracking**: `landed_slot`, `tx_sigs`, `bundle_id`, `execution_time`
 - **Health Snapshot**: `rpc_status`, `jito_status`, `tip_floor`, `region_performance`
 - **Timing Data**: `preview_slot`, `queue_time`, `network_latency`
 
 #### Analytics Pipeline Architecture
+
 ```
 Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
        │                          │                       │              │
@@ -310,6 +334,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Progressive Disclosure & Feedback
 
 #### Real-Time Status Communication
+
 - **Tooltips**: Clear explanations for disabled actions and validation failures
 - **Toast Notifications**:
   - Success: "Bundle landed in slot X" with transaction links
@@ -319,6 +344,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - **Empty States**: Helpful guidance for new users and empty data scenarios
 
 #### Workflow Optimization
+
 - **Keyboard Shortcuts**: Full keyboard navigation support
 - **One-Click Execution**: Streamlined bundle creation and execution
 - **Contextual Help**: Inline documentation and best practices
@@ -329,18 +355,21 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Comprehensive Testing Strategy
 
 #### 1) Unit Testing (75% Target Coverage)
+
 - **Component Testing**: React component behavior and state management
 - **Service Layer**: API service functionality and error handling
 - **Utility Functions**: Helper functions and data transformations
 - **Security Validation**: Encryption, validation, and sanitization
 
 #### 2) Integration Testing (20% Coverage)
+
 - **API Workflows**: Complete bundle execution pipeline testing
 - **External Services**: Jito, RPC, database integration validation
 - **Error Scenarios**: Network failures, rate limits, API errors
 - **Performance Validation**: Load testing and resource utilization
 
 #### 3) End-to-End Testing (5% Coverage)
+
 - **Smoke Testing**: Production bundle execution with real SOL
 - **Critical Path**: Core user workflows from creation to landing
 - **Cross-Browser**: Compatibility across supported browsers
@@ -349,6 +378,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Production Validation Requirements
 
 #### Pre-Deployment Checklist
+
 - [ ] Unit test coverage ≥ 85%
 - [ ] Integration tests passing
 - [ ] Smoke test successful on mainnet
@@ -357,6 +387,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - [ ] Documentation updated and accurate
 
 #### Post-Deployment Validation
+
 - [ ] Application startup successful
 - [ ] Health endpoints returning healthy status
 - [ ] Database connections established and functional
@@ -367,6 +398,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ## Future Roadmap & Extensions
 
 ### Phase 1: Production Stability ✅ (Completed)
+
 - [x] Zero mock production deployment
 - [x] Real mainnet bundle execution
 - [x] Enterprise security implementation
@@ -374,6 +406,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - [x] Production documentation and procedures
 
 ### Phase 2: Advanced Features (Q1 2025)
+
 - [ ] Slot targeting with leader schedule awareness
 - [ ] Advanced strategy presets and automation
 - [ ] Multi-wallet batch operations
@@ -382,6 +415,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - [ ] Advanced risk management features
 
 ### Phase 3: Enterprise Scale (Q2 2025)
+
 - [ ] Multi-region deployment support
 - [ ] Institutional-grade compliance logging
 - [ ] Advanced performance optimization
@@ -389,6 +423,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - [ ] Advanced market making tools
 
 ### Phase 4: Ecosystem Leadership (Q3 2025)
+
 - [ ] Cross-chain bundle support
 - [ ] Advanced DeFi protocol integration
 - [ ] Institutional API partnerships
@@ -400,27 +435,33 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Technical Risk Mitigation
 
 #### 1) External Service Dependencies
+
 **Risk**: Jito API changes, RPC provider outages, network congestion
 **Impact**: High - Bundle execution failures
 **Mitigation**:
+
 - Multi-region failover (7 Jito regions)
 - Multiple RPC provider support
 - Circuit breaker pattern implementation
 - Comprehensive error handling and retries
 
 #### 2) Security Vulnerabilities
+
 **Risk**: Private key exposure, unauthorized access, data breaches
 **Impact**: Critical - Financial loss
 **Mitigation**:
+
 - AES-256-GCM encryption with PBKDF2
 - No private key network transmission
 - Secure key storage and rotation
 - Regular security audits and updates
 
 #### 3) Performance Degradation
+
 **Risk**: System slowdown, memory leaks, database bottlenecks
 **Impact**: Medium - Increased latency, failed operations
 **Mitigation**:
+
 - Horizontal scaling capabilities
 - Connection pooling and caching
 - Performance monitoring and alerting
@@ -429,18 +470,22 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Operational Risk Mitigation
 
 #### 1) Configuration Management
+
 **Risk**: Environment misconfiguration, key management failures
 **Impact**: High - Service unavailability
 **Mitigation**:
+
 - Configuration validation at startup
 - Environment-specific configurations
 - Automated configuration testing
 - Clear documentation and checklists
 
 #### 2) Data Persistence
+
 **Risk**: Database corruption, data loss, backup failures
 **Impact**: Medium - Analytics and audit trail loss
 **Mitigation**:
+
 - Automated daily backups with retention
 - Database integrity monitoring
 - Point-in-time recovery capabilities
@@ -449,18 +494,22 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 ### Business Risk Mitigation
 
 #### 1) Regulatory Compliance
+
 **Risk**: Changes in Solana ecosystem regulations, MEV policies
 **Impact**: Medium - Operational changes required
 **Mitigation**:
+
 - Active ecosystem monitoring
 - Flexible architecture for compliance
 - Legal and compliance consultation
 - Community engagement and governance
 
 #### 2) Market Conditions
+
 **Risk**: Extreme volatility affecting bundle success rates
 **Impact**: Medium - Variable performance metrics
 **Mitigation**:
+
 - Dynamic tip optimization algorithms
 - Market-aware execution strategies
 - Risk management and position limits

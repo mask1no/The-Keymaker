@@ -10,7 +10,11 @@ export async function GET(req: Request) {
     const { getPnLHistory } = await import('@/services/executionLogService')
     const items = await getPnLHistory(wallet || undefined, limit)
     return NextResponse.json({ ok: true, items })
-  } catch (e:any) {
-    return NextResponse.json({ ok: false, items: [], error: e?.message ?? 'error' })
+  } catch (e: any) {
+    return NextResponse.json({
+      ok: false,
+      items: [],
+      error: e?.message ?? 'error',
+    })
   }
 }

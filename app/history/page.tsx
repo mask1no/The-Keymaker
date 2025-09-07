@@ -13,7 +13,7 @@ import {
   AlertCircle,
   Search,
   Filter,
-  Download
+  Download,
 } from 'lucide-react'
 import Link from 'next/link'
 import useSWR from 'swr'
@@ -32,21 +32,26 @@ interface BundleAttempt {
 }
 
 export default function HistoryPage() {
-  const fetcher = (url: string) => fetch(url).then(r => r.json())
-  const { data } = useSWR('/api/history?limit=100', fetcher, { refreshInterval: 5000 })
+  const fetcher = (url: string) => fetch(url).then((r) => r.json())
+  const { data } = useSWR('/api/history?limit=100', fetcher, {
+    refreshInterval: 5000,
+  })
   const history = (data?.items ?? []) as BundleAttempt[]
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [regionFilter, setRegionFilter] = useState<string>('all')
 
   // Filter history based on search and filters
-  const filteredHistory = history.filter(attempt => {
-    const matchesSearch = searchTerm === '' ||
+  const filteredHistory = history.filter((attempt) => {
+    const matchesSearch =
+      searchTerm === '' ||
       attempt.bundle_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       attempt.region.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === 'all' || attempt.status === statusFilter
-    const matchesRegion = regionFilter === 'all' || attempt.region === regionFilter
+    const matchesStatus =
+      statusFilter === 'all' || attempt.status === statusFilter
+    const matchesRegion =
+      regionFilter === 'all' || attempt.region === regionFilter
 
     return matchesSearch && matchesStatus && matchesRegion
   })
@@ -65,7 +70,14 @@ export default function HistoryPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'success':
-        return <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/30">Success</Badge>
+        return (
+          <Badge
+            variant="default"
+            className="bg-green-500/20 text-green-400 border-green-500/30"
+          >
+            Success
+          </Badge>
+        )
       case 'failed':
         return <Badge variant="destructive">Failed</Badge>
       default:
@@ -153,9 +165,13 @@ export default function HistoryPage() {
           {filteredHistory.length === 0 ? (
             <div className="text-center py-12">
               <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground mb-2">No bundle attempts found</h3>
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No bundle attempts found
+              </h3>
               <p className="text-sm text-muted-foreground">
-                {history.length === 0 ? 'Execute your first bundle to see history here.' : 'Try adjusting your filters.'}
+                {history.length === 0
+                  ? 'Execute your first bundle to see history here.'
+                  : 'Try adjusting your filters.'}
               </p>
             </div>
           ) : (
@@ -163,14 +179,30 @@ export default function HistoryPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Time</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Bundle ID</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Region</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Tip</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Landed Slot</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Latency</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Time
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Bundle ID
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Region
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Tip
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Landed Slot
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Latency
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,11 +249,15 @@ export default function HistoryPage() {
                       </td>
                       <td className="py-4 px-4">
                         {attempt.latency_ms > 0 ? (
-                          <span className={`font-mono text-sm ${
-                            attempt.latency_ms < 50 ? 'text-green-400' :
-                            attempt.latency_ms < 100 ? 'text-amber-400' :
-                            'text-red-400'
-                          }`}>
+                          <span
+                            className={`font-mono text-sm ${
+                              attempt.latency_ms < 50
+                                ? 'text-green-400'
+                                : attempt.latency_ms < 100
+                                  ? 'text-amber-400'
+                                  : 'text-red-400'
+                            }`}
+                          >
                             {attempt.latency_ms}ms
                           </span>
                         ) : (
@@ -247,15 +283,19 @@ export default function HistoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{filteredHistory.length}</div>
-              <div className="text-sm text-muted-foreground">Total Attempts</div>
+              <div className="text-2xl font-bold text-primary">
+                {filteredHistory.length}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Total Attempts
+              </div>
             </CardContent>
           </Card>
 
           <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-400">
-                {filteredHistory.filter(h => h.status === 'success').length}
+                {filteredHistory.filter((h) => h.status === 'success').length}
               </div>
               <div className="text-sm text-muted-foreground">Successful</div>
             </CardContent>
@@ -264,7 +304,13 @@ export default function HistoryPage() {
           <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-amber-400">
-                {Math.round(filteredHistory.filter(h => h.latency_ms > 0).reduce((sum, h) => sum + h.latency_ms, 0) / filteredHistory.filter(h => h.latency_ms > 0).length) || 0}ms
+                {Math.round(
+                  filteredHistory
+                    .filter((h) => h.latency_ms > 0)
+                    .reduce((sum, h) => sum + h.latency_ms, 0) /
+                    filteredHistory.filter((h) => h.latency_ms > 0).length,
+                ) || 0}
+                ms
               </div>
               <div className="text-sm text-muted-foreground">Avg Latency</div>
             </CardContent>
@@ -273,7 +319,11 @@ export default function HistoryPage() {
           <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">
-                {(filteredHistory.reduce((sum, h) => sum + h.tip_lamports, 0) / 1e6).toFixed(4)} SOL
+                {(
+                  filteredHistory.reduce((sum, h) => sum + h.tip_lamports, 0) /
+                  1e6
+                ).toFixed(4)}{' '}
+                SOL
               </div>
               <div className="text-sm text-muted-foreground">Total Tips</div>
             </CardContent>
@@ -283,5 +333,3 @@ export default function HistoryPage() {
     </div>
   )
 }
-
-

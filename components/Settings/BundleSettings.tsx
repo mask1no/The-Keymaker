@@ -1,13 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Label } from '@/components/UI/label'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
@@ -65,7 +59,7 @@ export function BundleSettings() {
           <Package className="w-5 h-5" />
           Bundle Configuration
         </CardTitle>
-        <CardDescription>Configure bundle execution parameters</CardDescription>
+        <div className="text-sm text-muted-foreground">Configure bundle execution parameters</div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

@@ -5,11 +5,7 @@ import { Connection, Keypair } from '@solana/web3.js'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 // Use browser-safe crypto and client-side helpers instead of server-only walletService
-import {
-  encryptAES256,
-  decryptAES256ToKeypair,
-  decryptAES256ToString,
-} from '@/utils/browserCrypto'
+import { encrypt as encryptBrowser, decrypt as decryptBrowser } from '@/utils/browserCrypto'
 import bs58 from 'bs58'
 import {
   fundWalletGroup,
@@ -205,7 +201,7 @@ export function WalletManager() {
       // Generate keypair and encrypt secret key using browser WebCrypto
       const kp = Keypair.generate()
       const secretBase58 = bs58.encode(kp.secretKey)
-      const encryptedPrivateKey = await encryptAES256(secretBase58, password)
+      const encryptedPrivateKey = await encryptBrowser(new TextEncoder().encode(secretBase58), password)
 
       const newWallet: WalletData = {
         publicKey: kp.publicKey.toBase58(),
@@ -342,10 +338,8 @@ export function WalletManager() {
       }
 
       // Decrypt master wallet using browser WebCrypto
-      const masterKeypair = await decryptAES256ToKeypair(
-        masterWallet.encryptedPrivateKey,
-        password,
-      )
+      const raw = await decryptBrowser(masterWallet.encryptedPrivateKey, password)
+      const masterKeypair = Keypair.fromSecretKey(raw)
 
       const signatures = await fundWalletGroup(
         masterKeypair,
@@ -388,14 +382,15 @@ export function WalletManager() {
       let exportData: string
 
       // Decrypt with current password first
-      const plain = await decryptAES256ToString(
+      const plainBytes = await decryptBrowser(
         selectedWallet.encryptedPrivateKey,
         exportPassword,
       )
+      const plain = new TextDecoder().decode(plainBytes)
 
       if (exportEncrypted) {
         // Re-encrypt with new password
-        const reEncrypted = await encryptAES256(plain, exportNewPassword)
+        const reEncrypted = await encryptBrowser(new TextEncoder().encode(plain), exportNewPassword)
         exportData = JSON.stringify(
           {
             publicKey: selectedWallet.publicKey,
@@ -474,7 +469,7 @@ export function WalletManager() {
         })),
         exportedAt: new Date().toISOString(),
       }
-      const encrypted = await encryptAES256(JSON.stringify(data), exportPassword)
+      const encrypted = await encryptBrowser(new TextEncoder().encode(JSON.stringify(data)), exportPassword)
       const fileData = JSON.stringify(
         {
           format: 'keymaker',
@@ -524,10 +519,11 @@ export function WalletManager() {
         if (parsed.format !== 'keymaker' || !parsed.encrypted) {
           throw new Error('Invalid .keymaker file format')
         }
-        const decrypted = await decryptAES256ToString(
+        const decryptedBytes = await decryptBrowser(
           parsed.encrypted,
           importPassword,
         )
+        const decrypted = new TextDecoder().decode(decryptedBytes)
         const importedData = JSON.parse(decrypted)
 
         // Check if group name already exists
@@ -607,10 +603,7 @@ export function WalletManager() {
             } catch (_e) {
               // ignore JSON parse errors
             }
-            const encryptedPrivateKey = await encryptAES256(
-              secretBase58,
-              importPassword,
-            )
+            const encryptedPrivateKey = await encryptBrowser(new TextEncoder().encode(secretBase58), importPassword)
             importedWallets.push({
               publicKey: wallet.publicKey,
               encryptedPrivateKey,

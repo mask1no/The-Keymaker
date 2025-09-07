@@ -15,7 +15,7 @@ import {
   Settings,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
@@ -27,17 +27,24 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 async function fetchRecentActivity(): Promise<any[]> {
   try {
     // Import the service dynamically to avoid issues in client-side
-    const { getExecutionHistory } = await import('@/services/executionLogService')
+    const { getExecutionHistory } = await import(
+      '@/services/executionLogService'
+    )
     const executions = await getExecutionHistory(3) // Get last 3 executions
 
     // Transform the data to match the expected format
     return executions.map((exec: any) => ({
       id: exec.bundle_id || `bundle_${exec.id}`,
-      status: exec.status === 'success' ? 'success' : exec.status === 'failed' ? 'failed' : 'pending',
+      status:
+        exec.status === 'success'
+          ? 'success'
+          : exec.status === 'failed'
+            ? 'failed'
+            : 'pending',
       slot: exec.slot || 0,
       latency: exec.execution_time || 0,
       tipLamports: 0, // Will be added when we integrate with more detailed telemetry
-      createdAt: exec.created_at
+      createdAt: exec.created_at,
     }))
   } catch (error) {
     console.warn('Failed to fetch recent activity:', error)
@@ -64,32 +71,34 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState<any[]>([])
 
   // Fetch tip data from API
-  const { data: tipData, error: tipError, isLoading: tipLoading } = useSWR(
-    '/api/jito/tipfloor?region=ffm',
-    fetcher,
-    {
-      refreshInterval: 10000, // Refresh every 10 seconds
-      revalidateOnFocus: false,
-    }
-  )
+  const {
+    data: tipData,
+    error: tipError,
+    isLoading: tipLoading,
+  } = useSWR('/api/jito/tipfloor?region=ffm', fetcher, {
+    refreshInterval: 10000, // Refresh every 10 seconds
+    revalidateOnFocus: false,
+  })
 
   useEffect(() => {
     setMounted(true)
 
     // Fetch recent activity on mount
-    fetchRecentActivity().then((activity) => {
-      setRecentActivity(activity)
-    }).catch((error) => {
-      console.warn('Failed to load recent activity:', error)
-    })
+    fetchRecentActivity()
+      .then((activity) => {
+        setRecentActivity(activity)
+      })
+      .catch((error) => {
+        console.warn('Failed to load recent activity:', error)
+      })
   }, [])
 
   // Calculate chosen tip based on Regular mode (P50 × 1.2)
   const getChosenTip = () => {
     if (!tipData || tipLoading || tipError) {
-      return 0.000060 // Default fallback
+      return 0.00006 // Default fallback
     }
-    const p50 = tipData.p50 || tipData.median || 0.000050
+    const p50 = tipData.p50 || tipData.median || 0.00005
     return Math.max(0.00005, Math.min(0.002, p50 * 1.2))
   }
 
@@ -138,7 +147,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Wallet Group</span>
+                <span className="text-sm text-muted-foreground">
+                  Wallet Group
+                </span>
                 <Badge variant="outline">Neo (ID: 19)</Badge>
               </div>
               <div className="flex items-center justify-between">
@@ -151,8 +162,12 @@ export default function Dashboard() {
               </div>
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Partition</span>
-                  <span className="text-sm font-mono">{partitions(19).join('/')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Partition
+                  </span>
+                  <span className="text-sm font-mono">
+                    {partitions(19).join('/')}
+                  </span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {partitions(19).map((count, index) => (
@@ -186,7 +201,9 @@ export default function Dashboard() {
                 <div className="grid grid-cols-4 gap-4 text-center">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="text-xs text-muted-foreground mb-1">...</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        ...
+                      </div>
                       <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
                     </div>
                   ))}
@@ -199,19 +216,40 @@ export default function Dashboard() {
                 <>
                   <div className="grid grid-cols-4 gap-4 text-center">
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">P25</div>
-                      <div className="text-sm font-mono">{(tipData?.p25 || tipData?.p25th || 0.000030).toFixed(6)} SOL</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        P25
+                      </div>
+                      <div className="text-sm font-mono">
+                        {(tipData?.p25 || tipData?.p25th || 0.00003).toFixed(6)}{' '}
+                        SOL
+                      </div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">P50</div>
-                      <div className="text-sm font-mono">{(tipData?.p50 || tipData?.median || 0.000050).toFixed(6)} SOL</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        P50
+                      </div>
+                      <div className="text-sm font-mono">
+                        {(tipData?.p50 || tipData?.median || 0.00005).toFixed(
+                          6,
+                        )}{' '}
+                        SOL
+                      </div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">P75</div>
-                      <div className="text-sm font-mono">{(tipData?.p75 || tipData?.p75th || 0.000075).toFixed(6)} SOL</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        P75
+                      </div>
+                      <div className="text-sm font-mono">
+                        {(tipData?.p75 || tipData?.p75th || 0.000075).toFixed(
+                          6,
+                        )}{' '}
+                        SOL
+                      </div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Chosen</div>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        Chosen
+                      </div>
                       <div className="text-sm font-mono text-primary font-semibold">
                         {getChosenTip().toFixed(6)} SOL
                       </div>
@@ -219,7 +257,8 @@ export default function Dashboard() {
                   </div>
                   <div className="pt-2 border-t border-border">
                     <div className="text-xs text-muted-foreground">
-                      Rule: P50 × 1.2 (Regular mode) | Clamped [50k, 2M] lamports
+                      Rule: P50 × 1.2 (Regular mode) | Clamped [50k, 2M]
+                      lamports
                     </div>
                   </div>
                 </>
@@ -262,7 +301,9 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className={`text-sm font-mono ${getStatusColor(activity.status)}`}>
+                    <div
+                      className={`text-sm font-mono ${getStatusColor(activity.status)}`}
+                    >
                       {activity.latency}ms
                     </div>
                   </div>
@@ -271,7 +312,9 @@ export default function Dashboard() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <div className="text-sm">No recent bundle activity</div>
-                  <div className="text-xs mt-1">Execute some bundles to see activity here</div>
+                  <div className="text-xs mt-1">
+                    Execute some bundles to see activity here
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -301,7 +344,9 @@ export default function Dashboard() {
                   <Play className="h-5 w-5" />
                   <div className="text-left">
                     <div className="font-medium">Start Bundling</div>
-                    <div className="text-xs text-muted-foreground">Execute transactions</div>
+                    <div className="text-xs text-muted-foreground">
+                      Execute transactions
+                    </div>
                   </div>
                 </div>
               </Button>
@@ -315,7 +360,9 @@ export default function Dashboard() {
                   <Sparkles className="h-5 w-5" />
                   <div className="text-left">
                     <div className="font-medium">Create Token</div>
-                    <div className="text-xs text-muted-foreground">Launch SPL token</div>
+                    <div className="text-xs text-muted-foreground">
+                      Launch SPL token
+                    </div>
                   </div>
                 </div>
               </Button>
@@ -329,7 +376,9 @@ export default function Dashboard() {
                   <Settings className="h-5 w-5" />
                   <div className="text-left">
                     <div className="font-medium">Settings</div>
-                    <div className="text-xs text-muted-foreground">Configure system</div>
+                    <div className="text-xs text-muted-foreground">
+                      Configure system
+                    </div>
                   </div>
                 </div>
               </Button>

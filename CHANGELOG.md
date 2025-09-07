@@ -1,6 +1,7 @@
 # Changelog
 
 ## [v0.4.0] - UI/UX Overhaul (Dark + Bento) and Bundler Wiring
+
 - Dark theme applied globally; no light bleed.
 - Single Status Bento in topbar (RPC/WS/Jito/Network), fed by /api/health with degraded logic.
 - Dashboard uses bento layout: Planner, Tip Preview, Recent Activity, Shortcuts.

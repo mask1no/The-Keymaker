@@ -14,17 +14,30 @@
  * Then submits as bundle and monitors status
  */
 
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, VersionedTransaction, TransactionMessage, ComputeBudgetProgram } from '@solana/web3.js'
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  VersionedTransaction,
+  TransactionMessage,
+  ComputeBudgetProgram,
+} from '@solana/web3.js'
 import bs58 from 'bs58'
 import { JITO_TIP_ACCOUNTS } from '../constants'
 
 // Load environment
 const SMOKE_SECRET = process.env.SMOKE_SECRET
 const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
-const NEXT_PUBLIC_JITO_ENDPOINT = process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'https://mainnet.block-engine.jito.wtf'
+const NEXT_PUBLIC_JITO_ENDPOINT =
+  process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
+  'https://mainnet.block-engine.jito.wtf'
 
 if (!SMOKE_SECRET) {
-  console.error('❌ SMOKE_SECRET not set. Please add a funded keypair (bs58 encoded) to your .env file')
+  console.error(
+    '❌ SMOKE_SECRET not set. Please add a funded keypair (bs58 encoded) to your .env file',
+  )
   process.exit(1)
 }
 
@@ -46,8 +59,11 @@ async function main() {
     const balanceSOL = balance / 1e9
     console.log(`💰 Wallet balance: ${balanceSOL.toFixed(4)} SOL`)
 
-    if (balance < 10000) { // 0.00001 SOL
-      console.error('❌ Insufficient balance. Need at least 0.00001 SOL for smoke test')
+    if (balance < 10000) {
+      // 0.00001 SOL
+      console.error(
+        '❌ Insufficient balance. Need at least 0.00001 SOL for smoke test',
+      )
       process.exit(1)
     }
 
@@ -63,8 +79,8 @@ async function main() {
       SystemProgram.transfer({
         fromPubkey: keypair.publicKey,
         toPubkey: keypair.publicKey,
-        lamports: 1
-      })
+        lamports: 1,
+      }),
     )
     tx1.recentBlockhash = blockhash
     tx1.feePayer = keypair.publicKey
@@ -87,8 +103,8 @@ async function main() {
       SystemProgram.transfer({
         fromPubkey: keypair.publicKey,
         toPubkey: tipAccount,
-        lamports: tipAmount
-      })
+        lamports: tipAmount,
+      }),
     )
 
     const messageV0_2 = new TransactionMessage({
@@ -107,12 +123,14 @@ async function main() {
     // Base64 encode
     const txsB64 = [
       bs58.encode(vTx1.serialize()),
-      bs58.encode(vTx2.serialize())
+      bs58.encode(vTx2.serialize()),
     ]
 
     console.log('📦 Bundle created:')
     console.log(`   - TX 1: Self-transfer (1 lamport)`)
-    console.log(`   - TX 2: Tip transfer (${tipAmount} lamports to ${tipAccount.toBase58()})`)
+    console.log(
+      `   - TX 2: Tip transfer (${tipAmount} lamports to ${tipAccount.toBase58()})`,
+    )
     console.log(`   - Total cost: ~${(tipAmount + 5000) / 1e9} SOL\n`)
 
     // Submit bundle
@@ -122,13 +140,13 @@ async function main() {
     const submitBody = {
       txs_b64: txsB64,
       region: 'ffm',
-      tip_lamports: tipAmount
+      tip_lamports: tipAmount,
     }
 
     const submitRes = await fetch(submitUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(submitBody)
+      body: JSON.stringify(submitBody),
     })
 
     if (!submitRes.ok) {
@@ -161,13 +179,13 @@ async function main() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bundle_ids: [bundleId],
-          region: 'ffm'
-        })
+          region: 'ffm',
+        }),
       })
 
       if (!statusRes.ok) {
         console.warn(`⚠️  Status check failed: ${statusRes.status}`)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
         continue
       }
 
@@ -176,7 +194,7 @@ async function main() {
 
       if (!bundleStatus) {
         console.log(`⏳ Attempt ${attempts}/${maxAttempts}: No status yet`)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 1000))
         continue
       }
 
@@ -206,13 +224,12 @@ async function main() {
       }
 
       // Wait 1 second before next check
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
 
     console.log('\n⏰ Timeout reached - bundle still pending')
     console.log('\n⚠️  Smoke test INCONCLUSIVE (bundle may still land)')
     process.exit(1)
-
   } catch (error) {
     console.error('\n💥 Smoke test failed:', error)
     process.exit(1)

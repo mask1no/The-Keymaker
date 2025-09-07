@@ -19,7 +19,7 @@ export function getJitoEndpoint(): string {
 export function getNetworkEndpoint(network: 'mainnet-beta' | 'devnet'): string {
   const store = useKeymakerStore.getState()
 
-  // Use custom RPC if set in store
+  // Respect explicit RPC override
   if (
     store.rpcUrl &&
     store.rpcUrl !== MAINNET_RPC &&
@@ -27,7 +27,6 @@ export function getNetworkEndpoint(network: 'mainnet-beta' | 'devnet'): string {
   ) {
     return store.rpcUrl
   }
-
   return network === 'devnet' ? DEVNET_RPC : MAINNET_RPC
 }
 

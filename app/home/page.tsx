@@ -327,7 +327,7 @@ export default function DashboardPage() {
                 {/* Market Cap Card */}
                 <div className="col-span-12 md:col-span-6 lg:col-span-4">
                   <MarketCapCard
-                    tokenMint={tokenLaunchData?.mintAddress}
+                    mintAddress={tokenLaunchData?.mintAddress}
                     tokenSymbol={tokenLaunchData?.symbol}
                   />
                 </div>

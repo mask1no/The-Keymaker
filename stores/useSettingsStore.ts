@@ -28,11 +28,9 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
   heliusRpc: process.env.NEXT_PUBLIC_HELIUS_RPC || '',
   birdeyeApiKey: '',
-  // Do not read server-only secrets on the client; keep undefined
   pumpfunApiKey: undefined,
   jupiterApiKey: undefined,
   jitoAuthToken: undefined,
-  // Public endpoint only
   jitoWsUrl: process.env.NEXT_PUBLIC_JITO_ENDPOINT,
   twoCaptchaKey: undefined,
   headlessTimeout: parseInt(process.env.HEADLESS_TIMEOUT || '30'),

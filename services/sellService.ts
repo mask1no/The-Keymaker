@@ -1,4 +1,9 @@
-import { Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js'
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  VersionedTransaction,
+} from '@solana/web3.js'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token'
 import axios from 'axios'
 import * as Sentry from '@sentry/nextjs'
@@ -58,8 +63,16 @@ export interface TokenPriceInfo {
 }
 
 function base64ToBytes(base64: string): Uint8Array {
-  if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
-    return Uint8Array.from((Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'))
+  if (
+    typeof Buffer !== 'undefined' &&
+    typeof (Buffer as any).from === 'function'
+  ) {
+    return Uint8Array.from(
+      (Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(
+        base64,
+        'base64',
+      ),
+    )
   }
   const binary = typeof atob !== 'undefined' ? atob(base64) : ''
   const len = binary.length
@@ -288,7 +301,9 @@ async function calculateDynamicSlippage(
     )
     return slippageBps
   } catch (error) {
-    logger.error('Error calculating dynamic slippage:', { error: error.message })
+    logger.error('Error calculating dynamic slippage:', {
+      error: error.message,
+    })
     // Fallback to conservative default
     return 300 // 3% default
   }

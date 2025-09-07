@@ -13,16 +13,16 @@ const nextConfig = {
       // Ignore sqlite3 in client bundle
       config.externals = config.externals || []
       config.externals.push({
-        'sqlite3': 'sqlite3',
-        'sqlite': 'sqlite'
+        sqlite3: 'sqlite3',
+        sqlite: 'sqlite',
       })
     }
 
     return config
   },
   experimental: {
-    serverComponentsExternalPackages: ['sqlite3', 'sqlite']
-  }
+    serverComponentsExternalPackages: ['sqlite3', 'sqlite'],
+  },
 }
 
 module.exports = nextConfig

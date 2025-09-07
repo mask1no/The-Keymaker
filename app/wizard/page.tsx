@@ -3,13 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -613,7 +607,9 @@ export default function LaunchWizard() {
         <Card className="mb-6 bg-black/40 backdrop-blur-xl border-aqua/20">
           <CardHeader>
             <CardTitle>{steps[currentStep].title}</CardTitle>
-            <CardDescription>{steps[currentStep].description}</CardDescription>
+            <div className="text-sm text-muted-foreground">
+              {steps[currentStep].description}
+            </div>
           </CardHeader>
           <CardContent>
             <AnimatePresence mode="wait">

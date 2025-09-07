@@ -752,9 +752,8 @@ export async function executeBundleRegular(
   const results: ('success' | 'failed')[] = []
   for (let i = 0; i < txs.length; i++) {
     try {
-      const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(
-        'confirmed',
-      )
+      const { blockhash, lastValidBlockHeight } =
+        await conn.getLatestBlockhash('confirmed')
       const tx = txs[i]
       tx.recentBlockhash = blockhash
       let toSend = tx
@@ -799,23 +798,24 @@ export async function executeBundleRegular(
     bundleId: undefined,
     signatures,
     results,
-    explorerUrls: signatures.map((s) => (s ? `https://solscan.io/tx/${s}` : '')),
+    explorerUrls: signatures.map((s) =>
+      s ? `https://solscan.io/tx/${s}` : '',
+    ),
     metrics: {
       estimatedCost: ((txs.length + 1) * 5000) / 1e9,
-      successRate: results.filter((r) => r === 'success').length / results.length,
+      successRate:
+        results.filter((r) => r === 'success').length / results.length,
       executionTime,
     },
   }
 }
-
-
 
 // Create a buy transaction for a new token
 export async function createBuyTransaction(
   mintAddress: string,
   solAmount: number,
   _mode: 'regular' | 'instant' | 'delayed' = 'regular',
-  _delaySeconds: number = 0
+  _delaySeconds: number = 0,
 ): Promise<VersionedTransaction> {
   const connection = getConnection()
   // const _mint = new PublicKey(mintAddress) // Not used in current implementation
@@ -851,10 +851,10 @@ export async function createBuyTransaction(
 export async function submitBundleWithMode(
   transactions: VersionedTransaction[],
   mode: 'regular' | 'instant' | 'delayed' = 'regular',
-  delaySeconds: number = 0
+  delaySeconds: number = 0,
 ): Promise<{ bundleId: string; status: string }> {
   // Convert transactions to base64
-  const txsB64 = transactions.map(tx => bs58.encode(tx.serialize()))
+  const txsB64 = transactions.map((tx) => bs58.encode(tx.serialize()))
 
   // Prepare bundle submission data
   const submitData = {

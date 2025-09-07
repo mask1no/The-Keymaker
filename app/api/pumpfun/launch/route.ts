@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       enableBundling,
       buyAmount,
       mode,
-      delay_seconds
+      delay_seconds,
     } = body || {}
 
     if (!name || !symbol || !supply) {
@@ -41,32 +41,37 @@ export async function POST(req: Request) {
           result,
           buyAmount,
           mode || 'regular',
-          delay_seconds || 0
+          delay_seconds || 0,
         )
 
         // Submit the bundle
         const bundleResult = await bundleSvc.submitBundleWithMode(
           [buyTx],
           mode || 'regular',
-          delay_seconds || 0
+          delay_seconds || 0,
         )
 
-        return NextResponse.json({
-          mint: result,
-          bundleId: bundleResult.bundleId,
-          mode: mode || 'regular',
-          delay: delay_seconds || 0,
-          buyAmount
-        }, { status: 200 })
-
+        return NextResponse.json(
+          {
+            mint: result,
+            bundleId: bundleResult.bundleId,
+            mode: mode || 'regular',
+            delay: delay_seconds || 0,
+            buyAmount,
+          },
+          { status: 200 },
+        )
       } catch (bundleError: any) {
         // Token was created but bundling failed - still return success with token
         console.error('Bundling failed:', bundleError)
-        return NextResponse.json({
-          mint: result,
-          bundleError: bundleError.message,
-          note: 'Token created but bundling failed'
-        }, { status: 200 })
+        return NextResponse.json(
+          {
+            mint: result,
+            bundleError: bundleError.message,
+            note: 'Token created but bundling failed',
+          },
+          { status: 200 },
+        )
       }
     }
 

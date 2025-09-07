@@ -1,14 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
-import { Badge } from '@/components/UI/badge'
 import {
   TrendingUp,
   TrendingDown,
   DollarSign,
   Activity,
   Users,
-  Volume2
+  Volume2,
 } from 'lucide-react'
 
 interface MarketCapData {
@@ -29,7 +28,11 @@ interface MarketCapCardProps {
   tokenSymbol?: string
 }
 
-export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCapCardProps) {
+export function MarketCapCard({
+  mintAddress,
+  tokenName,
+  tokenSymbol,
+}: MarketCapCardProps) {
   const [data, setData] = useState<MarketCapData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -124,7 +127,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          {tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : 'Market Data'}
+          {tokenName && tokenSymbol
+            ? `${tokenName} (${tokenSymbol})`
+            : 'Market Data'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -135,16 +140,21 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
             <span className="text-sm text-muted-foreground">Price</span>
           </div>
           <div className="text-right">
-            <div className="text-lg font-semibold">{formatPrice(data.price)}</div>
-            <div className={`text-xs flex items-center gap-1 ${
-              data.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
-            }`}>
+            <div className="text-lg font-semibold">
+              {formatPrice(data.price)}
+            </div>
+            <div
+              className={`text-xs flex items-center gap-1 ${
+                data.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}
+            >
               {data.priceChange24h >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
-              {data.priceChange24h >= 0 ? '+' : ''}{data.priceChange24h.toFixed(2)}%
+              {data.priceChange24h >= 0 ? '+' : ''}
+              {data.priceChange24h.toFixed(2)}%
             </div>
           </div>
         </div>
@@ -155,7 +165,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
             <Activity className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Market Cap</span>
           </div>
-          <div className="text-lg font-semibold">{formatCurrency(data.marketCap)}</div>
+          <div className="text-lg font-semibold">
+            {formatCurrency(data.marketCap)}
+          </div>
         </div>
 
         {/* 24h Volume */}
@@ -164,7 +176,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
             <Volume2 className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">24h Volume</span>
           </div>
-          <div className="text-lg font-semibold">{formatCurrency(data.volume24h)}</div>
+          <div className="text-lg font-semibold">
+            {formatCurrency(data.volume24h)}
+          </div>
         </div>
 
         {/* FDV */}
@@ -174,7 +188,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
               <Activity className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">FDV</span>
             </div>
-            <div className="text-lg font-semibold">{formatCurrency(data.fdv)}</div>
+            <div className="text-lg font-semibold">
+              {formatCurrency(data.fdv)}
+            </div>
           </div>
         )}
 
@@ -185,7 +201,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
               <Users className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Holders</span>
             </div>
-            <div className="text-lg font-semibold">{data.holders.toLocaleString()}</div>
+            <div className="text-lg font-semibold">
+              {data.holders.toLocaleString()}
+            </div>
           </div>
         )}
 
@@ -196,7 +214,9 @@ export function MarketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCap
               <Activity className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Liquidity</span>
             </div>
-            <div className="text-lg font-semibold">{formatCurrency(data.liquidityUSD)}</div>
+            <div className="text-lg font-semibold">
+              {formatCurrency(data.liquidityUSD)}
+            </div>
           </div>
         )}
 

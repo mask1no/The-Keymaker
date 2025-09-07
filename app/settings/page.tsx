@@ -6,7 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select'
 import { Badge } from '@/components/UI/badge'
 import {
   Settings as SettingsIcon,
@@ -18,7 +24,7 @@ import {
   CheckCircle,
   RefreshCw,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -34,14 +40,14 @@ export default function SettingsPage() {
   const [showRpcUrl, setShowRpcUrl] = useState(false)
   const [healthThresholds, setHealthThresholds] = useState({
     rpcLatency: 400,
-    jitoLatency: 600
+    jitoLatency: 600,
   })
 
   // Tip settings
   const [tipDefaults, setTipDefaults] = useState<TipDefaults>({
     regular: { quantile: 50, multiplier: 1.2 },
     instant: { quantile: 75, multiplier: 1.25 },
-    delayed: { quantile: 50, multiplier: 1.2 }
+    delayed: { quantile: 50, multiplier: 1.2 },
   })
 
   // Bundle settings
@@ -49,14 +55,15 @@ export default function SettingsPage() {
     maxTxPerBundle: 5,
     staggerMs: 60,
     minTipLamports: 50000, // 0.00005 SOL
-    maxTipLamports: 2000000 // 0.002 SOL
+    maxTipLamports: 2000000, // 0.002 SOL
   })
 
   const [hasChanges, setHasChanges] = useState(false)
   const [saving, setSaving] = useState(false)
 
   // Mock RPC URL (would come from env in real app)
-  const rpcUrl = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+  const rpcUrl =
+    process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
 
   const maskRpcUrl = (url: string) => {
     if (!showRpcUrl) {
@@ -69,7 +76,7 @@ export default function SettingsPage() {
     setSaving(true)
     try {
       // Mock API call - in real app, this would save to server/localStorage
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
       // Save to localStorage for persistence
       const settings = {
@@ -77,7 +84,7 @@ export default function SettingsPage() {
         tipDefaults,
         bundleSettings,
         healthThresholds,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }
 
       localStorage.setItem('keymaker-settings', JSON.stringify(settings))
@@ -112,13 +119,17 @@ export default function SettingsPage() {
     setHasChanges(true)
   }, [region, tipDefaults, bundleSettings, healthThresholds])
 
-  const updateTipDefault = (mode: keyof TipDefaults, field: 'quantile' | 'multiplier', value: number) => {
-    setTipDefaults(prev => ({
+  const updateTipDefault = (
+    mode: keyof TipDefaults,
+    field: 'quantile' | 'multiplier',
+    value: number,
+  ) => {
+    setTipDefaults((prev) => ({
       ...prev,
       [mode]: {
         ...prev[mode],
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
   }
 
@@ -219,31 +230,41 @@ export default function SettingsPage() {
 
             {/* Health Thresholds */}
             <div className="space-y-4">
-              <Label className="text-sm font-medium">Health Thresholds (ms)</Label>
+              <Label className="text-sm font-medium">
+                Health Thresholds (ms)
+              </Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">RPC Latency</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    RPC Latency
+                  </Label>
                   <Input
                     type="number"
                     value={healthThresholds.rpcLatency}
-                    onChange={(e) => setHealthThresholds(prev => ({
-                      ...prev,
-                      rpcLatency: parseInt(e.target.value) || 400
-                    }))}
+                    onChange={(e) =>
+                      setHealthThresholds((prev) => ({
+                        ...prev,
+                        rpcLatency: parseInt(e.target.value) || 400,
+                      }))
+                    }
                     placeholder="400"
                     min="100"
                     max="2000"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Jito Latency</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Jito Latency
+                  </Label>
                   <Input
                     type="number"
                     value={healthThresholds.jitoLatency}
-                    onChange={(e) => setHealthThresholds(prev => ({
-                      ...prev,
-                      jitoLatency: parseInt(e.target.value) || 600
-                    }))}
+                    onChange={(e) =>
+                      setHealthThresholds((prev) => ({
+                        ...prev,
+                        jitoLatency: parseInt(e.target.value) || 600,
+                      }))
+                    }
                     placeholder="600"
                     min="200"
                     max="3000"
@@ -279,10 +300,18 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Quantile (%)</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Quantile (%)
+                    </Label>
                     <Select
                       value={config.quantile.toString()}
-                      onValueChange={(value) => updateTipDefault(mode as keyof TipDefaults, 'quantile', parseInt(value))}
+                      onValueChange={(value) =>
+                        updateTipDefault(
+                          mode as keyof TipDefaults,
+                          'quantile',
+                          parseInt(value),
+                        )
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -296,11 +325,19 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Multiplier</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Multiplier
+                    </Label>
                     <Input
                       type="number"
                       value={config.multiplier}
-                      onChange={(e) => updateTipDefault(mode as keyof TipDefaults, 'multiplier', parseFloat(e.target.value) || 1)}
+                      onChange={(e) =>
+                        updateTipDefault(
+                          mode as keyof TipDefaults,
+                          'multiplier',
+                          parseFloat(e.target.value) || 1,
+                        )
+                      }
                       placeholder="1.2"
                       step="0.05"
                       min="1.0"
@@ -310,7 +347,8 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                  Result: P{config.quantile} × {config.multiplier} = {(0.00005 * config.multiplier).toFixed(6)} SOL base tip
+                  Result: P{config.quantile} × {config.multiplier} ={' '}
+                  {(0.00005 * config.multiplier).toFixed(6)} SOL base tip
                 </div>
               </div>
             ))}
@@ -338,14 +376,18 @@ export default function SettingsPage() {
                 <Label className="text-sm font-medium">Bundle Limits</Label>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Max TX per Bundle</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Max TX per Bundle
+                  </Label>
                   <Input
                     type="number"
                     value={bundleSettings.maxTxPerBundle}
-                    onChange={(e) => setBundleSettings(prev => ({
-                      ...prev,
-                      maxTxPerBundle: parseInt(e.target.value) || 5
-                    }))}
+                    onChange={(e) =>
+                      setBundleSettings((prev) => ({
+                        ...prev,
+                        maxTxPerBundle: parseInt(e.target.value) || 5,
+                      }))
+                    }
                     placeholder="5"
                     min="1"
                     max="20"
@@ -357,14 +399,18 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Inter-bundle Stagger (ms)</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Inter-bundle Stagger (ms)
+                  </Label>
                   <Input
                     type="number"
                     value={bundleSettings.staggerMs}
-                    onChange={(e) => setBundleSettings(prev => ({
-                      ...prev,
-                      staggerMs: parseInt(e.target.value) || 60
-                    }))}
+                    onChange={(e) =>
+                      setBundleSettings((prev) => ({
+                        ...prev,
+                        staggerMs: parseInt(e.target.value) || 60,
+                      }))
+                    }
                     placeholder="60"
                     min="0"
                     max="1000"
@@ -377,17 +423,23 @@ export default function SettingsPage() {
 
               {/* Tip Clamps */}
               <div className="space-y-4">
-                <Label className="text-sm font-medium">Tip Clamps (Lamports)</Label>
+                <Label className="text-sm font-medium">
+                  Tip Clamps (Lamports)
+                </Label>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Minimum Tip</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Minimum Tip
+                  </Label>
                   <Input
                     type="number"
                     value={bundleSettings.minTipLamports}
-                    onChange={(e) => setBundleSettings(prev => ({
-                      ...prev,
-                      minTipLamports: parseInt(e.target.value) || 50000
-                    }))}
+                    onChange={(e) =>
+                      setBundleSettings((prev) => ({
+                        ...prev,
+                        minTipLamports: parseInt(e.target.value) || 50000,
+                      }))
+                    }
                     placeholder="50000"
                     min="10000"
                     max="1000000"
@@ -398,14 +450,18 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Maximum Tip</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Maximum Tip
+                  </Label>
                   <Input
                     type="number"
                     value={bundleSettings.maxTipLamports}
-                    onChange={(e) => setBundleSettings(prev => ({
-                      ...prev,
-                      maxTipLamports: parseInt(e.target.value) || 2000000
-                    }))}
+                    onChange={(e) =>
+                      setBundleSettings((prev) => ({
+                        ...prev,
+                        maxTipLamports: parseInt(e.target.value) || 2000000,
+                      }))
+                    }
                     placeholder="2000000"
                     min="100000"
                     max="10000000"
@@ -449,14 +505,18 @@ export default function SettingsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Last Updated:</span>
-                <span className="font-mono">{new Date().toLocaleDateString()}</span>
+                <span className="font-mono">
+                  {new Date().toLocaleDateString()}
+                </span>
               </div>
             </div>
 
             <div className="pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="h-4 w-4 text-green-400" />
-                <span>All settings are automatically validated and saved locally</span>
+                <span>
+                  All settings are automatically validated and saved locally
+                </span>
               </div>
             </div>
           </CardContent>

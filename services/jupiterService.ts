@@ -6,8 +6,16 @@ import { QuoteResponse, SwapResponse } from '@/lib/types'
 const WSOL_MINT = 'So11111111111111111111111111111111111111112'
 
 function base64ToBytes(base64: string): Uint8Array {
-  if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
-    return Uint8Array.from((Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'))
+  if (
+    typeof Buffer !== 'undefined' &&
+    typeof (Buffer as any).from === 'function'
+  ) {
+    return Uint8Array.from(
+      (Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(
+        base64,
+        'base64',
+      ),
+    )
   }
   const binary = typeof atob !== 'undefined' ? atob(base64) : ''
   const len = binary.length

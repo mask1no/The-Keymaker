@@ -61,7 +61,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/UI/dialog'
-import { type PreviewResult, type ExecutionResult } from '@/services/bundleService'
+import {
+  type PreviewResult,
+  type ExecutionResult,
+} from '@/services/bundleService'
 import { exportExecutionLog } from '@/lib/clientLogger'
 import {
   buildSwapLegacyTransaction,
@@ -71,7 +74,11 @@ import {
 // PnL tracking must be server-side only; call API instead
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { useKeymakerStore } from '@/lib/store'
-import { getBundleTxLimit, DEFAULT_INTER_BUNDLE_STAGGER_MS, INSTANT_STAGGER_RANGE_MS } from '@/lib/constants/bundleConfig'
+import {
+  getBundleTxLimit,
+  DEFAULT_INTER_BUNDLE_STAGGER_MS,
+  INSTANT_STAGGER_RANGE_MS,
+} from '@/lib/constants/bundleConfig'
 import { FeeEstimator } from '@/components/FeeEstimator'
 import { ManualBuyTable } from './ManualBuyTable'
 import { useSettingsStore } from '@/stores/useSettingsStore'
@@ -119,15 +126,23 @@ export function BundleEngine() {
   // Controls bar state
   const [selectedGroup, setSelectedGroup] = useState('neo')
   const [selectedRegion, setSelectedRegion] = useState('ffm')
-  const [executionMode, setExecutionMode] = useState<'regular' | 'instant' | 'delayed'>('regular')
+  const [executionMode, setExecutionMode] = useState<
+    'regular' | 'instant' | 'delayed'
+  >('regular')
   const [delaySeconds, setDelaySeconds] = useState(30)
   const [delayedTimer, setDelayedTimer] = useState<number | null>(null)
-  const [delayedStage, setDelayedStage] = useState<'idle' | 'armed' | 't-5s' | 't-1s' | 'executing'>('idle')
+  const [delayedStage, setDelayedStage] = useState<
+    'idle' | 'armed' | 't-5s' | 't-1s' | 'executing'
+  >('idle')
 
   // Tip floor data
-  const { data: tipFloorData } = useSWR(`/api/jito/tipfloor?region=${selectedRegion}`, (u) => fetch(u).then(r => r.json()), {
-    refreshInterval: 10000,
-  })
+  const { data: tipFloorData } = useSWR(
+    `/api/jito/tipfloor?region=${selectedRegion}`,
+    (u) => fetch(u).then((r) => r.json()),
+    {
+      refreshInterval: 10000,
+    },
+  )
 
   // Wallet management
   const [wallets, setWallets] = useState<WalletWithRole[]>([])
@@ -182,7 +197,7 @@ export function BundleEngine() {
       activeGroupNeo: selectedGroup === 'neo',
       txCountValid: transactions.length > 0 && transactions.length <= 5,
       regionSelected: selectedRegion !== '',
-      previewPassed: preview.length > 0 && preview.every(p => p.success),
+      previewPassed: preview.length > 0 && preview.every((p) => p.success),
       blockhashFresh: true,
       healthHealthy: true,
     }
@@ -364,7 +379,12 @@ export function BundleEngine() {
     setLoading(true)
     try {
       // Build native v0 VersionedTransactions directly for preview
-      const { VersionedTransaction, TransactionMessage, ComputeBudgetProgram, PublicKey } = await import('@solana/web3.js')
+      const {
+        VersionedTransaction,
+        TransactionMessage,
+        ComputeBudgetProgram,
+        PublicKey,
+      } = await import('@solana/web3.js')
       const recent = await connection.getLatestBlockhash('processed')
       const v0s: string[] = []
       for (const input of transactions) {
@@ -376,16 +396,27 @@ export function BundleEngine() {
         // Build a simple placeholder instruction set; real swap/builds use existing path when you execute
         // Here we only ensure message shape for sim preview
         const feePayer = input.wallet ? new PublicKey(input.wallet) : publicKey!
-        const msgV0 = new TransactionMessage({ payerKey: feePayer, recentBlockhash: recent.blockhash, instructions: ixs }).compileToV0Message()
+        const msgV0 = new TransactionMessage({
+          payerKey: feePayer,
+          recentBlockhash: recent.blockhash,
+          instructions: ixs,
+        }).compileToV0Message()
         const vtx = new VersionedTransaction(msgV0)
         const bytes = vtx.serialize()
-        const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode(...bytes))
+        const b64 =
+          typeof Buffer !== 'undefined'
+            ? Buffer.from(bytes).toString('base64')
+            : btoa(String.fromCharCode(...bytes))
         v0s.push(b64)
       }
       const simRes = await fetch('/api/bundles/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ simulateOnly: true, region: 'ffm', txs_b64: v0s }),
+        body: JSON.stringify({
+          simulateOnly: true,
+          region: 'ffm',
+          txs_b64: v0s,
+        }),
       }).then((r) => r.json())
       if (!simRes?.ok) {
         return toast.error('Server simulation failed')
@@ -473,13 +504,21 @@ export function BundleEngine() {
 
             try {
               // Decrypt on client using browser WebCrypto (no Node crypto)
-              const { decryptAES256ToKeypair } = await import(
-                '@/utils/browserCrypto'
-              )
-              const keypair = await decryptAES256ToKeypair(
+              const { decrypt } = await import('@/utils/browserCrypto')
+              const raw = await decrypt(
                 encryptedWallet.encryptedPrivateKey,
                 password,
               )
+              let keypair: Keypair
+              try {
+                // Try raw secret key bytes
+                keypair = Keypair.fromSecretKey(raw)
+              } catch {
+                // Fallback: interpret as UTF-8 base58 string
+                const secret58 = new TextDecoder().decode(raw)
+                const bytes = (await import('bs58')).default.decode(secret58)
+                keypair = Keypair.fromSecretKey(bytes)
+              }
               signers.push(keypair)
             } catch (error) {
               throw new Error(
@@ -496,41 +535,65 @@ export function BundleEngine() {
 
         // All modes submit via server /api/bundles/submit with base64 v0
         const mode = useKeymakerStore.getState().bundleMode
-        const stagger = mode === 'flash' ? Math.floor(Math.random()*(INSTANT_STAGGER_RANGE_MS[1]-INSTANT_STAGGER_RANGE_MS[0])+INSTANT_STAGGER_RANGE_MS[0]) : DEFAULT_INTER_BUNDLE_STAGGER_MS
+        const stagger =
+          mode === 'flash'
+            ? Math.floor(
+                Math.random() *
+                  (INSTANT_STAGGER_RANGE_MS[1] - INSTANT_STAGGER_RANGE_MS[0]) +
+                  INSTANT_STAGGER_RANGE_MS[0],
+              )
+            : DEFAULT_INTER_BUNDLE_STAGGER_MS
 
         // Build base64 v0 transactions signed appropriately
         const v0s: string[] = []
-        for (let i=0;i<legacyTxs.length;i++){
+        for (let i = 0; i < legacyTxs.length; i++) {
           const tx = legacyTxs[i]
-          if (signers[i]){
+          if (signers[i]) {
             tx.sign(signers[i] as Keypair)
           } else if (signTransaction) {
             await signTransaction(tx)
           }
           const bytes = tx.serialize()
-          const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode(...bytes))
+          const b64 =
+            typeof Buffer !== 'undefined'
+              ? Buffer.from(bytes).toString('base64')
+              : btoa(String.fromCharCode(...bytes))
           v0s.push(b64)
         }
         // Preview via server
-        const sim = await fetch('/api/bundles/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ simulateOnly: true, region: 'ffm', txs_b64: v0s })}).then(r=>r.json())
-        if (!sim?.ok){
+        const sim = await fetch('/api/bundles/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            simulateOnly: true,
+            region: 'ffm',
+            txs_b64: v0s,
+          }),
+        }).then((r) => r.json())
+        if (!sim?.ok) {
           throw new Error('Server simulation failed')
         }
         // Compute tip on server side later; here just submit
-        const submit = await fetch('/api/bundles/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ region:'ffm', txs_b64: v0s })}).then(r=>r.json())
-        if (!submit?.bundle_id){
+        const submit = await fetch('/api/bundles/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ region: 'ffm', txs_b64: v0s }),
+        }).then((r) => r.json())
+        if (!submit?.bundle_id) {
           throw new Error('Bundle submission failed')
         }
         executionResult = {
           usedJito: true,
           slotTargeted: submit.slot || 0,
           bundleId: submit.bundle_id,
-          signatures: submit.signatures||[],
-          results: (submit.signatures||[]).map(()=> 'success'),
-          explorerUrls: (submit.signatures||[]).map((s:string)=> s?`https://solscan.io/tx/${s}`:''),
-          metrics: { estimatedCost:0, successRate:1, executionTime:0 }
+          signatures: submit.signatures || [],
+          results: (submit.signatures || []).map(() => 'success'),
+          explorerUrls: (submit.signatures || []).map((s: string) =>
+            s ? `https://solscan.io/tx/${s}` : '',
+          ),
+          metrics: { estimatedCost: 0, successRate: 1, executionTime: 0 },
         }
-        await new Promise(r=>setTimeout(r, stagger))
+        await new Promise((r) => setTimeout(r, stagger))
       } else {
         // Only connected wallet transactions
         // No additional signers required for adapter-only flow
@@ -540,29 +603,57 @@ export function BundleEngine() {
 
         // Adapter-only: sign and submit via server route
         const mode = useKeymakerStore.getState().bundleMode
-        const stagger = mode === 'flash' ? Math.floor(Math.random()*(INSTANT_STAGGER_RANGE_MS[1]-INSTANT_STAGGER_RANGE_MS[0])+INSTANT_STAGGER_RANGE_MS[0]) : DEFAULT_INTER_BUNDLE_STAGGER_MS
+        const stagger =
+          mode === 'flash'
+            ? Math.floor(
+                Math.random() *
+                  (INSTANT_STAGGER_RANGE_MS[1] - INSTANT_STAGGER_RANGE_MS[0]) +
+                  INSTANT_STAGGER_RANGE_MS[0],
+              )
+            : DEFAULT_INTER_BUNDLE_STAGGER_MS
         const v0s: string[] = []
-        for (let i=0;i<legacyTxs.length;i++){
+        for (let i = 0; i < legacyTxs.length; i++) {
           const tx = legacyTxs[i]
           const signed = await signTransaction!(tx)
           const bytes = signed.serialize()
-          const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bytes).toString('base64') : btoa(String.fromCharCode(...bytes))
+          const b64 =
+            typeof Buffer !== 'undefined'
+              ? Buffer.from(bytes).toString('base64')
+              : btoa(String.fromCharCode(...bytes))
           v0s.push(b64)
         }
-        const sim = await fetch('/api/bundles/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ simulateOnly: true, region: 'ffm', txs_b64: v0s })}).then(r=>r.json())
-        if (!sim?.ok){ throw new Error('Server simulation failed') }
-        const submit = await fetch('/api/bundles/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ region:'ffm', txs_b64: v0s })}).then(r=>r.json())
-        if (!submit?.bundle_id){ throw new Error('Bundle submission failed') }
+        const sim = await fetch('/api/bundles/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            simulateOnly: true,
+            region: 'ffm',
+            txs_b64: v0s,
+          }),
+        }).then((r) => r.json())
+        if (!sim?.ok) {
+          throw new Error('Server simulation failed')
+        }
+        const submit = await fetch('/api/bundles/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ region: 'ffm', txs_b64: v0s }),
+        }).then((r) => r.json())
+        if (!submit?.bundle_id) {
+          throw new Error('Bundle submission failed')
+        }
         executionResult = {
           usedJito: true,
           slotTargeted: submit.slot || 0,
           bundleId: submit.bundle_id,
-          signatures: submit.signatures||[],
-          results: (submit.signatures||[]).map(()=> 'success'),
-          explorerUrls: (submit.signatures||[]).map((s:string)=> s?`https://solscan.io/tx/${s}`:''),
-          metrics: { estimatedCost:0, successRate:1, executionTime:0 }
+          signatures: submit.signatures || [],
+          results: (submit.signatures || []).map(() => 'success'),
+          explorerUrls: (submit.signatures || []).map((s: string) =>
+            s ? `https://solscan.io/tx/${s}` : '',
+          ),
+          metrics: { estimatedCost: 0, successRate: 1, executionTime: 0 },
         }
-        await new Promise(r=>setTimeout(r, stagger))
+        await new Promise((r) => setTimeout(r, stagger))
       }
 
       // Set results and show success/error messages
@@ -745,7 +836,12 @@ export function BundleEngine() {
 
             <div>
               <Label>Mode</Label>
-              <Select value={executionMode} onValueChange={(value: 'regular' | 'instant' | 'delayed') => setExecutionMode(value)}>
+              <Select
+                value={executionMode}
+                onValueChange={(value: 'regular' | 'instant' | 'delayed') =>
+                  setExecutionMode(value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -763,7 +859,10 @@ export function BundleEngine() {
                   <Clock className="w-4 h-4" />
                   Delay (seconds)
                 </Label>
-                <Select value={delaySeconds.toString()} onValueChange={(value) => setDelaySeconds(parseInt(value))}>
+                <Select
+                  value={delaySeconds.toString()}
+                  onValueChange={(value) => setDelaySeconds(parseInt(value))}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -791,23 +890,37 @@ export function BundleEngine() {
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-sm text-muted-foreground">P25</div>
-                <div className="text-lg font-bold">{(tipFloorData.p25 / 1e6).toFixed(4)} SOL</div>
+                <div className="text-lg font-bold">
+                  {(tipFloorData.p25 / 1e6).toFixed(4)} SOL
+                </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">P50</div>
-                <div className="text-lg font-bold">{(tipFloorData.p50 / 1e6).toFixed(4)} SOL</div>
+                <div className="text-lg font-bold">
+                  {(tipFloorData.p50 / 1e6).toFixed(4)} SOL
+                </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">P75</div>
-                <div className="text-lg font-bold">{(tipFloorData.p75 / 1e6).toFixed(4)} SOL</div>
+                <div className="text-lg font-bold">
+                  {(tipFloorData.p75 / 1e6).toFixed(4)} SOL
+                </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Chosen</div>
                 <div className="text-lg font-bold text-green-400">
                   {(() => {
                     const baseTip = tipFloorData.p50 / 1e6
-                    const multiplier = executionMode === 'regular' ? 1.2 : executionMode === 'instant' ? 1.25 : 1.2
-                    const chosen = Math.max(0.00005, Math.min(0.002, baseTip * multiplier))
+                    const multiplier =
+                      executionMode === 'regular'
+                        ? 1.2
+                        : executionMode === 'instant'
+                          ? 1.25
+                          : 1.2
+                    const chosen = Math.max(
+                      0.00005,
+                      Math.min(0.002, baseTip * multiplier),
+                    )
                     return chosen.toFixed(6) + ' SOL'
                   })()}
                 </div>
@@ -958,19 +1071,17 @@ export function BundleEngine() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={executionMode === 'delayed' ? armDelayedTimer : handleExecute}
+                onClick={
+                  executionMode === 'delayed' ? armDelayedTimer : handleExecute
+                }
                 disabled={!canExecute || loading}
                 className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500"
               >
-                {executionMode === 'delayed' ? (
-                  delayedStage === 'armed' ? (
-                    `Armed (${Math.ceil((delayedTimer! - Date.now()) / 1000)}s)`
-                  ) : (
-                    `Arm Delayed (${delaySeconds}s)`
-                  )
-                ) : (
-                  'Execute Bundle (⌘+Enter)'
-                )}
+                {executionMode === 'delayed'
+                  ? delayedStage === 'armed'
+                    ? `Armed (${Math.ceil((delayedTimer! - Date.now()) / 1000)}s)`
+                    : `Arm Delayed (${delaySeconds}s)`
+                  : 'Execute Bundle (⌘+Enter)'}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -987,11 +1098,21 @@ export function BundleEngine() {
         <div className="ml-auto flex items-center gap-2 text-sm">
           <span className="text-gray-400">Mode:</span>
           <Badge variant={executionMode === 'regular' ? 'default' : 'outline'}>
-            {executionMode === 'regular' ? 'Regular' : executionMode === 'instant' ? 'Instant' : 'Delayed'}
+            {executionMode === 'regular'
+              ? 'Regular'
+              : executionMode === 'instant'
+                ? 'Instant'
+                : 'Delayed'}
           </Badge>
           {executionMode === 'delayed' && delayedStage !== 'idle' && (
             <Badge variant="secondary" className="animate-pulse">
-              {delayedStage === 'armed' ? 'Armed' : delayedStage === 't-5s' ? 'T-5s' : delayedStage === 't-1s' ? 'T-1s' : 'Executing'}
+              {delayedStage === 'armed'
+                ? 'Armed'
+                : delayedStage === 't-5s'
+                  ? 'T-5s'
+                  : delayedStage === 't-1s'
+                    ? 'T-1s'
+                    : 'Executing'}
             </Badge>
           )}
         </div>

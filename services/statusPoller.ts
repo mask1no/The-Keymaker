@@ -7,12 +7,22 @@ export type BundleInflightStatus = {
   transactions?: string[]
 }
 
-type RegionCache = { lastFetchMs: number; entries: Map<string, BundleInflightStatus> }
+type RegionCache = {
+  lastFetchMs: number
+  entries: Map<string, BundleInflightStatus>
+}
 const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
 
-function endpoint(region: string) { return bundlesUrl((region as any) || 'ffm') }
+function endpoint(region: string) {
+  return bundlesUrl((region as any) || 'ffm')
+}
 
-async function jrpc<T>(region: string, method: string, params: any[], timeout = 8000): Promise<T> {
+async function jrpc<T>(
+  region: string,
+  method: string,
+  params: any[],
+  timeout = 8000,
+): Promise<T> {
   const res = await fetch(endpoint(region), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -27,11 +37,17 @@ async function jrpc<T>(region: string, method: string, params: any[], timeout = 
 
 function cacheFor(region: string): RegionCache {
   let c = REGION_TO_CACHE.get(region)
-  if (!c) { c = { lastFetchMs: 0, entries: new Map() }; REGION_TO_CACHE.set(region, c) }
+  if (!c) {
+    c = { lastFetchMs: 0, entries: new Map() }
+    REGION_TO_CACHE.set(region, c)
+  }
   return c
 }
 
-export async function getBundleStatuses(region: string, ids: string[]): Promise<BundleInflightStatus[]> {
+export async function getBundleStatuses(
+  region: string,
+  ids: string[],
+): Promise<BundleInflightStatus[]> {
   const cache = cacheFor(region)
   const now = Date.now()
   const stale = now - cache.lastFetchMs > 1500
@@ -39,12 +55,14 @@ export async function getBundleStatuses(region: string, ids: string[]): Promise<
   if (ids.length) {
     try {
       const r: any = await jrpc(region, 'getBundleStatuses', [ids])
-      for (const v of (r?.value ?? [])) {
+      for (const v of r?.value ?? []) {
         cache.entries.set(v.bundle_id, {
           bundle_id: v.bundle_id,
           status: String(v.status || 'unknown').toLowerCase() as any,
           landed_slot: v.landed_slot ?? null,
-          transactions: Array.isArray(v.transactions) ? v.transactions : undefined,
+          transactions: Array.isArray(v.transactions)
+            ? v.transactions
+            : undefined,
         })
       }
     } catch {
@@ -55,11 +73,13 @@ export async function getBundleStatuses(region: string, ids: string[]): Promise<
   if (stale && ids.length) {
     try {
       const r2: any = await jrpc(region, 'getInflightBundleStatuses', [ids])
-      for (const v of (r2?.value ?? [])) {
+      for (const v of r2?.value ?? []) {
         const prev = cache.entries.get(v.bundle_id)
         cache.entries.set(v.bundle_id, {
           bundle_id: v.bundle_id,
-          status: String(v.status || prev?.status || 'unknown').toLowerCase() as any,
+          status: String(
+            v.status || prev?.status || 'unknown',
+          ).toLowerCase() as any,
           landed_slot: v.landed_slot ?? prev?.landed_slot ?? null,
           transactions: prev?.transactions,
         })
@@ -70,5 +90,7 @@ export async function getBundleStatuses(region: string, ids: string[]): Promise<
     }
   }
 
-  return ids.map(id => cache.entries.get(id) || ({ bundle_id: id, status: 'pending' }))
+  return ids.map(
+    (id) => cache.entries.get(id) || { bundle_id: id, status: 'pending' },
+  )
 }

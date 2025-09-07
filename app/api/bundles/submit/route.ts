@@ -16,12 +16,19 @@ type SubmitBody = {
 }
 
 function hasStaticTipKey(vt: VersionedTransaction): boolean {
-  const staticKeys: string[] = (vt.message.staticAccountKeys || []).map((k: PublicKey) => k.toBase58())
+  const staticKeys: string[] = (vt.message.staticAccountKeys || []).map(
+    (k: PublicKey) => k.toBase58(),
+  )
   const tipSet = new Set(JITO_TIP_ACCOUNTS)
-  return staticKeys.some(k => tipSet.has(k))
+  return staticKeys.some((k) => tipSet.has(k))
 }
 
-async function jitoRpc<T>(endpoint: string, method: string, params: any[], timeout = 10000): Promise<T> {
+async function jitoRpc<T>(
+  endpoint: string,
+  method: string,
+  params: any[],
+  timeout = 10000,
+): Promise<T> {
   const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -44,21 +51,34 @@ export async function POST(req: Request) {
 
     const txs_b64 = Array.isArray(body.txs_b64) ? body.txs_b64 : []
     if (txs_b64.length < 1 || txs_b64.length > 5) {
-      return NextResponse.json({ error: 'txs_b64 must contain 1..5 base64 v0 transactions' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'txs_b64 must contain 1..5 base64 v0 transactions' },
+        { status: 400 },
+      )
     }
 
-    const decoded = txs_b64.map(b64 => VersionedTransaction.deserialize(Buffer.from(b64, 'base64')))
+    const decoded = txs_b64.map((b64) =>
+      VersionedTransaction.deserialize(Buffer.from(b64, 'base64')),
+    )
     if (!hasStaticTipKey(decoded[decoded.length - 1])) {
-      return NextResponse.json({ error: 'Tip account must be in static keys of the last tx (no ALT)' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Tip account must be in static keys of the last tx (no ALT)' },
+        { status: 400 },
+      )
     }
 
     const endpoint = bundlesUrl(region as any)
     const connection = new Connection(getServerRpc(), 'confirmed')
 
     if (simulateOnly) {
-      const sim = await connection.simulateTransaction(decoded[0], { sigVerify: false })
+      const sim = await connection.simulateTransaction(decoded[0], {
+        sigVerify: false,
+      })
       if (sim.value.err) {
-        return NextResponse.json({ error: `Simulation failed: ${JSON.stringify(sim.value.err)}` }, { status: 400 })
+        return NextResponse.json(
+          { error: `Simulation failed: ${JSON.stringify(sim.value.err)}` },
+          { status: 400 },
+        )
       }
       return NextResponse.json({ ok: true, simulation: sim.value })
     }
@@ -69,30 +89,49 @@ export async function POST(req: Request) {
     const encodedTransactions = txs_b64
     const send = async () => {
       const start = Date.now()
-      const res: any = await jitoRpc(endpoint, 'sendBundle', [{ encodedTransactions, bundleOnly: true }])
-      const bundleId: string = typeof res === 'string' ? res : res?.bundleId || res?.id
+      const res: any = await jitoRpc(endpoint, 'sendBundle', [
+        { encodedTransactions, bundleOnly: true },
+      ])
+      const bundleId: string =
+        typeof res === 'string' ? res : res?.bundleId || res?.id
       if (!bundleId) throw new Error('No bundleId returned')
 
       let landedSlot: number | null = null
       for (let i = 0; i < 20; i++) {
-        const r: any = await jitoRpc(endpoint, 'getBundleStatuses', [[bundleId]])
+        const r: any = await jitoRpc(endpoint, 'getBundleStatuses', [
+          [bundleId],
+        ])
         const v = r?.value?.[0]
         const st = String(v?.status || 'unknown').toLowerCase()
-        if (st === 'landed') { landedSlot = v?.landed_slot ?? null; break }
+        if (st === 'landed') {
+          landedSlot = v?.landed_slot ?? null
+          break
+        }
         if (st === 'failed' || st === 'invalid') break
-        await new Promise(r => setTimeout(r, 1200))
+        await new Promise((r) => setTimeout(r, 1200))
       }
       const latency = Date.now() - start
-      const signatures = decoded.map(v => v.signatures?.[0]?.toString('base64') || null).filter(Boolean)
+      const signatures = decoded
+        .map((v) => (v.signatures?.[0] ? Buffer.from(v.signatures[0]).toString('base64') : null))
+        .filter(Boolean)
       return { bundleId, signatures, landedSlot, latency }
     }
 
     const now = Date.now()
-    if (sendAt > now) await new Promise(r => setTimeout(r, Math.min(sendAt - now, 120_000)))
+    if (sendAt > now)
+      await new Promise((r) => setTimeout(r, Math.min(sendAt - now, 120_000)))
 
     const { bundleId, signatures, landedSlot, latency } = await send()
-    return NextResponse.json({ bundle_id: bundleId, signatures, slot: landedSlot, latency_ms: latency })
-  } catch (e:any) {
-    return NextResponse.json({ error: e?.message || 'Bundle submit failed' }, { status: 500 })
+    return NextResponse.json({
+      bundle_id: bundleId,
+      signatures,
+      slot: landedSlot,
+      latency_ms: latency,
+    })
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || 'Bundle submit failed' },
+      { status: 500 },
+    )
   }
 }

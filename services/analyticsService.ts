@@ -36,8 +36,6 @@ export async function getLivePrices(): Promise<PriceData> {
   }
 }
 
-
-
 export async function exportToCsv(trades: Trade[]): Promise<void> {
   const csv = trades
     .map(

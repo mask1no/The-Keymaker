@@ -15,7 +15,8 @@ import { useKeymakerStore } from '@/lib/store'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { Connection } from '@solana/web3.js'
 // Use browser-safe crypto for client-side key decryption
-import { decryptAES256ToKeypair } from '@/utils/browserCrypto'
+// Browser crypto: project now exposes encrypt/decrypt helpers under utils/browserCrypto
+import { decrypt as decryptBrowserKey } from '@/utils/browserCrypto'
 import { logEvent } from '@/lib/clientLogger'
 import toast from 'react-hot-toast'
 import { Loader2, ShoppingCart, DollarSign } from 'lucide-react'
@@ -95,10 +96,10 @@ export function ManualBuyTable() {
       const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC)
 
       // Decrypt wallet (browser crypto)
-      const keypair = await decryptAES256ToKeypair(
-        wallet.encryptedPrivateKey,
-        password,
-      )
+      // Decode encrypted secret key (base64-packed JSON from our encrypt())
+      const raw = await decryptBrowserKey(wallet.encryptedPrivateKey, password)
+      const { Keypair } = await import('@solana/web3.js')
+      const keypair = Keypair.fromSecretKey(raw as unknown as Uint8Array)
 
       // Build swap transaction
       const versionedTransaction = await buildSwapTransaction(
@@ -175,10 +176,12 @@ export function ManualBuyTable() {
     }
     try {
       const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
-      const keypair = await decryptAES256ToKeypair(
+      const raw = await decryptBrowserKey(
         pendingSell.wallet.encryptedPrivateKey,
         sellPassword,
       )
+      const { Keypair } = await import('@solana/web3.js')
+      const keypair = Keypair.fromSecretKey(raw as unknown as Uint8Array)
       // Use sellService with manualSell condition, sell all by passing a very large amount to clamp to balance
       const { sellToken } = await import('@/services/sellService')
       const { PublicKey } = await import('@solana/web3.js')
@@ -194,9 +197,9 @@ export function ManualBuyTable() {
         addNotification({
           type: 'success',
           title: 'Manual Sell Executed',
-          message: `${pendingSell.wallet.publicKey.slice(0, 8)}... sold; tx ${
-            (result.txSignature || '').slice(0, 8)
-          }...`,
+          message: `${pendingSell.wallet.publicKey.slice(0, 8)}... sold; tx ${(
+            result.txSignature || ''
+          ).slice(0, 8)}...`,
         })
         // Track PnL
         try {
@@ -352,15 +355,28 @@ export function ManualBuyTable() {
           <div className="space-y-3">
             <div>
               <Label>Token Mint</Label>
-              <Input value={sellMint} onChange={(e) => setSellMint(e.target.value)} placeholder="Token mint address" />
+              <Input
+                value={sellMint}
+                onChange={(e) => setSellMint(e.target.value)}
+                placeholder="Token mint address"
+              />
             </div>
             <div className="flex items-center gap-2">
-              <input type="checkbox" checked={sellAll} onChange={(e) => setSellAll(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={sellAll}
+                onChange={(e) => setSellAll(e.target.checked)}
+              />
               <Label>Sell all balance</Label>
             </div>
             <div>
               <Label>Password</Label>
-              <Input type="password" value={sellPassword} onChange={(e) => setSellPassword(e.target.value)} placeholder="Wallet password" />
+              <Input
+                type="password"
+                value={sellPassword}
+                onChange={(e) => setSellPassword(e.target.value)}
+                placeholder="Wallet password"
+              />
             </div>
           </div>
           <DialogFooter>

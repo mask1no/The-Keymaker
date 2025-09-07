@@ -3,13 +3,16 @@ import { birdeyeService } from '@/services/birdeyeService'
 
 export async function GET(
   req: Request,
-  { params }: { params: { mint: string } }
+  { params }: { params: { mint: string } },
 ) {
   try {
     const mint = params.mint
 
     if (!mint || typeof mint !== 'string') {
-      return NextResponse.json({ error: 'Invalid mint address' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid mint address' },
+        { status: 400 },
+      )
     }
 
     // Fetch token data from Birdeye
@@ -22,7 +25,7 @@ export async function GET(
         marketCap: 0,
         price: 0,
         volume24h: 0,
-        priceChange24h: 0
+        priceChange24h: 0,
       })
     }
 
@@ -35,17 +38,20 @@ export async function GET(
       fdv: tokenData.fdv,
       liquidityUSD: tokenData.liquidityUSD,
       holders: tokenData.holders,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     })
   } catch (error: any) {
     console.error('Market cap API error:', error)
-    return NextResponse.json({
-      error: 'Failed to fetch market cap data',
-      mint: params.mint,
-      marketCap: 0,
-      price: 0,
-      volume24h: 0,
-      priceChange24h: 0
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch market cap data',
+        mint: params.mint,
+        marketCap: 0,
+        price: 0,
+        volume24h: 0,
+        priceChange24h: 0,
+      },
+      { status: 500 },
+    )
   }
 }

@@ -15,7 +15,7 @@ export function useSystemStatus() {
     rpc: 'down',
     ws: 'healthy', // Default to healthy for WS
     be: 'down',
-    network: 'mainnet-beta'
+    network: 'mainnet-beta',
   })
 
   const [loading, setLoading] = useState(true)
@@ -25,12 +25,19 @@ export function useSystemStatus() {
     const checkStatus = async () => {
       try {
         // Check RPC directly
-        const rpcUrl = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+        const rpcUrl =
+          process.env.NEXT_PUBLIC_HELIUS_RPC ||
+          'https://api.mainnet-beta.solana.com'
         const rpcCheck = await fetch(rpcUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getEpochInfo', params: [] }),
-          signal: AbortSignal.timeout(5000)
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'getEpochInfo',
+            params: [],
+          }),
+          signal: AbortSignal.timeout(5000),
         })
 
         const rpcHealthy = rpcCheck.ok
@@ -38,7 +45,7 @@ export function useSystemStatus() {
         // Check Jito tip floor
         const jitoCheck = await fetch('/api/jito/tipfloor', {
           cache: 'no-store',
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(5000),
         })
 
         const jitoHealthy = jitoCheck.ok
@@ -48,13 +55,13 @@ export function useSystemStatus() {
           ws: 'healthy', // WebSocket status - could be enhanced later
           be: jitoHealthy ? 'healthy' : 'down',
           network: 'mainnet-beta',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         })
       } catch (error) {
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           rpc: 'down',
-          be: 'down'
+          be: 'down',
         }))
       } finally {
         setLoading(false)
@@ -75,6 +82,6 @@ export function useSystemStatus() {
     // Legacy compatibility
     rpcStatus: status.rpc,
     wsStatus: status.ws,
-    jitoStatus: status.be
+    jitoStatus: status.be,
   }
 }

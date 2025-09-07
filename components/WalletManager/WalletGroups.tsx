@@ -86,7 +86,11 @@ export function WalletGroups({
       const raw = localStorage.getItem('walletGroups')
       if (raw) {
         const obj = JSON.parse(raw)
-        obj[ groupName ] = { ...(obj[groupName]||{}), wallets: selectedWallets.map((pk)=>({publicKey:pk})), meta: { devWallet: devPubkey || undefined } }
+        obj[groupName] = {
+          ...(obj[groupName] || {}),
+          wallets: selectedWallets.map((pk) => ({ publicKey: pk })),
+          meta: { devWallet: devPubkey || undefined },
+        }
         localStorage.setItem('walletGroups', JSON.stringify(obj))
       }
     } catch (e) {
@@ -124,7 +128,10 @@ export function WalletGroups({
       if (raw) {
         const obj = JSON.parse(raw)
         if (!obj[groupName]) obj[groupName] = {}
-        obj[groupName].meta = { ...(obj[groupName].meta||{}), devWallet: devPubkey || undefined }
+        obj[groupName].meta = {
+          ...(obj[groupName].meta || {}),
+          devWallet: devPubkey || undefined,
+        }
         localStorage.setItem('walletGroups', JSON.stringify(obj))
       }
     } catch (e) {

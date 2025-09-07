@@ -165,20 +165,20 @@ spec:
         app: keymaker
     spec:
       containers:
-      - name: keymaker
-        image: keymaker:latest
-        ports:
-        - containerPort: 3000
-        envFrom:
-        - secretRef:
-            name: keymaker-secrets
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        - name: keymaker
+          image: keymaker:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: keymaker-secrets
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
 ```
 
 ### 🔧 Production Checklist
@@ -232,17 +232,17 @@ PUPPETEER_SKIP_DOWNLOAD=1
 
 ### Environment Variables Guide
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `HELIUS_API_KEY` | ✅ | Helius RPC API key for mainnet access |
-| `RPC_URL` | ✅ | Full Helius RPC URL with API key |
-| `NEXT_PUBLIC_JITO_ENDPOINT` | ✅ | Jito Block Engine endpoint |
-| `SMOKE_SECRET` | 🧪 | Test wallet private key (base58) for smoke tests |
-| `JITO_AUTH_TOKEN` | 🔧 | Jito searcher token (improves success rates) |
-| `BIRDEYE_API_KEY` | 📊 | Birdeye API key for token analytics |
-| `JUPITER_API_KEY` | 🔄 | Jupiter API key for swaps |
-| `PUMP_FUN_API_KEY` | 🚀 | Pump.fun API key for token launches |
-| `TWO_CAPTCHA_KEY` | 🤖 | 2Captcha key for LetsBonk automation |
+| Variable                    | Required | Description                                      |
+| --------------------------- | -------- | ------------------------------------------------ |
+| `HELIUS_API_KEY`            | ✅       | Helius RPC API key for mainnet access            |
+| `RPC_URL`                   | ✅       | Full Helius RPC URL with API key                 |
+| `NEXT_PUBLIC_JITO_ENDPOINT` | ✅       | Jito Block Engine endpoint                       |
+| `SMOKE_SECRET`              | 🧪       | Test wallet private key (base58) for smoke tests |
+| `JITO_AUTH_TOKEN`           | 🔧       | Jito searcher token (improves success rates)     |
+| `BIRDEYE_API_KEY`           | 📊       | Birdeye API key for token analytics              |
+| `JUPITER_API_KEY`           | 🔄       | Jupiter API key for swaps                        |
+| `PUMP_FUN_API_KEY`          | 🚀       | Pump.fun API key for token launches              |
+| `TWO_CAPTCHA_KEY`           | 🤖       | 2Captcha key for LetsBonk automation             |
 
 ### Production Security Notes
 
@@ -302,6 +302,7 @@ GET /api/health
 ```
 
 **Response:**
+
 ```json
 {
   "ok": true,
@@ -334,21 +335,24 @@ GET /api/health
 ### Bundle Execution
 
 #### Submit Bundle
+
 ```
 POST /api/bundles/submit
 ```
 
 **Request Body:**
+
 ```json
 {
   "txs_b64": ["base64_tx_1", "base64_tx_2"],
-  "region": "ffm",  // optional: ffm, ldn, nyc, slc, sgp, tyo, ams
-  "tip_lamports": 5000,  // optional: will be floor-enforced
-  "simulateOnly": false  // optional: true for preview only
+  "region": "ffm", // optional: ffm, ldn, nyc, slc, sgp, tyo, ams
+  "tip_lamports": 5000, // optional: will be floor-enforced
+  "simulateOnly": false // optional: true for preview only
 }
 ```
 
 **Response (Success):**
+
 ```json
 {
   "bundle_id": "bundle_id_here",
@@ -359,6 +363,7 @@ POST /api/bundles/submit
 ```
 
 **Response (Simulation):**
+
 ```json
 {
   "ok": true,
@@ -372,19 +377,22 @@ POST /api/bundles/submit
 ```
 
 #### Batch Status Check
+
 ```
 POST /api/bundles/status/batch
 ```
 
 **Request Body:**
+
 ```json
 {
   "bundle_ids": ["bundle_id_1", "bundle_id_2"],
-  "region": "ffm"  // optional
+  "region": "ffm" // optional
 }
 ```
 
 **Response:**
+
 ```json
 {
   "region": "ffm",
@@ -402,11 +410,13 @@ POST /api/bundles/status/batch
 ### Jito Integration
 
 #### Tip Floor
+
 ```
 GET /api/jito/tipfloor
 ```
 
 **Response:**
+
 ```json
 {
   "p25": 1000,
@@ -421,11 +431,13 @@ GET /api/jito/tipfloor
 ### Analytics & Monitoring
 
 #### P&L Data
+
 ```
 GET /api/pnl?limit=100&timeRange=24h
 ```
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -449,11 +461,13 @@ GET /api/pnl?limit=100&timeRange=24h
 ### Platform Integrations
 
 #### Proxy Service
+
 ```
 POST /api/proxy
 ```
 
 **Request Body:**
+
 ```json
 {
   "service": "jupiter" | "birdeye" | "helius" | "pumpfun",
@@ -470,11 +484,13 @@ POST /api/proxy
 ### Token Operations
 
 #### SPL Token Creation
+
 ```
 POST /api/tokens
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "My Token",
@@ -496,8 +512,9 @@ All API endpoints return consistent error responses:
 ```json
 {
   "error": "Human-readable error message",
-  "code": "ERROR_CODE",  // optional
-  "details": {  // optional additional context
+  "code": "ERROR_CODE", // optional
+  "details": {
+    // optional additional context
     "field": "specific_field",
     "reason": "validation_reason"
   }
@@ -505,6 +522,7 @@ All API endpoints return consistent error responses:
 ```
 
 **Common HTTP Status Codes:**
+
 - `200` - Success
 - `400` - Bad Request (validation error)
 - `401` - Unauthorized
@@ -605,6 +623,7 @@ pnpm smoke
 ### Production Smoke Test Results
 
 Expected successful smoke test output:
+
 ```
 ✅ Smoke test PASSED!
    📍 Landed in slot: [SLOT_NUMBER]
@@ -617,12 +636,14 @@ Expected successful smoke test output:
 ### 🔑 Security Operations
 
 #### API Key Management
+
 - **Rotation Schedule**: Monthly rotation of all API keys
 - **Emergency Rotation**: Immediate rotation upon suspected compromise
 - **Key Storage**: Store keys in secure vault (AWS Secrets Manager, HashiCorp Vault)
 - **Access Control**: Least privilege principle for key access
 
 #### Wallet Security
+
 - **Cold Storage**: Keep significant funds in cold wallets
 - **Hot Wallet Limits**: Limit hot wallet balances to operational minimums
 - **Multi-Signature**: Use multi-sig for large transactions when possible
@@ -631,12 +652,14 @@ Expected successful smoke test output:
 ### 🚨 Monitoring & Alerting
 
 #### Health Monitoring
+
 - **System Health**: Monitor `/api/health` endpoint every 30 seconds
 - **Bundle Success Rate**: Alert if success rate drops below 80%
 - **Latency Thresholds**: Alert if average latency exceeds 5 seconds
 - **Error Rates**: Alert if API error rate exceeds 5%
 
 #### Business Metrics
+
 - **P&L Tracking**: Daily P&L reports and alerts
 - **Bundle Volume**: Monitor transaction volume and throughput
 - **Region Performance**: Track performance across Jito regions
@@ -645,6 +668,7 @@ Expected successful smoke test output:
 ### 🔧 Maintenance Procedures
 
 #### Database Maintenance
+
 ```bash
 # Backup database
 sqlite3 data/analytics.db ".backup 'backup-$(date +%Y%m%d).db'"
@@ -657,6 +681,7 @@ pnpm db:export-pnl > pnl-$(date +%Y%m%d).csv
 ```
 
 #### Log Management
+
 ```bash
 # Rotate logs weekly
 logrotate -f /etc/logrotate.d/keymaker
@@ -669,6 +694,7 @@ find /var/log/keymaker -name "*.tar.gz" -mtime +30 -delete
 ```
 
 #### Performance Optimization
+
 - **Memory Usage**: Monitor and optimize heap usage
 - **Connection Pooling**: Ensure proper connection limits
 - **Cache Management**: Clear caches during maintenance windows
@@ -677,6 +703,7 @@ find /var/log/keymaker -name "*.tar.gz" -mtime +30 -delete
 ### 🚨 Incident Response
 
 #### Bundle Execution Failures
+
 1. **Check System Health**: Verify RPC and Jito connectivity
 2. **Review Logs**: Check for error patterns in application logs
 3. **Region Switching**: Manually switch to different Jito regions if needed
@@ -684,12 +711,14 @@ find /var/log/keymaker -name "*.tar.gz" -mtime +30 -delete
 5. **Circuit Breaker**: Pause execution if failure rate exceeds threshold
 
 #### API Rate Limiting
+
 1. **Identify Source**: Check which API is being rate limited
 2. **Implement Backoff**: Increase retry intervals with exponential backoff
 3. **Key Rotation**: Rotate to fresh API keys if available
 4. **Load Balancing**: Distribute load across multiple API keys
 
 #### Network Issues
+
 1. **RPC Failover**: Switch to backup RPC endpoints
 2. **Region Rotation**: Use different Jito regions
 3. **Connection Pool**: Restart connection pools
@@ -698,6 +727,7 @@ find /var/log/keymaker -name "*.tar.gz" -mtime +30 -delete
 ### 📊 Performance Benchmarks
 
 #### Target Metrics
+
 - **Bundle Success Rate**: ≥ 85%
 - **Average Latency**: ≤ 3 seconds
 - **API Error Rate**: ≤ 2%
@@ -705,6 +735,7 @@ find /var/log/keymaker -name "*.tar.gz" -mtime +30 -delete
 - **CPU Usage**: ≤ 50%
 
 #### Monitoring Commands
+
 ```bash
 # System health check
 curl -s http://localhost:3000/api/health | jq
@@ -721,12 +752,14 @@ curl -X POST http://localhost:3000/api/bundles/status/batch \
 ### 🔄 Backup & Recovery
 
 #### Data Backup
+
 - **Database**: Daily automated backups with 30-day retention
 - **Configuration**: Version-controlled configuration with secrets in vault
 - **Logs**: Compressed log archives with 90-day retention
 - **Wallet Configs**: Encrypted wallet configurations with secure backup
 
 #### Recovery Procedures
+
 1. **Database Recovery**: Restore from latest backup, verify integrity
 2. **Application Restart**: Rolling restart with health checks
 3. **Configuration Restore**: Pull latest config from version control
@@ -736,12 +769,14 @@ curl -X POST http://localhost:3000/api/bundles/status/batch \
 ### 📈 Scaling Considerations
 
 #### Horizontal Scaling
+
 - **Load Balancer**: Distribute traffic across multiple instances
 - **Database Sharding**: Shard database for high-volume operations
 - **Regional Deployment**: Deploy across multiple geographic regions
 - **CDN Integration**: Use CDN for static asset delivery
 
 #### Vertical Scaling
+
 - **Memory Optimization**: Monitor and optimize memory usage
 - **CPU Optimization**: Profile and optimize CPU-intensive operations
 - **I/O Optimization**: Optimize database queries and caching

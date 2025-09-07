@@ -6,18 +6,38 @@ import { cn } from '@/lib/utils'
 export const Dialog = DialogPr.Root
 export const DialogTrigger = DialogPr.Trigger
 export const DialogPortal = DialogPr.Portal
-export function DialogContent({ className, children, ...props }: React.ComponentPropsWithoutRef<typeof DialogPr.Content>) {
+export function DialogContent({
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPr.Content>) {
   return (
     <DialogPr.Portal>
       <DialogPr.Overlay className="fixed inset-0 z-50 bg-black/50" />
-      <DialogPr.Content className={cn('fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-background p-4 shadow-lg', className)} {...props}>
+      <DialogPr.Content
+        className={cn(
+          'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-background p-4 shadow-lg',
+          className,
+        )}
+        {...props}
+      >
         {children}
-        <DialogPr.Close className="absolute right-3 top-3"><X className="h-4 w-4" /></DialogPr.Close>
+        <DialogPr.Close className="absolute right-3 top-3">
+          <X className="h-4 w-4" />
+        </DialogPr.Close>
       </DialogPr.Content>
     </DialogPr.Portal>
   )
 }
-export const DialogHeader = (p: React.HTMLAttributes<HTMLDivElement>) => <div className={cn('space-y-1.5', p.className)} {...p} />
-export const DialogTitle = (p: React.HTMLAttributes<HTMLDivElement>) => <div className={cn('text-lg font-semibold', p.className)} {...p} />
-export const DialogDescription = (p: React.HTMLAttributes<HTMLDivElement>) => <div className={cn('text-sm text-muted-foreground', p.className)} {...p} />
-export const DialogFooter = (p: React.HTMLAttributes<HTMLDivElement>) => <div className={cn('flex justify-end gap-2', p.className)} {...p} />
+export const DialogHeader = (p: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('space-y-1.5', p.className)} {...p} />
+)
+export const DialogTitle = (p: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('text-lg font-semibold', p.className)} {...p} />
+)
+export const DialogDescription = (p: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('text-sm text-muted-foreground', p.className)} {...p} />
+)
+export const DialogFooter = (p: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('flex justify-end gap-2', p.className)} {...p} />
+)
