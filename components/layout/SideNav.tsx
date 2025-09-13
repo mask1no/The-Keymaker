@@ -28,7 +28,7 @@ const navigation = [
     description: 'Manage encrypted wallets',
   },
   {
-    name: 'Token Studio',
+    name: 'Token Creator',
     href: '/spl-creator',
     icon: Coins,
     description: 'Create tokens',
