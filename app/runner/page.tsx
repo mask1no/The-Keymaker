@@ -37,7 +37,9 @@ export default function Runner() {
 
         const transactionConfigs = [
           {
-            instructions: [testTransfer(testRecipient, testRecipient, transferAmount)],
+            instructions: [
+              testTransfer(testRecipient, testRecipient, transferAmount),
+            ],
             signer: { publicKey: testRecipient } as any,
             tipLamports: tip,
             mode,

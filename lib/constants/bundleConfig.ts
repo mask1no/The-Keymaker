@@ -4,7 +4,7 @@ export const BUNDLE_CONFIG = {
   DEFAULT_TX_LIMIT: 5,
 
   // Maximum allowed transactions per bundle
-  MAX_TX_LIMIT: 5,
+  MAX_TX_LIMIT: 20,
 
   // Minimum transactions required for a bundle
   MIN_TX_LIMIT: 1,
