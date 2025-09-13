@@ -15,99 +15,43 @@ export default function TokenForm() {
   const [platform, setPlatform] = useState<Platform>('pump')
   const [mode, setMode] = useState<Mode>('regular')
   const [delay, setDelay] = useState(0)
+
   const [name, setName] = useState('')
   const [symbol, setSymbol] = useState('')
-  const [decimals, setDecimals] = useState<number>(9)
-  const [supply, setSupply] = useState<number>(1_000_000_000)
+  const [decimals, setDecimals] = useState(9)
+  const [supply, setSupply] = useState(1_000_000_000)
+
+  // metadata
   const [image, setImage] = useState('')
   const [website, setWebsite] = useState('')
-  const [telegram, setTelegram] = useState('')
   const [twitter, setTwitter] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [enableBundling, setEnableBundling] = useState(false)
-  const [buyAmount, setBuyAmount] = useState<number>(0.1) // SOL amount for initial buy
+  const [telegram, setTelegram] = useState('')
+  const [desc, setDesc] = useState('')
+
   const hideDecimalsSupply = platform !== 'spl'
 
   async function onSubmit() {
-    if (!connected) return toast.error('Connect a wallet first.')
-    if (!name || !symbol) return toast.error('Name and symbol required.')
-    if (enableBundling && buyAmount <= 0)
-      return toast.error('Buy amount must be greater than 0')
+    if (!connected) return toast.error('Connect a wallet')
+    if (!name || !symbol) return toast.error('Name & symbol required')
 
-    try {
-      setSubmitting(true)
-      const tokenMetadata = { image, website, telegram, twitter }
-
-      // Prepare bundling parameters
-      const bundlingParams = enableBundling
-        ? {
-            enableBundling: true,
-            buyAmount,
-            mode,
-            delay_seconds: delay,
-          }
-        : {
-            enableBundling: false,
-            mode,
-            delay_seconds: delay,
-          }
-
-      if (platform === 'pump') {
-        const resp = await fetch('/api/pumpfun/launch', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            symbol,
-            metadata: tokenMetadata,
-            ...bundlingParams,
-          }),
-        })
-        const j = await resp.json()
-        if (!resp.ok) throw new Error(j?.error || 'Pump launch failed')
-        toast.success(
-          `Pump.fun mint: ${j.mint}${enableBundling ? ' (bundling initiated)' : ''}`,
-        )
-      } else if (platform === 'bonk') {
-        const resp = await fetch('/api/letsbonk/launch', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            symbol,
-            metadata: tokenMetadata,
-            ...bundlingParams,
-          }),
-        })
-        const j = await resp.json()
-        if (!resp.ok) throw new Error(j?.error || 'Bonk launch failed')
-        toast.success(
-          `LetsBonk mint: ${j.mint}${enableBundling ? ' (bundling initiated)' : ''}`,
-        )
-      } else {
-        const resp = await fetch('/api/tokens', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            symbol,
-            decimals,
-            supply,
-            metadata: tokenMetadata,
-            ...bundlingParams,
-          }),
-        })
-        const j = await resp.json()
-        if (!resp.ok) throw new Error(j?.error || 'SPL launch failed')
-        toast.success(
-          `SPL mint: ${j.mint}${enableBundling ? ' (bundling initiated)' : ''}`,
-        )
-      }
-    } catch (e: any) {
-      toast.error(e.message || 'Create failed')
-    } finally {
-      setSubmitting(false)
+    const metadata = { image, description: desc, website, twitter, telegram }
+    const body: any = { name, symbol, metadata, mode, delay_seconds: delay }
+    let url = ''
+    if (platform === 'pump') url = '/api/pumpfun/launch'
+    else if (platform === 'bonk') url = '/api/letsbonk/launch'
+    else {
+      url = '/api/tokens'
+      Object.assign(body, { decimals, supply })
     }
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const j = await r.json()
+    if (!r.ok) return toast.error(j?.error || 'Create failed')
+    toast.success(`Mint: ${j.mint || j.tokenAddress || 'created'}`)
   }
 
   return (
@@ -125,10 +69,9 @@ export default function TokenForm() {
           >
             <option value="pump">Pump.fun</option>
             <option value="bonk">LetsBonk</option>
-            <option value="spl">SPL (manual)</option>
+            <option value="spl">SPL (Radium deploy)</option>
           </select>
         </div>
-
         <div>
           <Label>Name</Label>
           <Input
@@ -179,16 +122,18 @@ export default function TokenForm() {
             <option value="delayed">Delayed</option>
           </select>
         </div>
-        <div>
-          <Label>Delay (seconds, when delayed)</Label>
-          <Input
-            type="number"
-            value={delay}
-            onChange={(e) => setDelay(Number(e.target.value || 0))}
-          />
-        </div>
+        {mode === 'delayed' && (
+          <div>
+            <Label>Delay (seconds)</Label>
+            <Input
+              type="number"
+              value={delay}
+              onChange={(e) => setDelay(Number(e.target.value || 0))}
+            />
+          </div>
+        )}
 
-        <div>
+        <div className="md:col-span-2">
           <Label>Image URL</Label>
           <Input value={image} onChange={(e) => setImage(e.target.value)} />
         </div>
@@ -197,55 +142,23 @@ export default function TokenForm() {
           <Input value={website} onChange={(e) => setWebsite(e.target.value)} />
         </div>
         <div>
+          <Label>Twitter</Label>
+          <Input value={twitter} onChange={(e) => setTwitter(e.target.value)} />
+        </div>
+        <div>
           <Label>Telegram</Label>
           <Input
             value={telegram}
             onChange={(e) => setTelegram(e.target.value)}
           />
         </div>
-        <div>
-          <Label>Twitter/X</Label>
-          <Input value={twitter} onChange={(e) => setTwitter(e.target.value)} />
+        <div className="md:col-span-2">
+          <Label>Description</Label>
+          <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
         </div>
 
         <div className="md:col-span-2">
-          <div className="flex items-center space-x-2 mb-4">
-            <input
-              type="checkbox"
-              id="enableBundling"
-              checked={enableBundling}
-              onChange={(e) => setEnableBundling(e.target.checked)}
-              className="rounded"
-            />
-            <Label htmlFor="enableBundling">
-              Enable automatic bundling (create & buy)
-            </Label>
-          </div>
-
-          {enableBundling && (
-            <div className="mb-4">
-              <Label>Initial Buy Amount (SOL)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={buyAmount}
-                onChange={(e) => setBuyAmount(Number(e.target.value) || 0)}
-                placeholder="0.1"
-                min="0.01"
-                className="mt-1"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="md:col-span-2">
-          <Button disabled={submitting} onClick={onSubmit}>
-            {submitting
-              ? 'Creating…'
-              : enableBundling
-                ? 'Create & Bundle'
-                : 'Create'}
-          </Button>
+          <Button onClick={onSubmit}>Create</Button>
         </div>
       </CardContent>
     </Card>

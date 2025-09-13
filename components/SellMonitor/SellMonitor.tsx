@@ -128,10 +128,7 @@ export function SellMonitor() {
                 )
                 return
               }
-              const raw = await decryptBrowser(
-                seller.encryptedPrivateKey,
-                pwd,
-              )
+              const raw = await decryptBrowser(seller.encryptedPrivateKey, pwd)
               const keypair: Keypair = Keypair.fromSecretKey(raw)
               const connection = new Connection(
                 NEXT_PUBLIC_HELIUS_RPC,

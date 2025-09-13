@@ -59,7 +59,9 @@ export function BundleSettings() {
           <Package className="w-5 h-5" />
           Bundle Configuration
         </CardTitle>
-        <div className="text-sm text-muted-foreground">Configure bundle execution parameters</div>
+        <div className="text-sm text-muted-foreground">
+          Configure bundle execution parameters
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

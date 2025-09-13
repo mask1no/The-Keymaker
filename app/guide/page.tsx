@@ -589,7 +589,7 @@ export default function GuidePage() {
                   </p>
                   <p>
                     <strong>Status not updating:</strong> Status bento refreshes
-                    every 3s from /api/health
+                    every 3s from /api/jito/tipfloor
                   </p>
                 </div>
               </div>

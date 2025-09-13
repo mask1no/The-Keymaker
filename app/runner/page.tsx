@@ -29,7 +29,7 @@ export default function Runner() {
         const {
           buildBundleTransactions,
           serializeBundleTransactions,
-          createTestTransferInstruction,
+          testTransfer,
         } = await import('@/lib/transactionBuilder')
         const { getConnection } = await import('@/lib/network')
 
@@ -37,13 +37,7 @@ export default function Runner() {
 
         const transactionConfigs = [
           {
-            instructions: [
-              createTestTransferInstruction(
-                testRecipient,
-                testRecipient,
-                transferAmount,
-              ),
-            ],
+            instructions: [testTransfer(testRecipient, testRecipient, transferAmount)],
             signer: { publicKey: testRecipient } as any,
             tipLamports: tip,
             mode,
@@ -51,7 +45,10 @@ export default function Runner() {
         ]
 
         const connection = getConnection()
-        const bundleTxs = await buildBundleTransactions(connection, transactionConfigs)
+        const bundleTxs = await buildBundleTransactions(
+          connection,
+          transactionConfigs,
+        )
         const serialized = serializeBundleTransactions(bundleTxs as any)
         txs_b64 = serialized
       } else {

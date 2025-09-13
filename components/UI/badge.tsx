@@ -1,18 +1,20 @@
 import { cn } from '@/lib/utils'
-type Variant = 'default'|'secondary'|'destructive'|'outline'
+
+type Variant = 'default' | 'secondary' | 'destructive' | 'outline'
+
 export function Badge({
   className,
   variant = 'default',
   ...props
 }: React.HTMLAttributes<HTMLSpanElement> & { variant?: Variant }) {
-  const base = 'inline-flex items-center rounded-full border px-2 py-0.5 text-xs'
+  const base =
+    'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium'
   const variants: Record<Variant, string> = {
-    default: 'bg-white/10 border-white/20 text-white',
-    secondary: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
-    destructive: 'bg-red-500/10 border-red-500/30 text-red-300',
-    outline: 'bg-transparent border-white/20 text-white/80',
+    default: 'bg-muted text-foreground border-border',
+    secondary: 'bg-secondary text-secondary-foreground border-secondary/40',
+    destructive:
+      'bg-destructive text-destructive-foreground border-destructive/40',
+    outline: 'bg-transparent text-foreground border-border',
   }
-  return (
-    <span className={cn(base, variants[variant], className)} {...props} />
-  )
+  return <span className={cn(base, variants[variant], className)} {...props} />
 }

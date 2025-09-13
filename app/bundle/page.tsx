@@ -18,6 +18,11 @@ export default function BundlePage() {
   const [status, setStatus] = useState<BundleStatus>('idle')
   const [bundleId, setBundleId] = useState<string | null>(null)
   const [bundleStatus, setBundleStatus] = useState<string>('pending')
+  const activeMaster =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('keymaker.active_master')
+      : null
+  const masterOk = !!activeMaster
 
   // Tip only from tipfloor (fast)
   const { data: tipData } = useSWR('/api/jito/tipfloor', fetcher, {
@@ -29,15 +34,20 @@ export default function BundlePage() {
     [tipData],
   )
 
-  const canPreview = connected
-  const canExecute = connected && status !== 'executing'
+  const canPreview = connected && masterOk
+  const canExecute = connected && masterOk && status !== 'executing'
 
   const handlePreview = async () => {
     if (!canPreview) return
     startTransition(() => setStatus('previewing'))
     try {
+      if (!masterOk) {
+        toast.error('Select an active wallet in Wallets')
+        setStatus('failed')
+        return
+      }
       const {
-        createTestTransferInstruction,
+        testTransfer,
         buildBundleTransactions,
         serializeBundleTransactions,
       } = await import('@/lib/transactionBuilder')
@@ -50,7 +60,7 @@ export default function BundlePage() {
 
       const txs = await buildBundleTransactions(conn, [
         {
-          instructions: [createTestTransferInstruction(publicKey!, sys, 1)],
+          instructions: [testTransfer(publicKey!, sys, 1)],
           signer,
           tipLamports: Math.floor(chosenTip * LAMPORTS_PER_SOL),
           mode: 'regular',
@@ -71,8 +81,13 @@ export default function BundlePage() {
     if (!canExecute) return
     startTransition(() => setStatus('executing'))
     try {
+      if (!masterOk) {
+        toast.error('Select an active wallet in Wallets')
+        setStatus('failed')
+        return
+      }
       const {
-        createTestTransferInstruction,
+        testTransfer,
         buildBundleTransactions,
         serializeBundleTransactions,
       } = await import('@/lib/transactionBuilder')
@@ -84,7 +99,7 @@ export default function BundlePage() {
 
       const txs = await buildBundleTransactions(conn, [
         {
-          instructions: [createTestTransferInstruction(publicKey!, sys, 1)],
+          instructions: [testTransfer(publicKey!, sys, 1)],
           signer,
           tipLamports: Math.floor(chosenTip * LAMPORTS_PER_SOL),
           mode: 'regular',

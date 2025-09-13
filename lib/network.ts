@@ -1,39 +1,20 @@
 import { Connection } from '@solana/web3.js'
-import { useKeymakerStore } from './store'
 
-export const MAINNET_RPC = 'https://api.mainnet-beta.solana.com'
-export const DEVNET_RPC = 'https://api.devnet.solana.com'
-export const MAINNET_WS = 'wss://api.mainnet-beta.solana.com'
-export const DEVNET_WS = 'wss://api.devnet.solana.com'
-
-export const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf'
-export const JITO_DEVNET_URL = 'https://amsterdam.devnet.block-engine.jito.wtf'
-
-export function getJitoEndpoint(): string {
-  const store = useKeymakerStore.getState()
-  const configured = process.env.JITO_RPC_URL
-  if (configured) return configured
-  return store.network === 'devnet' ? JITO_DEVNET_URL : JITO_MAINNET_URL
-}
-
-export function getNetworkEndpoint(network: 'mainnet-beta' | 'devnet'): string {
-  const store = useKeymakerStore.getState()
-
-  // Respect explicit RPC override
-  if (
-    store.rpcUrl &&
-    store.rpcUrl !== MAINNET_RPC &&
-    store.rpcUrl !== DEVNET_RPC
-  ) {
-    return store.rpcUrl
-  }
-  return network === 'devnet' ? DEVNET_RPC : MAINNET_RPC
-}
+export const MAINNET_RPC =
+  process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
 
 export function getConnection(
   commitment: 'processed' | 'confirmed' | 'finalized' = 'confirmed',
 ): Connection {
-  const store = useKeymakerStore.getState()
-  const endpoint = getNetworkEndpoint(store.network)
-  return new Connection(endpoint, commitment)
+  return new Connection(MAINNET_RPC, commitment)
+}
+
+// Back-compat for services depending on Jito endpoint helper
+export const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf'
+export function getJitoEndpoint(): string {
+  return (
+    process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
+    process.env.JITO_RPC_URL ||
+    JITO_MAINNET_URL
+  )
 }

@@ -24,7 +24,7 @@ import { Skeleton } from '@/components/UI/skeleton'
 
 // Import all required components
 import { ControlPanel } from '@/components/ControlCenter/ControlPanel'
-import { WalletManager } from '@/components/WalletManager/WalletManager'
+import WalletManager from '@/components/WalletManager/WalletManager'
 import { LogsPanel } from '@/components/ExecutionLog/LogsPanel'
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel'
 import MemecoinCreator from '@/components/MemecoinCreator/MemecoinCreator'

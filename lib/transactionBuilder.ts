@@ -10,37 +10,31 @@ import {
 } from '@solana/web3.js'
 import { JITO_TIP_ACCOUNTS } from '@/constants'
 
-// Rotate through tip accounts
 function pickTipAccount(): PublicKey {
-  const i = Math.floor(Math.random() * JITO_TIP_ACCOUNTS.length)
-  return new PublicKey(JITO_TIP_ACCOUNTS[i])
+  const list =
+    Array.isArray(JITO_TIP_ACCOUNTS) && JITO_TIP_ACCOUNTS.length
+      ? JITO_TIP_ACCOUNTS
+      : ['11111111111111111111111111111111']
+  return new PublicKey(list[Math.floor(Math.random() * list.length)])
 }
-
-function tipForMode(
-  baseTipLamports: number,
-  mode: 'regular' | 'instant' | 'delayed',
-): number {
+function tipForMode(base: number, mode: 'regular' | 'instant' | 'delayed') {
   const mult = mode === 'instant' ? 1.25 : mode === 'delayed' ? 1.2 : 1.2
-  const min = 50_000 // 0.00005 SOL
-  const max = 2_000_000 // 0.002 SOL
-  return Math.max(min, Math.min(max, Math.floor(baseTipLamports * mult)))
+  return Math.max(50_000, Math.min(2_000_000, Math.floor(base * mult)))
 }
 
 export interface TransactionConfig {
   instructions: TransactionInstruction[]
   signer:
     | Keypair
-    | { publicKey: PublicKey; signTransaction?: (tx: any) => Promise<any> }
-  priorityFee?: number // SOL per CU million; simplified
+    | {
+        publicKey: PublicKey
+        signTransaction?: (
+          tx: VersionedTransaction,
+        ) => Promise<VersionedTransaction>
+      }
+  priorityFee?: number
   tipLamports?: number
   mode?: 'regular' | 'instant' | 'delayed'
-}
-
-export interface BundleBuild {
-  transactions: string[] // base64 v0
-  bundleId: string
-  totalTip: number
-  transactionCount: number
 }
 
 export async function buildNativeV0Transaction(
@@ -54,24 +48,20 @@ export async function buildNativeV0Transaction(
   }: TransactionConfig,
 ): Promise<VersionedTransaction> {
   const { blockhash } = await connection.getLatestBlockhash('processed')
-
   const ix: TransactionInstruction[] = []
-  if (priorityFee > 0) {
+  if (priorityFee > 0)
     ix.push(
       ComputeBudgetProgram.setComputeUnitPrice({
         microLamports: Math.floor(priorityFee * 1_000_000),
       }),
     )
-  }
   ix.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }))
   ix.push(...instructions)
-
-  const finalTip = tipForMode(tipLamports, mode)
   ix.push(
     SystemProgram.transfer({
       fromPubkey: signer.publicKey,
       toPubkey: pickTipAccount(),
-      lamports: finalTip,
+      lamports: tipForMode(tipLamports, mode),
     }),
   )
 
@@ -81,48 +71,20 @@ export async function buildNativeV0Transaction(
     instructions: ix,
   }).compileToV0Message()
   const tx = new VersionedTransaction(msg)
-
-  if ('secretKey' in signer) {
-    (tx as any).sign([signer])
-  } else if (signer.signTransaction) {
-    // if wallet adapter required: implement adapter flow in caller; keep simple here
-    // caller should sign externally if needed
-  }
+  if ('secretKey' in signer) (tx as any).sign([signer])
+  else if (signer.signTransaction) await signer.signTransaction(tx)
   return tx
 }
 
 export async function buildBundleTransactions(
-  connection: Connection,
-  configs: TransactionConfig[],
-): Promise<VersionedTransaction[]> {
+  conn: Connection,
+  items: TransactionConfig[],
+) {
   const out: VersionedTransaction[] = []
-  for (const cfg of configs)
-    out.push(await buildNativeV0Transaction(connection, cfg))
+  for (const it of items) out.push(await buildNativeV0Transaction(conn, it))
   return out
 }
-
-export function serializeBundleTransactions(
-  txs: VersionedTransaction[],
-): string[] {
-  return txs.map((t) => Buffer.from(t.serialize()).toString('base64'))
-}
-
-export function createTestTransferInstruction(
-  from: PublicKey,
-  to: PublicKey,
-  lamports = 1,
-): TransactionInstruction {
-  return SystemProgram.transfer({ fromPubkey: from, toPubkey: to, lamports })
-}
-
-export function validateBundleTransaction(tx: {
-  tipAmount: number
-  instructionCount: number
-}) {
-  const errors: string[] = []
-  if (tx.tipAmount < 50_000 || tx.tipAmount > 2_000_000)
-    errors.push('Tip amount outside reasonable range')
-  if (tx.instructionCount < 1 || tx.instructionCount > 10)
-    errors.push('Invalid instruction count')
-  return { isValid: errors.length === 0, errors }
-}
+export const serializeBundleTransactions = (txs: VersionedTransaction[]) =>
+  txs.map((t) => Buffer.from(t.serialize()).toString('base64'))
+export const testTransfer = (from: PublicKey, to: PublicKey, lamports = 1) =>
+  SystemProgram.transfer({ fromPubkey: from, toPubkey: to, lamports })
