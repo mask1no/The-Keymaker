@@ -29,6 +29,7 @@ import {
 // import { logBundleExecution } from './executionLogService' // Dynamic import below
 import { getConnection } from '@/lib/network'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
+import { logger } from '@/lib/logger'
 
 // Jito types
 interface JitoBundleStatus {
@@ -810,41 +811,50 @@ export async function executeBundleRegular(
   }
 }
 
-// Create a buy transaction for a new token
+// Create a buy transaction for a new token using Jupiter
 export async function createBuyTransaction(
   mintAddress: string,
   solAmount: number,
-  _mode: 'regular' | 'instant' | 'delayed' = 'regular',
+  walletPublicKey: string,
+  mode: 'regular' | 'instant' | 'delayed' = 'regular',
   _delaySeconds: number = 0,
 ): Promise<VersionedTransaction> {
-  const connection = getConnection()
-  // const _mint = new PublicKey(mintAddress) // Not used in current implementation
-
-  // Note: This is a placeholder implementation for Pump.fun buy transactions
-  // In production, you would need to:
-  // 1. Derive the bonding curve account for the token
-  // 2. Create the proper buy instruction data
-  // 3. Include all required accounts (user, mint, bonding curve, etc.)
-  // 4. Handle slippage and amount calculations
-
-  // For now, create a simple transfer to demonstrate the bundling flow
-  const tempKeypair = Keypair.generate() // In production, use actual user wallet
-  const transferInstruction = SystemProgram.transfer({
-    fromPubkey: tempKeypair.publicKey,
-    toPubkey: new PublicKey('11111111111111111111111111111112'), // Burn address as placeholder
-    lamports: Math.floor(solAmount * LAMPORTS_PER_SOL),
-  })
-
-  const message = new TransactionMessage({
-    payerKey: tempKeypair.publicKey,
-    recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-    instructions: [transferInstruction],
-  })
-
-  const transaction = new VersionedTransaction(message.compileToV0Message())
-  transaction.sign([tempKeypair]) // Sign with temp keypair
-
-  return transaction
+  try {
+    // Import Jupiter service for swap functionality
+    const { buildSwapTransaction } = await import('./jupiterService')
+    
+    // Convert SOL amount to lamports
+    const amountLamports = Math.floor(solAmount * LAMPORTS_PER_SOL)
+    
+    // Calculate slippage based on mode
+    let slippageBps = 50 // 0.5% default
+    if (mode === 'instant') {
+      slippageBps = 100 // 1% for instant mode
+    } else if (mode === 'delayed') {
+      slippageBps = 75 // 0.75% for delayed mode
+    }
+    
+    // Calculate priority fee based on mode
+    let priorityFee = 10000 // Default priority fee
+    if (mode === 'instant') {
+      priorityFee = 500000 // Higher priority for instant mode
+    }
+    
+    // Build swap transaction using Jupiter (SOL -> Token)
+    const transaction = await buildSwapTransaction(
+      'So11111111111111111111111111111111111111112', // SOL mint
+      mintAddress, // Target token mint
+      amountLamports,
+      walletPublicKey,
+      slippageBps,
+      priorityFee,
+    )
+    
+    return transaction
+  } catch (error) {
+    logger.error('Failed to create buy transaction:', error)
+    throw new Error(`Failed to create buy transaction: ${(error as Error).message}`)
+  }
 }
 
 // Submit bundle with mode and delay handling
@@ -856,11 +866,19 @@ export async function submitBundleWithMode(
   // Convert transactions to base64
   const txsB64 = transactions.map((tx) => bs58.encode(tx.serialize()))
 
+  // Calculate tip based on mode
+  let tipLamports = 10000 // Default 0.00001 SOL
+  if (mode === 'instant') {
+    tipLamports = 50000 // 0.00005 SOL for instant
+  } else if (mode === 'delayed') {
+    tipLamports = 25000 // 0.000025 SOL for delayed
+  }
+
   // Prepare bundle submission data
   const submitData = {
     region: 'ffm', // Default region
     txs_b64: txsB64,
-    tip_lamports: 1000, // Default tip
+    tip_lamports: tipLamports,
     mode,
     delay_seconds: delaySeconds,
   }
