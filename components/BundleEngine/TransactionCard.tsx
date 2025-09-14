@@ -4,7 +4,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-} from '@/components/UI/Card'
+} from '@/components/UI/card'
 import {
   Select,
   SelectContent,

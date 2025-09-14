@@ -1,10 +1,17 @@
 'use client'
 import { useState } from 'react'
 import useSWR from 'swr'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/Card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
+import { PnLPanel } from '@/components/PnL/PnLPanel'
 
-export default function PnlPage() {
+export default function PnLPage() {
   const [refreshing, setRefreshing] = useState(false)
   const fetcher = (u: string) => fetch(u).then((r) => r.json())
   const { data, mutate } = useSWR('/api/pnl?limit=200', fetcher, {

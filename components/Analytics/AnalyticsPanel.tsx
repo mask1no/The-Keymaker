@@ -9,7 +9,13 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
 import { Skeleton } from '@/components/UI/skeleton'
 import { getLivePrices, exportToCsv } from '../../services/analyticsService'

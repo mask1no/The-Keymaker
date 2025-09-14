@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/Card'
+} from '@/components/UI/card'
 import { PlusCircle, Send } from 'lucide-react'
 import { TransactionCard } from './TransactionCard'
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'

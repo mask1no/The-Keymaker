@@ -1,7 +1,13 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/card'
 import { Button } from '@/components/UI/button'
 import { Badge } from '@/components/UI/badge'
 import { Input } from '@/components/UI/input'
@@ -28,6 +34,7 @@ import {
 } from '@/lib/clientLogger'
 import { logger } from '@/lib/logger'
 import toast from 'react-hot-toast'
+import { useExecutionLog } from '@/hooks/useExecutionLog'
 
 type LogType = 'all' | 'token_launch' | 'bundle' | 'sell' | 'error'
 type LogStatus = 'all' | 'success' | 'failed' | 'pending'

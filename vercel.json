@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run db:init && npm run build",
+  "buildCommand": "pnpm build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {

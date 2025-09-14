@@ -28,7 +28,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/UI/Card'
+} from '@/components/UI/card'
 import {
   Tabs,
   TabsContent,
