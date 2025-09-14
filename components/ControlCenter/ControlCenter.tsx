@@ -44,6 +44,8 @@ import { batchSellTokens, SellConditions } from '@/services/sellService'
 import { launchToken } from '@/services/platformService'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { decryptAES256ToKeypair } from '@/utils/crypto'
+import { getWalletGroups, WalletGroup } from '@/services/walletService'
+import { sellAllFromGroup } from '@/services/sellService'
 
 async function getKeypairs(
   wallets: { encryptedPrivateKey: string }[],
@@ -74,6 +76,10 @@ export function ControlCenter() {
   const [currentStep, setCurrentStep] = useState(0)
   const [walletPassword, setWalletPassword] = useState('')
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [showSellDialog, setShowSellDialog] = useState(false)
+  const [sellTokenAddress, setSellTokenAddress] = useState('')
+  const [sellGroupName, setSellGroupName] = useState('')
+  const [walletGroups, setWalletGroups] = useState<WalletGroup[]>([])
   const [decryptedWallets, setDecryptedWallets] = useState<
     Map<string, Keypair>
   >(new Map())
@@ -125,6 +131,32 @@ export function ControlCenter() {
     }
 
     await runExecution()
+  }
+
+  const handleSellAll = async () => {
+    if (!sellTokenAddress || !sellGroupName || !walletPassword) {
+      toast.error('Token address, group, and password are required.')
+      return
+    }
+
+    try {
+      const result = await sellAllFromGroup(
+        connection,
+        sellGroupName,
+        sellTokenAddress,
+        walletPassword,
+      )
+      toast.success(
+        `Sell bundle executed! Success rate: ${
+          result.metrics.successRate * 100
+        }%`,
+      )
+    } catch (error) {
+      toast.error(`Failed to sell all: ${(error as Error).message}`)
+    } finally {
+      setShowSellDialog(false)
+      setWalletPassword('')
+    }
   }
 
   const handlePasswordSubmit = async () => {
@@ -684,29 +716,40 @@ export function ControlCenter() {
           </div>
 
           {/* Execute Button */}
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={executeKeymaker}
-            disabled={
-              isExecuting ||
-              !masterWallet ||
-              !tokenLaunchData ||
-              sniperWallets.length === 0
-            }
-          >
-            {isExecuting ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Executing...
-              </>
-            ) : (
-              <>
-                <PlayCircle className="mr-2 h-5 w-5" />
-                🔑 Execute Keymaker
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={executeKeymaker}
+              disabled={
+                isExecuting ||
+                !masterWallet ||
+                !tokenLaunchData ||
+                sniperWallets.length === 0
+              }
+            >
+              {isExecuting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Executing...
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="mr-2 h-5 w-5" />
+                  🔑 Execute Keymaker
+                </>
+              )}
+            </Button>
+            <Button
+              size="lg"
+              variant="destructive"
+              className="w-full"
+              onClick={() => setShowSellDialog(true)}
+              disabled={isExecuting}
+            >
+              Sell All
+            </Button>
+          </div>
 
           {/* Show mint address if token is deployed */}
           {mintAddress && (
@@ -793,6 +836,56 @@ export function ControlCenter() {
             </div>
             <Button onClick={handlePasswordSubmit} className="w-full">
               Decrypt Wallets
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSellDialog} onOpenChange={setShowSellDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sell All from Group</DialogTitle>
+            <DialogDescription>
+              Select a wallet group and token to sell all holdings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="token-address">Token Address</Label>
+              <Input
+                id="token-address"
+                value={sellTokenAddress}
+                onChange={(e) => setSellTokenAddress(e.target.value)}
+                placeholder="Enter token mint address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wallet-group">Wallet Group</Label>
+              <Select onValueChange={setSellGroupName}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {walletGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.name}>
+                      {group.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sell-password">Password</Label>
+              <Input
+                id="sell-password"
+                type="password"
+                value={walletPassword}
+                onChange={(e) => setWalletPassword(e.target.value)}
+                placeholder="Enter your wallet password"
+              />
+            </div>
+            <Button onClick={handleSellAll} className="w-full">
+              Execute Sell
             </Button>
           </div>
         </DialogContent>

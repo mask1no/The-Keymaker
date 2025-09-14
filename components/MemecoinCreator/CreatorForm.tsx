@@ -49,7 +49,7 @@ type CreatorFormValues = {
   symbol: string;
   supply: number;
   decimals: number;
-  launch_platform: 'pumpfun' | 'raydium';
+  launch_platform: 'pumpfun' | 'raydium' | 'letsbonk';
   description?: string;
   website?: string;
   twitter?: string;
@@ -58,6 +58,7 @@ type CreatorFormValues = {
   createLiquidityPool: boolean;
   solAmount?: number;
   tokenAmount?: number;
+  freezeAuthority?: boolean;
 };
 
 const defaultValues: Partial<CreatorFormValues> = {
@@ -71,6 +72,8 @@ export function CreatorForm() {
     defaultValues,
     mode: 'onChange',
   })
+
+  const launchPlatform = form.watch('launch_platform')
 
   async function onSubmit(data: CreatorFormValues) {
     if (!data.name || data.name.length < 2) {
@@ -237,6 +240,7 @@ export function CreatorForm() {
                           <SelectContent>
                             <SelectItem value="pumpfun">Pump.fun</SelectItem>
                             <SelectItem value="raydium">Raydium</SelectItem>
+                            <SelectItem value="letsbonk">LetsBonk.fun</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -246,6 +250,28 @@ export function CreatorForm() {
                       </FormItem>
                     )}
                   />
+                  {launchPlatform === 'raydium' && (
+                    <FormField
+                      control={form.control}
+                      name="freezeAuthority"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Enable Freeze Authority</FormLabel>
+                            <FormDescription>
+                              Allows you to freeze token accounts, preventing transfers.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
               </TabsContent>
               <TabsContent value="metadata" className="pt-6">

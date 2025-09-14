@@ -3,12 +3,15 @@ import {
   Keypair,
   PublicKey,
   VersionedTransaction,
+  Transaction,
 } from '@solana/web3.js'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token'
 import axios from 'axios'
 import * as Sentry from '@sentry/nextjs'
 import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
 import { logger } from '@/lib/logger'
+import { bs58 } from 'bs58'
+import { ExecutionResult } from './bundleService'
 // import { logSellEvent } from './executionLogService' // Dynamic import below
 
 export interface SellConditions {
@@ -618,10 +621,56 @@ export async function batchSellTokens(
   return results
 }
 
+export async function sellAllFromGroup(
+  connection: Connection,
+  groupName: string,
+  tokenAddress: string,
+  password: string,
+): Promise<ExecutionResult> {
+  const { getWallets } = await import('./walletService')
+  const { executeBundle } = await import('./bundleService')
+  
+  const wallets = (await getWallets(password)).filter(w => w.group === groupName);
+  if (wallets.length === 0) {
+    throw new Error(`No wallets found in group: ${groupName}`);
+  }
+
+  const sellTransactions: Transaction[] = [];
+  const tokenMint = new PublicKey(tokenAddress);
+
+  for (const wallet of wallets) {
+    const tokenAccount = await getAssociatedTokenAddress(tokenMint, new PublicKey(wallet.publicKey));
+    const balance = await connection.getTokenAccountBalance(tokenAccount);
+
+    if (balance.value.uiAmount && balance.value.uiAmount > 0) {
+      const quote = await getSwapQuote(
+        tokenAddress,
+        'So11111111111111111111111111111111111111112', // SOL
+        balance.value.amount,
+      );
+      const { swapTransaction } = await executeSwap(connection, Keypair.fromSecretKey(bs58.decode(wallet.privateKey)), quote);
+      sellTransactions.push(VersionedTransaction.deserialize(base64ToBytes(swapTransaction)));
+    }
+  }
+
+  if (sellTransactions.length === 0) {
+    throw new Error('No tokens to sell in the specified group.');
+  }
+
+  const result = await executeBundle(
+    sellTransactions,
+    wallets.map(w => ({ publicKey: w.publicKey, role: 'normal' })),
+    wallets.map(w => Keypair.fromSecretKey(bs58.decode(w.privateKey))),
+  );
+
+  return result;
+}
+
 export default {
   getTokenPrice,
   calculatePnL,
   checkSellConditions,
   sellToken,
   batchSellTokens,
+  sellAllFromGroup,
 }

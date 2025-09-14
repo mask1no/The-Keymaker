@@ -725,3 +725,88 @@ export async function validateToken(tokenAddress: string): Promise<boolean> {
   // For now, assume valid if it's a non-empty string
   return true
 }
+
+export async function executeLaunchSequence(
+  wallets: Wallet[],
+  devWallet: Wallet,
+  tokenAddress: string,
+  solAmountPerWallet: number,
+  mode: 'regular' | 'instant' | 'delayed' = 'instant',
+  options: {
+    tipAmount?: number
+    connection?: Connection
+    logger?: (msg: string) => void
+  } = {},
+): Promise<ExecutionResult[]> {
+  const conn = options.connection || getConnection('confirmed')
+  const logger = options.logger || console.log
+
+  logger(`Starting launch sequence for token: ${tokenAddress}`)
+
+  const allResults: ExecutionResult[] = []
+  const buyTransactions: Transaction[] = []
+
+  // 1. Create buy transactions for all wallets
+  for (const wallet of wallets) {
+    const tx = await createBuyTransaction(
+      tokenAddress,
+      solAmountPerWallet,
+      wallet.publicKey,
+      mode,
+    )
+    buyTransactions.push(tx)
+  }
+
+  // 2. Group transactions into bundles of 5
+  const bundleSize = 5
+  const bundles: Transaction[][] = []
+  for (let i = 0; i < buyTransactions.length; i += bundleSize) {
+    bundles.push(buyTransactions.slice(i, i + bundleSize))
+  }
+
+  logger(`Created ${bundles.length} bundles with up to ${bundleSize} transactions each.`)
+
+  // 3. Execute bundles sequentially
+  for (let i = 0; i < bundles.length; i++) {
+    const bundle = bundles[i]
+    logger(`Executing bundle ${i + 1} of ${bundles.length}...`)
+
+    try {
+      const walletRoles = wallets.map(w => ({ publicKey: w.publicKey, role: 'sniper' as const }));
+      walletRoles.push({ publicKey: devWallet.publicKey, role: 'dev' as const });
+      
+      const result = await executeBundle(
+        bundle,
+        walletRoles,
+        wallets, // Assuming wallets can sign their own transactions
+        {
+          ...options,
+          connection: conn,
+          logger,
+          feePayer: new PublicKey(devWallet.publicKey),
+        },
+      )
+      allResults.push(result)
+      logger(`Bundle ${i + 1} executed. Success rate: ${result.metrics.successRate * 100}%`)
+    } catch (error) {
+      logger(`Failed to execute bundle ${i + 1}: ${(error as Error).message}`)
+      Sentry.captureException(error)
+      // Push a failed result to keep the results array consistent
+      allResults.push({
+        usedJito: false,
+        slotTargeted: 0,
+        signatures: [],
+        results: bundle.map(() => 'failed'),
+        explorerUrls: [],
+        metrics: {
+          estimatedCost: 0,
+          successRate: 0,
+          executionTime: 0,
+        },
+      })
+    }
+  }
+
+  logger('Launch sequence completed.')
+  return allResults
+}

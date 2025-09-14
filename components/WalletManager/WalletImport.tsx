@@ -21,6 +21,7 @@ import {
 import toast from 'react-hot-toast'
 import { importWallet, importWalletGroup } from '@/services/walletService'
 import { Textarea } from '@/components/UI/Textarea'
+import { FolderInput } from './FolderInput'
 
 interface ImportedWallet {
   name: string
@@ -36,7 +37,9 @@ export function WalletImport({
   onClose: () => void
 }) {
   const [password, setPassword] = useState('')
-  const [importMode, setImportMode] = useState<'manual' | 'file'>('manual')
+  const [importMode, setImportMode] = useState<'manual' | 'file' | 'folder'>(
+    'manual',
+  )
   const [privateKeyInput, setPrivateKeyInput] = useState('')
   const [role, setRole] = useState<'sniper' | 'dev' | 'normal'>('sniper')
   const [parsedWallets] = useState<ImportedWallet[]>([])
@@ -92,13 +95,30 @@ export function WalletImport({
     }
   }
 
+  const handleFolderImport = async (files: File[]) => {
+    if (!password) {
+      toast.error('Password is required to import from folder')
+      return
+    }
+
+    try {
+      const group = await importWalletGroup(files, password)
+      toast.success(`Imported ${group.length} wallets from folder.`)
+      onClose()
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to import from folder',
+      )
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Import Wallets</DialogTitle>
           <DialogDescription>
-            Import wallets from private keys or an encrypted file.
+            Import wallets from private keys, an encrypted file, or a folder.
           </DialogDescription>
         </DialogHeader>
         <div className="pt-4">
@@ -109,6 +129,7 @@ export function WalletImport({
             <SelectContent>
               <SelectItem value="manual">Manual Import</SelectItem>
               <SelectItem value="file">Import from File</SelectItem>
+              <SelectItem value="folder">Import from Folder</SelectItem>
             </SelectContent>
           </Select>
 
@@ -169,6 +190,25 @@ export function WalletImport({
                 <Label htmlFor="file-password">File Password</Label>
                 <Input
                   id="file-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {importMode === 'folder' && (
+            <div className="space-y-4 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Select a folder containing wallet files (e.g., .json with private
+                keys).
+              </p>
+              <FolderInput onFilesSelected={handleFolderImport} />
+              <div>
+                <Label htmlFor="folder-password">Password for Encryption</Label>
+                <Input
+                  id="folder-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

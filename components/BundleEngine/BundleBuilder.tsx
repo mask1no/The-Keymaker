@@ -82,6 +82,32 @@ export function BundleBuilder() {
     }
   }
 
+  const loadLaunchPreset = () => {
+    const now = Date.now()
+    setTransactions([
+      {
+        id: `tx-${now}`,
+        type: 'transfer',
+        recipient: '',
+        fromAmount: 0,
+      },
+      {
+        id: `tx-${now + 1}`,
+        type: 'swap',
+        fromToken: 'So11111111111111111111111111111111111111112', // SOL
+        toToken: '',
+        amount: 0,
+        slippage: 0.5,
+      },
+      {
+        id: `tx-${now + 2}`,
+        type: 'transfer',
+        recipient: '',
+        fromAmount: 0,
+      },
+    ])
+  }
+
   const executeBundle = useCallback(async () => {
     if (!connected || !publicKey || !signAllTransactions) {
       toast.error('Please connect your wallet.')
@@ -209,14 +235,23 @@ export function BundleBuilder() {
           </SortableContext>
         </DndContext>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={addTransaction}
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Transaction
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={addTransaction}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Transaction
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={loadLaunchPreset}
+          >
+            Load Launch Preset
+          </Button>
+        </div>
 
         <Separator />
 

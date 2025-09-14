@@ -175,24 +175,30 @@ export async function importWallet(privateKey: string, password: string): Promis
   return newWallet;
 }
 
-export async function importWalletGroup(wallets: { privateKey: string, name: string }[], password: string): Promise<Wallet[]> {
-    const importedWallets: Wallet[] = [];
-    for (const w of wallets) {
-        const keypair = Keypair.fromSecretKey(bs58.decode(w.privateKey));
-        const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+export async function importWalletGroup(files: File[], password: string): Promise<Wallet[]> {
+  const groupName = prompt('Enter a name for the new wallet group:', 'Imported Wallets');
+  if (!groupName) {
+    throw new Error('Wallet group name is required.');
+  }
 
-        const newWallet: Wallet = {
-            name: w.name,
-            publicKey: keypair.publicKey.toBase58(),
-            privateKey: encryptedPrivateKey,
-            group: 'imported',
-            color: '#CCCCCC',
-            isActive: false,
-        };
-        await saveWalletToDb(newWallet);
-        importedWallets.push(newWallet);
-    }
-    return importedWallets;
+  const importedWallets: Wallet[] = [];
+  for (const file of files) {
+    const privateKey = await file.text();
+    const keypair = Keypair.fromSecretKey(bs58.decode(privateKey.trim()));
+    const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+
+    const newWallet: Wallet = {
+      name: file.name,
+      publicKey: keypair.publicKey.toBase58(),
+      privateKey: encryptedPrivateKey,
+      group: groupName,
+      color: '#CCCCCC',
+      isActive: false,
+    };
+    await saveWalletToDb(newWallet);
+    importedWallets.push(newWallet);
+  }
+  return importedWallets;
 }
 
 export async function saveWalletToDb(wallet: Wallet): Promise<void> {
