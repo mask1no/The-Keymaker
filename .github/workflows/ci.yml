@@ -25,7 +25,6 @@ jobs:
           run_install: true
       - run: pnpm format && pnpm lint
       - run: pnpm tsc --noEmit
-      - run: npx ts-prune | tee docs/QA/ts-prune.log
       - run: pnpm test -- --coverage
 
   e2e:
