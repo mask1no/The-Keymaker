@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;600;700&display=swap');
 @import '@solana/wallet-adapter-react-ui/styles.css';
 
 @tailwind base;
@@ -6,189 +5,37 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 142 76% 36%;
-    --radius: 1rem; /* rounded-2xl */
-  }
-
-  /* Dark theme only - no light mode */
-  .dark {
-    --background: 210 20% 6%; /* #0b0f14 */
-    --foreground: 0 0% 95%;
-    --card: 210 15% 10%; /* #0f141b */
-    --card-foreground: 0 0% 95%;
-    --popover: 210 15% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 210 60% 50%; /* low saturation violet/cyan */
-    --primary-foreground: 0 0% 95%;
-    --secondary: 210 15% 15%; /* #1b2530 */
-    --secondary-foreground: 0 0% 95%;
-    --muted: 210 15% 15%;
-    --muted-foreground: 210 15% 60%; /* #8aa0b3 */
-    --accent: 210 60% 45%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 210 15% 18%; /* #1b2530 */
-    --input: 210 15% 18%;
-    --ring: 210 60% 50%;
-  }
-
-  /* Typography */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: 'Fira Sans', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
-  body {
-    font-family: 'Inter', sans-serif;
-  }
-
-  code,
-  pre,
-  .font-mono {
-    font-family: 'Fira Code', monospace;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
-  html {
-    @apply dark; /* Force dark theme globally */
-  }
   body {
     @apply bg-background text-foreground;
-    font-family:
-      'Inter',
-      system-ui,
-      -apple-system,
-      sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-bold tracking-tight;
   }
 }
 
-/* Custom scrollbar */
+@layer components {
+  .bento-card {
+    @apply bg-card text-card-foreground rounded-lg border border-border p-4 sm:p-6 transition-all duration-300;
+  }
+  .bento-card:hover {
+    @apply border-primary shadow-lg shadow-primary/10;
+  }
+}
+
+/* Custom scrollbar for a modern look */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  @apply dark:bg-gray-900 bg-gray-100;
+  @apply bg-card;
 }
-
 ::-webkit-scrollbar-thumb {
-  @apply dark:bg-gray-700 bg-gray-400 rounded-full;
+  @apply bg-muted rounded-full;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  @apply dark:bg-gray-600 bg-gray-500;
-}
-
-/* Glassmorphism effect */
-.glass {
-  @apply backdrop-blur-md dark:bg-gray-800/30 bg-white/30 dark:border-gray-700/50 border-gray-300/50;
-}
-
-/* Custom animations */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s linear infinite;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(34, 197, 94, 0.2) 50%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-}
-
-/* Glow effects */
-.glow-green {
-  box-shadow:
-    0 0 20px rgba(34, 197, 94, 0.5),
-    0 0 40px rgba(34, 197, 94, 0.3),
-    0 0 60px rgba(34, 197, 94, 0.1);
-}
-
-.glow-green-sm {
-  box-shadow:
-    0 0 10px rgba(34, 197, 94, 0.5),
-    0 0 20px rgba(34, 197, 94, 0.3);
-}
-
-/* Button hover effects */
-.btn-glow:hover {
-  @apply glow-green-sm transition-all duration-300;
-}
-
-/* Text gradients */
-.text-gradient-green {
-  @apply bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent;
-}
-
-/* Custom focus styles */
-input:focus,
-textarea:focus,
-select:focus {
-  @apply outline-none ring-2 ring-green-500/50 ring-offset-2 dark:ring-offset-gray-900 ring-offset-white;
-}
-
-/* Theme-aware backgrounds */
-.bg-card {
-  @apply dark:bg-black/40 bg-white/80 backdrop-blur-xl dark:border-aqua/20 border-gray-200;
-}
-
-.text-primary {
-  @apply dark:text-white/90 text-gray-900;
-}
-
-.text-secondary {
-  @apply dark:text-white/70 text-gray-700;
-}
-
-/* Theme-aware aqua colors */
-.text-aqua {
-  @apply dark:text-cyan-400 text-cyan-600;
-}
-
-.bg-aqua {
-  @apply dark:bg-cyan-400 bg-cyan-600;
-}
-
-.border-aqua {
-  @apply dark:border-cyan-400 border-cyan-600;
+  @apply bg-muted-foreground;
 }

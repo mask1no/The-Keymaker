@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/UI/dialog'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -46,6 +47,10 @@ import { buildSwapTransaction } from '@/services/jupiterService'
 import { decryptAES256ToKeypair } from '@/utils/crypto'
 import { getWalletGroups, WalletGroup } from '@/services/walletService'
 import { sellAllFromGroup } from '@/services/sellService'
+import { useSettingsStore } from '@/stores/useSettingsStore'
+import useSWR from 'swr'
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 async function getKeypairs(
   wallets: { encryptedPrivateKey: string }[],
@@ -71,13 +76,23 @@ export function ControlCenter() {
     updateStepStatus,
     resetExecution,
   } = useKeymakerStore()
+  const lastCreatedTokenAddress = useSettingsStore(
+    (state) => state.lastCreatedTokenAddress,
+  )
+
+  const { data: tipData } = useSWR('/api/jito/tip', fetcher, {
+    refreshInterval: 10000, // Refresh every 10 seconds
+  })
 
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
   const [currentStep, setCurrentStep] = useState(0)
   const [walletPassword, setWalletPassword] = useState('')
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [showPreflightDialog, setShowPreflightDialog] = useState(false)
   const [showSellDialog, setShowSellDialog] = useState(false)
-  const [sellTokenAddress, setSellTokenAddress] = useState('')
+  const [sellTokenAddress, setSellTokenAddress] = useState(
+    lastCreatedTokenAddress || '',
+  )
   const [sellGroupName, setSellGroupName] = useState('')
   const [walletGroups, setWalletGroups] = useState<WalletGroup[]>([])
   const [decryptedWallets, setDecryptedWallets] = useState<
@@ -129,7 +144,12 @@ export function ControlCenter() {
       setShowPasswordDialog(true)
       return
     }
+    
+    setShowPreflightDialog(true)
+  }
 
+  const handlePreflightConfirmation = async () => {
+    setShowPreflightDialog(false)
     await runExecution()
   }
 
@@ -710,8 +730,24 @@ export function ControlCenter() {
               <CheckItem
                 label="Jito Bundle"
                 checked={jitoEnabled}
-                detail={jitoEnabled ? `${tipAmount} SOL tip` : 'Disabled'}
+                detail={
+                  jitoEnabled
+                    ? `${tipAmount} SOL tip`
+                    : 'Disabled'
+                }
               />
+              {tipData && tipData[0]?.ema_50th_percentile && (
+                <div className="text-xs text-muted-foreground flex items-center justify-between">
+                  <span>Suggested Tip: {tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL} SOL</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => useKeymakerStore.getState().setTipAmount(tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL)}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -734,10 +770,14 @@ export function ControlCenter() {
                   Executing...
                 </>
               ) : (
-                <>
+                <motion.div
+                  className="flex items-center"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                >
                   <PlayCircle className="mr-2 h-5 w-5" />
                   🔑 Execute Keymaker
-                </>
+                </motion.div>
               )}
             </Button>
             <Button
@@ -841,6 +881,28 @@ export function ControlCenter() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showPreflightDialog} onOpenChange={setShowPreflightDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pre-flight Checklist</DialogTitle>
+            <DialogDescription>
+              Review the details of your launch sequence before execution.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <p><strong>Token:</strong> {tokenLaunchData?.name} ({tokenLaunchData?.symbol})</p>
+            <p><strong>Platform:</strong> {tokenLaunchData?.platform}</p>
+            <p><strong>Sniper Wallets:</strong> {sniperWallets.length}</p>
+            <p><strong>Execution Strategy:</strong> {executionStrategy}</p>
+            <p className="text-destructive">This action is irreversible. Please confirm you want to proceed.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreflightDialog(false)}>Cancel</Button>
+            <Button onClick={handlePreflightConfirmation}>Confirm & Execute</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showSellDialog} onOpenChange={setShowSellDialog}>
         <DialogContent>
           <DialogHeader>
@@ -907,11 +969,21 @@ function CheckItem({
   return (
     <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
       <div className="flex items-center gap-2">
-        {checked ? (
-          <CheckCircle className="h-4 w-4 text-green-500" />
-        ) : (
-          <XCircle className="h-4 w-4 text-red-500" />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={checked ? 'checked' : 'unchecked'}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {checked ? (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            ) : (
+              <XCircle className="h-4 w-4 text-red-500" />
+            )}
+          </motion.div>
+        </AnimatePresence>
         <span className="text-sm">{label}</span>
       </div>
       <span className="text-xs text-muted-foreground">{detail}</span>
@@ -940,7 +1012,17 @@ function StepItem({ step }: { step: ExecutionStep }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
       <div className="flex items-center gap-3">
-        {statusIcons[step.status]}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step.status}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {statusIcons[step.status]}
+          </motion.div>
+        </AnimatePresence>
         <span className="font-medium">{step.name}</span>
       </div>
       <div className="flex items-center gap-2">

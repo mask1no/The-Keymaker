@@ -52,8 +52,9 @@ import {
   deletePreset,
   Preset,
 } from '@/services/presetService'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Checkbox } from '@/components/UI/checkbox'
+import { motion } from 'framer-motion'
 
 export type Transaction = {
   id: string
@@ -372,7 +373,9 @@ export function BundleBuilder() {
                       handleDeletePreset(preset.id)
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <motion.div whileHover={{ scale: 1.2 }}>
+                      <Trash2 className="h-4 w-4" />
+                    </motion.div>
                   </Button>
                 </div>
               ))}
@@ -383,7 +386,9 @@ export function BundleBuilder() {
             onClick={() => setShowSavePresetDialog(true)}
             disabled={transactions.length === 0}
           >
-            Save as Preset
+            <motion.div whileHover={{ scale: 1.1 }} className="flex items-center">
+              Save as Preset
+            </motion.div>
           </Button>
         </div>
       </CardHeader>
@@ -415,8 +420,10 @@ export function BundleBuilder() {
             className="w-full"
             onClick={addTransaction}
           >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Transaction
+            <motion.div whileHover={{ scale: 1.1 }} className="flex items-center">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Transaction
+            </motion.div>
           </Button>
           <Button
             variant="secondary"

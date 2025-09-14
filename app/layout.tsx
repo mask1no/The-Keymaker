@@ -1,7 +1,18 @@
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { SideNav } from '@/components/layout/SideNav'
 import { Topbar } from '@/components/layout/Topbar'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+const jetbrains_mono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+})
 
 export default function RootLayout({
   children,
@@ -9,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`${inter.variable} ${jetbrains_mono.variable}`}>
       <body className="min-h-screen bg-background text-foreground">
         <Providers>
           <div className="min-h-screen flex">

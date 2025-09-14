@@ -19,10 +19,8 @@ const DashboardWrapper = () => {
     >
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="md:col-span-2 lg:col-span-3 glass-card"
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-2 lg:col-span-3 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <ControlCenter />
@@ -30,10 +28,8 @@ const DashboardWrapper = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="lg:col-span-1 glass-card"
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <AnalyticsPanel />
@@ -41,10 +37,8 @@ const DashboardWrapper = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="md:col-span-1 lg:col-span-2 glass-card"
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-1 lg:col-span-2 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <BundleBuilder />
@@ -52,10 +46,8 @@ const DashboardWrapper = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="md:col-span-1 lg:col-span-1 glass-card"
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-1 lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <CreatorForm />
@@ -63,10 +55,8 @@ const DashboardWrapper = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="md:col-span-1 lg:col-span-1 glass-card"
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-1 lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <NotificationCenter />

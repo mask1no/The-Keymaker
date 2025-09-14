@@ -19,6 +19,10 @@ import { Transaction } from './BundleBuilder'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { TokenSelector } from './TokenSelector'
+import { useState } from 'react'
+import { Checkbox } from '@/components/UI/checkbox'
+import { motion } from 'framer-motion'
+import { Shield } from 'lucide-react'
 
 const HARDCODED_TOKENS = [
     { address: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana' },
@@ -36,6 +40,8 @@ export function TransactionCard({
   onRemove,
   onUpdate,
 }: TransactionCardProps) {
+  const [securityScore, setSecurityScore] = useState<number | null>(null)
+  const [isLoadingSecurity, setIsLoadingSecurity] = useState(false)
   const {
     attributes,
     listeners,
@@ -51,6 +57,27 @@ export function TransactionCard({
 
   const handleTokenSelect = (tokenAddress: string, field: 'fromToken' | 'toToken') => {
     onUpdate(transaction.id, { [field]: tokenAddress })
+  }
+
+  const checkSecurity = async (tokenAddress: string | undefined) => {
+    if (!tokenAddress) return
+    setIsLoadingSecurity(true)
+    try {
+      const response = await fetch(
+        `/api/security/check-token?tokenAddress=${tokenAddress}`,
+      )
+      const data = await response.json()
+      if (response.ok) {
+        setSecurityScore(data.safetyScore)
+      } else {
+        throw new Error(data.error || 'Failed to fetch security info')
+      }
+    } catch (error) {
+      console.error(error)
+      setSecurityScore(null)
+    } finally {
+      setIsLoadingSecurity(false)
+    }
   }
 
   const renderContent = () => {
@@ -70,6 +97,30 @@ export function TransactionCard({
               onSelect={(tokenAddress) => handleTokenSelect(tokenAddress, 'toToken')}
               placeholder="To Token"
             />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => checkSecurity(transaction.toToken)}
+                disabled={isLoadingSecurity || !transaction.toToken}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                {isLoadingSecurity ? 'Checking...' : 'Check Security'}
+              </Button>
+              {securityScore !== null && (
+                <div
+                  className={`text-sm font-bold ${
+                    securityScore > 80
+                      ? 'text-green-500'
+                      : securityScore > 50
+                      ? 'text-yellow-500'
+                      : 'text-red-500'
+                  }`}
+                >
+                  Score: {securityScore}/100
+                </div>
+              )}
+            </div>
             <Input
               type="number"
               placeholder="Amount"

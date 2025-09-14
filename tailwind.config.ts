@@ -5,59 +5,45 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)'],
+        mono: ['var(--font-jetbrains-mono)'],
+      },
       colors: {
-        aqua: '#00ffff',
-        violet: '#9d79f2',
-        'matrix-green': '#00ff00',
-        cyan: {
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
+        background: 'hsl(224, 10%, 4%)', // Deep charcoal
+        foreground: 'hsl(210, 40%, 98%)', // Off-white
+        card: {
+          DEFAULT: 'hsl(224, 10%, 8%)', // Lighter dark gray
+          foreground: 'hsl(210, 40%, 98%)',
         },
-        glass: 'rgba(0, 0, 0, 0.4)',
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'hsl(170, 80%, 40%)', // Vibrant Teal/Green
+          foreground: 'hsl(224, 10%, 4%)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'hsl(48, 90%, 50%)', // Warm Yellow
+          foreground: 'hsl(224, 10%, 4%)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'hsl(0, 70%, 50%)', // Sharp Red
+          foreground: 'hsl(210, 40%, 98%)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'hsl(224, 10%, 15%)',
+          foreground: 'hsl(210, 40%, 60%)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'hsl(170, 80%, 40%)',
+          foreground: 'hsl(224, 10%, 4%)',
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
+        border: 'hsl(224, 10%, 15%)',
+        input: 'hsl(224, 10%, 15%)',
+        ring: 'hsl(170, 80%, 40%)',
       },
-      fontFamily: {
-        sans: [
-          'Fira Sans',
-          'Inter',
-          'system-ui',
-          '-apple-system',
-          'sans-serif',
-        ],
-        mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
+      borderRadius: {
+        lg: `var(--radius)`,
+        md: `calc(var(--radius) - 2px)`,
+        sm: 'calc(var(--radius) - 4px)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -84,5 +70,5 @@ export default {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [require('tailwindcss-animate')],
 } satisfies Config

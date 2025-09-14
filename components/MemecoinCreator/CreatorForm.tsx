@@ -43,6 +43,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/UI/Accordion'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 type CreatorFormValues = {
   name: string;
@@ -68,6 +69,9 @@ const defaultValues: Partial<CreatorFormValues> = {
 
 export function CreatorForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const setLastCreatedTokenAddress = useSettingsStore(
+    (state) => state.setLastCreatedTokenAddress,
+  )
   const form = useForm<CreatorFormValues>({
     defaultValues,
     mode: 'onChange',
@@ -131,6 +135,7 @@ export function CreatorForm() {
             ),
         },
       })
+      setLastCreatedTokenAddress(result.tokenAddress)
       form.reset()
     } catch (error) {
       console.error(error)

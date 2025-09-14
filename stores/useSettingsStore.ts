@@ -21,8 +21,10 @@ interface SettingsState {
   jitoTipLamports: number
   jupiterFeeBps: number
   hotkeys: HotkeysConfig
+  lastCreatedTokenAddress?: string
   setSettings: (settings: Partial<SettingsState>) => void
   setHotkeys: (hotkeys: Partial<HotkeysConfig>) => void
+  setLastCreatedTokenAddress: (address: string) => void
   fetchSettings: () => Promise<void>
 }
 
@@ -45,9 +47,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     walletToggle: 'w',
     commandPalette: 'meta+k,ctrl+k',
   },
+  lastCreatedTokenAddress: undefined,
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
   setHotkeys: (hotkeys) =>
     set((state) => ({ hotkeys: { ...state.hotkeys, ...hotkeys } })),
+  setLastCreatedTokenAddress: (address) => set({ lastCreatedTokenAddress: address }),
   fetchSettings: async () => {
     try {
       const response = await fetch('/api/settings');
