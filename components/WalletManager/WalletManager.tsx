@@ -10,6 +10,8 @@ import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 import { Label } from '@/components/UI/label'
 import { Badge } from '@/components/UI/badge'
+import { isTestMode, testPubkeyBase58 } from '@/lib/testMode'
+import { PublicKey } from '@solana/web3.js'
 
 type Wallet = { pub: string; enc: string }
 type Group = { id: string; name: string; wallets: Wallet[]; hint?: string }
@@ -27,7 +29,9 @@ const save = (gs: Group[]) => localStorage.setItem(STORE, JSON.stringify(gs))
 const setActive = (pub: string) => localStorage.setItem(ACTIVE, pub)
 
 export default function WalletManager() {
-  const { connected } = useWallet()
+  const { connected, signTransaction } = useWallet()
+  const connectedSafe = isTestMode ? true : connected
+  const signTxSafe = isTestMode ? async (tx:any)=>tx : signTransaction
   const { setVisible } = useWalletModal()
   const [groups, setGroups] = useState<Group[]>([])
   const [gname, setGname] = useState('')
@@ -110,7 +114,7 @@ export default function WalletManager() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {!connected && (
+      {!connectedSafe && (
         <Card className="border-amber-400/30 bg-amber-500/5 md:col-span-2">
           <CardHeader>
             <CardTitle>Login required</CardTitle>
@@ -144,7 +148,7 @@ export default function WalletManager() {
           />
           <Label>Password hint (optional)</Label>
           <Input value={hint} onChange={(e) => setHint(e.target.value)} />
-          <Button className="mt-2" onClick={createGroup} disabled={!connected}>
+          <Button className="mt-2" onClick={createGroup} disabled={!connectedSafe}>
             Create Group
           </Button>
         </CardContent>
@@ -177,10 +181,10 @@ export default function WalletManager() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={generate} disabled={!connected}>
+            <Button variant="secondary" onClick={generate} disabled={!connectedSafe}>
               Generate
             </Button>
-            <Button onClick={importPriv} disabled={!connected}>Import Private Key</Button>
+            <Button onClick={importPriv} disabled={!connectedSafe}>Import Private Key</Button>
           </div>
           <Label className="mt-2">Private key (base58 or JSON array)</Label>
           <Input

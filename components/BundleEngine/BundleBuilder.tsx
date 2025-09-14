@@ -55,6 +55,7 @@ import {
 import { useEffect } from 'react'
 import { Checkbox } from '@/components/UI/checkbox'
 import { motion } from 'framer-motion'
+import { isTestMode, testPubkeyBase58 } from '@/lib/testMode'
 
 export type Transaction = {
   id: string
@@ -74,6 +75,12 @@ export type Bundle = Transaction[]
 
 export function BundleBuilder() {
   const { connected, publicKey, signAllTransactions } = useWallet()
+  const testPublicKey = isTestMode ? new PublicKey(testPubkeyBase58) : null
+  const connectedSafe = isTestMode ? true : connected
+  const publicKeySafe = isTestMode ? testPublicKey! : publicKey!
+  const signTxSafe = isTestMode
+    ? async (tx: any) => tx // no-op signer
+    : signAllTransactions
   const [transactions, setTransactions] = useState<Bundle>([
     { id: `tx-${Date.now()}`, type: 'swap', amount: 0, slippage: 0.5 },
   ])
@@ -251,7 +258,7 @@ export function BundleBuilder() {
   }
 
   const executeBundle = useCallback(async () => {
-    if (!connected || !publicKey || !signAllTransactions) {
+    if (!connectedSafe || !publicKeySafe || !signTxSafe) {
       toast.error('Please connect your wallet.')
       return
     }
@@ -276,7 +283,7 @@ export function BundleBuilder() {
           if (!quote) {
             throw new Error(`Could not get a quote for transaction ${tx.id}`)
           }
-          const swapResult = await getSwapTransaction(quote, publicKey.toBase58())
+          const swapResult = await getSwapTransaction(quote, publicKeySafe.toBase58())
           if (!swapResult?.swapTransaction) {
             throw new Error(`Could not build swap transaction ${tx.id}`)
           }
@@ -285,21 +292,21 @@ export function BundleBuilder() {
         }
         // Handle 'transfer' type here in the future
         if (tx.type === 'transfer') {
-            if (!tx.recipient || !tx.fromAmount || tx.fromAmount <= 0) {
+            if (!tx.recipient || !tx.fromAmount || !tx.fromAmount <= 0) {
                 throw new Error(`Invalid transfer parameters for transaction ${tx.id}`);
             }
             const recipientPubKey = new PublicKey(tx.recipient);
             const lamports = tx.fromAmount * LAMPORTS_PER_SOL;
             
             const transferInstruction = SystemProgram.transfer({
-                fromPubkey: publicKey,
+                fromPubkey: publicKeySafe,
                 toPubkey: recipientPubKey,
                 lamports: lamports,
             });
 
             const { blockhash } = await connection.getLatestBlockhash();
             const message = new TransactionMessage({
-                payerKey: publicKey,
+                payerKey: publicKeySafe,
                 recentBlockhash: blockhash,
                 instructions: [transferInstruction],
             }).compileToV0Message();
@@ -315,7 +322,7 @@ export function BundleBuilder() {
 
       // In a real scenario with a backend that can't sign,
       // you would sign the transactions on the client-side.
-      // const signedTransactions = await signAllTransactions(builtTransactions);
+      // const signedTransactions = await signTxSafe(builtTransactions);
       
       const serializedTxs = builtTransactions.map(tx => 
         Buffer.from(tx.serialize()).toString('base64')
@@ -345,7 +352,7 @@ export function BundleBuilder() {
     } finally {
       setIsExecuting(false)
     }
-  }, [transactions, connected, publicKey, getQuote, getSwapTransaction, signAllTransactions])
+  }, [transactions, connectedSafe, publicKeySafe, getQuote, getSwapTransaction, signTxSafe])
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -543,7 +550,7 @@ export function BundleBuilder() {
           className="w-full"
           data-testid="execute-bundle-button"
           onClick={executeBundle}
-          disabled={!connected || isExecuting || transactions.length === 0}
+          disabled={!connectedSafe || isExecuting || transactions.length === 0}
         >
           <Send className="mr-2 h-4 w-4" />
           {isExecuting ? 'Executing...' : 'Execute Bundle'}

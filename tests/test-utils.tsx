@@ -1,19 +1,18 @@
+import React from 'react'
 import { render } from '@testing-library/react'
-import { Toaster } from 'sonner'
+import { Toaster } from 'react-hot-toast'
 
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+// Light-weight provider shell for component tests
+function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {children}
       <Toaster />
+      {children}
     </>
   )
 }
 
-const customRender = (
-  ui: React.ReactElement,
-  options?: Omit<Parameters<typeof render>[1], 'wrapper'>,
-) => render(ui, { wrapper: AllTheProviders, ...options })
-
 export * from '@testing-library/react'
-export { customRender as render }
+export function renderWithProviders(ui: React.ReactElement, options?: any) {
+  return render(ui, { wrapper: Providers, ...options })
+}

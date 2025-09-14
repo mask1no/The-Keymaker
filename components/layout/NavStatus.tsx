@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
+import { isTestMode } from '@/lib/testMode'
 
 const Light = ({ ok, label }: { ok: boolean; label: string }) => (
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs">
@@ -59,6 +60,17 @@ export default function NavStatus() {
       setWs(false)
     }
   }, [])
+
+  if (isTestMode) {
+    return (
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <Light ok={true} label="RPC" />
+        <Light ok={true} label="WS" />
+        <Light ok={true} label="JITO" />
+        <Light ok={true} label="MAINNET" />
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-2 gap-2 mt-4">

@@ -64,7 +64,7 @@
     - button "Check Security" [disabled]:
       - img
       - text: Check Security
-    - spinbutton: "-1"
+    - spinbutton: "0.01"
     - spinbutton
   - status
   - button "Add Transaction":
