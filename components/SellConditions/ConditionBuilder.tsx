@@ -1,7 +1,12 @@
 'use client'
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'

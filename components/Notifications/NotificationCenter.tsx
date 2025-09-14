@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/UI/button'
 import { useKeymakerStore } from '@/lib/store'
-import { Card } from '@/components/UI/card'
+import { Card } from '@/components/UI/Card'
 
 export interface Notification {
   id: string

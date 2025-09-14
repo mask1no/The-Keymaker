@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
-import { VersionedTransaction, PublicKey, Connection } from '@solana/web3.js'
+import { VersionedTransaction, Connection } from '@solana/web3.js'
 import { getServerRpc } from '@/lib/server/rpc'
-import { bundlesUrl } from '@/lib/server/jito'
-import { JITO_TIP_ACCOUNTS } from '@/constants'
+import {
+  sendBundle,
+  getBundleStatuses,
+  validateTipAccount,
+} from '@/lib/server/jitoService'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,35 +15,6 @@ type SubmitBody = {
   simulateOnly?: boolean
   mode?: 'regular' | 'instant' | 'delayed'
   delay_seconds?: number
-}
-
-function hasStaticTipKey(vt: VersionedTransaction): boolean {
-  const keys: string[] = (vt.message as any).staticAccountKeys
-    ? ((vt.message as any).staticAccountKeys as PublicKey[]).map((k) =>
-        k.toBase58(),
-      )
-    : []
-  const allow =
-    !Array.isArray(JITO_TIP_ACCOUNTS) || JITO_TIP_ACCOUNTS.length === 0
-  return allow ? true : keys.some((k) => new Set(JITO_TIP_ACCOUNTS).has(k))
-}
-
-async function jitoRpc<T>(
-  endpoint: string,
-  method: string,
-  params: any[],
-  timeout = 10000,
-): Promise<T> {
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
-    signal: AbortSignal.timeout(timeout),
-  })
-  if (!res.ok) throw new Error(`${method} HTTP ${res.status}`)
-  const j = await res.json()
-  if (j?.error) throw new Error(j.error?.message || `${method} error`)
-  return j.result
 }
 
 export async function POST(req: Request) {
@@ -62,14 +36,13 @@ export async function POST(req: Request) {
     const decoded = txs_b64.map((b64) =>
       VersionedTransaction.deserialize(Buffer.from(b64, 'base64')),
     )
-    if (!hasStaticTipKey(decoded[decoded.length - 1])) {
+    if (!validateTipAccount(decoded[decoded.length - 1])) {
       return NextResponse.json(
         { error: 'Tip account must be in static keys of the last tx (no ALT)' },
         { status: 400 },
       )
     }
 
-    const endpoint = bundlesUrl(region as any)
     const connection = new Connection(getServerRpc(), 'confirmed')
 
     if (simulateOnly) {
@@ -88,23 +61,20 @@ export async function POST(req: Request) {
       await new Promise((r) => setTimeout(r, Math.min(delaySec * 1000, 120000)))
     }
 
-    const res: any = await jitoRpc(endpoint, 'sendBundle', [
-      { encodedTransactions: txs_b64, bundleOnly: true },
-    ])
-    const bundleId: string =
-      typeof res === 'string' ? res : res?.bundleId || res?.id
-    if (!bundleId) throw new Error('No bundleId returned')
+    const bundleId = await sendBundle(region, txs_b64)
 
     let landedSlot: number | null = null
     for (let i = 0; i < 20; i++) {
-      const r: any = await jitoRpc(endpoint, 'getBundleStatuses', [[bundleId]])
-      const v = r?.value?.[0]
-      const st = String(v?.status || 'unknown').toLowerCase()
-      if (st === 'landed') {
-        landedSlot = v?.landed_slot ?? null
-        break
+      const statuses = await getBundleStatuses(region, [bundleId])
+      const status = statuses[0]
+      if (status) {
+        const st = String(status.status || 'unknown').toLowerCase()
+        if (st === 'landed' || st === 'processed') {
+          landedSlot = status.landed_slot ?? null
+          break
+        }
+        if (st === 'failed' || st === 'invalid') break
       }
-      if (st === 'failed' || st === 'invalid') break
       await new Promise((r) => setTimeout(r, 1200))
     }
 

@@ -1,6 +1,4 @@
-// import { open, Database } from 'sqlite'
 import 'server-only'
-// import path from 'path'
 
 let db: any = null
 
@@ -16,3 +14,7 @@ export async function getDb(): Promise<any> {
   }
   return db
 }
+
+// This is a workaround for the circular dependency and export issue.
+const promisedDb = getDb();
+export { promisedDb as db };

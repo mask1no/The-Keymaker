@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -25,17 +25,18 @@ import {
   PublicKey,
   Transaction,
   LAMPORTS_PER_SOL,
+  Keypair,
 } from '@solana/web3.js'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { fundWalletGroup } from '@/services/fundingService'
 import { batchSellTokens } from '@/services/sellService'
 import { logEvent } from '@/lib/clientLogger'
-import { getKeypairs } from '@/services/walletService'
 import { logger } from '@/lib/logger'
 import { PasswordDialog } from '@/components/UI/PasswordDialog'
 import { executeBundle } from '@/services/bundleService'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { useSettingsStore } from '@/stores/useSettingsStore'
+import { decryptAES256ToKeypair } from '@/utils/crypto'
 
 type Phase =
   | 'idle'
@@ -70,6 +71,15 @@ function prepareWalletsForKeypairs(wallets: WalletData[]): Array<{
     }))
 }
 
+async function getKeypairs(
+  wallets: { encryptedPrivateKey: string }[],
+  password: string,
+): Promise<Keypair[]> {
+  return Promise.all(
+    wallets.map((w) => decryptAES256ToKeypair(w.encryptedPrivateKey, password)),
+  )
+}
+
 export function ControlPanel() {
   const { jitoTipLamports, jupiterFeeBps } = useSettingsStore.getState()
   const {
@@ -92,7 +102,7 @@ export function ControlPanel() {
 
   const [dryRun, setDryRun] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
-  const [pendingAction, setPendingAction] = useState<'launch' | 'full' | null>(
+  const [pendingAction, setPendingAction] = useState<'launch' | 'full' | 'fund' | 'buy' | 'sell' | null>(
     null,
   )
 
@@ -150,6 +160,12 @@ export function ControlPanel() {
       await executeLaunchToken(password)
     } else if (pendingAction === 'full') {
       await executeFullSequence(password)
+    } else if (pendingAction === 'fund') {
+      await executeFundWallets(password);
+    } else if (pendingAction === 'buy') {
+      await executeBundleBuys(password);
+    } else if (pendingAction === 'sell') {
+      await executeSells(password);
     }
 
     setPendingAction(null)
@@ -832,8 +848,8 @@ export function ControlPanel() {
 
               <Button
                 onClick={() => {
+                  setPendingAction('fund')
                   setShowPasswordDialog(true)
-                  executeFundWallets('')
                 }}
                 disabled={!canExecute || isExecuting || !state.tokenMint}
                 variant="secondary"
@@ -849,8 +865,8 @@ export function ControlPanel() {
 
               <Button
                 onClick={() => {
+                  setPendingAction('buy')
                   setShowPasswordDialog(true)
-                  executeBundleBuys('')
                 }}
                 disabled={!canExecute || isExecuting || !state.tokenMint}
                 variant="secondary"
@@ -866,8 +882,8 @@ export function ControlPanel() {
 
               <Button
                 onClick={() => {
+                  setPendingAction('sell')
                   setShowPasswordDialog(true)
-                  executeSells('')
                 }}
                 disabled={!canExecute || isExecuting || !state.tokenMint}
                 variant="secondary"

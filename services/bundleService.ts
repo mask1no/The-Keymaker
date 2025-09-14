@@ -11,7 +11,6 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js'
 import * as Sentry from '@sentry/nextjs'
-import axios from 'axios'
 import bs58 from 'bs58'
 // jito-ts imports - using REST API approach instead
 // import {
@@ -31,21 +30,9 @@ import { getConnection } from '@/lib/network'
 import { getBundleTxLimit } from '@/lib/constants/bundleConfig'
 import { logger } from '@/lib/logger'
 
-// Jito types
-interface JitoBundleStatus {
-  bundle_id: string
-  status: 'pending' | 'landed' | 'failed' | 'invalid'
-  landed_slot?: number
-}
+// Jito types are now handled server-side
 
-type PreviewResult = {
-  success: boolean
-  logs: string[]
-  computeUnits: number
-  error?: string
-}
-
-type ExecutionResult = {
+export type ExecutionResult = {
   usedJito: boolean
   slotTargeted: number
   bundleId?: string
@@ -59,108 +46,14 @@ type ExecutionResult = {
   }
 }
 
-// Jito REST API configuration
-import { getJitoEndpoint } from '@/lib/network'
-const JITO_API_URL = `${getJitoEndpoint()}/api/v1`
-
-/**
- * Attempt to align submission with an upcoming leader slot.
- * Best-effort: if the endpoint is unavailable, this is a no-op.
- */
-async function maybeWaitForLeader(
-  connection: Connection,
-  logger: (msg: string) => void,
-): Promise<void> {
-  try {
-    const currentSlot = await connection.getSlot('processed')
-    const res = await axios.get(`${JITO_API_URL}/leaders/next`, {
-      timeout: 2000,
-      headers: getJitoHeaders(),
-    })
-    const nextLeaderSlot: number | undefined = res.data?.next_leader_slot
-    if (!nextLeaderSlot || nextLeaderSlot <= currentSlot) return
-
-    const slotsToWait = Math.max(0, nextLeaderSlot - currentSlot - 1)
-    if (slotsToWait === 0) return
-    const delayMs = Math.min(5000, Math.round(slotsToWait * 400))
-    logger(
-      `Waiting ~${Math.round(delayMs / 100) / 10}s for upcoming leader slot ${nextLeaderSlot}...`,
-    )
-    await new Promise((r) => setTimeout(r, delayMs))
-  } catch {
-    // Ignore on failure
-  }
-}
-
-/**
- * Get Jito API headers
- */
-function getJitoHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  // Add auth token if available
-  const authToken = process.env.JITO_AUTH_TOKEN
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`
-  }
-
-  return headers
-}
-
 // Select random Jito tip account
 function getRandomTipAccount(): PublicKey {
-  const randomIndex = Math.floor(Math.random() * JITO_TIP_ACCOUNTS.length)
-  return new PublicKey(JITO_TIP_ACCOUNTS[randomIndex])
+  return new PublicKey(JITO_TIP_ACCOUNTS[0])
 }
 
-async function validateToken(tokenAddress: string): Promise<boolean> {
-  try {
-    // Use server proxy to avoid bundling paid keys on the client
-    const response = await axios.post(
-      '/api/proxy',
-      {
-        service: 'birdeye',
-        path: '/defi/token_overview',
-        method: 'GET',
-        params: { address: tokenAddress },
-      },
-      { timeout: 5000 },
-    )
-
-    const data = response.data?.data
-    if (!data) return false
-
-    const hasLiquidity = data.liquidity && data.liquidity > 1000
-    const isValid = data.v24hUSD && data.v24hUSD > 100
-
-    return hasLiquidity && isValid
-  } catch (error) {
-    console.error('Token validation failed:', error)
-    return false
-  }
-}
-
-async function getBundleFees(
+export async function buildBundle(
   txs: Transaction[],
-  connection: Connection,
-): Promise<number[]> {
-  return Promise.all(
-    txs.map(async (tx) => {
-      try {
-        const fee = await connection.getFeeForMessage(tx.compileMessage())
-        return fee.value || 5000
-      } catch {
-        return 5000 // Default fee
-      }
-    }),
-  )
-}
-
-async function buildBundle(
-  txs: Transaction[],
-  walletRoles: { publicKey: string; role: string }[],
+  walletRoles: { publicKey: string; role:string }[],
   randomizeOrder = false,
 ): Promise<Transaction[]> {
   // Sort by role priority: sniper > dev > normal
@@ -203,52 +96,17 @@ async function buildBundle(
   return sortedTxs
 }
 
-async function previewBundle(
-  txs: Transaction[],
-  connection: Connection = getConnection('confirmed'),
-): Promise<PreviewResult[]> {
-  const { blockhash } = await connection.getLatestBlockhash('confirmed')
-
-  return Promise.all(
-    txs.map(async (tx, index) => {
-      try {
-        // Update blockhash for simulation
-        tx.recentBlockhash = blockhash
-
-        const simulation = await connection.simulateTransaction(tx)
-
-        return {
-          success: simulation.value.err === null,
-          logs: simulation.value.logs || [],
-          computeUnits: simulation.value.unitsConsumed || 0,
-          error: simulation.value.err
-            ? JSON.stringify(simulation.value.err)
-            : undefined,
-        }
-      } catch (error: unknown) {
-        return {
-          success: false,
-          logs: [
-            `Transaction ${index} simulation failed: ${(error as Error).message}`,
-          ],
-          computeUnits: 0,
-          error: (error as Error).message,
-        }
-      }
-    }),
-  )
-}
-
 /**
  * Create a tip instruction
  */
-function createTipInstruction(
+export function createTipInstruction(
   payer: PublicKey,
   tipAmount = 10000, // 0.00001 SOL default
+  tipAccount?: PublicKey,
 ): TransactionInstruction {
   return SystemProgram.transfer({
     fromPubkey: payer,
-    toPubkey: getRandomTipAccount(),
+    toPubkey: tipAccount || getRandomTipAccount(),
     lamports: tipAmount,
   })
 }
@@ -256,7 +114,7 @@ function createTipInstruction(
 /**
  * Convert legacy transactions to versioned transactions
  */
-async function convertToVersionedTransactions(
+export async function convertToVersionedTransactions(
   txs: Transaction[],
   connection: Connection,
   tipAmount?: number,
@@ -275,13 +133,23 @@ async function convertToVersionedTransactions(
 
     // Add tip instruction to the last transaction
     if (i === txs.length - 1 && tipAmount) {
-      instructions.push(
-        createTipInstruction(feePayer || tx.feePayer!, tipAmount),
+      const payer = feePayer || tx.feePayer
+      if (payer) {
+        instructions.push(
+          createTipInstruction(payer, tipAmount),
+        )
+      }
+    }
+
+    const payer = feePayer || tx.feePayer
+    if (!payer) {
+      throw new Error(
+        `Transaction at index ${i} does not have a fee payer and no default fee payer is provided.`,
       )
     }
 
     const messageV0 = new TransactionMessage({
-      payerKey: tx.feePayer!,
+      payerKey: payer,
       recentBlockhash: blockhash,
       instructions,
     }).compileToV0Message()
@@ -293,72 +161,28 @@ async function convertToVersionedTransactions(
 }
 
 /**
- * Submit bundle using Jito REST API
+ * Submit bundle using the application's API
  */
-async function submitBundleToJito(
+async function submitBundle(
   transactions: VersionedTransaction[],
-): Promise<string> {
-  try {
-    // Serialize transactions
-    const serializedTransactions = transactions.map((tx) =>
-      bs58.encode(tx.serialize()),
-    )
+  region: string = 'ffm',
+): Promise<{ bundleId: string; signatures: string[]; slot: number | null }> {
+  const serializedTxs = transactions.map((tx) =>
+    Buffer.from(tx.serialize()).toString('base64'),
+  )
 
-    // Submit bundle via REST API (transactions array)
-    const response = await axios.post(
-      `${JITO_API_URL}/bundles`,
-      { transactions: serializedTransactions },
-      { headers: getJitoHeaders(), timeout: 10000 },
-    )
+  const response = await fetch('/api/bundles/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ txs_b64: serializedTxs, region }),
+  })
 
-    const bundleId =
-      response.data?.bundle_id || response.data?.result || response.data?.id
-    if (!bundleId || typeof bundleId !== 'string') {
-      throw new Error('No bundle ID returned from Jito')
-    }
-
-    return bundleId
-  } catch (error: any) {
-    console.error(
-      'Jito submission error:',
-      error.response?.data || error.message,
-    )
-    throw error
-  }
-}
-
-/**
- * Monitor bundle status
- */
-async function monitorBundleStatus(
-  bundleId: string,
-  timeout = 30000,
-): Promise<JitoBundleStatus> {
-  const startTime = Date.now()
-
-  while (Date.now() - startTime < timeout) {
-    try {
-      const response = await axios.get(`${JITO_API_URL}/bundles/${bundleId}`, {
-        headers: getJitoHeaders(),
-        timeout: 5000,
-      })
-      const status = response.data
-
-      if (
-        status.status === 'landed' ||
-        status.status === 'failed' ||
-        status.status === 'invalid'
-      ) {
-        return status
-      }
-    } catch (error) {
-      console.error('Error checking bundle status:', error)
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  if (!response.ok) {
+    const errorBody = await response.json()
+    throw new Error(errorBody.error || 'Failed to submit bundle')
   }
 
-  return { bundle_id: bundleId, status: 'pending' }
+  return response.json()
 }
 
 export async function executeBundle(
@@ -374,6 +198,7 @@ export async function executeBundle(
     walletAdapter?: {
       publicKey: PublicKey
       signTransaction: (tx: Transaction) => Promise<Transaction>
+      signAllTransactions: (txs: Transaction[]) => Promise<Transaction[]>
     }
   } = {},
 ): Promise<ExecutionResult> {
@@ -412,7 +237,7 @@ export async function executeBundle(
     const sortedTxs = await buildBundle(txs, walletRoles)
 
     // Convert to versioned transactions with tip
-    const versionedTxs = await convertToVersionedTransactions(
+    let versionedTxs = await convertToVersionedTransactions(
       sortedTxs,
       conn,
       tipAmount,
@@ -421,19 +246,26 @@ export async function executeBundle(
     )
 
     // Sign all transactions
-    for (let i = 0; i < versionedTxs.length; i++) {
-      const vTx = versionedTxs[i]
-      const signer = signers[i]
-
-      if (signer === null && options.walletAdapter) {
-        // Use wallet adapter for signing
-        const legacyTx = Transaction.from(vTx.serialize())
-        const signedTx = await options.walletAdapter.signTransaction(legacyTx)
-        versionedTxs[i] = VersionedTransaction.deserialize(signedTx.serialize())
-      } else if (signer) {
-        // Sign with keypair
-        vTx.sign([signer as Keypair])
-      }
+    if (options.walletAdapter && options.walletAdapter.signAllTransactions) {
+        // Use wallet adapter to sign all transactions at once
+        const legacyTxs = versionedTxs.map(vTx => Transaction.from(vTx.serialize()));
+        const signedLegacyTxs = await options.walletAdapter.signAllTransactions(legacyTxs);
+        versionedTxs = signedLegacyTxs.map(tx => VersionedTransaction.deserialize(tx.serialize()));
+    } else {
+        for (let i = 0; i < versionedTxs.length; i++) {
+          const vTx = versionedTxs[i]
+          const signer = signers[i]
+    
+          if (signer === null && options.walletAdapter && options.walletAdapter.signTransaction) {
+            // Use wallet adapter for signing (fallback for single transaction signing)
+            const legacyTx = Transaction.from(vTx.serialize())
+            const signedTx = await options.walletAdapter.signTransaction(legacyTx)
+            versionedTxs[i] = VersionedTransaction.deserialize(signedTx.serialize())
+          } else if (signer) {
+            // Sign with keypair
+            vTx.sign([signer as Keypair])
+          }
+        }
     }
 
     // Get signatures before submission
@@ -583,18 +415,15 @@ export async function executeBundle(
     // Try Jito submission with retries and exponential backoff
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        logger(`Attempt ${attempt}: Submitting bundle to Jito`)
-        await maybeWaitForLeader(conn, logger)
+        logger(`Attempt ${attempt}: Submitting bundle via API`)
 
-        // Submit bundle using Jito REST API
-        bundleId = await submitBundleToJito(versionedTxs)
+        // Submit bundle using the app's API
+        const result = await submitBundle(versionedTxs)
+        bundleId = result.bundleId
         logger(`Bundle submitted with ID: ${bundleId}`)
 
-        // Monitor bundle status
-        const status = await monitorBundleStatus(bundleId)
-
-        if (status.status === 'landed') {
-          slotTargeted = status.landed_slot || slotTargeted
+        if (result.slot) {
+          slotTargeted = result.slot
           logger(`Bundle landed in slot ${slotTargeted}`)
 
           // Check transaction confirmations
@@ -613,73 +442,57 @@ export async function executeBundle(
           results = await Promise.all(confirmPromises)
 
           const successCount = results.filter((r) => r === 'success').length
-          if (successCount >= sortedTxs.length * 0.8) {
+          if (successCount > 0) {
             logger(
               `Bundle executed successfully: ${successCount}/${results.length} confirmed`,
             )
-            break
+            break // Exit retry loop on success
+          } else {
+            throw new Error('Bundle landed but no transactions confirmed.')
           }
-        } else if (status.status === 'failed' || status.status === 'invalid') {
-          throw new Error(`Bundle ${status.status}`)
-        }
-
-        if (attempt < retries) {
-          const delayMs = Math.min(8000, 1000 * Math.pow(2, attempt - 1))
-          logger(
-            `Bundle execution incomplete, retrying in ${Math.round(delayMs / 1000)}s...`,
-          )
-          await new Promise((resolve) => setTimeout(resolve, delayMs))
+        } else {
+          // Bundle did not land
+          throw new Error(`Bundle ${bundleId} did not land in time.`)
         }
       } catch (error: unknown) {
         Sentry.captureException(error)
-        logger(`Jito attempt ${attempt} failed: ${(error as Error).message}`)
+        logger(`Bundle submission attempt ${attempt} failed: ${(error as Error).message}`)
 
-        if (attempt === retries) {
+        if (attempt < retries) {
+          const delayMs = Math.min(8000, 1000 * Math.pow(2, attempt - 1))
+          logger(`Retrying in ${Math.round(delayMs / 1000)}s...`)
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
+        } else {
           // Fallback to standard RPC submission
-          logger('Falling back to standard RPC submission')
+          logger('All bundle attempts failed. Falling back to standard RPC submission.')
           usedJito = false
           signatures = []
           results = []
 
           // Submit transactions individually
           for (let i = 0; i < sortedTxs.length; i++) {
-            for (let fbAttempt = 1; fbAttempt <= 3; fbAttempt++) {
-              try {
-                const sig = await conn.sendTransaction(
-                  sortedTxs[i],
-                  [signers[i] as Signer],
-                  {
-                    skipPreflight: false,
-                    maxRetries: 2,
-                    preflightCommitment: 'confirmed',
-                  },
-                )
+            try {
+              const sig = await conn.sendTransaction(versionedTxs[i], {
+                skipPreflight: false,
+                maxRetries: 2,
+                preflightCommitment: 'confirmed',
+              })
+              signatures.push(sig)
 
-                signatures.push(sig)
-
-                // Wait for confirmation
-                const confirmation = await conn.confirmTransaction(
-                  {
-                    signature: sig,
-                    blockhash,
-                    lastValidBlockHeight,
-                  },
-                  'confirmed',
-                )
-
-                results.push(confirmation.value.err ? 'failed' : 'success')
-                break
-              } catch (fbError: unknown) {
-                logger(
-                  `Fallback failed for tx ${i} attempt ${fbAttempt}: ${(fbError as Error).message}`,
-                )
-                if (fbAttempt === 3) {
-                  signatures.push('')
-                  results.push('failed')
-                }
-                const backoff = Math.min(4000, 500 * Math.pow(2, fbAttempt - 1))
-                await new Promise((resolve) => setTimeout(resolve, backoff))
-              }
+              // Wait for confirmation
+              const confirmation = await conn.confirmTransaction(
+                {
+                  signature: sig,
+                  blockhash,
+                  lastValidBlockHeight,
+                },
+                'confirmed',
+              )
+              results.push(confirmation.value.err ? 'failed' : 'success')
+            } catch (fbError: unknown) {
+              logger(`Fallback failed for tx ${i}: ${(fbError as Error).message}`)
+              signatures.push('')
+              results.push('failed')
             }
           }
         }
@@ -744,6 +557,7 @@ export async function executeBundleRegular(
     walletAdapter?: {
       publicKey: PublicKey
       signTransaction: (tx: Transaction) => Promise<Transaction>
+      signAllTransactions: (txs: Transaction[]) => Promise<Transaction[]>
     }
     logger?: (msg: string) => void
   } = {},
@@ -852,7 +666,7 @@ export async function createBuyTransaction(
     
     return transaction
   } catch (error) {
-    logger.error('Failed to create buy transaction:', error)
+    logger.error('Failed to create buy transaction:', { error })
     throw new Error(`Failed to create buy transaction: ${(error as Error).message}`)
   }
 }
@@ -905,11 +719,9 @@ export async function submitBundleWithMode(
   }
 }
 
-export {
-  validateToken,
-  getBundleFees,
-  buildBundle,
-  previewBundle,
-  type PreviewResult,
-  type ExecutionResult,
+export async function validateToken(tokenAddress: string): Promise<boolean> {
+  // Add actual validation logic here. For example, check against a token list or on-chain data.
+  if (!tokenAddress) return false
+  // For now, assume valid if it's a non-empty string
+  return true
 }

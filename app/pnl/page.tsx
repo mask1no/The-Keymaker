@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import useSWR from 'swr'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 
 export default function PnlPage() {

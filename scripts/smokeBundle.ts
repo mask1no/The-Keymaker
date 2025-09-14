@@ -1,4 +1,7 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
+
+import dotenv from 'dotenv'
+dotenv.config()
 
 /**
  * Smoke test for The Keymaker bundler
@@ -20,12 +23,11 @@ import {
   PublicKey,
   SystemProgram,
   Transaction,
-  VersionedTransaction,
-  TransactionMessage,
   ComputeBudgetProgram,
 } from '@solana/web3.js'
 import bs58 from 'bs58'
 import { JITO_TIP_ACCOUNTS } from '../constants'
+import { executeBundle, ExecutionResult } from '../services/bundleService'
 
 // Load environment
 const SMOKE_SECRET = process.env.SMOKE_SECRET
@@ -45,6 +47,14 @@ async function main() {
   console.log('🚀 Starting The Keymaker smoke test...\n')
 
   try {
+    if (!SMOKE_SECRET) {
+      // This check is now redundant due to the top-level check,
+      // but it's good practice to keep it for clarity.
+      console.error(
+        '❌ SMOKE_SECRET not set. Please add a funded keypair (bs58 encoded) to your .env file',
+      )
+      process.exit(1)
+    }
     // Setup
     const secretKey = bs58.decode(SMOKE_SECRET)
     const keypair = Keypair.fromSecretKey(secretKey)
@@ -85,151 +95,57 @@ async function main() {
     tx1.recentBlockhash = blockhash
     tx1.feePayer = keypair.publicKey
 
-    // Convert to versioned transaction
-    const messageV0_1 = new TransactionMessage({
-      payerKey: keypair.publicKey,
-      recentBlockhash: blockhash,
-      instructions: tx1.instructions,
-    }).compileToV0Message()
-
-    const vTx1 = new VersionedTransaction(messageV0_1)
-
     // Create transaction 2: Tip transfer to Jito
-    console.log('💰 Creating transaction 2: Tip transfer (1000 lamports)...')
-    const tipAccount = new PublicKey(JITO_TIP_ACCOUNTS[0]) // Use first tip account
-    const tipAmount = 1000 // 1000 lamports = 0.000001 SOL
-
+    // The bundleService will add its own tip, so this is just for testing multiple transactions.
+    // We'll make it a simple self-transfer as well.
+    console.log('📝 Creating transaction 2: Another self-transfer (1 lamport)...')
+    const tipAmount = 1000 // We'll pass this to the service options
     const tx2 = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: keypair.publicKey,
-        toPubkey: tipAccount,
-        lamports: tipAmount,
+        toPubkey: keypair.publicKey,
+        lamports: 1, // Changed from tip to self-transfer
       }),
     )
+    tx2.recentBlockhash = blockhash
+    tx2.feePayer = keypair.publicKey
 
-    const messageV0_2 = new TransactionMessage({
-      payerKey: keypair.publicKey,
-      recentBlockhash: blockhash,
-      instructions: tx2.instructions,
-    }).compileToV0Message()
+    // The bundleService will handle signing.
+    console.log('✍️  Transactions created. Signing will be handled by the service.')
 
-    const vTx2 = new VersionedTransaction(messageV0_2)
+    const transactionsToBundle = [tx1, tx2]
 
-    // Sign both transactions
-    console.log('✍️  Signing transactions...')
-    vTx1.sign([keypair])
-    vTx2.sign([keypair])
-
-    // Base64 encode
-    const txsB64 = [
-      bs58.encode(vTx1.serialize()),
-      bs58.encode(vTx2.serialize()),
-    ]
-
-    console.log('📦 Bundle created:')
-    console.log(`   - TX 1: Self-transfer (1 lamport)`)
-    console.log(
-      `   - TX 2: Tip transfer (${tipAmount} lamports to ${tipAccount.toBase58()})`,
+    // Execute bundle using the bundleService
+    console.log('🚀 Executing bundle via service...')
+    const result: ExecutionResult = await executeBundle(
+      transactionsToBundle,
+      [], // No special wallet roles needed for this simple bundle
+      [keypair, keypair], // Signers for each transaction
+      {
+        tipAmount: tipAmount,
+      },
     )
-    console.log(`   - Total cost: ~${(tipAmount + 5000) / 1e9} SOL\n`)
 
-    // Submit bundle
-    console.log('🚀 Submitting bundle...')
-    const submitUrl = `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/bundles/submit`
-
-    const submitBody = {
-      txs_b64: txsB64,
-      region: 'ffm',
-      tip_lamports: tipAmount,
-    }
-
-    const submitRes = await fetch(submitUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(submitBody),
-    })
-
-    if (!submitRes.ok) {
-      const error = await submitRes.text()
-      throw new Error(`Submit failed: ${submitRes.status} ${error}`)
-    }
-
-    const submitData = await submitRes.json()
-    const bundleId = submitData.bundle_id
-
-    if (!bundleId) {
-      throw new Error('No bundle ID returned from submit')
-    }
-
-    console.log(`✅ Bundle submitted! ID: ${bundleId}\n`)
-
-    // Poll status
-    console.log('🔍 Monitoring bundle status...')
-
-    const statusUrl = `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/bundles/status/batch`
+    // Process result
     const startTime = Date.now()
-    let attempts = 0
-    const maxAttempts = 30 // 30 seconds
-
-    while (attempts < maxAttempts) {
-      attempts++
-
-      const statusRes = await fetch(statusUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bundle_ids: [bundleId],
-          region: 'ffm',
-        }),
-      })
-
-      if (!statusRes.ok) {
-        console.warn(`⚠️  Status check failed: ${statusRes.status}`)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        continue
+    if (result.results.every((r: 'success' | 'failed') => r === 'success')) {
+      const latency = Date.now() - startTime
+      console.log('\n🎉 SUCCESS! Bundle landed!')
+      console.log(`   📍 Landed in slot: ${result.slotTargeted}`)
+      console.log(`   ⏱️  Latency: ${latency}ms`)
+      console.log(`   📝 Signatures: ${result.signatures.length || 0}`)
+      if (result.signatures.length > 0) {
+        result.signatures.forEach((sig: string, i: number) => {
+          console.log(`      TX ${i + 1}: https://solscan.io/tx/${sig}`)
+        })
       }
-
-      const statusData = await statusRes.json()
-      const bundleStatus = statusData.statuses?.[0]
-
-      if (!bundleStatus) {
-        console.log(`⏳ Attempt ${attempts}/${maxAttempts}: No status yet`)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        continue
-      }
-
-      const { status, landed_slot, transactions } = bundleStatus
-
-      console.log(`📊 Attempt ${attempts}/${maxAttempts}: Status = ${status}`)
-
-      if (status === 'landed') {
-        const latency = Date.now() - startTime
-        console.log('\n🎉 SUCCESS! Bundle landed!')
-        console.log(`   📍 Landed in slot: ${landed_slot}`)
-        console.log(`   ⏱️  Latency: ${latency}ms`)
-        console.log(`   📝 Transactions: ${transactions?.length || 0}`)
-        if (transactions?.length > 0) {
-          transactions.forEach((tx: string, i: number) => {
-            console.log(`      TX ${i + 1}: https://solscan.io/tx/${tx}`)
-          })
-        }
-        console.log('\n✅ Smoke test PASSED!')
-        return
-      }
-
-      if (status === 'failed' || status === 'invalid') {
-        console.log(`\n❌ Bundle ${status}!`)
-        console.log('\n❌ Smoke test FAILED!')
-        process.exit(1)
-      }
-
-      // Wait 1 second before next check
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      console.log('\n✅ Smoke test PASSED!')
+    } else {
+      console.log('\n❌ Bundle did not land successfully.')
+      console.log(result.results)
+      console.log('\n❌ Smoke test FAILED!')
+      process.exit(1)
     }
-
-    console.log('\n⏰ Timeout reached - bundle still pending')
-    console.log('\n⚠️  Smoke test INCONCLUSIVE (bundle may still land)')
-    process.exit(1)
   } catch (error) {
     console.error('\n💥 Smoke test failed:', error)
     process.exit(1)

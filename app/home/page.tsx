@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useKeymakerStore } from '@/lib/store'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Badge } from '@/components/UI/badge'
 import {
   DollarSign,

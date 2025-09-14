@@ -1,10 +1,15 @@
 'use client'
 import React, { useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
+import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/Card'
 import toast from 'react-hot-toast'
 
 type Platform = 'pump' | 'bonk' | 'spl'

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Label } from '@/components/UI/label'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 
 export function BundleSettings() {
   const { tipAmount, setTipAmount } = useKeymakerStore()
-  const [localConfig, setLocalConfig] = useState({
+  const [localConfig, setLocalConfig] = React.useState({
     bundleSize: BUNDLE_CONFIG.DEFAULT_TX_LIMIT,
     tipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP / 1e9, // Convert from lamports to SOL
     retries: BUNDLE_CONFIG.MAX_RETRIES,

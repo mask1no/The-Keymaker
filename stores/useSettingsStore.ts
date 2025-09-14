@@ -23,6 +23,7 @@ interface SettingsState {
   hotkeys: HotkeysConfig
   setSettings: (settings: Partial<SettingsState>) => void
   setHotkeys: (hotkeys: Partial<HotkeysConfig>) => void
+  fetchSettings: () => Promise<void>
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -33,9 +34,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   jitoAuthToken: undefined,
   jitoWsUrl: process.env.NEXT_PUBLIC_JITO_ENDPOINT,
   twoCaptchaKey: undefined,
-  headlessTimeout: parseInt(process.env.HEADLESS_TIMEOUT || '30'),
-  jitoTipLamports: parseInt(process.env.JITO_TIP_LAMPORTS || '5000'),
-  jupiterFeeBps: parseInt(process.env.JUPITER_FEE_BPS || '5'),
+  headlessTimeout: 30,
+  jitoTipLamports: 5000,
+  jupiterFeeBps: 5,
   hotkeys: {
     openSellMonitor: 'meta+e,ctrl+e',
     fundGroup: 'g',
@@ -47,4 +48,17 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
   setHotkeys: (hotkeys) =>
     set((state) => ({ hotkeys: { ...state.hotkeys, ...hotkeys } })),
+  fetchSettings: async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      set((state) => ({
+        ...state,
+        jitoTipLamports: data.jitoTipLamports,
+        jupiterFeeBps: data.jupiterFeeBps,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+    }
+  },
 }))

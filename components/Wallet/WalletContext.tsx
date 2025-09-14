@@ -4,12 +4,12 @@ import {
   WalletProvider,
 } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import '@solana/wallet-adapter-react-ui/styles.css'
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets'
 import { FC, ReactNode, useMemo } from 'react'
-require('@solana/wallet-adapter-react-ui/styles.css')
 
 export const WalletContext: FC<{ children: ReactNode }> = ({ children }) => {
   const endpoint =

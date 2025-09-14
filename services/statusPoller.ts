@@ -1,4 +1,4 @@
-import { bundlesUrl } from '@/lib/server/jito'
+import { getJitoApiUrl } from '@/lib/server/jitoService'
 
 export type BundleInflightStatus = {
   bundle_id: string
@@ -14,7 +14,7 @@ type RegionCache = {
 const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
 
 function endpoint(region: string) {
-  return bundlesUrl((region as any) || 'ffm')
+  return getJitoApiUrl((region as any) || 'ffm')
 }
 
 async function jrpc<T>(

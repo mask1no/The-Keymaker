@@ -1,9 +1,9 @@
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js'
 import axios from 'axios'
-import { validateToken } from './bundleService'
 import { getConnection } from '@/lib/network'
 import { getQuote, getSwapTransaction } from './jupiterService'
 import { logger } from '@/lib/logger'
+import { validateToken } from '@/services/bundleService'
 
 export async function snipeToken(
   tokenAddress: string,

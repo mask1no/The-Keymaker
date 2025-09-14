@@ -50,3 +50,42 @@ export interface SwapResponse {
   lastValidBlockHeight: number
   prioritizationFeeLamports?: number
 }
+
+export interface Wallet {
+  id: string
+  name: string
+  publicKey: string
+  privateKey: string // Encrypted
+  group: string
+  color: string
+}
+
+export interface ExecutionLog {
+  id: number
+  bundleId?: string
+  slot: number
+  signatures: string[]
+  status: 'success' | 'partial' | 'failed'
+  successCount: number
+  failureCount: number
+  usedJito: boolean
+  executionTime: number
+  timestamp: string
+}
+
+export interface TokenLaunch {
+  id: number
+  tokenAddress: string
+  name: string
+  symbol: string
+  platform: string
+  timestamp: string
+}
+
+export interface PnlRecord {
+  id: number
+  tokenAddress: string
+  amount: number
+  type: 'buy' | 'sell'
+  timestamp: string
+}

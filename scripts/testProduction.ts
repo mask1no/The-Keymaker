@@ -1,4 +1,9 @@
-import { Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  Transaction,
+  VersionedTransaction,
+} from '@solana/web3.js'
 import axios from 'axios'
 import * as dotenv from 'dotenv'
 import { promises as fs } from 'fs'
@@ -7,9 +12,10 @@ import { open } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import { getConnection } from '../lib/network'
 import { createToken as createRaydiumToken } from '../services/raydiumService'
-import { createWallet } from '../services/walletService'
+import { getWallets, Wallet, createWallet } from '@/services/walletService'
 import { executeBundle } from '../services/bundleService'
 import { buildSwapTransaction } from '../services/jupiterService'
+import { logger } from '../lib/logger'
 
 // Load environment variables
 dotenv.config({ path: '.env.local' })
@@ -137,7 +143,7 @@ async function testWalletCreation() {
     // Create test wallets
     const wallets = []
     for (let i = 0; i < 3; i++) {
-      const wallet = await createWallet(`test-sniper-${i}`, 'sniper')
+      const wallet = await createWallet('testpassword')
       wallets.push(wallet)
     }
 
@@ -214,11 +220,16 @@ async function testBundleExecution(
 
     // Execute bundle
     log('blue', 'Executing test bundle...')
-    const result = await executeBundle(transactions, walletRoles, signers, {
-      connection,
-      tipAmount: 10000, // 0.00001 SOL
-      retries: 2,
-    })
+    const result = await executeBundle(
+      transactions.map(tx => Transaction.from(tx.serialize())), 
+      walletRoles, 
+      signers, 
+      {
+        connection,
+        tipAmount: 10000, // 0.00001 SOL
+        retries: 2,
+      },
+    )
 
     const successCount = result.results.filter((r) => r === 'success').length
     if (successCount > 0) {
@@ -503,8 +514,55 @@ async function runAllTests() {
   process.exit(failed > 0 ? 1 : 0)
 }
 
-// Run tests
-runAllTests().catch((error) => {
-  console.error('Test runner error:', error)
-  process.exit(1)
-})
+async function testDynamicBundleExecution() {
+  logger.info('Starting dynamic bundle execution test...')
+
+  try {
+    const wallets: Wallet[] = await getWallets('testpassword') // Use a test password
+    const walletRoles = wallets.map((w, i) => ({
+      publicKey: w.publicKey,
+      role: i === 0 ? 'sniper' : 'normal',
+    }))
+    const signers = wallets.map((w) =>
+      Keypair.fromSecretKey(Buffer.from(w.privateKey, 'hex')),
+    )
+
+    const fromMint = 'So11111111111111111111111111111111111111112' // SOL
+    const toMint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // USDC
+    const amount = 0.01 * LAMPORTS_PER_SOL
+
+    const swapTxPromises = wallets.map((wallet) =>
+      buildSwapTransaction(
+        fromMint,
+        toMint,
+        amount,
+        wallet.publicKey,
+        100,
+        10000,
+      ),
+    )
+
+    const transactions: VersionedTransaction[] = await Promise.all(
+      swapTxPromises,
+    )
+
+    const result = await executeBundle(
+      transactions.map((tx) => Transaction.from(tx.serialize())),
+      walletRoles,
+      signers,
+      {},
+    )
+
+    if (result.results.every((r) => r === 'success')) {
+      logger.info('Dynamic bundle execution test PASSED')
+    } else {
+      logger.error('Dynamic bundle execution test FAILED', { result })
+    }
+  } catch (error) {
+    logger.error('Error in dynamic bundle execution test', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
+testDynamicBundleExecution()

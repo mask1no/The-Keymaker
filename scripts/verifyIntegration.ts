@@ -33,7 +33,8 @@ async function test(name: string, fn: () => Promise<boolean>) {
       TESTS_FAILED.push(name)
     }
   } catch (error) {
-    console.log(`${RED}✗ ERROR: ${error.message}${RESET}`)
+    const message = error instanceof Error ? error.message : String(error)
+    console.log(`${RED}✗ ERROR: ${message}${RESET}`)
     TESTS_FAILED.push(name)
   }
 }

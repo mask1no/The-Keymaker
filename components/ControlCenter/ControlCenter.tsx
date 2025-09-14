@@ -8,7 +8,7 @@ import {
   PublicKey,
   Transaction,
 } from '@solana/web3.js'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import {
   Select,
@@ -42,8 +42,17 @@ import { fundWalletGroup } from '@/services/fundingService'
 import { executeBundle } from '@/services/bundleService'
 import { batchSellTokens, SellConditions } from '@/services/sellService'
 import { launchToken } from '@/services/platformService'
-import { getKeypairs } from '@/services/walletService'
 import { buildSwapTransaction } from '@/services/jupiterService'
+import { decryptAES256ToKeypair } from '@/utils/crypto'
+
+async function getKeypairs(
+  wallets: { encryptedPrivateKey: string }[],
+  password: string,
+): Promise<Keypair[]> {
+  return Promise.all(
+    wallets.map((w) => decryptAES256ToKeypair(w.encryptedPrivateKey, password)),
+  )
+}
 
 export function ControlCenter() {
   const {

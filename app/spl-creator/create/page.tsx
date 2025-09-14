@@ -1,11 +1,11 @@
 'use client'
 
-import MemecoinCreator from '@/components/MemecoinCreator/MemecoinCreator'
+import { CreatorForm } from '@/components/MemecoinCreator/CreatorForm'
 
-export default function CreatePage() {
+export default function CreateSPLTokenPage() {
   return (
-    <div className="container mx-auto p-6">
-      <MemecoinCreator />
+    <div className="container mx-auto py-10">
+      <CreatorForm />
     </div>
   )
 }

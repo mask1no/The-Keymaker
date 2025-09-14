@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react'
 import { Keypair } from '@solana/web3.js'
 import bs58 from 'bs58'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { encrypt, decrypt } from '@/utils/browserCrypto'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/Card'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 import { Label } from '@/components/UI/label'
@@ -25,6 +27,8 @@ const save = (gs: Group[]) => localStorage.setItem(STORE, JSON.stringify(gs))
 const setActive = (pub: string) => localStorage.setItem(ACTIVE, pub)
 
 export default function WalletManager() {
+  const { connected } = useWallet()
+  const { setVisible } = useWalletModal()
   const [groups, setGroups] = useState<Group[]>([])
   const [gname, setGname] = useState('')
   const [hint, setHint] = useState('')
@@ -106,6 +110,21 @@ export default function WalletManager() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
+      {!connected && (
+        <Card className="border-amber-400/30 bg-amber-500/5 md:col-span-2">
+          <CardHeader>
+            <CardTitle>Login required</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2">
+            <div>
+              Connect a wallet (Phantom/Backpack/Solflare) to manage local, encrypted wallets.
+            </div>
+            <Button variant="outline" onClick={() => setVisible(true)}>
+              Connect Wallet
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Create Group</CardTitle>
@@ -125,7 +144,7 @@ export default function WalletManager() {
           />
           <Label>Password hint (optional)</Label>
           <Input value={hint} onChange={(e) => setHint(e.target.value)} />
-          <Button className="mt-2" onClick={createGroup}>
+          <Button className="mt-2" onClick={createGroup} disabled={!connected}>
             Create Group
           </Button>
         </CardContent>
@@ -158,10 +177,10 @@ export default function WalletManager() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={generate}>
+            <Button variant="secondary" onClick={generate} disabled={!connected}>
               Generate
             </Button>
-            <Button onClick={importPriv}>Import Private Key</Button>
+            <Button onClick={importPriv} disabled={!connected}>Import Private Key</Button>
           </div>
           <Label className="mt-2">Private key (base58 or JSON array)</Label>
           <Input
@@ -216,6 +235,9 @@ export default function WalletManager() {
           </div>
         </CardContent>
       </Card>
+      <div className="md:col-span-2 text-xs opacity-70">
+        Keys are generated <b>locally</b> and encrypted in your browser with AES-GCM (password-derived). Nothing is uploaded.
+      </div>
     </div>
   )
 }

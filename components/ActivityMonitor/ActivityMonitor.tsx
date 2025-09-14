@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { Connection, PublicKey, Logs, Context } from '@solana/web3.js'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/Card'
 import { Badge } from '@/components/UI/badge'
 import { Button } from '@/components/UI/button'
 import {

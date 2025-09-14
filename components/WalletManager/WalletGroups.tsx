@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Badge } from '@/components/UI/badge'
@@ -9,9 +9,9 @@ import { Label } from '@/components/UI/label'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/UI/dialog'
 import { Checkbox } from '@/components/UI/checkbox'
 import { Plus, Users, Wallet, Edit2, Trash2, Copy } from 'lucide-react'

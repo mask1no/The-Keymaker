@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from './dialog'
-import { Button } from './button'
-import { Input } from './input'
-import { Label } from './label'
+} from '@/components/UI/dialog'
+import { Button } from '@/components/UI/button'
+import { Input } from '@/components/UI/input'
+import { Label } from '@/components/UI/label'
 import { Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react'
 import { validatePasswordStrength } from '@/lib/secureStorage'
 

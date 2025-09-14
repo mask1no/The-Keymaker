@@ -29,7 +29,7 @@ const navigation = [
   },
   {
     name: 'Token Creator',
-    href: '/spl-creator',
+    href: '/creator',
     icon: Coins,
     description: 'Create tokens',
   },

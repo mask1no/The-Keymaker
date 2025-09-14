@@ -8,12 +8,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     headless: true,
   },
-  webServer: {
-    command: 'npm run ci:web',
-    port: 3000,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
   projects: [
     {
       name: 'chromium',

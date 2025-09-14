@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/UI/select'
-// Removed unused imports
 import {
   ArrowRight,
   ArrowLeft,

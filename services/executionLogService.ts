@@ -4,11 +4,15 @@
 // import { open } from 'sqlite'
 // import path from 'path'
 
+import { db } from '@/lib/db'
+import * as Sentry from '@sentry/nextjs'
+
 interface BundleExecution {
+  id?: number
   bundleId?: string
   slot: number
   signatures: string[]
-  status: 'success' | 'partial' | 'failed'
+  status: 'success' | 'failed' | 'partial'
   successCount: number
   failureCount: number
   usedJito: boolean
@@ -80,7 +84,7 @@ async function getDb(): Promise<any> {
   }
 }
 
-async function initializeTables() {
+export async function initializeTables() {
   const db = await getDb()
 
   // Bundle executions table
@@ -179,27 +183,47 @@ async function initializeTables() {
 
 export async function logBundleExecution(execution: BundleExecution) {
   const db = await getDb()
-
-  await db.run(
-    `
+  try {
+    await db.run(
+      `
     INSERT INTO bundle_executions (
       bundle_id, slot, signatures, status, success_count, 
       failure_count, used_jito, execution_time
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `,
-    [
-      execution.bundleId || null,
-      execution.slot,
-      JSON.stringify(execution.signatures),
-      execution.status,
-      execution.successCount,
-      execution.failureCount,
-      execution.usedJito ? 1 : 0,
-      execution.executionTime,
-    ],
-  )
+      [
+        execution.bundleId || null,
+        execution.slot,
+        JSON.stringify(execution.signatures),
+        execution.status,
+        execution.successCount,
+        execution.failureCount,
+        execution.usedJito ? 1 : 0,
+        execution.executionTime,
+      ],
+    )
+  } catch (error) {
+    console.error('Error logging bundle execution:', error)
+    Sentry.captureException(error)
+  }
+}
 
-  await db.close()
+export async function getBundleExecutions(
+  limit: number = 20,
+): Promise<BundleExecution[]> {
+  const db = await getDb()
+  const { data, error } = await db
+    .select('*')
+    .orderBy('timestamp', 'desc')
+    .limit(limit)
+
+  if (error) {
+    console.error('Error fetching bundle executions:', error)
+    Sentry.captureException(error)
+    return []
+  }
+
+  return data
 }
 
 export async function logTokenLaunch(launch: TokenLaunch) {
@@ -411,24 +435,74 @@ export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
 
     text += 'BUNDLE EXECUTIONS\n'
     text += '-----------------\n'
-    data.bundleExecutions.forEach((exec) => {
+    data.bundleExecutions.forEach((exec: any) => {
       text += `[${exec.created_at}] Slot: ${exec.slot}, Status: ${exec.status}, Success: ${exec.success_count}/${exec.success_count + exec.failure_count}\n`
     })
 
     text += '\n\nTOKEN LAUNCHES\n'
     text += '--------------\n'
-    data.tokenLaunches.forEach((launch) => {
+    data.tokenLaunches.forEach((launch: any) => {
       text += `[${launch.created_at}] ${launch.name} (${launch.symbol}) on ${launch.platform} - ${launch.token_address}\n`
     })
 
     text += '\n\nPnL RECORDS\n'
     text += '-----------\n'
-    data.pnlRecords.forEach((pnl) => {
+    data.pnlRecords.forEach((pnl: any) => {
       text += `[${pnl.created_at}] ${pnl.wallet.slice(0, 8)}... - P/L: ${pnl.profit_loss.toFixed(4)} SOL (${pnl.profit_percentage.toFixed(2)}%)\n`
     })
 
     return text
   }
+}
+
+export async function getRecentActivity(limit: number = 50) {
+  const [bundleExecutions] = await Promise.all([
+    getBundleExecutions(limit),
+    // Assuming you have similar functions for these
+    // getTokenLaunches(limit),
+    // getPnlRecords(limit)
+  ])
+
+  const data = {
+    bundleExecutions,
+    tokenLaunches: [],
+    pnlRecords: [],
+  }
+
+  // Create a combined, sorted feed
+  const feed: any[] = []
+  if (data.bundleExecutions) {
+    data.bundleExecutions.forEach((exec: any) => {
+      feed.push({
+        type: 'bundle',
+        timestamp: exec.timestamp,
+        data: exec,
+      })
+    })
+  }
+  if (data.tokenLaunches) {
+    data.tokenLaunches.forEach((launch: any) => {
+      feed.push({
+        type: 'launch',
+        timestamp: launch.timestamp,
+        data: launch,
+      })
+    })
+  }
+  if (data.pnlRecords) {
+    data.pnlRecords.forEach((pnl: any) => {
+      feed.push({
+        type: 'pnl',
+        timestamp: pnl.timestamp,
+        data: pnl,
+      })
+    })
+  }
+
+  // Sort by timestamp descending
+  feed.sort((a, b) => b.timestamp - a.timestamp)
+
+  return feed.slice(0, limit)
 }
 
 // Initialize tables unless running tests

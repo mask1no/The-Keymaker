@@ -1,7 +1,7 @@
 'use client'
 import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/Card'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 import { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide-react'

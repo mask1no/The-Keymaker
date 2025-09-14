@@ -1,513 +1,211 @@
-import { Keypair } from '@solana/web3.js'
+import { db } from '@/lib/db'
+import { encrypt, decrypt } from '@/lib/crypto'
+import { Keypair, Ed25519Keypair } from '@solana/web3.js'
+import * as bip39 from 'bip39'
 import bs58 from 'bs58'
-import crypto from 'crypto'
-import path from 'path'
+import * as Sentry from '@sentry/nextjs'
+import { logger } from '@/lib/logger'
 
-interface WalletData {
+export type Wallet = {
+  id?: number
+  name: string
   publicKey: string
-  encryptedPrivateKey: string
-  role: 'master' | 'dev' | 'sniper' | 'normal'
+  privateKey: string // Encrypted
+  group: string
+  color: string
+  isActive: boolean
 }
 
-const ENCRYPTION_ALGORITHM = 'aes-256-gcm'
-const SALT_LENGTH = 32
-const IV_LENGTH = 16
-const TAG_LENGTH = 16
-const KEY_LENGTH = 32
-const ITERATIONS = 100000
-
-/**
- * Derive encryption key from password using PBKDF2
- */
-function deriveKey(password: string, salt: Buffer): Buffer {
-  return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256')
+// Function to get a wallet by its public key
+export async function getWalletByPublicKey(
+  publicKey: string,
+): Promise<Wallet | null> {
+  try {
+    const dbInstance = await db;
+    const row = await dbInstance.get('SELECT * FROM wallets WHERE publicKey = ?', [
+      publicKey,
+    ])
+    return (row as Wallet) || null
+  } catch (error) {
+    logger.error('Failed to get wallet by public key:', { error })
+    Sentry.captureException(error)
+    return null
+  }
 }
 
-/**
- * Encrypt private key using AES-256-GCM
- */
-export function encryptPrivateKey(
-  privateKey: Uint8Array,
-  password: string,
-): string {
-  const salt = crypto.randomBytes(SALT_LENGTH)
-  const iv = crypto.randomBytes(IV_LENGTH)
-  const key = deriveKey(password, salt)
-
-  const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv)
-  const privateKeyBase58 = bs58.encode(privateKey)
-
-  const encrypted = Buffer.concat([
-    cipher.update(privateKeyBase58, 'utf8'),
-    cipher.final(),
-  ])
-
-  const tag = cipher.getAuthTag()
-
-  // Combine salt + iv + tag + encrypted data
-  const combined = Buffer.concat([salt, iv, tag, encrypted])
-
-  return combined.toString('base64')
-}
-
-/**
- * Decrypt private key using AES-256-GCM
- */
-export function decryptPrivateKey(
-  encryptedData: string,
-  password: string,
-): Uint8Array {
-  const combined = Buffer.from(encryptedData, 'base64')
-
-  const salt = combined.slice(0, SALT_LENGTH)
-  const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
-  const tag = combined.slice(
-    SALT_LENGTH + IV_LENGTH,
-    SALT_LENGTH + IV_LENGTH + TAG_LENGTH,
-  )
-  const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH + TAG_LENGTH)
-
-  const key = deriveKey(password, salt)
-
-  const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv)
-  decipher.setAuthTag(tag)
-
-  const decrypted = Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final(),
-  ])
-
-  const privateKeyBase58 = decrypted.toString('utf8')
-  return bs58.decode(privateKeyBase58)
-}
-
-/**
- * Create a new wallet with encrypted private key
- */
+// Function to create a new wallet
 export async function createWallet(
   password: string,
-  role: 'master' | 'dev' | 'sniper' | 'normal' = 'normal',
-): Promise<WalletData> {
-  if (!password || password.length < 8) {
-    throw new Error('Password must be at least 8 characters')
-  }
+): Promise<Wallet> {
+  const mnemonic = bip39.generateMnemonic()
+  const seed = await bip39.mnemonicToSeed(mnemonic)
+  const keypair = Keypair.fromSeed(seed.slice(0, 32))
+  
+  const encryptedPrivateKey = await encrypt(
+    bs58.encode(keypair.secretKey),
+      password,
+    )
 
-  const keypair = Keypair.generate()
-  const encryptedPrivateKey = encryptPrivateKey(keypair.secretKey, password)
-
-  return {
+  const newWallet: Wallet = {
+    name: 'New Wallet',
     publicKey: keypair.publicKey.toBase58(),
-    encryptedPrivateKey,
-    role,
+    privateKey: encryptedPrivateKey,
+    group: 'default',
+    color: '#FFFFFF',
+    isActive: true,
   }
+
+  const dbInstance = await db;
+  await dbInstance.run(
+    'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+    [
+      newWallet.name,
+      newWallet.publicKey,
+      newWallet.privateKey,
+      newWallet.group,
+      newWallet.color,
+      newWallet.isActive,
+    ],
+  )
+  
+  const row = await dbInstance.get('SELECT * FROM wallets WHERE publicKey = ?', [newWallet.publicKey]);
+  return row as Wallet;
 }
 
-/**
- * Import wallet from private key
- */
-export async function importWallet(
-  privateKey: string,
-  password: string,
-  role: 'master' | 'dev' | 'sniper' | 'normal' = 'normal',
-): Promise<WalletData> {
-  try {
-    // Handle different private key formats
-    let keypair: Keypair
 
-    if (privateKey.startsWith('[') && privateKey.endsWith(']')) {
-      // Array format
-      const keyArray = JSON.parse(privateKey)
-      keypair = Keypair.fromSecretKey(new Uint8Array(keyArray))
-    } else if (privateKey.length === 88 || privateKey.length === 87) {
-      // Base58 format
-      const decoded = bs58.decode(privateKey)
-      keypair = Keypair.fromSecretKey(decoded)
-    } else {
-      throw new Error('Invalid private key format')
-    }
-
-    const encryptedPrivateKey = encryptPrivateKey(keypair.secretKey, password)
-
-    return {
-      publicKey: keypair.publicKey.toBase58(),
-      encryptedPrivateKey,
-      role,
-    }
-  } catch (error) {
-    throw new Error(`Failed to import wallet: ${(error as Error).message}`)
-  }
-}
-
-/**
- * Export wallet with encrypted private key
- */
-export async function exportWallet(
-  walletData: WalletData,
-  password: string,
-): Promise<string> {
-  try {
-    // Decrypt the private key
-    const privateKey = decryptPrivateKey(
-      walletData.encryptedPrivateKey,
-      password,
-    )
-
-    // Create export data
-    const exportData = {
-      publicKey: walletData.publicKey,
-      privateKey: bs58.encode(privateKey),
-      role: walletData.role,
-      encrypted: false,
-      timestamp: new Date().toISOString(),
-    }
-
-    return JSON.stringify(exportData, null, 2)
-  } catch (error) {
-    throw new Error('Invalid password or corrupted wallet data')
-  }
-}
-
-/**
- * Export wallet with re-encrypted private key (for backup)
- */
-export async function exportWalletEncrypted(
-  walletData: WalletData,
-  currentPassword: string,
-  exportPassword: string,
-): Promise<string> {
-  try {
-    // Decrypt with current password
-    const privateKey = decryptPrivateKey(
-      walletData.encryptedPrivateKey,
-      currentPassword,
-    )
-
-    // Re-encrypt with export password
-    const reEncrypted = encryptPrivateKey(privateKey, exportPassword)
-
-    const exportData = {
-      publicKey: walletData.publicKey,
-      encryptedPrivateKey: reEncrypted,
-      role: walletData.role,
-      encrypted: true,
-      timestamp: new Date().toISOString(),
-      algorithm: ENCRYPTION_ALGORITHM,
-      iterations: ITERATIONS,
-    }
-
-    return JSON.stringify(exportData, null, 2)
-  } catch (error) {
-    throw new Error('Failed to export wallet: Invalid password')
-  }
-}
-
-/**
- * Validate wallet password
- */
-export async function validatePassword(
-  encryptedPrivateKey: string,
-  password: string,
-): Promise<boolean> {
-  try {
-    decryptPrivateKey(encryptedPrivateKey, password)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Get keypair from encrypted wallet data
- */
-export async function getKeypair(
-  walletData: WalletData,
-  password: string,
-): Promise<Keypair> {
-  try {
-    const privateKey = decryptPrivateKey(
-      walletData.encryptedPrivateKey,
-      password,
-    )
-    return Keypair.fromSecretKey(privateKey)
-  } catch (error) {
-    throw new Error('Invalid password')
-  }
-}
-
-/**
- * Get multiple keypairs for bundle signing
- */
-export async function getKeypairs(
-  walletsData: WalletData[],
-  password: string,
-): Promise<Keypair[]> {
-  try {
-    return Promise.all(
-      walletsData.map((wallet) => getKeypair(wallet, password)),
-    )
-  } catch (error) {
-    throw new Error('Failed to decrypt wallets: Invalid password')
-  }
-}
-
-/**
- * Get keypairs for specific roles
- */
-export async function getKeypairsByRole(
-  walletsData: WalletData[],
-  password: string,
-  roles: ('master' | 'dev' | 'sniper' | 'normal')[],
-): Promise<{ wallet: WalletData; keypair: Keypair }[]> {
-  const filteredWallets = walletsData.filter((w) => roles.includes(w.role))
-  const keypairs = await getKeypairs(filteredWallets, password)
-
-  return filteredWallets.map((wallet, index) => ({
-    wallet,
-    keypair: keypairs[index],
-  }))
-}
-
-/**
- * Create multiple wallets at once
- */
-export async function createWalletBatch(
-  password: string,
-  count: number,
-  roles: ('master' | 'dev' | 'sniper' | 'normal')[],
-): Promise<WalletData[]> {
-  if (!password || password.length < 8) {
-    throw new Error('Password must be at least 8 characters')
-  }
-
-  if (count > 20) {
-    throw new Error('Cannot create more than 20 wallets at once')
-  }
-
-  const wallets: WalletData[] = []
-
-  for (let i = 0; i < count; i++) {
-    const role = roles[i % roles.length]
-    const wallet = await createWallet(password, role)
-    wallets.push(wallet)
-  }
-
-  return wallets
-}
-
-/**
- * Export wallet group to encrypted .keymaker file
- */
-export async function exportWalletGroup(
-  groupName: string,
-  wallets: WalletData[],
-  exportPassword: string,
-): Promise<string> {
-  try {
-    // Create wallet group data structure
-    const groupData = {
-      version: '1.0',
-      name: groupName,
-      wallets: wallets.map((wallet) => ({
-        publicKey: wallet.publicKey,
-        encryptedPrivateKey: wallet.encryptedPrivateKey,
-        role: wallet.role,
-      })),
-      exportedAt: new Date().toISOString(),
-      walletsCount: wallets.length,
-    }
-
-    // Import the crypto module dynamically to avoid build issues
-    const { encryptAES256 } = await import('@/utils/crypto')
-
-    // Encrypt the entire group data
-    const jsonData = JSON.stringify(groupData)
-    const encrypted = encryptAES256(jsonData, exportPassword)
-
-    // Create .keymaker file format
-    const fileData = {
-      format: 'keymaker',
-      version: '1.0',
-      encrypted: encrypted,
-      metadata: {
-        groupName: groupName,
-        walletsCount: wallets.length,
-        exportedAt: groupData.exportedAt,
-      },
-    }
-
-    return JSON.stringify(fileData)
-  } catch (error) {
-    throw new Error(
-      `Failed to export wallet group: ${(error as Error).message}`,
-    )
-  }
-}
-
-/**
- * Import wallet group from encrypted .keymaker file
- */
-export async function importWalletGroup(
-  fileContent: string,
-  importPassword: string,
-): Promise<{
-  name: string
-  wallets: WalletData[]
-}> {
-  try {
-    // Parse .keymaker file
-    const fileData = JSON.parse(fileContent)
-
-    // Validate file format
-    if (fileData.format !== 'keymaker' || !fileData.encrypted) {
-      throw new Error('Invalid .keymaker file format')
-    }
-
-    // Import the crypto module dynamically
-    const { decryptAES256, isValidEncryptedData } = await import(
-      '@/utils/crypto'
-    )
-
-    // Validate encrypted data
-    if (!isValidEncryptedData(fileData.encrypted)) {
-      throw new Error('Corrupted encryption data')
-    }
-
-    // Decrypt the wallet group data
-    const decrypted = decryptAES256(fileData.encrypted, importPassword)
-    const groupData = JSON.parse(decrypted)
-
-    // Validate group data structure
-    if (
-      !groupData.version ||
-      !groupData.name ||
-      !Array.isArray(groupData.wallets)
-    ) {
-      throw new Error('Invalid wallet group data')
-    }
-
-    // Validate each wallet
-    const wallets: WalletData[] = groupData.wallets.map((wallet: any) => {
-      if (!wallet.publicKey || !wallet.encryptedPrivateKey || !wallet.role) {
-        throw new Error('Invalid wallet data')
-      }
-
-      return {
-        publicKey: wallet.publicKey,
-        encryptedPrivateKey: wallet.encryptedPrivateKey,
-        role: wallet.role,
+export async function getWallets(password: string): Promise<Wallet[]> {
+  const dbInstance = await db;
+  const wallets = await dbInstance.all('SELECT * FROM wallets');
+  const decryptedWallets: Wallet[] = await Promise.all(
+    (wallets as Wallet[]).map(async (w: Wallet) => {
+      try {
+        const decryptedKey = await decrypt(w.privateKey, password);
+        return { ...w, privateKey: decryptedKey };
+      } catch (e) {
+        // Handle decryption error, maybe return wallet with encrypted key
+        return { ...w, privateKey: 'decryption-failed' };
       }
     })
-
-    return {
-      name: groupData.name,
-      wallets,
-    }
-  } catch (error) {
-    if ((error as Error).message.includes('Invalid password')) {
-      throw new Error('Incorrect password')
-    }
-    throw new Error(
-      `Failed to import wallet group: ${(error as Error).message}`,
-    )
-  }
+  );
+  return decryptedWallets;
 }
 
-/**
- * Get database connection
- */
-async function getDb() {
-  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-  try {
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    return open({ filename: dbPath, driver: sqlite3.Database })
-  } catch {
-    return {
-      run: async () => undefined,
-      get: async () => undefined,
-      all: async () => [] as any[],
-      close: async () => undefined,
-    }
-  }
-}
-
-/**
- * Save wallet to database
- */
-export async function saveWalletToDb(
-  walletData: WalletData & { network?: string },
+// Function to update a wallet's group
+export async function updateWalletGroup(
+  walletId: number,
+  groupId: number,
 ): Promise<void> {
-  const db = await getDb()
-
-  try {
-    await db.run(
-      `INSERT OR REPLACE INTO wallets (address, keypair, role, network) 
-       VALUES (?, ?, ?, ?)`,
-      [
-        walletData.publicKey,
-        walletData.encryptedPrivateKey,
-        walletData.role,
-        walletData.network || 'mainnet',
-      ],
-    )
-  } finally {
-    await db.close()
-  }
+  const dbInstance = await db;
+  await dbInstance.run('UPDATE wallets SET groupId = ? WHERE id = ?', [
+    groupId,
+    walletId,
+  ])
 }
 
-/**
- * Get wallet from database
- */
-export async function getWalletFromDb(
-  address: string,
-): Promise<WalletData | null> {
-  const db = await getDb()
+// Function to update wallet notes
+export async function updateWalletNotes(
+  walletId: number,
+  notes: string,
+): Promise<void> {
+  const dbInstance = await db;
+  await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [notes, walletId])
+}
 
-  try {
-    const row = await db.get('SELECT * FROM wallets WHERE address = ?', [
-      address,
-    ])
+// Generate a new wallet from a seed phrase
+export const generateWalletFromSeed = async (
+  seedPhrase: string,
+  index: number,
+): Promise<Wallet> => {
+  const newWallet = await createWallet(seedPhrase)
+  return newWallet;
+}
 
-    if (!row) return null
+// Wallet Groups
+export type WalletGroup = {
+  id: number
+  name: string
+}
 
-    return {
-      publicKey: row.address,
-      encryptedPrivateKey: row.keypair,
-      role: row.role,
+export async function getWalletGroups(): Promise<WalletGroup[]> {
+  const dbInstance = await db;
+  const groups = await dbInstance.all('SELECT * FROM wallet_groups ORDER BY name')
+  return groups as WalletGroup[]
+}
+
+export async function createWalletGroup(name: string): Promise<WalletGroup> {
+  const dbInstance = await db;
+  const result = await dbInstance.run(
+    'INSERT INTO wallet_groups (name) VALUES (?)',
+    [name],
+  )
+  if (!result.lastID) {
+    throw new Error('Failed to create wallet group, no ID returned.')
+  }
+  return { id: result.lastID, name }
+}
+
+export async function deleteWalletGroup(id: number): Promise<void> {
+  const dbInstance = await db;
+  await dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id])
+}
+
+export async function updateWalletGroupName(
+  id: number,
+  name: string,
+): Promise<void> {
+  const dbInstance = await db;
+  await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [name, id])
+}
+
+export async function importWallet(privateKey: string, password: string): Promise<Wallet> {
+  const keypair = Keypair.fromSecretKey(bs58.decode(privateKey));
+  const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+
+  const newWallet: Wallet = {
+    name: 'Imported Wallet',
+    publicKey: keypair.publicKey.toBase58(),
+    privateKey: encryptedPrivateKey,
+    group: 'default',
+    color: '#FFFFFF',
+    isActive: true,
+  };
+  
+  await saveWalletToDb(newWallet);
+  
+  return newWallet;
+}
+
+export async function importWalletGroup(wallets: { privateKey: string, name: string }[], password: string): Promise<Wallet[]> {
+    const importedWallets: Wallet[] = [];
+    for (const w of wallets) {
+        const keypair = Keypair.fromSecretKey(bs58.decode(w.privateKey));
+        const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+
+        const newWallet: Wallet = {
+            name: w.name,
+            publicKey: keypair.publicKey.toBase58(),
+            privateKey: encryptedPrivateKey,
+            group: 'imported',
+            color: '#CCCCCC',
+            isActive: false,
+        };
+        await saveWalletToDb(newWallet);
+        importedWallets.push(newWallet);
     }
-  } finally {
-    await db.close()
-  }
+    return importedWallets;
 }
 
-/**
- * Get all wallets from database
- */
-export async function getAllWalletsFromDb(): Promise<WalletData[]> {
-  const db = await getDb()
-
-  try {
-    const rows = await db.all('SELECT * FROM wallets')
-
-    return rows.map((row) => ({
-      publicKey: row.address,
-      encryptedPrivateKey: row.keypair,
-      role: row.role,
-    }))
-  } finally {
-    await db.close()
-  }
-}
-
-/**
- * Delete wallet from database
- */
-export async function deleteWalletFromDb(address: string): Promise<void> {
-  const db = await getDb()
-
-  try {
-    await db.run('DELETE FROM wallets WHERE address = ?', [address])
-  } finally {
-    await db.close()
-  }
+export async function saveWalletToDb(wallet: Wallet): Promise<void> {
+    const dbInstance = await db;
+    await dbInstance.run(
+        'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+        [
+            wallet.name,
+            wallet.publicKey,
+            wallet.privateKey,
+            wallet.group,
+            wallet.color,
+            wallet.isActive,
+        ],
+    );
 }
