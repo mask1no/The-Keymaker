@@ -52,7 +52,7 @@ import {
   deletePreset,
   Preset,
 } from '@/services/presetService'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { Checkbox } from '@/components/UI/checkbox'
 import { motion } from 'framer-motion'
 

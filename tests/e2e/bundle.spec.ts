@@ -38,11 +38,13 @@ test.describe('Bundle Engine', () => {
   });
 
   test('should show an error for invalid input', async ({ page }) => {
-    const card = page.locator('[data-testid^="transaction-card-"]').first();
-    await card.locator('input[placeholder="Amount"]').fill('-1');
-    await card.locator('input[placeholder="Slippage (%)"]').click(); 
-    await expect(page.getByText(/Invalid swap parameters/i)).toBeVisible();
-  });
+    const card = page.locator('[data-testid^="transaction-card-"]').first()
+    await card.locator('input[placeholder="Amount"]').fill('-1')
+    await card.locator('input[placeholder="Slippage (%)"]').click()
+    await expect(page.locator('[data-sonner-toast]')).toContainText(
+      /Invalid swap parameters/i,
+    )
+  })
 
   test('should execute a bundle', async ({ page }) => {
     const card = page.locator('[data-testid^="transaction-card-"]').first();
