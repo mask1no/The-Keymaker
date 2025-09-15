@@ -4,10 +4,9 @@ import React, { useState } from 'react'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Badge } from '@/components/UI/badge'

@@ -51,18 +51,19 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
   setHotkeys: (hotkeys) =>
     set((state) => ({ hotkeys: { ...state.hotkeys, ...hotkeys } })),
-  setLastCreatedTokenAddress: (address) => set({ lastCreatedTokenAddress: address }),
+  setLastCreatedTokenAddress: (address) =>
+    set({ lastCreatedTokenAddress: address }),
   fetchSettings: async () => {
     try {
-      const response = await fetch('/api/settings');
-      const data = await response.json();
+      const response = await fetch('/api/settings')
+      const data = await response.json()
       set((state) => ({
         ...state,
         jitoTipLamports: data.jitoTipLamports,
         jupiterFeeBps: data.jupiterFeeBps,
-      }));
+      }))
     } catch (error) {
-      console.error('Failed to fetch settings:', error);
+      console.error('Failed to fetch settings:', error)
     }
   },
 }))

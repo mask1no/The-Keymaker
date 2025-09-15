@@ -5,10 +5,9 @@ import { Connection, PublicKey, Logs, Context } from '@solana/web3.js'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Badge } from '@/components/UI/badge'
 import { Button } from '@/components/UI/button'
 import {

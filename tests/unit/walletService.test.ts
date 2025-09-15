@@ -37,12 +37,12 @@ jest.mock('@solana/web3.js', () => ({
 }))
 
 describe('walletService', () => {
-  let mockDb;
+  let mockDb: any
 
   beforeEach(async () => {
-    mockDb = await db;
-    jest.clearAllMocks();
-  });
+    mockDb = await db
+    jest.clearAllMocks()
+  })
 
   afterEach(() => {
     jest.clearAllMocks()
@@ -58,7 +58,7 @@ describe('walletService', () => {
         color: '#FFFFFF',
         isActive: true,
       }
-      
+
       // Mock db.get to return the newly created wallet for the final step
       mockDb.get.mockResolvedValue(mockWallet)
 

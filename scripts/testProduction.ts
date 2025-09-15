@@ -13,7 +13,6 @@ import sqlite3 from 'sqlite3'
 import { getConnection } from '../lib/network'
 import { createToken as createRaydiumToken } from '../services/raydiumService'
 import { getWallets, Wallet, createWallet } from '@/services/walletService'
-import { executeBundle } from '../services/bundleService'
 import { buildSwapTransaction } from '../services/jupiterService'
 import { logger } from '../lib/logger'
 
@@ -220,18 +219,18 @@ async function testBundleExecution(
 
     // Execute bundle
     log('blue', 'Executing test bundle...')
-    const result = await executeBundle(
-      transactions.map(tx => Transaction.from(tx.serialize())), 
-      walletRoles, 
-      signers, 
-      {
-        connection,
-        tipAmount: 10000, // 0.00001 SOL
-        retries: 2,
-      },
-    )
+    // const result = await executeBundle(
+    //   transactions.map((tx) => Transaction.from(tx.serialize())),
+    //   walletRoles,
+    //   signers,
+    //   {
+    //     connection,
+    //     tipAmount: 10000, // 0.00001 SOL
+    //     retries: 2,
+    //   },
+    // )
 
-    const successCount = result.results.filter((r) => r === 'success').length
+    const successCount = 0 //result.results.filter((r) => r === 'success').length
     if (successCount > 0) {
       addTest(
         'Bundle Execution',
@@ -246,7 +245,7 @@ async function testBundleExecution(
       )
     }
 
-    return result
+    return null // result // Removed result return
   } catch (error: any) {
     addTest(
       'Bundle Execution',
@@ -542,9 +541,8 @@ async function testDynamicBundleExecution() {
       ),
     )
 
-    const transactions: VersionedTransaction[] = await Promise.all(
-      swapTxPromises,
-    )
+    const transactions: VersionedTransaction[] =
+      await Promise.all(swapTxPromises)
 
     const result = await executeBundle(
       transactions.map((tx) => Transaction.from(tx.serialize())),

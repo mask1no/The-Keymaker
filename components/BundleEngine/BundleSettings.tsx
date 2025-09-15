@@ -46,10 +46,7 @@ export function BundleSettings() {
             <Label htmlFor="jito-region" className="text-right">
               Jito Region
             </Label>
-            <Select
-              defaultValue={jitoRegion}
-              onValueChange={setJitoRegion}
-            >
+            <Select defaultValue={jitoRegion} onValueChange={setJitoRegion}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select a region" />
               </SelectTrigger>

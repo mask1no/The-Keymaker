@@ -22,6 +22,7 @@ export function FolderInput({ onFilesSelected }: FolderInputProps) {
       <Input
         id="folder-input"
         type="file"
+        // @ts-ignore
         webkitdirectory="true"
         mozdirectory="true"
         onChange={handleFileChange}

@@ -4,10 +4,9 @@ import { motion } from 'framer-motion'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -35,11 +34,8 @@ import {
 } from '@solana/web3.js'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { fundWalletGroup } from '@/services/fundingService'
-import { batchSellTokens } from '@/services/sellService'
-import { logEvent } from '@/lib/clientLogger'
-import { logger } from '@/lib/logger'
-import { PasswordDialog } from '@/components/UI/PasswordDialog'
-import { executeBundle } from '@/services/bundleService'
+import { batchSellTokens, SellConditions } from '@/services/sellService'
+import { launchToken } from '@/services/platformService'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 import { decryptAES256ToKeypair } from '@/utils/crypto'
@@ -108,9 +104,9 @@ export function ControlPanel() {
 
   const [dryRun, setDryRun] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
-  const [pendingAction, setPendingAction] = useState<'launch' | 'full' | 'fund' | 'buy' | 'sell' | null>(
-    null,
-  )
+  const [pendingAction, setPendingAction] = useState<
+    'launch' | 'full' | 'fund' | 'buy' | 'sell' | null
+  >(null)
 
   // Configuration states
   const [tokenConfig, setTokenConfig] = useState({
@@ -167,11 +163,11 @@ export function ControlPanel() {
     } else if (pendingAction === 'full') {
       await executeFullSequence(password)
     } else if (pendingAction === 'fund') {
-      await executeFundWallets(password);
+      await executeFundWallets(password)
     } else if (pendingAction === 'buy') {
-      await executeBundleBuys(password);
+      await executeBundleBuys(password)
     } else if (pendingAction === 'sell') {
-      await executeSells(password);
+      await executeSells(password)
     }
 
     setPendingAction(null)

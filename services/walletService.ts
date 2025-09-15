@@ -21,10 +21,11 @@ export async function getWalletByPublicKey(
   publicKey: string,
 ): Promise<Wallet | null> {
   try {
-    const dbInstance = await db;
-    const row = await dbInstance.get('SELECT * FROM wallets WHERE publicKey = ?', [
-      publicKey,
-    ])
+    const dbInstance = await db
+    const row = await dbInstance.get(
+      'SELECT * FROM wallets WHERE publicKey = ?',
+      [publicKey],
+    )
     return (row as Wallet) || null
   } catch (error) {
     logger.error('Failed to get wallet by public key:', { error })
@@ -34,17 +35,15 @@ export async function getWalletByPublicKey(
 }
 
 // Function to create a new wallet
-export async function createWallet(
-  password: string,
-): Promise<Wallet> {
+export async function createWallet(password: string): Promise<Wallet> {
   const mnemonic = bip39.generateMnemonic()
   const seed = await bip39.mnemonicToSeed(mnemonic)
   const keypair = Keypair.fromSeed(seed.slice(0, 32))
-  
+
   const encryptedPrivateKey = await encrypt(
     bs58.encode(keypair.secretKey),
-      password,
-    )
+    password,
+  )
 
   const newWallet: Wallet = {
     name: 'New Wallet',
@@ -55,7 +54,7 @@ export async function createWallet(
     isActive: true,
   }
 
-  const dbInstance = await db;
+  const dbInstance = await db
   await dbInstance.run(
     'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
     [
@@ -67,27 +66,29 @@ export async function createWallet(
       newWallet.isActive,
     ],
   )
-  
-  const row = await dbInstance.get('SELECT * FROM wallets WHERE publicKey = ?', [newWallet.publicKey]);
-  return row as Wallet;
+
+  const row = await dbInstance.get(
+    'SELECT * FROM wallets WHERE publicKey = ?',
+    [newWallet.publicKey],
+  )
+  return row as Wallet
 }
 
-
 export async function getWallets(password: string): Promise<Wallet[]> {
-  const dbInstance = await db;
-  const wallets = await dbInstance.all('SELECT * FROM wallets');
+  const dbInstance = await db
+  const wallets = await dbInstance.all('SELECT * FROM wallets')
   const decryptedWallets: Wallet[] = await Promise.all(
     (wallets as Wallet[]).map(async (w: Wallet) => {
       try {
-        const decryptedKey = await decrypt(w.privateKey, password);
-        return { ...w, privateKey: decryptedKey };
+        const decryptedKey = await decrypt(w.privateKey, password)
+        return { ...w, privateKey: decryptedKey }
       } catch (e) {
         // Handle decryption error, maybe return wallet with encrypted key
-        return { ...w, privateKey: 'decryption-failed' };
+        return { ...w, privateKey: 'decryption-failed' }
       }
-    })
-  );
-  return decryptedWallets;
+    }),
+  )
+  return decryptedWallets
 }
 
 // Function to update a wallet's group
@@ -95,7 +96,7 @@ export async function updateWalletGroup(
   walletId: number,
   groupId: number,
 ): Promise<void> {
-  const dbInstance = await db;
+  const dbInstance = await db
   await dbInstance.run('UPDATE wallets SET groupId = ? WHERE id = ?', [
     groupId,
     walletId,
@@ -107,8 +108,11 @@ export async function updateWalletNotes(
   walletId: number,
   notes: string,
 ): Promise<void> {
-  const dbInstance = await db;
-  await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [notes, walletId])
+  const dbInstance = await db
+  await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [
+    notes,
+    walletId,
+  ])
 }
 
 // Generate a new wallet from a seed phrase
@@ -117,7 +121,7 @@ export const generateWalletFromSeed = async (
   index: number,
 ): Promise<Wallet> => {
   const newWallet = await createWallet(seedPhrase)
-  return newWallet;
+  return newWallet
 }
 
 // Wallet Groups
@@ -127,13 +131,15 @@ export type WalletGroup = {
 }
 
 export async function getWalletGroups(): Promise<WalletGroup[]> {
-  const dbInstance = await db;
-  const groups = await dbInstance.all('SELECT * FROM wallet_groups ORDER BY name')
+  const dbInstance = await db
+  const groups = await dbInstance.all(
+    'SELECT * FROM wallet_groups ORDER BY name',
+  )
   return groups as WalletGroup[]
 }
 
 export async function createWalletGroup(name: string): Promise<WalletGroup> {
-  const dbInstance = await db;
+  const dbInstance = await db
   const result = await dbInstance.run(
     'INSERT INTO wallet_groups (name) VALUES (?)',
     [name],
@@ -145,7 +151,7 @@ export async function createWalletGroup(name: string): Promise<WalletGroup> {
 }
 
 export async function deleteWalletGroup(id: number): Promise<void> {
-  const dbInstance = await db;
+  const dbInstance = await db
   await dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id])
 }
 
@@ -153,13 +159,22 @@ export async function updateWalletGroupName(
   id: number,
   name: string,
 ): Promise<void> {
-  const dbInstance = await db;
-  await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [name, id])
+  const dbInstance = await db
+  await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [
+    name,
+    id,
+  ])
 }
 
-export async function importWallet(privateKey: string, password: string): Promise<Wallet> {
-  const keypair = Keypair.fromSecretKey(bs58.decode(privateKey));
-  const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+export async function importWallet(
+  privateKey: string,
+  password: string,
+): Promise<Wallet> {
+  const keypair = Keypair.fromSecretKey(bs58.decode(privateKey))
+  const encryptedPrivateKey = await encrypt(
+    bs58.encode(keypair.secretKey),
+    password,
+  )
 
   const newWallet: Wallet = {
     name: 'Imported Wallet',
@@ -168,24 +183,33 @@ export async function importWallet(privateKey: string, password: string): Promis
     group: 'default',
     color: '#FFFFFF',
     isActive: true,
-  };
-  
-  await saveWalletToDb(newWallet);
-  
-  return newWallet;
-}
-
-export async function importWalletGroup(files: File[], password: string): Promise<Wallet[]> {
-  const groupName = prompt('Enter a name for the new wallet group:', 'Imported Wallets');
-  if (!groupName) {
-    throw new Error('Wallet group name is required.');
   }
 
-  const importedWallets: Wallet[] = [];
+  await saveWalletToDb(newWallet)
+
+  return newWallet
+}
+
+export async function importWalletGroup(
+  files: File[],
+  password: string,
+): Promise<Wallet[]> {
+  const groupName = prompt(
+    'Enter a name for the new wallet group:',
+    'Imported Wallets',
+  )
+  if (!groupName) {
+    throw new Error('Wallet group name is required.')
+  }
+
+  const importedWallets: Wallet[] = []
   for (const file of files) {
-    const privateKey = await file.text();
-    const keypair = Keypair.fromSecretKey(bs58.decode(privateKey.trim()));
-    const encryptedPrivateKey = await encrypt(bs58.encode(keypair.secretKey), password);
+    const privateKey = await file.text()
+    const keypair = Keypair.fromSecretKey(bs58.decode(privateKey.trim()))
+    const encryptedPrivateKey = await encrypt(
+      bs58.encode(keypair.secretKey),
+      password,
+    )
 
     const newWallet: Wallet = {
       name: file.name,
@@ -194,24 +218,24 @@ export async function importWalletGroup(files: File[], password: string): Promis
       group: groupName,
       color: '#CCCCCC',
       isActive: false,
-    };
-    await saveWalletToDb(newWallet);
-    importedWallets.push(newWallet);
+    }
+    await saveWalletToDb(newWallet)
+    importedWallets.push(newWallet)
   }
-  return importedWallets;
+  return importedWallets
 }
 
 export async function saveWalletToDb(wallet: Wallet): Promise<void> {
-    const dbInstance = await db;
-    await dbInstance.run(
-        'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
-        [
-            wallet.name,
-            wallet.publicKey,
-            wallet.privateKey,
-            wallet.group,
-            wallet.color,
-            wallet.isActive,
-        ],
-    );
+  const dbInstance = await db
+  await dbInstance.run(
+    'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+    [
+      wallet.name,
+      wallet.publicKey,
+      wallet.privateKey,
+      wallet.group,
+      wallet.color,
+      wallet.isActive,
+    ],
+  )
 }

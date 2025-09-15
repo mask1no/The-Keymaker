@@ -24,17 +24,10 @@ import { toast } from 'sonner'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/UI/Tabs'
+} from '@/components/UI/Card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/Tabs'
 import { useState } from 'react'
 import { Switch } from '@/components/UI/switch'
 import {
@@ -46,21 +39,21 @@ import {
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
 type CreatorFormValues = {
-  name: string;
-  symbol: string;
-  supply: number;
-  decimals: number;
-  launch_platform: 'pumpfun' | 'raydium' | 'letsbonk';
-  description?: string;
-  website?: string;
-  twitter?: string;
-  telegram?: string;
-  image: any;
-  createLiquidityPool: boolean;
-  solAmount?: number;
-  tokenAmount?: number;
-  freezeAuthority?: boolean;
-};
+  name: string
+  symbol: string
+  supply: number
+  decimals: number
+  launch_platform: 'pumpfun' | 'raydium' | 'letsbonk'
+  description?: string
+  website?: string
+  twitter?: string
+  telegram?: string
+  image: any
+  createLiquidityPool: boolean
+  solAmount?: number
+  tokenAmount?: number
+  freezeAuthority?: boolean
+}
 
 const defaultValues: Partial<CreatorFormValues> = {
   decimals: 9,
@@ -81,24 +74,32 @@ export function CreatorForm() {
 
   async function onSubmit(data: CreatorFormValues) {
     if (!data.name || data.name.length < 2) {
-      toast.error('Token name must be at least 2 characters.');
-      return;
+      toast.error('Token name must be at least 2 characters.')
+      return
     }
     if (!data.symbol || data.symbol.length < 2) {
-      toast.error('Token symbol must be at least 2 characters.');
-      return;
+      toast.error('Token symbol must be at least 2 characters.')
+      return
     }
     if (!data.supply || data.supply < 1) {
-      toast.error('Supply must be at least 1.');
-      return;
+      toast.error('Supply must be at least 1.')
+      return
     }
     if (data.decimals < 0 || data.decimals > 18) {
-        toast.error('Decimals must be between 0 and 18.');
-        return;
+      toast.error('Decimals must be between 0 and 18.')
+      return
     }
-    if (data.createLiquidityPool && (!data.solAmount || data.solAmount <= 0 || !data.tokenAmount || data.tokenAmount <= 0)) {
-        toast.error("SOL and Token amounts are required to create a liquidity pool.");
-        return;
+    if (
+      data.createLiquidityPool &&
+      (!data.solAmount ||
+        data.solAmount <= 0 ||
+        !data.tokenAmount ||
+        data.tokenAmount <= 0)
+    ) {
+      toast.error(
+        'SOL and Token amounts are required to create a liquidity pool.',
+      )
+      return
     }
 
     setIsLoading(true)
@@ -207,7 +208,11 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>Supply</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="1000000" {...field} />
+                            <Input
+                              type="number"
+                              placeholder="1000000"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -245,7 +250,9 @@ export function CreatorForm() {
                           <SelectContent>
                             <SelectItem value="pumpfun">Pump.fun</SelectItem>
                             <SelectItem value="raydium">Raydium</SelectItem>
-                            <SelectItem value="letsbonk">LetsBonk.fun</SelectItem>
+                            <SelectItem value="letsbonk">
+                              LetsBonk.fun
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -264,7 +271,8 @@ export function CreatorForm() {
                           <div className="space-y-0.5">
                             <FormLabel>Enable Freeze Authority</FormLabel>
                             <FormDescription>
-                              Allows you to freeze token accounts, preventing transfers.
+                              Allows you to freeze token accounts, preventing
+                              transfers.
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -304,7 +312,10 @@ export function CreatorForm() {
                       <FormItem>
                         <FormLabel>Website</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://yourtoken.com" {...field} />
+                          <Input
+                            placeholder="https://yourtoken.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -317,7 +328,10 @@ export function CreatorForm() {
                       <FormItem>
                         <FormLabel>Twitter</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://twitter.com/yourtoken" {...field} />
+                          <Input
+                            placeholder="https://twitter.com/yourtoken"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -330,7 +344,10 @@ export function CreatorForm() {
                       <FormItem>
                         <FormLabel>Telegram</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://t.me/yourtoken" {...field} />
+                          <Input
+                            placeholder="https://t.me/yourtoken"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -352,7 +369,8 @@ export function CreatorForm() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Upload an image for your token (PNG, JPG, GIF, max 5MB).
+                          Upload an image for your token (PNG, JPG, GIF, max
+                          5MB).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -371,10 +389,11 @@ export function CreatorForm() {
                       name="createLiquidityPool"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                           <div className="space-y-0.5">
+                          <div className="space-y-0.5">
                             <FormLabel>Create Liquidity Pool</FormLabel>
                             <FormDescription>
-                              Automatically create a Raydium liquidity pool for this token.
+                              Automatically create a Raydium liquidity pool for
+                              this token.
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -397,7 +416,11 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>SOL Amount</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g., 10" {...field} />
+                            <Input
+                              type="number"
+                              placeholder="e.g., 10"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -410,7 +433,11 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>Token Amount</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g., 500000" {...field} />
+                            <Input
+                              type="number"
+                              placeholder="e.g., 500000"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

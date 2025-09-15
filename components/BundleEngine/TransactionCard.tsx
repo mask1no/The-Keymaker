@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/UI/card'
+import { Card, CardContent, CardHeader } from '@/components/UI/Card'
 import {
   Select,
   SelectContent,
@@ -20,14 +16,20 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { TokenSelector } from './TokenSelector'
 import { useState } from 'react'
-import { Checkbox } from '@/components/UI/checkbox'
-import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 
 const HARDCODED_TOKENS = [
-    { address: 'So11111111111111111111111111111111111111112', symbol: 'SOL', name: 'Solana' },
-    { address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', name: 'USD Coin' },
-];
+  {
+    address: 'So11111111111111111111111111111111111111112',
+    symbol: 'SOL',
+    name: 'Solana',
+  },
+  {
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    symbol: 'USDC',
+    name: 'USD Coin',
+  },
+]
 
 interface TransactionCardProps {
   transaction: Transaction
@@ -42,20 +44,18 @@ export function TransactionCard({
 }: TransactionCardProps) {
   const [securityScore, setSecurityScore] = useState<number | null>(null)
   const [isLoadingSecurity, setIsLoadingSecurity] = useState(false)
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: transaction.id })
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: transaction.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   }
 
-  const handleTokenSelect = (tokenAddress: string, field: 'fromToken' | 'toToken') => {
+  const handleTokenSelect = (
+    tokenAddress: string,
+    field: 'fromToken' | 'toToken',
+  ) => {
     onUpdate(transaction.id, { [field]: tokenAddress })
   }
 
@@ -88,13 +88,17 @@ export function TransactionCard({
             <TokenSelector
               tokens={HARDCODED_TOKENS}
               isLoading={false}
-              onSelect={(tokenAddress) => handleTokenSelect(tokenAddress, 'fromToken')}
+              onSelect={(tokenAddress) =>
+                handleTokenSelect(tokenAddress, 'fromToken')
+              }
               placeholder="From Token"
             />
             <TokenSelector
               tokens={HARDCODED_TOKENS}
               isLoading={false}
-              onSelect={(tokenAddress) => handleTokenSelect(tokenAddress, 'toToken')}
+              onSelect={(tokenAddress) =>
+                handleTokenSelect(tokenAddress, 'toToken')
+              }
               placeholder="To Token"
             />
             <div className="flex items-center gap-2">
@@ -113,8 +117,8 @@ export function TransactionCard({
                     securityScore > 80
                       ? 'text-green-500'
                       : securityScore > 50
-                      ? 'text-yellow-500'
-                      : 'text-red-500'
+                        ? 'text-yellow-500'
+                        : 'text-red-500'
                   }`}
                 >
                   Score: {securityScore}/100
@@ -124,12 +128,18 @@ export function TransactionCard({
             <Input
               type="number"
               placeholder="Amount"
-              onChange={(e) => onUpdate(transaction.id, { amount: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate(transaction.id, { amount: parseFloat(e.target.value) })
+              }
             />
             <Input
               type="number"
               placeholder="Slippage (%)"
-              onChange={(e) => onUpdate(transaction.id, { slippage: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate(transaction.id, {
+                  slippage: parseFloat(e.target.value),
+                })
+              }
             />
           </div>
         )
@@ -138,12 +148,18 @@ export function TransactionCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               placeholder="Recipient Address"
-              onChange={(e) => onUpdate(transaction.id, { recipient: e.target.value })}
+              onChange={(e) =>
+                onUpdate(transaction.id, { recipient: e.target.value })
+              }
             />
             <Input
               type="number"
               placeholder="Amount (SOL)"
-              onChange={(e) => onUpdate(transaction.id, { fromAmount: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdate(transaction.id, {
+                  fromAmount: parseFloat(e.target.value),
+                })
+              }
             />
           </div>
         )
@@ -153,7 +169,12 @@ export function TransactionCard({
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} data-testid={`transaction-card-${transaction.id}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      data-testid={`transaction-card-${transaction.id}`}
+    >
       <Card className="bg-background/50">
         <CardHeader className="flex flex-row items-center justify-between p-4">
           <div className="flex items-center gap-2">
@@ -166,7 +187,10 @@ export function TransactionCard({
                 onUpdate(transaction.id, { type: value })
               }
             >
-              <SelectTrigger className="w-[120px]" data-testid="transaction-type-select">
+              <SelectTrigger
+                className="w-[120px]"
+                data-testid="transaction-type-select"
+              >
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
@@ -175,7 +199,12 @@ export function TransactionCard({
               </SelectContent>
             </Select>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onRemove(transaction.id)} data-testid="remove-transaction-button">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(transaction.id)}
+            data-testid="remove-transaction-button"
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </CardHeader>

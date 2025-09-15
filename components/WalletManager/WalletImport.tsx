@@ -122,7 +122,10 @@ export function WalletImport({
           </DialogDescription>
         </DialogHeader>
         <div className="pt-4">
-          <Select value={importMode} onValueChange={(v) => setImportMode(v as any)}>
+          <Select
+            value={importMode}
+            onValueChange={(v) => setImportMode(v as any)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -136,7 +139,9 @@ export function WalletImport({
           {importMode === 'manual' && (
             <div className="space-y-4 mt-4">
               <div>
-                <Label htmlFor="private-keys">Private Keys (one per line)</Label>
+                <Label htmlFor="private-keys">
+                  Private Keys (one per line)
+                </Label>
                 <Textarea
                   id="private-keys"
                   value={privateKeyInput}
@@ -201,8 +206,8 @@ export function WalletImport({
           {importMode === 'folder' && (
             <div className="space-y-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Select a folder containing wallet files (e.g., .json with private
-                keys).
+                Select a folder containing wallet files (e.g., .json with
+                private keys).
               </p>
               <FolderInput onFilesSelected={handleFolderImport} />
               <div>

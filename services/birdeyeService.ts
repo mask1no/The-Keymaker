@@ -91,7 +91,7 @@ class BirdeyeService extends EventEmitter {
 
       this.tokenData.set(tokenAddress, tokenData)
       return tokenData
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fetch token data from Birdeye:', error)
       return null
     }
@@ -150,7 +150,7 @@ class BirdeyeService extends EventEmitter {
         try {
           const message = JSON.parse(event.data)
           this.handleMessage(message)
-        } catch (error) {
+        } catch (error: any) {
           logger.error('Failed to parse Birdeye message:', error)
         }
       }
@@ -165,7 +165,7 @@ class BirdeyeService extends EventEmitter {
         this.emit('disconnected')
         this.scheduleReconnect()
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to connect to Birdeye:', error)
       this.scheduleReconnect()
     }

@@ -3,80 +3,80 @@
 ```yaml
 - region "Notifications alt+T"
 - complementary:
-  - navigation:
-    - link "Bundler":
-      - /url: /bundle
-      - img
-      - text: Bundler
-    - link "Wallets":
-      - /url: /wallets
-      - img
-      - text: Wallets
-    - link "Token Creator":
-      - /url: /creator
-      - img
-      - text: Token Creator
-    - link "Trade History":
-      - /url: /history
-      - img
-      - text: Trade History
-    - link "P&L":
-      - /url: /pnl
-      - img
-      - text: P&L
-    - link "Settings":
-      - /url: /settings
-      - img
-      - text: Settings
-    - link "Guide":
-      - /url: /guide
-      - img
-      - text: Guide
-  - img
-  - text: RPC
-  - img
-  - text: WS
-  - img
-  - text: JITO
-  - img
-  - text: MAINNET
+    - navigation:
+        - link "Bundler":
+            - /url: /bundle
+            - img
+            - text: Bundler
+        - link "Wallets":
+            - /url: /wallets
+            - img
+            - text: Wallets
+        - link "Token Creator":
+            - /url: /creator
+            - img
+            - text: Token Creator
+        - link "Trade History":
+            - /url: /history
+            - img
+            - text: Trade History
+        - link "P&L":
+            - /url: /pnl
+            - img
+            - text: P&L
+        - link "Settings":
+            - /url: /settings
+            - img
+            - text: Settings
+        - link "Guide":
+            - /url: /guide
+            - img
+            - text: Guide
+    - img
+    - text: RPC
+    - img
+    - text: WS
+    - img
+    - text: JITO
+    - img
+    - text: MAINNET
 - text: The Keymaker
 - button "Select Wallet"
 - main:
-  - heading "Bundle Builder" [level=3]
-  - paragraph: Create and execute a sequence of transactions as a single bundle.
-  - combobox:
-    - img
-  - button "Save as Preset"
-  - button "Check Security":
-    - img
+    - heading "Bundle Builder" [level=3]
+    - paragraph: Create and execute a sequence of transactions as a single bundle.
     - combobox:
-      - text: Swap
-      - img
-    - button:
-      - img
-    - combobox:
-      - text: From Token
-      - img
-    - combobox:
-      - text: To Token
-      - img
-    - button "Check Security" [disabled]:
-      - img
-      - text: Check Security
-    - spinbutton: "0.01"
-    - spinbutton
-  - status
-  - button "Add Transaction":
-    - img
-    - text: Add Transaction
-  - button "Load Launch Preset"
-  - button "Consolidate Funds"
-  - button "Bundle Settings":
-    - img
-    - text: Bundle Settings
-  - button "Execute Bundle" [disabled]:
-    - img
-    - text: Execute Bundle
+        - img
+    - button "Save as Preset"
+    - button "Check Security":
+        - img
+        - combobox:
+            - text: Swap
+            - img
+        - button:
+            - img
+        - combobox:
+            - text: From Token
+            - img
+        - combobox:
+            - text: To Token
+            - img
+        - button "Check Security" [disabled]:
+            - img
+            - text: Check Security
+        - spinbutton: '0.01'
+        - spinbutton
+    - status
+    - button "Add Transaction":
+        - img
+        - text: Add Transaction
+    - button "Load Launch Preset"
+    - button "Consolidate Funds"
+    - button "Bundle Settings":
+        - img
+        - text: Bundle Settings
+    - button "Execute Bundle" [disabled]:
+        - img
+        - text: Execute Bundle
 - alert
 ```

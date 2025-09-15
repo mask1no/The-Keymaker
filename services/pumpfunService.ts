@@ -128,9 +128,9 @@ export async function createToken(
         }
 
         return puppeteerResult.mint
-      } catch (puppeteerError) {
+      } catch (puppeteerError: any) {
         logger.warn(
-          'Puppeteer fallback failed, trying GUI fallback...',
+          'Puppeteer fallback failed after API failure:',
           puppeteerError,
         )
 
@@ -164,7 +164,7 @@ export async function createToken(
           }
 
           return fallbackResult.mint
-        } catch (fallbackError) {
+        } catch (fallbackError: any) {
           logger.error(
             'Both Puppeteer and GUI fallbacks failed:',
             fallbackError,

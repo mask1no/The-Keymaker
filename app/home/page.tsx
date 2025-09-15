@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useKeymakerStore } from '@/lib/store'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/Card'
 import { Badge } from '@/components/UI/badge'
 import {
   DollarSign,
@@ -327,7 +332,7 @@ export default function DashboardPage() {
                 {/* Market Cap Card */}
                 <div className="col-span-12 md:col-span-6 lg:col-span-4">
                   <MarketCapCard
-                    mintAddress={tokenLaunchData?.mintAddress}
+                    mintAddress={tokenLaunchData?.mintAddress ?? ''}
                     tokenSymbol={tokenLaunchData?.symbol}
                   />
                 </div>

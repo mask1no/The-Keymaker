@@ -9,10 +9,14 @@ import { getConnection } from '@/lib/network'
 // SECURITY WARNING: This endpoint uses server-side signing which is NOT production-safe
 // TODO: Convert to client-side signing where server returns unsigned transactions
 // Only enable this in development/testing environments
-const IS_DEV_MODE = process.env.NODE_ENV === 'development' || process.env.ENABLE_DEV_TOKENS === 'true'
+const IS_DEV_MODE =
+  process.env.NODE_ENV === 'development' ||
+  process.env.ENABLE_DEV_TOKENS === 'true'
 
 if (!IS_DEV_MODE) {
-  throw new Error('Token creation endpoint is disabled in production for security reasons')
+  throw new Error(
+    'Token creation endpoint is disabled in production for security reasons',
+  )
 }
 
 // In a real app, you'd get this from a secure source
@@ -65,7 +69,9 @@ export async function POST(request: NextRequest) {
     const symbol = formData.get('symbol') as string
     const supply = Number(formData.get('supply'))
     const decimals = Number(formData.get('decimals'))
-    const launch_platform = formData.get('launch_platform') as 'pump.fun' | 'raydium'
+    const launch_platform = formData.get('launch_platform') as
+      | 'pump.fun'
+      | 'raydium'
     const description = formData.get('description') as string
     const imageFile = formData.get('image') as File | null
     const createLiquidityPool = formData.get('createLiquidityPool') === 'true'
@@ -97,11 +103,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (createLiquidityPool && (isNaN(solAmount) || isNaN(tokenAmount) || solAmount <= 0 || tokenAmount <= 0)) {
-        return NextResponse.json(
-            { error: 'Valid SOL and Token amounts are required for the liquidity pool.' },
-            { status: 400 }
-        );
+    if (
+      createLiquidityPool &&
+      (isNaN(solAmount) ||
+        isNaN(tokenAmount) ||
+        solAmount <= 0 ||
+        tokenAmount <= 0)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Valid SOL and Token amounts are required for the liquidity pool.',
+        },
+        { status: 400 },
+      )
     }
 
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer())
@@ -112,10 +127,20 @@ export async function POST(request: NextRequest) {
       const { token: tokenInfo, liquidity: liquidityInfo } = await launchToken(
         connection,
         wallet,
-        { name, symbol, supply, decimals, description, imageUrl: '', twitter: '', telegram: '', website: '' },
-        { platform: launch_platform, solAmount, tokenAmount }
-      );
-      
+        {
+          name,
+          symbol,
+          supply,
+          decimals,
+          description,
+          imageUrl: '',
+          twitter: '',
+          telegram: '',
+          website: '',
+        },
+        { platform: launch_platform, solAmount, tokenAmount },
+      )
+
       // Save token to DB
       await saveTokenToDb(
         tokenInfo.mintAddress,
@@ -124,16 +149,15 @@ export async function POST(request: NextRequest) {
         supply,
         decimals,
         launch_platform,
-        { description, image: imageBuffer }
-      );
+        { description, image: imageBuffer },
+      )
 
       return NextResponse.json({
         success: true,
         tokenAddress: tokenInfo.mintAddress,
         poolAddress: liquidityInfo.poolAddress,
         transactionSignature: liquidityInfo.txSignature,
-      });
-
+      })
     } else {
       // Just create the token
       const tokenParams: CreateTokenParams = {
@@ -159,7 +183,6 @@ export async function POST(request: NextRequest) {
       )
       return NextResponse.json({ success: true, tokenAddress })
     }
-
   } catch (error) {
     console.error('Failed to create token:', error)
     const errorMessage =

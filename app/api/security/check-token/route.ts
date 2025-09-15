@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 
 // In a real application, you would use a secure-by-default library
 // like 'node-fetch' or 'axios' and store the API key in environment variables.
-const GOPLUS_API_URL = 'https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses='
+const GOPLUS_API_URL =
+  'https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses='
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)

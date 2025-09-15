@@ -4,10 +4,9 @@ import { motion } from 'framer-motion'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Badge } from '@/components/UI/badge'
 import {
@@ -59,7 +58,11 @@ export function PnLPanel() {
       if (!res.ok) throw new Error('Failed to fetch PnL')
       const { wallets, session } = await res.json()
 
-      setWalletPnL(wallets.sort((a, b) => b.netPnL - a.netPnL))
+      setWalletPnL(
+        wallets.sort(
+          (a: { netPnL: number }, b: { netPnL: number }) => b.netPnL - a.netPnL,
+        ),
+      )
       setSessionData(session)
     } catch (error) {
       toast.error('Failed to load P&L data')

@@ -106,6 +106,7 @@
     "@next/bundle-analyzer": "^14.2.0",
     "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
     "@types/bip39": "^3.0.4",
     "@types/bn.js": "^5.2.0",
     "@types/jest": "^30.0.0",

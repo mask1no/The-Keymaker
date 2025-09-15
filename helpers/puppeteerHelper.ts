@@ -46,7 +46,7 @@ class PuppeteerHelper {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         if (!TwoCaptcha) TwoCaptcha = require('2captcha')
         this.solver = new TwoCaptcha(config.twoCaptchaApiKey)
-      } catch (err) {
+      } catch (err: any) {
         logger.warn('2Captcha module not available; captcha solving disabled')
         this.solver = null
       }
@@ -76,7 +76,7 @@ class PuppeteerHelper {
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       })
       logger.info('Puppeteer browser initialized')
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to initialize Puppeteer browser:', error)
       throw error
     }
@@ -114,7 +114,7 @@ class PuppeteerHelper {
       } else {
         throw new Error('Failed to solve hCaptcha')
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error solving hCaptcha:', error)
       throw error
     }
@@ -188,7 +188,7 @@ class PuppeteerHelper {
 
           // Inject captcha response
           await page.evaluate((response) => {
-            (window as any).hcaptcha.setResponse(response)
+            ;(window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           // Submit form again
@@ -211,7 +211,7 @@ class PuppeteerHelper {
       logger.info(`Token launched successfully: ${mint}`)
 
       return { mint, lp }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error launching token on Pump.fun:', error)
       throw error
     } finally {
@@ -289,7 +289,7 @@ class PuppeteerHelper {
 
           // Inject captcha response
           await page.evaluate((response) => {
-            (window as any).hcaptcha.setResponse(response)
+            ;(window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           // Submit form again
@@ -312,7 +312,7 @@ class PuppeteerHelper {
       logger.info(`Token launched successfully on LetsBonk: ${mint}`)
 
       return { mint, lp }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error launching token on LetsBonk:', error)
       throw error
     } finally {
@@ -364,7 +364,7 @@ class PuppeteerHelper {
           const captchaResponse = await this.solveHCaptcha(page, siteKey)
 
           await page.evaluate((response) => {
-            (window as any).hcaptcha.setResponse(response)
+            ;(window as any).hcaptcha.setResponse(response)
           }, captchaResponse)
 
           await page.click('#buy-button')
@@ -379,7 +379,7 @@ class PuppeteerHelper {
       logger.info(`Token bought successfully: ${txHash}`)
 
       return txHash || ''
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error buying token on LetsBonk:', error)
       throw error
     } finally {
@@ -398,7 +398,7 @@ class PuppeteerHelper {
       const title = await page.title()
       await page.close()
       return title === 'Example Domain'
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Puppeteer test failed:', error)
       return false
     }

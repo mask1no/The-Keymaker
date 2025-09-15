@@ -106,7 +106,7 @@ export function FeeEstimator({
         transactionCount,
         estimate: newEstimate,
       })
-    } catch (err) {
+    } catch (err: any) {
       logger.error('Failed to calculate fees:', err)
       setError('Failed to estimate fees')
     } finally {

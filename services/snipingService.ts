@@ -3,7 +3,6 @@ import axios from 'axios'
 import { getConnection } from '@/lib/network'
 import { getQuote, getSwapTransaction } from './jupiterService'
 import { logger } from '@/lib/logger'
-import { validateToken } from '@/services/bundleService'
 
 export async function snipeToken(
   tokenAddress: string,
@@ -12,7 +11,7 @@ export async function snipeToken(
   connection: Connection = getConnection('confirmed'),
   signer: Keypair,
 ): Promise<string> {
-  if (!(await validateToken(tokenAddress))) {
+  if (!(await getBirdeyeTokenData(tokenAddress))) {
     throw new Error('Invalid token')
   }
 

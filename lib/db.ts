@@ -16,5 +16,5 @@ export async function getDb(): Promise<any> {
 }
 
 // This is a workaround for the circular dependency and export issue.
-const promisedDb = getDb();
-export { promisedDb as db };
+const promisedDb = getDb()
+export { promisedDb as db }

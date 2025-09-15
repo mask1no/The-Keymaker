@@ -38,21 +38,12 @@ class UpdateService {
 
       const response = await fetch(UPDATE_CHECK_URL)
       if (!response.ok) {
-        throw new Error(`Failed to check for updates: ${response.status}`)
+        throw new Error(`Failed to fetch latest version: ${response.statusText}`)
       }
-
-      const info: VersionInfo = await response.json()
-
-      // Compare versions
-      if (this.isNewerVersion(info.latest, CURRENT_VERSION)) {
-        this.notifyUpdate(info)
-        return true
-      }
-
-      return false
-    } catch (error) {
+      return response.json()
+    } catch (error: any) {
       logger.error('Failed to check for updates:', error)
-      return false
+      return null
     }
   }
 
@@ -76,7 +67,7 @@ class UpdateService {
         return true
 
       return false
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to compare versions:', error)
       return false
     }

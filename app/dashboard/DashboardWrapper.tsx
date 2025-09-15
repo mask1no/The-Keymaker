@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { Skeleton } from '@/components/UI/skeleton'
-import ReactGridLayout from 'react-grid-layout'
 import { motion } from 'framer-motion'
 
 import { BundleBuilder } from '@/components/BundleEngine/BundleBuilder'

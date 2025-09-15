@@ -31,10 +31,12 @@ export interface CreateTokenParams {
  * @returns The address of the newly created token mint.
  */
 export async function createToken(params: CreateTokenParams): Promise<string> {
-  const endpoint = getServerRpc();
+  const endpoint = getServerRpc()
   const umi = createUmi(endpoint).use(mplTokenMetadata())
 
-  const walletKeypair = umi.eddsa.createKeypairFromSecretKey(params.wallet.secretKey);
+  const walletKeypair = umi.eddsa.createKeypairFromSecretKey(
+    params.wallet.secretKey,
+  )
 
   umi.use(signerIdentity(createSignerFromKeypair(umi, walletKeypair)))
 

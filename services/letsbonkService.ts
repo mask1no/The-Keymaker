@@ -125,7 +125,7 @@ export async function createToken(
         }
 
         return puppeteerResult.mint
-      } catch (puppeteerError) {
+      } catch (puppeteerError: any) {
         logger.error('Puppeteer fallback failed for LetsBonk:', puppeteerError)
         throw new Error(
           `Failed to create token on LetsBonk: ${error.response?.data?.error || error.message} (Puppeteer fallback also failed)`,

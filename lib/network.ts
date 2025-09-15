@@ -1,8 +1,8 @@
 import { Connection } from '@solana/web3.js'
 
 export const MAINNET_RPC =
-  process.env.RPC_URL || 
-  process.env.NEXT_PUBLIC_HELIUS_RPC || 
+  process.env.RPC_URL ||
+  process.env.NEXT_PUBLIC_HELIUS_RPC ||
   'https://api.mainnet-beta.solana.com'
 
 export function getConnection(

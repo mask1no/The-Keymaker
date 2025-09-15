@@ -4,12 +4,10 @@ import useSWR from 'swr'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
-import { PnLPanel } from '@/components/PnL/PnLPanel'
 
 export default function PnLPage() {
   const [refreshing, setRefreshing] = useState(false)

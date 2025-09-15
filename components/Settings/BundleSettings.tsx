@@ -4,10 +4,9 @@ import React from 'react'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Label } from '@/components/UI/label'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'

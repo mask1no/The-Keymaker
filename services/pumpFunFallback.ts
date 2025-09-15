@@ -65,7 +65,7 @@ export class PumpFunFallbackService {
           const result = await response.json()
           logger.info('Token launched successfully via GUI fallback:', result)
           return result
-        } catch (error) {
+        } catch (error: any) {
           logger.error(`GUI fallback attempt ${attempt} failed:`, error)
 
           if (attempt > (options.retries || 1)) {
@@ -138,7 +138,7 @@ export class PumpFunFallbackService {
       throw new Error(
         '2Captcha timeout - captcha not solved within 150 seconds',
       )
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to solve captcha:', error)
       throw error
     }

@@ -5,10 +5,9 @@ import { motion } from 'framer-motion'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Badge } from '@/components/UI/badge'
 import {

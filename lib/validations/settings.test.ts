@@ -75,9 +75,9 @@ describe('Settings Validation', () => {
 
     it('should allow optional fields to be undefined', () => {
       const minimalSettings = clone(validSettings)
-      delete minimalSettings.apiKeys.twoCaptchaKey
-      delete minimalSettings.apiKeys.jupiterApiKey
-      delete minimalSettings.apiKeys.jitoAuthToken
+      delete (minimalSettings.apiKeys as any).twoCaptchaKey
+      delete (minimalSettings.apiKeys as any).jupiterApiKey
+      delete (minimalSettings.apiKeys as any).jitoAuthToken
 
       const result = settingsSchema.safeParse(minimalSettings)
       if (!result.success) {
@@ -176,7 +176,7 @@ describe('Settings Validation', () => {
   describe('custom validation rules', () => {
     it('should require pumpfunApiKey on mainnet', () => {
       const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete mainnetSettings.apiKeys.pumpfunApiKey
+      delete (mainnetSettings.apiKeys as any).pumpfunApiKey
 
       const result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
@@ -184,7 +184,7 @@ describe('Settings Validation', () => {
 
     it('should require jupiterApiKey on mainnet', () => {
       const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete mainnetSettings.apiKeys.jupiterApiKey
+      delete (mainnetSettings.apiKeys as any).jupiterApiKey
 
       const result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)

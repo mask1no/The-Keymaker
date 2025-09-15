@@ -10,7 +10,12 @@ const jupiterApi = createJupiterApiClient()
 export function useJupiter() {
   const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), [])
 
-  const getQuote = async (fromMint: string, toMint: string, amount: number, slippageBps: number) => {
+  const getQuote = async (
+    fromMint: string,
+    toMint: string,
+    amount: number,
+    slippageBps: number,
+  ) => {
     try {
       const quote = await jupiterApi.quoteGet({
         inputMint: fromMint,
@@ -25,7 +30,10 @@ export function useJupiter() {
     }
   }
 
-  const getSwapTransaction = async (quote: QuoteResponse, userPublicKey: string) => {
+  const getSwapTransaction = async (
+    quote: QuoteResponse,
+    userPublicKey: string,
+  ) => {
     try {
       const transaction = await jupiterApi.swapPost({
         swapRequest: {

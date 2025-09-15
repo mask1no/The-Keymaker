@@ -3,10 +3,9 @@ import { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import {
   TrendingUp,
   TrendingDown,

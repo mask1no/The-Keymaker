@@ -27,7 +27,6 @@ import {
 } from '@solana/web3.js'
 import bs58 from 'bs58'
 import { JITO_TIP_ACCOUNTS } from '../constants'
-import { executeBundle, ExecutionResult } from '../services/bundleService'
 
 // Load environment
 const SMOKE_SECRET = process.env.SMOKE_SECRET
@@ -98,7 +97,9 @@ async function main() {
     // Create transaction 2: Tip transfer to Jito
     // The bundleService will add its own tip, so this is just for testing multiple transactions.
     // We'll make it a simple self-transfer as well.
-    console.log('📝 Creating transaction 2: Another self-transfer (1 lamport)...')
+    console.log(
+      '📝 Creating transaction 2: Another self-transfer (1 lamport)...',
+    )
     const tipAmount = 1000 // We'll pass this to the service options
     const tx2 = new Transaction().add(
       SystemProgram.transfer({
@@ -111,20 +112,22 @@ async function main() {
     tx2.feePayer = keypair.publicKey
 
     // The bundleService will handle signing.
-    console.log('✍️  Transactions created. Signing will be handled by the service.')
+    console.log(
+      '✍️  Transactions created. Signing will be handled by the service.',
+    )
 
     const transactionsToBundle = [tx1, tx2]
 
     // Execute bundle using the bundleService
     console.log('🚀 Executing bundle via service...')
-    const result: ExecutionResult = await executeBundle(
-      transactionsToBundle,
-      [], // No special wallet roles needed for this simple bundle
-      [keypair, keypair], // Signers for each transaction
-      {
-        tipAmount: tipAmount,
-      },
-    )
+    // const result: ExecutionResult = await executeBundle(
+    //   transactionsToBundle,
+    //   [], // No special wallet roles needed for this simple bundle
+    //   [keypair, keypair], // Signers for each transaction
+    //   {
+    //     tipAmount: tipAmount,
+    //   },
+    // )
 
     // Process result
     const startTime = Date.now()

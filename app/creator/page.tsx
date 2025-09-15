@@ -4,10 +4,9 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
 import { Button } from '@/components/UI/button'

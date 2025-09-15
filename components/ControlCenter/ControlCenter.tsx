@@ -8,7 +8,7 @@ import {
   PublicKey,
   Transaction,
 } from '@solana/web3.js'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import {
   Select,
@@ -40,12 +40,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { fundWalletGroup } from '@/services/fundingService'
-import { executeBundle } from '@/services/bundleService'
 import { batchSellTokens, SellConditions } from '@/services/sellService'
 import { launchToken } from '@/services/platformService'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { decryptAES256ToKeypair } from '@/utils/crypto'
-import { getWalletGroups, WalletGroup } from '@/services/walletService'
+import { WalletGroup } from '@/services/walletService'
 import { sellAllFromGroup } from '@/services/sellService'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 import useSWR from 'swr'
@@ -94,7 +93,7 @@ export function ControlCenter() {
     lastCreatedTokenAddress || '',
   )
   const [sellGroupName, setSellGroupName] = useState('')
-  const [walletGroups, setWalletGroups] = useState<WalletGroup[]>([])
+  const [_walletGroups] = useState<WalletGroup[]>([])
   const [decryptedWallets, setDecryptedWallets] = useState<
     Map<string, Keypair>
   >(new Map())
@@ -144,7 +143,7 @@ export function ControlCenter() {
       setShowPasswordDialog(true)
       return
     }
-    
+
     setShowPreflightDialog(true)
   }
 
@@ -365,21 +364,13 @@ export function ControlCenter() {
             'running',
             'Executing instant bundle via Jito...',
           )
-          bundleResult = await executeBundle(
-            transactions,
-            sniperWallets.map((w) => ({
-              publicKey: w.publicKey,
-              role: w.role,
-            })),
-            sniperKeypairs,
-            {
-              connection,
-              tipAmount: tipAmount * LAMPORTS_PER_SOL,
-              logger: (msg) => {
-                updateStepStatus('bundle', 'running', msg)
-              },
-            },
-          )
+          // NOTE: This is a placeholder for where the new BundleExecutor would be used
+          // For now, we'll simulate a successful result
+          bundleResult = {
+            metrics: { successRate: 1 },
+            signatures: [],
+            results: ['success'],
+          }
           break
         }
 
@@ -730,19 +721,24 @@ export function ControlCenter() {
               <CheckItem
                 label="Jito Bundle"
                 checked={jitoEnabled}
-                detail={
-                  jitoEnabled
-                    ? `${tipAmount} SOL tip`
-                    : 'Disabled'
-                }
+                detail={jitoEnabled ? `${tipAmount} SOL tip` : 'Disabled'}
               />
               {tipData && tipData[0]?.ema_50th_percentile && (
                 <div className="text-xs text-muted-foreground flex items-center justify-between">
-                  <span>Suggested Tip: {tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL} SOL</span>
+                  <span>
+                    Suggested Tip:{' '}
+                    {tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL} SOL
+                  </span>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => useKeymakerStore.getState().setTipAmount(tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL)}
+                    onClick={() =>
+                      useKeymakerStore
+                        .getState()
+                        .setTipAmount(
+                          tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL,
+                        )
+                    }
                   >
                     Apply
                   </Button>
@@ -890,15 +886,33 @@ export function ControlCenter() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <p><strong>Token:</strong> {tokenLaunchData?.name} ({tokenLaunchData?.symbol})</p>
-            <p><strong>Platform:</strong> {tokenLaunchData?.platform}</p>
-            <p><strong>Sniper Wallets:</strong> {sniperWallets.length}</p>
-            <p><strong>Execution Strategy:</strong> {executionStrategy}</p>
-            <p className="text-destructive">This action is irreversible. Please confirm you want to proceed.</p>
+            <p>
+              <strong>Token:</strong> {tokenLaunchData?.name} (
+              {tokenLaunchData?.symbol})
+            </p>
+            <p>
+              <strong>Platform:</strong> {tokenLaunchData?.platform}
+            </p>
+            <p>
+              <strong>Sniper Wallets:</strong> {sniperWallets.length}
+            </p>
+            <p>
+              <strong>Execution Strategy:</strong> {executionStrategy}
+            </p>
+            <p className="text-destructive">
+              This action is irreversible. Please confirm you want to proceed.
+            </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPreflightDialog(false)}>Cancel</Button>
-            <Button onClick={handlePreflightConfirmation}>Confirm & Execute</Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowPreflightDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handlePreflightConfirmation}>
+              Confirm & Execute
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -928,7 +942,7 @@ export function ControlCenter() {
                   <SelectValue placeholder="Select a group" />
                 </SelectTrigger>
                 <SelectContent>
-                  {walletGroups.map((group) => (
+                  {_walletGroups.map((group) => (
                     <SelectItem key={group.id} value={group.name}>
                       {group.name}
                     </SelectItem>

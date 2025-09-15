@@ -9,7 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/components/UI/card'
+} from '@/components/UI/Card'
 import toast from 'react-hot-toast'
 
 type Platform = 'pump' | 'bonk' | 'spl'
