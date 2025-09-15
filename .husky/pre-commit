@@ -2,6 +2,5 @@
 . "$(dirname -- "$0")/_/husky.sh"
 pnpm -s lint --fix || true
 pnpm -s format || true
-node scripts/hygiene/scanAndFix.mjs || true
-# re-enable strict once the repo is clean:
+# Re-enable strict after green:
 # npx ts-prune --error

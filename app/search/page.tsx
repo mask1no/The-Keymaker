@@ -33,9 +33,7 @@ export default function CommandPalettePage() {
         <CardContent className="space-y-3">
           <div className="flex items-center gap-2">
             <Search className="w-4 h-4 text-white/50" />
-            <Input
-              autoFocus
-              value={q}
+            <InputautoFocusvalue={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Type to search actions..."
               className="bg-black/50"
@@ -43,10 +41,8 @@ export default function CommandPalettePage() {
           </div>
           <div className="space-y-2">
             {filtered.map((e) => {
-              const Icon = e.icon
-              return (
-                <Button
-                  key={e.href}
+              const Icon = e.iconreturn (
+                <Buttonkey={e.href}
                   variant="outline"
                   className="w-full justify-start"
                   onClick={() => router.push(e.href)}

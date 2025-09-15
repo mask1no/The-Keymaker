@@ -24,17 +24,14 @@ import { Textarea } from '@/components/UI/Textarea'
 import { FolderInput } from './FolderInput'
 
 interface ImportedWallet {
-  name: string
-  privateKey: string
-  role: 'sniper' | 'dev' | 'normal'
+  name: stringprivateKey: stringrole: 'sniper' | 'dev' | 'normal'
 }
 
 export function WalletImport({
   isOpen,
   onClose,
 }: {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: booleanonClose: () => void
 }) {
   const [password, setPassword] = useState('')
   const [importMode, setImportMode] = useState<'manual' | 'file' | 'folder'>(
@@ -122,8 +119,7 @@ export function WalletImport({
           </DialogDescription>
         </DialogHeader>
         <div className="pt-4">
-          <Select
-            value={importMode}
+          <Selectvalue={importMode}
             onValueChange={(v) => setImportMode(v as any)}
           >
             <SelectTrigger>
@@ -142,8 +138,7 @@ export function WalletImport({
                 <Label htmlFor="private-keys">
                   Private Keys (one per line)
                 </Label>
-                <Textarea
-                  id="private-keys"
+                <Textareaid="private-keys"
                   value={privateKeyInput}
                   onChange={(e) => setPrivateKeyInput(e.target.value)}
                   rows={5}
@@ -151,8 +146,7 @@ export function WalletImport({
               </div>
               <div>
                 <Label htmlFor="temp-password">Temporary Password</Label>
-                <Input
-                  id="temp-password"
+                <Inputid="temp-password"
                   type="password"
                   value={tempPassword}
                   onChange={(e) => setTempPassword(e.target.value)}
@@ -182,8 +176,7 @@ export function WalletImport({
               <p className="text-sm text-muted-foreground">
                 Import an encrypted wallet group file (.json).
               </p>
-              <Input
-                type="file"
+              <Inputtype="file"
                 accept=".json"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
@@ -193,8 +186,7 @@ export function WalletImport({
               />
               <div>
                 <Label htmlFor="file-password">File Password</Label>
-                <Input
-                  id="file-password"
+                <Inputid="file-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -206,14 +198,12 @@ export function WalletImport({
           {importMode === 'folder' && (
             <div className="space-y-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Select a folder containing wallet files (e.g., .json with
-                private keys).
+                Select a folder containing wallet files (e.g., .json withprivate keys).
               </p>
               <FolderInput onFilesSelected={handleFolderImport} />
               <div>
                 <Label htmlFor="folder-password">Password for Encryption</Label>
-                <Input
-                  id="folder-password"
+                <Inputid="folder-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -227,8 +217,7 @@ export function WalletImport({
             {parsedWallets.map((wallet, index) => (
               <div key={index} className="flex items-center justify-between">
                 <span>{wallet.name}</span>
-                <Button
-                  size="sm"
+                <Buttonsize="sm"
                   variant="outline"
                   onClick={async () => {
                     await importWallet(wallet.privateKey, password)

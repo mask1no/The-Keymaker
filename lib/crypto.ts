@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 
-// Get encryption key from environment or generate a default one
-const getEncryptionKey = (): Buffer => {
+// Get encryption key from environment or generate a default oneconst getEncryptionKey = (): Buffer => {
   const passphrase =
     process.env.SECRET_PASSPHRASE ||
     process.env.NEXT_PUBLIC_SECRET_PASSPHRASE ||
@@ -10,8 +9,7 @@ const getEncryptionKey = (): Buffer => {
   return crypto.createHash('sha256').update(passphrase).digest()
 }
 
-// Encryption algorithm
-const ALGORITHM = 'aes-256-gcm'
+// Encryption algorithmconst ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
 
 export function encrypt(text: string, password?: string): string {

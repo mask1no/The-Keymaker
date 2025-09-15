@@ -38,19 +38,13 @@ function logResult(label: string, value: unknown) {
   }
 }
 
-// Case 1: optional fields undefined
-const minimal = JSON.parse(JSON.stringify(base))
-delete minimal.apiKeys.twoCaptchaKey
-delete minimal.apiKeys.jupiterApiKey
-delete minimal.apiKeys.jitoAuthToken
-logResult('optional undefined', minimal)
+// Case 1: optional fields undefinedconst minimal = JSON.parse(JSON.stringify(base))
+delete minimal.apiKeys.twoCaptchaKeydelete minimal.apiKeys.jupiterApiKeydelete minimal.apiKeys.jitoAuthTokenlogResult('optional undefined', minimal)
 
-// Case 2: valid ws
-const wsOk = { ...base, wsUrl: 'wss://api.solana.com' }
+// Case 2: valid wsconst wsOk = { ...base, wsUrl: 'wss://api.solana.com' }
 logResult('valid ws', wsOk)
 
-// Case 3: non-free-tier high tip allowed
-const pro = JSON.parse(JSON.stringify(base))
+// Case 3: non-free-tier high tip allowedconst pro = JSON.parse(JSON.stringify(base))
 pro.apiKeys.jitoWsUrl = 'https://custom-jito.example.com'
 pro.bundleConfig.jitoTipLamports = 60000
 logResult('non-free high tip', pro)

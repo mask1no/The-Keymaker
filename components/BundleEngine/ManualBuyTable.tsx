@@ -15,8 +15,7 @@ import { useKeymakerStore } from '@/lib/store'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { Connection } from '@solana/web3.js'
 // Use browser-safe crypto for client-side key decryption
-// Browser crypto: project now exposes encrypt/decrypt helpers under utils/browserCrypto
-import { decrypt as decryptBrowserKey } from '@/utils/browserCrypto'
+// Browser crypto: project now exposes encrypt/decrypt helpers under utils/browserCryptoimport { decrypt as decryptBrowserKey } from '@/utils/browserCrypto'
 import { logEvent } from '@/lib/clientLogger'
 import toast from 'react-hot-toast'
 import { Loader2, ShoppingCart, DollarSign } from 'lucide-react'
@@ -33,8 +32,7 @@ import {
 
 interface WalletBuyState {
   [pubkey: string]: {
-    amount: string
-    loading: boolean
+    amount: stringloading: boolean
   }
 }
 
@@ -45,12 +43,10 @@ export function ManualBuyTable() {
   const [buyStates, setBuyStates] = useState<WalletBuyState>({})
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [pendingBuy, setPendingBuy] = useState<{
-    wallet: any
-    lamports: number
+    wallet: anylamports: number
   } | null>(null)
 
-  // Manual Sell dialog state
-  const [sellDialogOpen, setSellDialogOpen] = useState(false)
+  // Manual Sell dialog stateconst [sellDialogOpen, setSellDialogOpen] = useState(false)
   const [pendingSell, setPendingSell] = useState<{ wallet: any } | null>(null)
   const [sellMint, setSellMint] = useState('')
   const [sellAll, setSellAll] = useState(true)
@@ -83,11 +79,7 @@ export function ManualBuyTable() {
   }
 
   const executeBuy = async (password: string) => {
-    if (!pendingBuy || !tokenLaunchData?.mintAddress) return
-
-    const { wallet, lamports } = pendingBuy
-
-    setBuyStates((prev) => ({
+    if (!pendingBuy || !tokenLaunchData?.mintAddress) returnconst { wallet, lamports } = pendingBuysetBuyStates((prev) => ({
       ...prev,
       [wallet.publicKey]: { ...prev[wallet.publicKey], loading: true },
     }))
@@ -101,8 +93,7 @@ export function ManualBuyTable() {
       const { Keypair } = await import('@solana/web3.js')
       const keypair = Keypair.fromSecretKey(raw as unknown as Uint8Array)
 
-      // Build swap transaction
-      const versionedTransaction = await buildSwapTransaction(
+      // Build swap transactionconst versionedTransaction = await buildSwapTransaction(
         SOL_MINT,
         tokenLaunchData.mintAddress,
         lamports,
@@ -111,19 +102,16 @@ export function ManualBuyTable() {
         0.0005 * 1e9, // Priority fee
       )
 
-      // Sign the versioned transaction
-      versionedTransaction.sign([keypair])
+      // Sign the versioned transactionversionedTransaction.sign([keypair])
 
-      // Send versioned transaction
-      const signature = await connection.sendTransaction(versionedTransaction, {
+      // Send versioned transactionconst signature = await connection.sendTransaction(versionedTransaction, {
         skipPreflight: false,
         preflightCommitment: 'confirmed',
       })
 
       await connection.confirmTransaction(signature, 'confirmed')
 
-      // Log the successful buy
-      await logEvent({
+      // Log the successful buyawait logEvent({
         wallet_address: wallet.publicKey,
         phase: 'manual_buy',
         action: 'buy_token',
@@ -139,8 +127,7 @@ export function ManualBuyTable() {
         message: `Bought ${lamports / 1e9} SOL worth of tokens with ${wallet.publicKey.slice(0, 8)}...`,
       })
 
-      // Clear the input
-      setBuyStates((prev) => ({
+      // Clear the inputsetBuyStates((prev) => ({
         ...prev,
         [wallet.publicKey]: { amount: '', loading: false },
       }))
@@ -169,8 +156,7 @@ export function ManualBuyTable() {
   }
 
   const executeSell = async () => {
-    if (!pendingSell) return
-    if (!sellMint) {
+    if (!pendingSell) returnif (!sellMint) {
       toast.error('Enter token mint to sell')
       return
     }
@@ -182,8 +168,7 @@ export function ManualBuyTable() {
       )
       const { Keypair } = await import('@solana/web3.js')
       const keypair = Keypair.fromSecretKey(raw as unknown as Uint8Array)
-      // Use sellService with manualSell condition, sell all by passing a very large amount to clamp to balance
-      const { sellToken } = await import('@/services/sellService')
+      // Use sellService with manualSell condition, sell all by passing a very large amount to clamp to balanceconst { sellToken } = await import('@/services/sellService')
       const { PublicKey } = await import('@solana/web3.js')
       const result = await sellToken(connection, {
         wallet: keypair,
@@ -201,8 +186,7 @@ export function ManualBuyTable() {
             result.txSignature || ''
           ).slice(0, 8)}...`,
         })
-        // Track PnL
-        try {
+        // Track PnLtry {
           await fetch('/api/pnl/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -237,8 +221,7 @@ export function ManualBuyTable() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      <motion.divinitial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full"
       >
@@ -280,8 +263,7 @@ export function ManualBuyTable() {
                         {(wallet.balance / 1e9).toFixed(4)} SOL
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
+                        <Inputtype="number"
                           placeholder="0.1"
                           value={state.amount}
                           onChange={(e) =>
@@ -296,8 +278,7 @@ export function ManualBuyTable() {
                         />
                       </TableCell>
                       <TableCell className="space-x-2">
-                        <Button
-                          onClick={() => handleBuy(wallet)}
+                        <ButtononClick={() => handleBuy(wallet)}
                           disabled={
                             state.loading ||
                             !state.amount ||
@@ -312,8 +293,7 @@ export function ManualBuyTable() {
                             'BUY'
                           )}
                         </Button>
-                        <Button
-                          variant="outline"
+                        <Buttonvariant="outline"
                           size="sm"
                           onClick={() => openSell(wallet)}
                           aria-label="Sell token from this wallet"
@@ -337,8 +317,7 @@ export function ManualBuyTable() {
         </div>
       </motion.div>
 
-      <PasswordDialog
-        isOpen={passwordDialogOpen}
+      <PasswordDialogisOpen={passwordDialogOpen}
         onClose={() => setPasswordDialogOpen(false)}
         onSubmit={executeBuy}
         title="Enter Password"
@@ -355,15 +334,13 @@ export function ManualBuyTable() {
           <div className="space-y-3">
             <div>
               <Label>Token Mint</Label>
-              <Input
-                value={sellMint}
+              <Inputvalue={sellMint}
                 onChange={(e) => setSellMint(e.target.value)}
                 placeholder="Token mint address"
               />
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
+              <inputtype="checkbox"
                 checked={sellAll}
                 onChange={(e) => setSellAll(e.target.checked)}
               />
@@ -371,8 +348,7 @@ export function ManualBuyTable() {
             </div>
             <div>
               <Label>Password</Label>
-              <Input
-                type="password"
+              <Inputtype="password"
                 value={sellPassword}
                 onChange={(e) => setSellPassword(e.target.value)}
                 placeholder="Wallet password"

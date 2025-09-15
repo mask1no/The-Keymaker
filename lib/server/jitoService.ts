@@ -42,17 +42,14 @@ export async function sendBundle(
   const result: any = await jitoRpc(region, 'sendBundle', [
     { encodedTransactions: transactions, bundleOnly: true },
   ])
-  const id = result?.bundleId || result?.bundle_id || result?.id || result
-  if (!id || typeof id !== 'string') throw new Error('No bundle ID returned')
+  const id = result?.bundleId || result?.bundle_id || result?.id || resultif (!id || typeof id !== 'string') throw new Error('No bundle ID returned')
   return id
 }
 
 export async function getBundleStatuses(region: string, ids: string[]) {
   const r: any = await jitoRpc(region, 'getBundleStatuses', [ids])
   return (r?.value ?? []) as Array<{
-    bundle_id: string
-    status: string
-    landed_slot?: number
+    bundle_id: stringstatus: stringlanded_slot?: number
   }>
 }
 
@@ -61,8 +58,7 @@ export function validateTipAccount(vt: VersionedTransaction): boolean {
     (k: PublicKey) => k.toBase58(),
   )
   if (!Array.isArray(JITO_TIP_ACCOUNTS) || JITO_TIP_ACCOUNTS.length === 0)
-    return true
-  const set = new Set(JITO_TIP_ACCOUNTS)
+    return trueconst set = new Set(JITO_TIP_ACCOUNTS)
   return keys.some((k) => set.has(k))
 }
 

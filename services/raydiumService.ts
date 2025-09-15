@@ -15,8 +15,7 @@ import {
 } from '@solana/spl-token'
 import { SOL_MINT_ADDRESS } from '../constants'
 import { getConnection } from '@/lib/network'
-// import { logTokenLaunch } from './executionLogService' // Dynamic import below
-import { logger } from '@/lib/logger'
+// import { logTokenLaunch } from './executionLogService' // Dynamic import belowimport { logger } from '@/lib/logger'
 import bs58 from 'bs58'
 
 type TokenMetadata = {
@@ -80,7 +79,7 @@ export async function createToken(
     await connection.confirmTransaction(createMintSig, 'confirmed')
 
     // Get/Create associated token account
-    const associatedTokenAddress = await getAssociatedTokenAddressSync(
+    const associatedTokenAddress = getAssociatedTokenAddressSync(
       mint.publicKey,
       authority.publicKey,
     )

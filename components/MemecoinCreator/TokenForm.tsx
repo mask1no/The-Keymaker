@@ -21,8 +21,7 @@ export default function TokenForm() {
   const [decimals, setDecimals] = useState(9)
   const [supply, setSupply] = useState(1_000_000_000)
 
-  // metadata
-  const [image, setImage] = useState('')
+  // metadataconst [image, setImage] = useState('')
   const [website, setWebsite] = useState('')
   const [twitter, setTwitter] = useState('')
   const [telegram, setTelegram] = useState('')
@@ -62,8 +61,7 @@ export default function TokenForm() {
       <CardContent className="grid gap-3 md:grid-cols-2">
         <div className="md:col-span-2">
           <Label>Platform</Label>
-          <select
-            className="w-full rounded-md border bg-background p-2"
+          <selectclassName="w-full rounded-md border bg-background p-2"
             value={platform}
             onChange={(e) => setPlatform(e.target.value as Platform)}
           >
@@ -74,16 +72,14 @@ export default function TokenForm() {
         </div>
         <div>
           <Label>Name</Label>
-          <Input
-            value={name}
+          <Inputvalue={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={32}
           />
         </div>
         <div>
           <Label>Symbol</Label>
-          <Input
-            value={symbol}
+          <Inputvalue={symbol}
             onChange={(e) => setSymbol(e.target.value)}
             maxLength={10}
           />
@@ -93,16 +89,14 @@ export default function TokenForm() {
           <>
             <div>
               <Label>Decimals</Label>
-              <Input
-                type="number"
+              <Inputtype="number"
                 value={decimals}
                 onChange={(e) => setDecimals(Number(e.target.value || 0))}
               />
             </div>
             <div>
               <Label>Total Supply</Label>
-              <Input
-                type="number"
+              <Inputtype="number"
                 value={supply}
                 onChange={(e) => setSupply(Number(e.target.value || 0))}
               />
@@ -112,8 +106,7 @@ export default function TokenForm() {
 
         <div>
           <Label>Mode</Label>
-          <select
-            className="w-full rounded-md border bg-background p-2"
+          <selectclassName="w-full rounded-md border bg-background p-2"
             value={mode}
             onChange={(e) => setMode(e.target.value as Mode)}
           >
@@ -125,8 +118,7 @@ export default function TokenForm() {
         {mode === 'delayed' && (
           <div>
             <Label>Delay (seconds)</Label>
-            <Input
-              type="number"
+            <Inputtype="number"
               value={delay}
               onChange={(e) => setDelay(Number(e.target.value || 0))}
             />
@@ -147,8 +139,7 @@ export default function TokenForm() {
         </div>
         <div>
           <Label>Telegram</Label>
-          <Input
-            value={telegram}
+          <Inputvalue={telegram}
             onChange={(e) => setTelegram(e.target.value)}
           />
         </div>

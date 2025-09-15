@@ -159,7 +159,6 @@ export function BundleBuilder() {
 
   const handleLoadParameterizedPreset = () => {
     if (!loadingPreset) return
-
     const newTransactions = loadingPreset.transactions.map((tx) => ({
       ...tx,
       id: `tx-${Date.now()}-${Math.random()}`,
@@ -173,7 +172,7 @@ export function BundleBuilder() {
         newTransactions[txIndex] &&
         variableValues[variable]
       ) {
-        (newTransactions[txIndex] as any)[field] = variableValues[variable]
+        ;(newTransactions[txIndex] as any)[field] = variableValues[variable]
       }
     })
 
@@ -202,8 +201,7 @@ export function BundleBuilder() {
       {
         id: `tx-${now + 1}`,
         type: 'swap',
-        fromToken: 'So11111111111111111111111111111111111111112', // SOL
-        toToken: '',
+        fromToken: 'So11111111111111111111111111111111111111112', // SOLtoToken: '',
         amount: 0,
         slippage: 0.5,
       },
@@ -282,15 +280,13 @@ export function BundleBuilder() {
             </SelectTrigger>
             <SelectContent>
               {presets.map((preset) => (
-                <div
-                  key={preset.id}
+                <div key={preset.id}
                   className="flex items-center justify-between"
                 >
                   <SelectItem value={preset.id} className="flex-grow">
                     {preset.name}
                   </SelectItem>
-                  <Button
-                    variant="ghost"
+                  <Button variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
@@ -305,13 +301,11 @@ export function BundleBuilder() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
+          <Button variant="outline"
             onClick={() => setShowSavePresetDialog(true)}
             disabled={transactions.length === 0}
           >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
+            <motion.div whileHover={{ scale: 1.1 }}
               className="flex items-center"
             >
               Save as Preset
@@ -320,18 +314,15 @@ export function BundleBuilder() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <DndContext
-          collisionDetection={closestCenter}
+        <DndContext collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={transactions}
+          <SortableContext items={transactions}
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-4">
               {transactions.map((tx) => (
-                <TransactionCard
-                  key={tx.id}
+                <TransactionCard key={tx.id}
                   transaction={tx}
                   onRemove={removeTransaction}
                   onUpdate={updateTransaction}
@@ -343,23 +334,20 @@ export function BundleBuilder() {
 
         <div className="flex gap-2">
           <Button variant="outline" className="w-full" onClick={addTransaction}>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
+            <motion.div whileHover={{ scale: 1.1 }}
               className="flex items-center"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Transaction
             </motion.div>
           </Button>
-          <Button
-            variant="outline"
+          <Button variant="outline"
             className="w-full"
             onClick={loadLaunchPreset}
           >
             Load Launch Preset
           </Button>
-          <Button
-            variant="outline"
+          <Button variant="outline"
             className="w-full"
             onClick={loadConsolidateFundsPreset}
           >
@@ -367,16 +355,14 @@ export function BundleBuilder() {
           </Button>
         </div>
 
-        <Dialog
-          open={showSavePresetDialog}
+        <Dialog open={showSavePresetDialog}
           onOpenChange={setShowSavePresetDialog}
         >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Save Bundle Preset</DialogTitle>
               <DialogDescription>
-                Enter a name for your new preset and select any fields to turn
-                into variables.
+                Enter a name for your new preset and select any fields to turninto variables.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -384,8 +370,7 @@ export function BundleBuilder() {
                 <Label htmlFor="name" className="text-right">
                   Name
                 </Label>
-                <Input
-                  id="name"
+                <Input id="name"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
                   className="col-span-3"
@@ -399,8 +384,7 @@ export function BundleBuilder() {
                 <div className="max-h-48 overflow-y-auto space-y-2">
                   {potentialVariables.map((variable) => (
                     <div key={variable} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={variable}
+                      <Checkbox id={variable}
                         onCheckedChange={(checked) => {
                           setPresetVariables((prev) =>
                             checked
@@ -409,8 +393,7 @@ export function BundleBuilder() {
                           )
                         }}
                       />
-                      <label
-                        htmlFor={variable}
+                      <label htmlFor={variable}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
                         {variable}
@@ -426,8 +409,7 @@ export function BundleBuilder() {
           </DialogContent>
         </Dialog>
 
-        <Dialog
-          open={showLoadPresetDialog}
+        <Dialog open={showLoadPresetDialog}
           onOpenChange={setShowLoadPresetDialog}
         >
           <DialogContent>
@@ -439,15 +421,13 @@ export function BundleBuilder() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               {loadingPreset?.variables?.map((variable) => (
-                <div
-                  key={variable}
+                <div key={variable}
                   className="grid grid-cols-4 items-center gap-4"
                 >
                   <Label htmlFor={variable} className="text-right">
                     {variable}
                   </Label>
-                  <Input
-                    id={variable}
+                  <Input id={variable}
                     onChange={(e) =>
                       setVariableValues((prev) => ({
                         ...prev,
@@ -472,8 +452,7 @@ export function BundleBuilder() {
         <BundleSettings />
 
         <div className="flex gap-2">
-          <Button
-            className="flex-1"
+          <Button className="flex-1"
             variant="outline"
             onClick={previewBundle}
             disabled={
@@ -482,8 +461,7 @@ export function BundleBuilder() {
           >
             Preview Bundle
           </Button>
-          <Button
-            className="flex-1"
+          <Button className="flex-1"
             data-testid="execute-bundle-button"
             onClick={handleExecuteBundle}
             disabled={

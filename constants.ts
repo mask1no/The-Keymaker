@@ -4,14 +4,12 @@ export const NEXT_PUBLIC_HELIUS_RPC =
   process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
 
 // Resolve Jito endpoint with fallback to well-known public endpoint
-// Priority: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engine
-export const NEXT_PUBLIC_JITO_ENDPOINT =
+// Priority: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engineexport const NEXT_PUBLIC_JITO_ENDPOINT =
   process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
   process.env.JITO_RPC_URL ||
   'https://mainnet.block-engine.jito.wtf'
 
-// Do not expose Birdeye API key in client bundles; use server proxy
-export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
+// Do not expose Birdeye API key in client bundles; use server proxyexport const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6'
 export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'
 export const JITO_TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',

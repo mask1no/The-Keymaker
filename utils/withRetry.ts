@@ -1,11 +1,7 @@
 import { logger } from '@/lib/logger'
 
 export interface RetryOptions {
-  maxRetries?: number
-  delayMs?: number
-  exponentialBackoff?: boolean
-  shouldRetry?: (error: unknown) => boolean
-  onRetry?: (error: unknown, attempt: number) => void
+  maxRetries?: numberdelayMs?: numberexponentialBackoff?: booleanshouldRetry?: (error: unknown) => booleanonRetry?: (error: unknown, attempt: number) => void
 }
 
 const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'onRetry'>> = {
@@ -26,23 +22,17 @@ export async function withRetry<T>(
   options: RetryOptions = {},
 ): Promise<T> {
   const config = { ...DEFAULT_OPTIONS, ...options }
-  let lastError: unknown
-
-  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+  let lastError: unknownfor (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       return await fn()
     } catch (error) {
-      lastError = error
-
-      if (attempt === config.maxRetries || !config.shouldRetry(error)) {
+      lastError = errorif (attempt === config.maxRetries || !config.shouldRetry(error)) {
         throw error
       }
 
       const delay = config.exponentialBackoff
         ? config.delayMs * Math.pow(2, attempt)
-        : config.delayMs
-
-      logger.warn(
+        : config.delayMslogger.warn(
         `Retry attempt ${attempt + 1}/${config.maxRetries} after ${delay}ms`,
         {
           error: error instanceof Error ? error.message : String(error),
@@ -50,8 +40,7 @@ export async function withRetry<T>(
       )
 
       if (typeof options.onRetry === 'function') {
-        // Best-effort callback; ignore callback errors
-        options.onRetry(error, attempt + 1)
+        // Best-effort callback; ignore callback errorsoptions.onRetry(error, attempt + 1)
       }
 
       await new Promise((resolve) => setTimeout(resolve, delay))
@@ -68,8 +57,7 @@ export function isRetryableError(error: unknown): boolean {
   if (error instanceof Error) {
     const message = error.message.toLowerCase()
 
-    // Network errors
-    if (
+    // Network errorsif (
       message.includes('network') ||
       message.includes('timeout') ||
       message.includes('connection') ||
@@ -79,26 +67,21 @@ export function isRetryableError(error: unknown): boolean {
       return true
     }
 
-    // Rate limiting
-    if (
+    // Rate limitingif (
       message.includes('rate limit') ||
       message.includes('too many requests')
     ) {
       return true
     }
 
-    // Temporary errors
-    if (message.includes('temporary') || message.includes('unavailable')) {
+    // Temporary errorsif (message.includes('temporary') || message.includes('unavailable')) {
       return true
     }
   }
 
-  // Check for HTTP status codes
-  if (typeof error === 'object' && error !== null && 'response' in error) {
-    const response = (error as { response?: { status?: number } }).response
-    if (response?.status) {
-      // Retry on server errors and rate limiting
-      return response.status >= 500 || response.status === 429
+  // Check for HTTP status codesif (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { status?: number } }).responseif (response?.status) {
+      // Retry on server errors and rate limitingreturn response.status >= 500 || response.status === 429
     }
   }
 

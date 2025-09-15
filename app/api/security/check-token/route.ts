@@ -61,8 +61,7 @@ function calculateSafetyScore(securityInfo: any): number {
   if (securityInfo.can_take_back_ownership === '1') score -= 5
   if (securityInfo.cannot_sell_all === '1') score -= 20
   if (securityInfo.slippage_modifiable === '1') score -= 5
-  if (securityInfo.is_honeypot === '1') score = 0 // Honeypot is a critical issue
-  if (securityInfo.transfer_pausable === '1') score -= 10
+  if (securityInfo.is_honeypot === '1') score = 0 // Honeypot is a critical issueif (securityInfo.transfer_pausable === '1') score -= 10
 
   return Math.max(0, score)
 }

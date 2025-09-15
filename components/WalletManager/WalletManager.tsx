@@ -103,26 +103,22 @@ export default function WalletFolders() {
           <FolderPlus className="h-4 w-4" /> New Wallet Folder
         </div>
         <div className="grid gap-2 md:grid-cols-3">
-          <Input
-            placeholder="Folder name"
+          <Input placeholder="Folder name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <Input
-            type="password"
+          <Input type="password"
             placeholder="Password (encrypts keys locally)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Input
-            placeholder="Password hint (optional)"
+          <Input placeholder="Password hint (optional)"
             value={hint}
             onChange={(e) => setHint(e.target.value)}
           />
         </div>
         <div className="mt-3">
-          <Button
-            onClick={createFolder}
+          <Button onClick={createFolder}
             variant="outline"
             className="rounded-2xl"
           >
@@ -133,8 +129,7 @@ export default function WalletFolders() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {folders.map((f) => (
-          <div
-            key={f.id}
+          <div key={f.id}
             className="rounded-2xl border border-border bg-card p-4"
           >
             <div className="flex items-center justify-between mb-3">
@@ -142,8 +137,7 @@ export default function WalletFolders() {
                 <FolderOpen className="h-5 w-5" />
                 <div className="font-medium">{f.name}</div>
               </div>
-              <Button
-                variant="outline"
+              <Button variant="outline"
                 className="rounded-2xl"
                 onClick={() => setOpenId(openId === f.id ? null : f.id)}
               >
@@ -154,14 +148,12 @@ export default function WalletFolders() {
             {openId === f.id && (
               <div className="space-y-3">
                 <div className="grid gap-2 md:grid-cols-3">
-                  <Input
-                    type="password"
+                  <Input type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
-                  <Button
-                    variant="secondary"
+                  <Button variant="secondary"
                     onClick={generate}
                     className="rounded-2xl"
                   >
@@ -171,8 +163,7 @@ export default function WalletFolders() {
                     Import
                   </Button>
                 </div>
-                <Input
-                  placeholder="Private key (base58 or [..])"
+                <Input placeholder="Private key (base58 or [..])"
                   value={priv}
                   onChange={(e) => setPriv(e.target.value)}
                 />
@@ -184,16 +175,14 @@ export default function WalletFolders() {
                     </div>
                   )}
                   {f.wallets.map((w, i) => (
-                    <div
-                      key={w.pub}
+                    <div key={w.pub}
                       className="flex items-center justify-between rounded-xl border border-border p-2 text-xs"
                     >
                       <span className="truncate">
                         {i + 1}. {w.pub}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
+                        <Button size="sm"
                           variant="outline"
                           className="rounded-xl"
                           onClick={() => reveal(w.enc)}
@@ -201,8 +190,7 @@ export default function WalletFolders() {
                           <KeyRound className="h-3 w-3 mr-1" />
                           Reveal
                         </Button>
-                        <Button
-                          size="sm"
+                        <Button size="sm"
                           className="rounded-xl"
                           onClick={() => setActive(w.pub)}
                         >
@@ -213,8 +201,7 @@ export default function WalletFolders() {
                   ))}
                 </div>
                 <div className="text-xs opacity-60">
-                  Keys are generated <b>locally</b> and AES-GCM encrypted with
-                  your password. Nothing leaves your browser.
+                  Keys are generated <b>locally</b> and AES-GCM encrypted withyour password. Nothing leaves your browser.
                 </div>
               </div>
             )}

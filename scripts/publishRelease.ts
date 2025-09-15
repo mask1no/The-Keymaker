@@ -1,12 +1,10 @@
-#!/usr/bin/env node
-import { execSync } from 'child_process'
+#!/usr/bin/env nodeimport { execSync } from 'child_process'
 import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import * as readline from 'readline'
 import semver from 'semver'
 
-// ANSI color codes
-const colors = {
+// ANSI color codesconst colors = {
   green: '\x1b[32m',
   red: '\x1b[31m',
   yellow: '\x1b[33m',
@@ -37,15 +35,12 @@ function getCurrentVersion(): string {
 function updateVersion(newVersion: string): void {
   const packagePath = join(process.cwd(), 'package.json')
   const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'))
-  packageJson.version = newVersion
-  writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n')
+  packageJson.version = newVersionwriteFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n')
 
-  // Also update package-lock.json if it exists
-  try {
+  // Also update package-lock.json if it existstry {
     const lockPath = join(process.cwd(), 'package-lock.json')
     const lockJson = JSON.parse(readFileSync(lockPath, 'utf-8'))
-    lockJson.version = newVersion
-    if (lockJson.packages && lockJson.packages['']) {
+    lockJson.version = newVersionif (lockJson.packages && lockJson.packages['']) {
       lockJson.packages[''].version = newVersion
     }
     writeFileSync(lockPath, JSON.stringify(lockJson, null, 2) + '\n')
@@ -55,8 +50,7 @@ function updateVersion(newVersion: string): void {
 }
 
 async function main() {
-  // Check if working directory is clean
-  const status = exec('git status --porcelain')
+  // Check if working directory is cleanconst status = exec('git status --porcelain')
   if (status) {
     log(
       'red',
@@ -65,12 +59,10 @@ async function main() {
     process.exit(1)
   }
 
-  // Get current version
-  const currentVersion = getCurrentVersion()
+  // Get current versionconst currentVersion = getCurrentVersion()
   log('blue', `Current version: ${currentVersion}`)
 
-  // Determine release type from command line argument
-  const releaseType = process.argv[2] || 'patch'
+  // Determine release type from command line argumentconst releaseType = process.argv[2] || 'patch'
   const validTypes = [
     'major',
     'minor',
@@ -87,8 +79,7 @@ async function main() {
     process.exit(1)
   }
 
-  // Calculate new version
-  const newVersion = semver.inc(currentVersion, releaseType as any)
+  // Calculate new versionconst newVersion = semver.inc(currentVersion, releaseType as any)
   if (!newVersion) {
     log('red', 'Failed to calculate new version')
     process.exit(1)
@@ -96,8 +87,7 @@ async function main() {
 
   log('green', `New version: ${newVersion}`)
 
-  // Confirm with user
-  const rl = readline.createInterface({
+  // Confirm with userconst rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   })
@@ -112,12 +102,10 @@ async function main() {
     process.exit(0)
   }
 
-  // Update version in package.json
-  log('blue', 'Updating version...')
+  // Update version in package.jsonlog('blue', 'Updating version...')
   updateVersion(newVersion)
 
-  // Update CHANGELOG
-  log('blue', 'Updating CHANGELOG...')
+  // Update CHANGELOGlog('blue', 'Updating CHANGELOG...')
   const changelogPath = join(process.cwd(), 'CHANGELOG.md')
   const changelog = readFileSync(changelogPath, 'utf-8')
   const date = new Date().toISOString().split('T')[0]
@@ -128,17 +116,14 @@ async function main() {
   )
   writeFileSync(changelogPath, updatedChangelog)
 
-  // Commit changes
-  log('blue', 'Committing changes...')
+  // Commit changeslog('blue', 'Committing changes...')
   exec('git add package.json package-lock.json CHANGELOG.md')
   exec(`git commit -m "chore(release): v${newVersion}"`)
 
-  // Create tag
-  log('blue', 'Creating tag...')
+  // Create taglog('blue', 'Creating tag...')
   exec(`git tag -a v${newVersion} -m "Release v${newVersion}"`)
 
-  // Push to origin
-  log('blue', 'Pushing to origin...')
+  // Push to originlog('blue', 'Pushing to origin...')
   exec('git push origin main')
   exec('git push origin --tags')
 
@@ -149,8 +134,7 @@ async function main() {
   log('yellow', '3. Deploy to production')
 }
 
-// Install semver if not present
-try {
+// Install semver if not presenttry {
   require('semver')
 } catch {
   log('yellow', 'Installing semver...')

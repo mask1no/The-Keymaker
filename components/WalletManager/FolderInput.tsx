@@ -19,12 +19,10 @@ export function FolderInput({ onFilesSelected }: FolderInputProps) {
   return (
     <div>
       <Label htmlFor="folder-input">Select Folder</Label>
-      <Input
-        id="file-upload"
+      <Inputid="file-upload"
         type="file"
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        webkitdirectory="true"
+        // @ts-ignorewebkitdirectory="true"
         mozdirectory="true"
         onChange={handleFileChange}
       />

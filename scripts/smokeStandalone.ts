@@ -1,5 +1,4 @@
-#!/usr/bin/env tsx
-import {
+#!/usr/bin/env tsximport {
   Connection,
   Keypair,
   PublicKey,
@@ -68,11 +67,9 @@ async function main() {
   })
   if (!res.ok) throw new Error(await res.text())
   const jr = await res.json()
-  const bundleId = jr?.result || jr?.bundle_id
-  console.log('bundleId:', bundleId)
+  const bundleId = jr?.result || jr?.bundle_idconsole.log('bundleId:', bundleId)
 
-  // Poll status
-  const statusReq = {
+  // Poll statusconst statusReq = {
     jsonrpc: '2.0',
     id: Date.now() + 1,
     method: 'getBundleStatuses',
@@ -93,8 +90,7 @@ async function main() {
       v?.status === 'Invalid' ||
       v?.status === 'Failed'
     )
-      break
-    await new Promise((r) => setTimeout(r, 1500))
+      breakawait new Promise((r) => setTimeout(r, 1500))
   }
 }
 main().catch((e) => {

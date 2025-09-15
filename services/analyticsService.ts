@@ -2,20 +2,11 @@ import { apiClient } from '@/lib/apiClient'
 import { logger } from '@/lib/logger'
 
 export type Trade = {
-  id: string
-  tokenAddress: string
-  amount: number
-  price: number
-  timestamp: string
-  wallet: string
-  type: 'buy' | 'sell'
+  id: stringtokenAddress: stringamount: numberprice: numbertimestamp: stringwallet: stringtype: 'buy' | 'sell'
 }
 
 export type PriceData = {
-  sol: number
-  eth: number
-  btc: number
-  cake: number
+  sol: numbereth: numberbtc: numbercake: number
 }
 
 export async function getLivePrices(): Promise<PriceData> {
@@ -46,7 +37,6 @@ export async function exportToCsv(trades: Trade[]): Promise<void> {
   const blob = new Blob([csv], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
-  a.href = url
-  a.download = 'trades.csv'
+  a.href = urla.download = 'trades.csv'
   a.click()
 }

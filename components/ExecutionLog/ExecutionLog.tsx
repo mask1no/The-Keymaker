@@ -127,8 +127,7 @@ export function ExecutionLog() {
       : 0
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
@@ -143,16 +142,14 @@ export function ExecutionLog() {
               <Button size="sm" variant="outline" onClick={loadData}>
                 <RefreshCw className="w-4 h-4" />
               </Button>
-              <Button
-                size="sm"
+              <Button size="sm"
                 variant="outline"
                 onClick={() => handleExport('json')}
               >
                 <Download className="w-4 h-4 mr-1" />
                 JSON
               </Button>
-              <Button
-                size="sm"
+              <Button size="sm"
                 variant="outline"
                 onClick={() => handleExport('txt')}
               >
@@ -197,8 +194,7 @@ export function ExecutionLog() {
                   <DollarSign className="w-5 h-5 text-aqua" />
                   <div>
                     <p className="text-sm text-gray-400">Total P/L</p>
-                    <p
-                      className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-primary' : 'text-destructive'}`}
+                    <pclassName={`text-2xl font-bold ${totalPnL >= 0 ? 'text-primary' : 'text-destructive'}`}
                     >
                       {totalPnL >= 0 ? '+' : ''}
                       {formatSOL(totalPnL)} SOL
@@ -232,14 +228,12 @@ export function ExecutionLog() {
 
           {/* Tabs */}
           <div className="flex gap-2">
-            <Button
-              variant={activeTab === 'executions' ? 'default' : 'outline'}
+            <Button variant={activeTab === 'executions' ? 'default' : 'outline'}
               onClick={() => setActiveTab('executions')}
             >
               Bundle Executions
             </Button>
-            <Button
-              variant={activeTab === 'pnl' ? 'default' : 'outline'}
+            <Button variant={activeTab === 'pnl' ? 'default' : 'outline'}
               onClick={() => setActiveTab('pnl')}
             >
               P/L History
@@ -272,7 +266,6 @@ export function ExecutionLog() {
                   {executions.map((execution) => {
                     const total =
                       execution.success_count + execution.failure_count
-
                     return (
                       <TableRow key={execution.id}>
                         <TableCell className="text-xs">
@@ -345,8 +338,7 @@ export function ExecutionLog() {
                       </TableCell>
                       <TableCell>{getPnLBadge(record.profit_loss)}</TableCell>
                       <TableCell>
-                        <span
-                          className={
+                        <span className={
                             record.profit_percentage >= 0
                               ? 'text-primary'
                               : 'text-destructive'

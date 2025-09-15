@@ -30,7 +30,6 @@ class Logger {
           : level === 'warn'
             ? console.warn
             : console.log
-
       consoleMethod(
         `[${timestamp}] [${level.toUpperCase()}]`,
         message,
@@ -73,7 +72,6 @@ class Logger {
     const errorMessage =
       error?.response?.data?.message || error?.message || 'Unknown error'
     const statusCode = error?.response?.status
-
     this.error(`${service} API error: ${errorMessage}`, {
       service,
       statusCode,

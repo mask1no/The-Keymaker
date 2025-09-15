@@ -8,27 +8,17 @@ import {
 } from '@solana/web3.js'
 import { Loader2, Calculator, Info } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-// import { useSettingsStore } from '@/stores/useSettingsStore' - not needed
-import { connectionManager } from '@/services/connectionManager'
+// import { useSettingsStore } from '@/stores/useSettingsStore' - not neededimport { connectionManager } from '@/services/connectionManager'
 import { logger } from '@/lib/logger'
 
 interface FeeEstimate {
-  transactionFee: number
-  jitoTip: number
-  totalCost: number
-  costInSol: number
-  perTransaction: {
-    fee: number
-    tip: number
-    total: number
+  transactionFee: numberjitoTip: numbertotalCost: numbercostInSol: numberperTransaction: {
+    fee: numbertip: numbertotal: number
   }
 }
 
 interface FeeEstimatorProps {
-  transactionCount: number
-  tipAmount?: number // in lamports
-  onEstimateComplete?: (estimate: FeeEstimate) => void
-  className?: string
+  transactionCount: numbertipAmount?: number // in lamportsonEstimateComplete?: (estimate: FeeEstimate) => voidclassName?: string
 }
 
 export function FeeEstimator({
@@ -58,8 +48,7 @@ export function FeeEstimator({
     try {
       const connection = connectionManager.getConnection()
 
-      // Create a sample transaction to estimate fees
-      const sampleTx = new Transaction()
+      // Create a sample transaction to estimate feesconst sampleTx = new Transaction()
       sampleTx.add(
         SystemProgram.transfer({
           fromPubkey: PublicKey.default,
@@ -68,13 +57,10 @@ export function FeeEstimator({
         }),
       )
 
-      // Get recent blockhash for fee calculation
-      const { blockhash } = await connection.getLatestBlockhash('confirmed')
-      sampleTx.recentBlockhash = blockhash
-      sampleTx.feePayer = PublicKey.default
+      // Get recent blockhash for fee calculationconst { blockhash } = await connection.getLatestBlockhash('confirmed')
+      sampleTx.recentBlockhash = blockhashsampleTx.feePayer = PublicKey.default
 
-      // Get fee for the message
-      const feePerTx = await connection.getFeeForMessage(
+      // Get fee for the messageconst feePerTx = await connection.getFeeForMessage(
         sampleTx.compileMessage(),
         'confirmed',
       )
@@ -83,11 +69,7 @@ export function FeeEstimator({
         throw new Error('Could not estimate transaction fee')
       }
 
-      const transactionFee = feePerTx.value * transactionCount
-      const totalJitoTip = tipAmount * transactionCount
-      const totalCost = transactionFee + totalJitoTip
-
-      const newEstimate: FeeEstimate = {
+      const transactionFee = feePerTx.value * transactionCountconst totalJitoTip = tipAmount * transactionCountconst totalCost = transactionFee + totalJitoTipconst newEstimate: FeeEstimate = {
         transactionFee,
         jitoTip: totalJitoTip,
         totalCost,
@@ -119,8 +101,7 @@ export function FeeEstimator({
   }
 
   return (
-    <div
-      className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
+    <divclassName={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
     >
       <div className="flex items-center gap-2 mb-3">
         <Calculator className="w-4 h-4 text-aqua" />

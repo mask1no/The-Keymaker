@@ -8,12 +8,10 @@ import { useSettingsStore } from '@/stores/useSettingsStore'
 export function GlobalHotkeys() {
   const router = useRouter()
   const { connected, disconnect } = useWallet()
-  // Access store to keep hook order; do not use value to avoid lint error
-  useKeymakerStore()
+  // Access store to keep hook order; do not use value to avoid lint erroruseKeymakerStore()
   const { hotkeys } = useSettingsStore()
 
-  // ⌘+E or Ctrl+E to open Sell Monitor
-  useHotkeys(
+  // ⌘+E or Ctrl+E to open Sell MonitoruseHotkeys(
     hotkeys.openSellMonitor,
     (e) => {
       e.preventDefault()
@@ -58,8 +56,7 @@ export function GlobalHotkeys() {
     (e) => {
       e.preventDefault()
       if (connected) disconnect()
-      else
-        document
+      elsedocument
           .querySelector(
             'button[aria-label="Connect Wallet"], .wallet-adapter-button',
           )

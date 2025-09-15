@@ -1,9 +1,7 @@
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export interface TransactionFees {
-  gas: number // in SOL
-  jito: number // in SOL
-  total: number // in SOL
+  gas: number // in SOLjito: number // in SOLtotal: number // in SOL
 }
 
 /**
@@ -16,17 +14,12 @@ export function calculateBundleFees(
   txCount: number,
   jitoTipLamports = 0,
 ): TransactionFees {
-  // Base transaction fee is 5000 lamports per transaction
-  const BASE_TX_FEE_LAMPORTS = 5000
+  // Base transaction fee is 5000 lamports per transactionconst BASE_TX_FEE_LAMPORTS = 5000
 
   // Calculate gas fees (includes one extra for the tip transaction if using Jito)
-  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTS
-  const gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
+  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTSconst gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
 
-  // Convert Jito tip to SOL
-  const jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOL
-
-  return {
+  // Convert Jito tip to SOLconst jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOLreturn {
     gas: gasFeeSOL,
     jito: jitoTipSOL,
     total: gasFeeSOL + jitoTipSOL,

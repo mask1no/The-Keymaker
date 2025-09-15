@@ -21,9 +21,7 @@ describe('Bundle Configuration', () => {
   })
 
   describe('getBundleTxLimit', () => {
-    const originalEnv = process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT
-
-    afterEach(() => {
+    const originalEnv = process.env.NEXT_PUBLIC_BUNDLE_TX_LIMITafterEach(() => {
       if (originalEnv) {
         process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT = originalEnv
       } else {
@@ -32,8 +30,7 @@ describe('Bundle Configuration', () => {
     })
 
     it('should return default limit when env var not set', () => {
-      delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT
-      const result = getBundleTxLimit()
+      delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMITconst result = getBundleTxLimit()
       expect(result).toBe(BUNDLE_CONFIG.DEFAULT_TX_LIMIT)
     })
 

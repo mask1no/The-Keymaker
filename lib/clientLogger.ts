@@ -1,52 +1,13 @@
-// Client-side wrapper for execution log API
-
-export interface ExecutionRecord {
-  id: number
-  timestamp: string
-  phase: string
-  wallet_address: string
-  token_address?: string
-  amount?: number
-  txId?: string
-  bundle_id?: string
-  slot: number
-  signatures: string
-  status: string
-  success_count: number
-  failure_count: number
-  used_jito: boolean
-  execution_time: number
-  created_at: string
+// Client-side wrapper for execution log APIexport interface ExecutionRecord {
+  id: numbertimestamp: stringphase: stringwallet_address: stringtoken_address?: stringamount?: numbertxId?: stringbundle_id?: stringslot: numbersignatures: stringstatus: stringsuccess_count: numberfailure_count: numberused_jito: booleanexecution_time: numbercreated_at: string
 }
 
 export interface PnLRecord {
-  id: number
-  wallet: string
-  token_address: string
-  entry_price: number
-  exit_price: number
-  sol_invested: number
-  sol_returned: number
-  profit_loss: number
-  profit_percentage: number
-  hold_time: number
-  created_at: string
+  id: numberwallet: stringtoken_address: stringentry_price: numberexit_price: numbersol_invested: numbersol_returned: numberprofit_loss: numberprofit_percentage: numberhold_time: numbercreated_at: string
 }
 
 export interface ExecutionLog {
-  id: number
-  timestamp: number // Changed to number for sorting
-  wallet_address: string
-  phase: string
-  action: string
-  token_address?: string
-  amount?: number
-  status: string
-  error_message?: string
-  error?: string // Added for LogsPanel
-  details?: any // Added for LogsPanel
-  slot?: number
-  txId?: string
+  id: numbertimestamp: number // Changed to number for sortingwallet_address: stringphase: stringaction: stringtoken_address?: stringamount?: numberstatus: stringerror_message?: stringerror?: string // Added for LogsPaneldetails?: any // Added for LogsPanelslot?: numbertxId?: string
 }
 
 export async function getExecutionLogs(): Promise<ExecutionLog[]> {

@@ -8,12 +8,9 @@ const Box = ({
   ok,
   extra,
 }: {
-  label: string
-  ok: boolean
-  extra?: string
+  label: stringok: booleanextra?: string
 }) => (
-  <div
-    className={`rounded-2xl border p-3 ${ok ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
+  <divclassName={`rounded-2xl border p-3 ${ok ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
   >
     <div className="text-xs opacity-70">{label}</div>
     <div className="text-sm font-semibold">

@@ -7,7 +7,7 @@ export default async function GuidePage() {
   const guideHtml = micromark(guideContent)
   return (
     <div className="p-6">
-      <Card className="rounded-2xl border-border bg-card">
+      <Card className="rounded-2xl border border-border bg-card">
         <CardHeader><CardTitle>Guide</CardTitle></CardHeader>
         <CardContent><div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: guideHtml }} /></CardContent>
       </Card>

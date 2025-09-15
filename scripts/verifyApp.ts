@@ -1,9 +1,6 @@
-// Simple health verification script for CI/Docker
-async function main() {
+// Simple health verification script for CI/Dockerasync function main() {
   // For now, consider success if unit tests built and this script runs
-  // Optionally, we could ping an internal health endpoint if available
-  const ok = true
-  if (!ok) process.exit(1)
+  // Optionally, we could ping an internal health endpoint if availableconst ok = trueif (!ok) process.exit(1)
   console.log('verifyApp: ok')
 }
 
@@ -25,10 +22,8 @@ import {
 import WebSocket from 'ws'
 
 interface HealthCheck {
-  name: string
-  status: 'ok' | 'error'
-  message?: string
-  latency?: number
+  name: stringstatus: 'ok' | 'error'
+  message?: stringlatency?: number
 }
 
 async function checkRPC(endpoint: string): Promise<HealthCheck> {
@@ -36,9 +31,7 @@ async function checkRPC(endpoint: string): Promise<HealthCheck> {
     const start = Date.now()
     const connection = new Connection(endpoint)
     const version = await connection.getVersion()
-    const latency = Date.now() - start
-
-    return {
+    const latency = Date.now() - startreturn {
       name: 'RPC Connection',
       status: 'ok',
       message: `Connected to ${endpoint} (v${version['solana-core']})`,
@@ -69,8 +62,7 @@ async function checkWebSocket(endpoint: string): Promise<HealthCheck> {
 
     ws.on('open', () => {
       clearTimeout(timeout)
-      const latency = Date.now() - start
-      ws.close()
+      const latency = Date.now() - startws.close()
       resolve({
         name: 'WebSocket Connection',
         status: 'ok',
@@ -108,8 +100,7 @@ async function checkJito(): Promise<HealthCheck> {
     )
 
     if (response.ok) {
-      const latency = Date.now() - start
-      return {
+      const latency = Date.now() - startreturn {
         name: 'Jito Bundle API',
         status: 'ok',
         message: 'Connected to Jito block engine',
@@ -148,8 +139,7 @@ async function checkDatabase(): Promise<HealthCheck> {
       driver: sqlite3.Database,
     })
 
-    // Check required tables
-    const requiredTables = [
+    // Check required tablesconst requiredTables = [
       'wallets',
       'tokens',
       'trades',
@@ -193,8 +183,7 @@ async function checkDatabase(): Promise<HealthCheck> {
 async function checkPhantomConnection(): Promise<HealthCheck> {
   try {
     // In a server environment, we can't actually connect to Phantom
-    // But we can verify that the wallet adapter packages are installed
-    const adapterPath = path.join(
+    // But we can verify that the wallet adapter packages are installedconst adapterPath = path.join(
       process.cwd(),
       'node_modules',
       '@solana/wallet-adapter-phantom',
@@ -229,31 +218,26 @@ async function runDevnetTest(): Promise<HealthCheck> {
       'confirmed',
     )
 
-    // Create a test wallet
-    const payer = Keypair.generate()
+    // Create a test walletconst payer = Keypair.generate()
 
-    // Request airdrop
-    console.log('🪂 Requesting devnet airdrop...')
+    // Request airdropconsole.log('🪂 Requesting devnet airdrop...')
     const airdropSig = await connection.requestAirdrop(
       payer.publicKey,
       2 * LAMPORTS_PER_SOL,
     )
     await connection.confirmTransaction(airdropSig)
 
-    // Create SPL token
-    console.log('🪙 Creating test SPL token...')
+    // Create SPL tokenconsole.log('🪙 Creating test SPL token...')
     const mint = await createMint(connection, payer, payer.publicKey, null, 9)
 
-    // Create token account
-    const tokenAccount = await getOrCreateAssociatedTokenAccount(
+    // Create token accountconst tokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       payer,
       mint,
       payer.publicKey,
     )
 
-    // Mint tokens
-    await mintTo(
+    // Mint tokensawait mintTo(
       connection,
       payer,
       mint,
@@ -281,8 +265,7 @@ export async function verifyApp() {
 
   const checks: HealthCheck[] = []
 
-  // Run all checks
-  const rpcEndpoint =
+  // Run all checksconst rpcEndpoint =
     process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
   const wsEndpoint = rpcEndpoint.replace('https', 'wss')
 
@@ -292,13 +275,11 @@ export async function verifyApp() {
   checks.push(await checkDatabase())
   checks.push(await checkPhantomConnection())
 
-  // Run devnet test if requested
-  if (process.env.RUN_DEVNET_TEST === 'true') {
+  // Run devnet test if requestedif (process.env.RUN_DEVNET_TEST === 'true') {
     checks.push(await runDevnetTest())
   }
 
-  // Display results
-  console.log('📊 Verification Results:\n')
+  // Display resultsconsole.log('📊 Verification Results:\n')
   checks.forEach((check) => {
     const icon = check.status === 'ok' ? '✅' : '❌'
     console.log(`${icon} ${check.name}`)
@@ -311,8 +292,7 @@ export async function verifyApp() {
     console.log('')
   })
 
-  // Overall status
-  const allOk = checks.every((c) => c.status === 'ok')
+  // Overall statusconst allOk = checks.every((c) => c.status === 'ok')
   const result = {
     ok: allOk,
     checks: checks.reduce(
@@ -335,8 +315,7 @@ export async function verifyApp() {
   return result
 }
 
-// Run if called directly
-if (require.main === module) {
+// Run if called directlyif (require.main === module) {
   verifyApp()
     .then((result) => {
       process.exit(result.ok ? 0 : 1)

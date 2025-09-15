@@ -23,8 +23,7 @@ async function checkToken() {
     const connection = new Connection(RPC_URL, 'confirmed')
     const mintPubkey = new PublicKey(TOKEN_MINT)
 
-    // Try to get mint info
-    try {
+    // Try to get mint infotry {
       const mintInfo = await getMint(connection, mintPubkey)
       console.log('✅ Valid SPL Token Found!')
       console.log('📊 Token Details:')
@@ -62,8 +61,7 @@ async function checkToken() {
       )
       console.log(`   Birdeye: https://birdeye.so/token/${TOKEN_MINT}`)
 
-      // Try to get price info from Jupiter
-      console.log('\n💰 Checking price info...')
+      // Try to get price info from Jupiterconsole.log('\n💰 Checking price info...')
       try {
         const priceResponse = await fetch(
           `https://quote-api.jup.ag/v6/price?ids=${TOKEN_MINT}`,
@@ -71,20 +69,17 @@ async function checkToken() {
         if (priceResponse.ok) {
           const priceData = await priceResponse.json()
           if (priceData.data && priceData.data[TOKEN_MINT]) {
-            const price = priceData.data[TOKEN_MINT].price
-            console.log(`   Current Price: $${price}`)
+            const price = priceData.data[TOKEN_MINT].priceconsole.log(`   Current Price: $${price}`)
           }
         }
       } catch (e) {
         console.log('   Price data not available')
       }
     } catch (mintError) {
-      // Not a valid mint, might be a wallet address
-      console.log('❌ Not a valid SPL token mint')
+      // Not a valid mint, might be a wallet addressconsole.log('❌ Not a valid SPL token mint')
       console.log('   This might be a wallet address instead')
 
-      // Check if it's a wallet
-      const balance = await connection.getBalance(mintPubkey)
+      // Check if it's a walletconst balance = await connection.getBalance(mintPubkey)
       if (balance > 0) {
         console.log(`\n👛 This appears to be a wallet address`)
         console.log(`   Balance: ${balance / 1e9} SOL`)
@@ -95,5 +90,4 @@ async function checkToken() {
   }
 }
 
-// Run the check
-checkToken().catch(console.error)
+// Run the checkcheckToken().catch(console.error)

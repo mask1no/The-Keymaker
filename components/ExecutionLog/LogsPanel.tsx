@@ -79,8 +79,7 @@ export function LogsPanel() {
   const exportLogs = () => {
     const filteredLogs = getFilteredLogs()
 
-    // Create CSV content
-    const headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error']
+    // Create CSV contentconst headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error']
     const rows = filteredLogs.map((log) => [
       format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss'),
       log.action,
@@ -94,12 +93,10 @@ export function LogsPanel() {
       ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n')
 
-    // Download CSV
-    const blob = new Blob([csv], { type: 'text/csv' })
+    // Download CSVconst blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.download = `keymaker-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`
+    a.href = urla.download = `keymaker-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -110,24 +107,16 @@ export function LogsPanel() {
 
   const getFilteredLogs = () => {
     return logs.filter((log) => {
-      // Type filter
-      if (filter !== 'all') {
+      // Type filterif (filter !== 'all') {
         if (filter === 'token_launch' && !log.action.includes('token'))
-          return false
-        if (filter === 'bundle' && !log.action.includes('bundle')) return false
-        if (filter === 'sell' && !log.action.includes('sell')) return false
-        if (filter === 'error' && !log.error) return false
+          return falseif (filter === 'bundle' && !log.action.includes('bundle')) return falseif (filter === 'sell' && !log.action.includes('sell')) return falseif (filter === 'error' && !log.error) return false
       }
 
-      // Status filter
-      if (statusFilter !== 'all') {
-        if (statusFilter === 'success' && log.status !== 'success') return false
-        if (statusFilter === 'failed' && log.status !== 'failed') return false
-        if (statusFilter === 'pending' && log.status !== 'pending') return false
+      // Status filterif (statusFilter !== 'all') {
+        if (statusFilter === 'success' && log.status !== 'success') return falseif (statusFilter === 'failed' && log.status !== 'failed') return falseif (statusFilter === 'pending' && log.status !== 'pending') return false
       }
 
-      // Search filter
-      if (searchTerm) {
+      // Search filterif (searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesAction = log.action.toLowerCase().includes(search)
         const matchesDetails = JSON.stringify(log.details || {})
@@ -164,16 +153,13 @@ export function LogsPanel() {
   }
 
   const formatDetails = (details: any) => {
-    if (!details) return null
-
-    const items = []
+    if (!details) return nullconst items = []
 
     if (details.mint) {
       items.push(
         <div key="mint" className="flex items-center gap-2">
           <span className="text-white/60">Mint:</span>
-          <a
-            href={`https://solscan.io/token/${details.mint}`}
+          <ahref={`https://solscan.io/token/${details.mint}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-400 hover:underline flex items-center gap-1"
@@ -189,8 +175,7 @@ export function LogsPanel() {
       items.push(
         <div key="signature" className="flex items-center gap-2">
           <span className="text-white/60">TX:</span>
-          <a
-            href={`https://solscan.io/tx/${details.signature}`}
+          <ahref={`https://solscan.io/tx/${details.signature}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-400 hover:underline flex items-center gap-1"
@@ -237,8 +222,7 @@ export function LogsPanel() {
   const filteredLogs = getFilteredLogs()
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.divinitial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-6xl mx-auto space-y-6"
     >
@@ -251,19 +235,16 @@ export function LogsPanel() {
               Execution Logs
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="outline"
                 onClick={loadLogs}
                 disabled={isLoading}
               >
-                <RefreshCw
-                  className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+                <RefreshCwclassName={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                 />
                 Refresh
               </Button>
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="outline"
                 onClick={exportLogs}
                 disabled={filteredLogs.length === 0}
@@ -271,8 +252,7 @@ export function LogsPanel() {
                 <Download className="h-4 w-4" />
                 Export
               </Button>
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="destructive"
                 onClick={handleClearLogs}
                 disabled={logs.length === 0}
@@ -293,8 +273,7 @@ export function LogsPanel() {
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
-                <Input
-                  placeholder="Search logs..."
+                <Inputplaceholder="Search logs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-white/5"
@@ -303,8 +282,7 @@ export function LogsPanel() {
             </div>
 
             {/* Type Filter */}
-            <select
-              value={filter}
+            <selectvalue={filter}
               onChange={(e) => setFilter(e.target.value as LogType)}
               className="px-4 py-2 bg-white/5 border border-white/10 rounded-md"
             >
@@ -316,8 +294,7 @@ export function LogsPanel() {
             </select>
 
             {/* Status Filter */}
-            <select
-              value={statusFilter}
+            <selectvalue={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as LogStatus)}
               className="px-4 py-2 bg-white/5 border border-white/10 rounded-md"
             >
@@ -356,8 +333,7 @@ export function LogsPanel() {
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {filteredLogs.map((log) => (
-                <motion.div
-                  key={log.id}
+                <motion.divkey={log.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
@@ -398,20 +374,17 @@ export function LogsPanel() {
 
       {/* Detail Modal */}
       {selectedLog && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        <divclassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedLog(null)}
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+          <motion.divinitial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-black/90 border border-white/10 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">Log Details</h3>
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="ghost"
                 onClick={() => setSelectedLog(null)}
               >

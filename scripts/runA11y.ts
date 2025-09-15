@@ -4,17 +4,13 @@
  * Runs automated accessibility checks on the application
  */
 
-// Accessibility testing script
-
-async function runAccessibilityTests() {
+// Accessibility testing scriptasync function runAccessibilityTests() {
   console.log('🔍 Running accessibility tests...\n')
 
-  // Mock implementation for now - in production you'd use axe-core or pa11y
-  const criticalIssues = []
+  // Mock implementation for now - in production you'd use axe-core or pa11yconst criticalIssues = []
   const warnings = []
 
-  // Check for common accessibility patterns
-  const checks = [
+  // Check for common accessibility patternsconst checks = [
     { name: 'Alt text for images', passed: true },
     { name: 'ARIA labels for buttons', passed: true },
     { name: 'Color contrast ratios', passed: true },
@@ -49,8 +45,7 @@ async function runAccessibilityTests() {
   console.log('\n✅ Accessibility audit passed!')
 }
 
-// Run the tests
-runAccessibilityTests().catch((error) => {
+// Run the testsrunAccessibilityTests().catch((error) => {
   console.error('Error running accessibility tests:', error)
   process.exit(1)
 })

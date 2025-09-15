@@ -1,107 +1,52 @@
 export interface Trade {
-  id: string
-  tokenAddress: string
-  amount: number
-  price: number
-  timestamp: string
-  wallet: string
-  type: 'buy' | 'sell'
+  id: stringtokenAddress: stringamount: numberprice: numbertimestamp: stringwallet: stringtype: 'buy' | 'sell'
   signature?: string
 }
 
 export interface PriceData {
-  sol: number
-  eth: number
-  btc: number
-  cake: number
+  sol: numbereth: numberbtc: numbercake: number
 }
 
 export interface QuoteResponse {
-  inputMint: string
-  inAmount: string
-  outputMint: string
-  outAmount: string
-  otherAmountThreshold: string
-  swapMode: string
-  slippageBps: number
-  platformFee: null
-  priceImpactPct: string
-  routePlan: RoutePlanStep[]
-  contextSlot?: number
-  timeTaken?: number
+  inputMint: stringinAmount: stringoutputMint: stringoutAmount: stringotherAmountThreshold: stringswapMode: stringslippageBps: numberplatformFee: nullpriceImpactPct: stringroutePlan: RoutePlanStep[]
+  contextSlot?: numbertimeTaken?: number
 }
 
 interface RoutePlanStep {
   swapInfo: {
-    ammKey: string
-    label?: string
-    inputMint: string
-    outputMint: string
-    inAmount: string
-    outAmount: string
-    feeAmount: string
-    feeMint: string
+    ammKey: stringlabel?: stringinputMint: stringoutputMint: stringinAmount: stringoutAmount: stringfeeAmount: stringfeeMint: string
   }
   percent: number
 }
 
 export interface SwapResponse {
-  swapTransaction: string
-  lastValidBlockHeight: number
-  prioritizationFeeLamports?: number
+  swapTransaction: stringlastValidBlockHeight: numberprioritizationFeeLamports?: number
 }
 
 export interface Wallet {
-  id: string
-  name: string
-  publicKey: string
-  privateKey: string // Encrypted
-  group: string
-  color: string
+  id: stringname: stringpublicKey: stringprivateKey: string // Encryptedgroup: stringcolor: string
 }
 
 export interface ExecutionLog {
-  id: number
-  bundleId?: string
-  slot: number
-  signatures: string[]
+  id: numberbundleId?: stringslot: numbersignatures: string[]
   status: 'success' | 'partial' | 'failed'
-  successCount: number
-  failureCount: number
-  usedJito: boolean
-  executionTime: number
-  timestamp: string
+  successCount: numberfailureCount: numberusedJito: booleanexecutionTime: numbertimestamp: string
 }
 
 export interface TokenLaunch {
-  id: number
-  tokenAddress: string
-  name: string
-  symbol: string
-  platform: string
-  timestamp: string
+  id: numbertokenAddress: stringname: stringsymbol: stringplatform: stringtimestamp: string
 }
 
 export interface PnlRecord {
-  id: number
-  tokenAddress: string
-  amount: number
-  type: 'buy' | 'sell'
+  id: numbertokenAddress: stringamount: numbertype: 'buy' | 'sell'
   timestamp: string
 }
 
 export type Transaction = {
-  id: string
-  type: 'swap' | 'transfer'
-  // Swap specific
-  fromToken?: string
-  toToken?: string
-  amount?: number
-  slippage?: number
-  // Transfer specific
-  recipient?: string
-  // Common
-  fromAmount?: number
+  id: stringtype: 'swap' | 'transfer'
+  // Swap specificfromToken?: stringtoToken?: stringamount?: numberslippage?: number
+  // Transfer specificrecipient?: string
+  // CommonfromAmount?: number
 }
 
 export type Bundle = Transaction[]

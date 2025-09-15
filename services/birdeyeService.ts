@@ -1,29 +1,15 @@
 import { EventEmitter } from 'events'
 import { logger } from '@/lib/logger'
-// import { useSettingsStore } from '@/stores/useSettingsStore' - not needed
-
-interface TokenData {
-  price: number
-  priceChange24h: number
-  fdv: number
-  marketCap: number
-  volume24h: number
-  liquidityUSD?: number
-  holders?: number
-  priceHistory: { time: number; price: number }[]
+// import { useSettingsStore } from '@/stores/useSettingsStore' - not neededinterface TokenData {
+  price: numberpriceChange24h: numberfdv: numbermarketCap: numbervolume24h: numberliquidityUSD?: numberholders?: numberpriceHistory: { time: number; price: number }[]
 }
 
 interface BirdeyeConfig {
-  apiKey: string
-  wsUrl: string
-  network: 'mainnet' | 'devnet'
+  apiKey: stringwsUrl: stringnetwork: 'mainnet' | 'devnet'
 }
 
 class BirdeyeService extends EventEmitter {
-  private ws: WebSocket | null = null
-  private reconnectInterval: NodeJS.Timeout | null = null
-  private config: BirdeyeConfig | null = null
-  private subscribedTokens: Set<string> = new Set()
+  private ws: WebSocket | null = nullprivate reconnectInterval: NodeJS.Timeout | null = nullprivate config: BirdeyeConfig | null = nullprivate subscribedTokens: Set<string> = new Set()
   private tokenData: Map<string, TokenData> = new Map()
 
   constructor() {
@@ -32,10 +18,8 @@ class BirdeyeService extends EventEmitter {
   }
 
   private loadConfig() {
-    // const settings = useSettingsStore.getState() - not needed
-    const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    const birdeyeApiKey = process.env.BIRDEYE_API_KEY
-    if (birdeyeApiKey && network !== 'devnet') {
+    // const settings = useSettingsStore.getState() - not neededconst network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
+    const birdeyeApiKey = process.env.BIRDEYE_API_KEYif (birdeyeApiKey && network !== 'devnet') {
       this.config = {
         apiKey: birdeyeApiKey,
         wsUrl: 'wss://public-api.birdeye.so/socket',
@@ -46,8 +30,7 @@ class BirdeyeService extends EventEmitter {
 
   async getTokenData(tokenAddress: string): Promise<TokenData | null> {
     // Skip in devnet
-    // const settings = useSettingsStore.getState() - not needed
-    const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
+    // const settings = useSettingsStore.getState() - not neededconst network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
     if (network === 'devnet') {
       logger.debug('Skipping Birdeye API call in devnet')
       return null
@@ -59,8 +42,7 @@ class BirdeyeService extends EventEmitter {
     }
 
     try {
-      // Use server proxy to avoid exposing API key in client
-      const params = {
+      // Use server proxy to avoid exposing API key in clientconst params = {
         method: 'GET',
         service: 'birdeye',
         path: `/defi/token_overview`,
@@ -99,8 +81,7 @@ class BirdeyeService extends EventEmitter {
 
   subscribeToToken(tokenAddress: string) {
     // Skip in devnet
-    // const settings = useSettingsStore.getState() - not needed
-    const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
+    // const settings = useSettingsStore.getState() - not neededconst network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
     if (network === 'devnet') {
       return
     }
@@ -140,8 +121,7 @@ class BirdeyeService extends EventEmitter {
         logger.info('Connected to Birdeye WebSocket')
         this.emit('connected')
 
-        // Subscribe to all tokens
-        this.subscribedTokens.forEach((token) => {
+        // Subscribe to all tokensthis.subscribedTokens.forEach((token) => {
           this.sendSubscription(token)
         })
       }
@@ -189,9 +169,7 @@ class BirdeyeService extends EventEmitter {
 
   private handleMessage(message: any) {
     if (message.type === 'PRICE_UPDATE') {
-      const { address, price, timestamp } = message.data
-
-      const existingData = this.tokenData.get(address) || {
+      const { address, price, timestamp } = message.dataconst existingData = this.tokenData.get(address) || {
         price: 0,
         priceChange24h: 0,
         fdv: 0,
@@ -200,12 +178,9 @@ class BirdeyeService extends EventEmitter {
         priceHistory: [],
       }
 
-      // Update price and add to history
-      existingData.price = price
-      existingData.priceHistory.push({ time: timestamp, price })
+      // Update price and add to historyexistingData.price = priceexistingData.priceHistory.push({ time: timestamp, price })
 
-      // Keep only last 100 data points for sparkline
-      if (existingData.priceHistory.length > 100) {
+      // Keep only last 100 data points for sparklineif (existingData.priceHistory.length > 100) {
         existingData.priceHistory.shift()
       }
 

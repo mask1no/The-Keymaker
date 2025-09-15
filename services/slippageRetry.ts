@@ -2,16 +2,11 @@ import { logger } from '@/lib/logger'
 import toast from 'react-hot-toast'
 
 export interface SlippageConfig {
-  initialSlippage: number // Starting slippage percentage
-  maxSlippage: number // Maximum slippage percentage
-  stepSize: number // Increment size for each retry
+  initialSlippage: number // Starting slippage percentagemaxSlippage: number // Maximum slippage percentagestepSize: number // Increment size for each retry
 }
 
 export interface SwapResult {
-  success: boolean
-  txSignature?: string
-  error?: string
-  finalSlippage?: number
+  success: booleantxSignature?: stringerror?: stringfinalSlippage?: number
 }
 
 /**
@@ -26,10 +21,7 @@ export async function retryWithSlippage(
   ) => Promise<{ success: boolean; txSignature?: string; error?: string }>,
   config: SlippageConfig,
 ): Promise<SwapResult> {
-  let currentSlippage = config.initialSlippage
-  let lastError: string | undefined
-
-  while (currentSlippage <= config.maxSlippage) {
+  let currentSlippage = config.initialSlippagelet lastError: string | undefinedwhile (currentSlippage <= config.maxSlippage) {
     try {
       logger.info(`Attempting swap with ${currentSlippage}% slippage`)
 
@@ -44,12 +36,8 @@ export async function retryWithSlippage(
         }
       }
 
-      // Check if error is related to slippage/liquidity
-      if (result.error && isSlippageRelatedError(result.error)) {
-        lastError = result.error
-        currentSlippage += config.stepSize
-
-        if (currentSlippage <= config.maxSlippage) {
+      // Check if error is related to slippage/liquidityif (result.error && isSlippageRelatedError(result.error)) {
+        lastError = result.errorcurrentSlippage += config.stepSizeif (currentSlippage <= config.maxSlippage) {
           logger.warn(
             `Slippage error detected, retrying with ${currentSlippage}% slippage`,
           )
@@ -58,8 +46,7 @@ export async function retryWithSlippage(
           )
         }
       } else {
-        // Non-slippage error, don't retry
-        return {
+        // Non-slippage error, don't retryreturn {
           success: false,
           error: result.error,
           finalSlippage: currentSlippage,
@@ -69,10 +56,7 @@ export async function retryWithSlippage(
       logger.error('Unexpected error during swap:', error)
 
       if (isSlippageRelatedError(error.message)) {
-        lastError = error.message
-        currentSlippage += config.stepSize
-
-        if (currentSlippage <= config.maxSlippage) {
+        lastError = error.messagecurrentSlippage += config.stepSizeif (currentSlippage <= config.maxSlippage) {
           logger.warn(
             `Slippage error in catch, retrying with ${currentSlippage}% slippage`,
           )
@@ -90,8 +74,7 @@ export async function retryWithSlippage(
     }
   }
 
-  // Max slippage reached
-  toast.error(`Swap failed: Maximum slippage of ${config.maxSlippage}% reached`)
+  // Max slippage reachedtoast.error(`Swap failed: Maximum slippage of ${config.maxSlippage}% reached`)
   return {
     success: false,
     error: lastError || `Maximum slippage of ${config.maxSlippage}% reached`,

@@ -2,8 +2,7 @@ import { VersionedTransaction, PublicKey } from '@solana/web3.js'
 import { Result, ok, err } from './Result'
 
 export type WalletSigner = {
-  publicKey: PublicKey
-  signTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>
+  publicKey: PublicKeysignTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>
 }
 
 export class SigningService {

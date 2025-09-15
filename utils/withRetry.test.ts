@@ -103,8 +103,7 @@ describe('WithRetry Utils', () => {
       })
       const endTime = Date.now()
 
-      // Should wait 50ms + 100ms = 150ms minimum
-      expect(endTime - startTime).toBeGreaterThanOrEqual(140)
+      // Should wait 50ms + 100ms = 150ms minimumexpect(endTime - startTime).toBeGreaterThanOrEqual(140)
     })
 
     it('should call onRetry callback', async () => {

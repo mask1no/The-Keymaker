@@ -7,22 +7,14 @@ import * as Sentry from '@sentry/nextjs'
 import { logger } from '@/lib/logger'
 
 export type Wallet = {
-  id?: number
-  name: string
-  publicKey: string
-  privateKey: string // Encrypted
-  group: string
-  color: string
-  isActive: boolean
+  id?: numbername: stringpublicKey: stringprivateKey: string // Encryptedgroup: stringcolor: stringisActive: boolean
 }
 
-// Function to get a wallet by its public key
-export async function getWalletByPublicKey(
+// Function to get a wallet by its public keyexport async function getWalletByPublicKey(
   publicKey: string,
 ): Promise<Wallet | null> {
   try {
-    const dbInstance = await db
-    const row = await dbInstance.get(
+    const dbInstance = await dbconst row = await dbInstance.get(
       'SELECT * FROM wallets WHERE publicKey = ?',
       [publicKey],
     )
@@ -34,8 +26,7 @@ export async function getWalletByPublicKey(
   }
 }
 
-// Function to create a new wallet
-export async function createWallet(password: string): Promise<Wallet> {
+// Function to create a new walletexport async function createWallet(password: string): Promise<Wallet> {
   const mnemonic = bip39.generateMnemonic()
   const seed = await bip39.mnemonicToSeed(mnemonic)
   const keypair = Keypair.fromSeed(seed.slice(0, 32))
@@ -54,8 +45,7 @@ export async function createWallet(password: string): Promise<Wallet> {
     isActive: true,
   }
 
-  const dbInstance = await db
-  await dbInstance.run(
+  const dbInstance = await dbawait dbInstance.run(
     'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
     [
       newWallet.name,
@@ -75,48 +65,41 @@ export async function createWallet(password: string): Promise<Wallet> {
 }
 
 export async function getWallets(password: string): Promise<Wallet[]> {
-  const dbInstance = await db
-  const wallets = await dbInstance.all('SELECT * FROM wallets')
+  const dbInstance = await dbconst wallets = await dbInstance.all('SELECT * FROM wallets')
   const decryptedWallets: Wallet[] = await Promise.all(
     (wallets as Wallet[]).map(async (w: Wallet) => {
       try {
         const decryptedKey = await decrypt(w.privateKey, password)
         return { ...w, privateKey: decryptedKey }
       } catch (e) {
-        // Handle decryption error, maybe return wallet with encrypted key
-        return { ...w, privateKey: 'decryption-failed' }
+        // Handle decryption error, maybe return wallet with encrypted keyreturn { ...w, privateKey: 'decryption-failed' }
       }
     }),
   )
   return decryptedWallets
 }
 
-// Function to update a wallet's group
-export async function updateWalletGroup(
+// Function to update a wallet's groupexport async function updateWalletGroup(
   walletId: number,
   groupId: number,
 ): Promise<void> {
-  const dbInstance = await db
-  await dbInstance.run('UPDATE wallets SET groupId = ? WHERE id = ?', [
+  const dbInstance = await dbawait dbInstance.run('UPDATE wallets SET groupId = ? WHERE id = ?', [
     groupId,
     walletId,
   ])
 }
 
-// Function to update wallet notes
-export async function updateWalletNotes(
+// Function to update wallet notesexport async function updateWalletNotes(
   walletId: number,
   notes: string,
 ): Promise<void> {
-  const dbInstance = await db
-  await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [
+  const dbInstance = await dbawait dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [
     notes,
     walletId,
   ])
 }
 
-// Generate a new wallet from a seed phrase
-export const generateWalletFromSeed = async (
+// Generate a new wallet from a seed phraseexport const generateWalletFromSeed = async (
   seedPhrase: string,
   index: number,
 ): Promise<Wallet> => {
@@ -124,23 +107,19 @@ export const generateWalletFromSeed = async (
   return newWallet
 }
 
-// Wallet Groups
-export type WalletGroup = {
-  id: number
-  name: string
+// Wallet Groupsexport type WalletGroup = {
+  id: numbername: string
 }
 
 export async function getWalletGroups(): Promise<WalletGroup[]> {
-  const dbInstance = await db
-  const groups = await dbInstance.all(
+  const dbInstance = await dbconst groups = await dbInstance.all(
     'SELECT * FROM wallet_groups ORDER BY name',
   )
   return groups as WalletGroup[]
 }
 
 export async function createWalletGroup(name: string): Promise<WalletGroup> {
-  const dbInstance = await db
-  const result = await dbInstance.run(
+  const dbInstance = await dbconst result = await dbInstance.run(
     'INSERT INTO wallet_groups (name) VALUES (?)',
     [name],
   )
@@ -151,16 +130,14 @@ export async function createWalletGroup(name: string): Promise<WalletGroup> {
 }
 
 export async function deleteWalletGroup(id: number): Promise<void> {
-  const dbInstance = await db
-  await dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id])
+  const dbInstance = await dbawait dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id])
 }
 
 export async function updateWalletGroupName(
   id: number,
   name: string,
 ): Promise<void> {
-  const dbInstance = await db
-  await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [
+  const dbInstance = await dbawait dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [
     name,
     id,
   ])
@@ -226,8 +203,7 @@ export async function importWalletGroup(
 }
 
 export async function saveWalletToDb(wallet: Wallet): Promise<void> {
-  const dbInstance = await db
-  await dbInstance.run(
+  const dbInstance = await dbawait dbInstance.run(
     'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
     [
       wallet.name,

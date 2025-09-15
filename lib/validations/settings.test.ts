@@ -7,8 +7,7 @@ describe('Settings Validation', () => {
     apiKeys: {
       heliusRpc: 'https://mainnet.helius-rpc.com/?api-key=test',
       birdeyeApiKey: 'test-birdeye-key',
-      twoCaptchaKey: 'a'.repeat(32), // 32 chars
-      pumpfunApiKey: 'test-pump-key',
+      twoCaptchaKey: 'a'.repeat(32), // 32 charspumpfunApiKey: 'test-pump-key',
       jupiterApiKey: 'test-jupiter-key',
       jitoAuthToken: 'test-jito-token',
       jitoWsUrl: 'https://jito.example.com',
@@ -75,14 +74,9 @@ describe('Settings Validation', () => {
 
     it('should allow optional fields to be undefined', () => {
       const minimalSettings = clone(validSettings)
-      delete (minimalSettings.apiKeys as any).twoCaptchaKey
-      delete (minimalSettings.apiKeys as any).jupiterApiKey
-      delete (minimalSettings.apiKeys as any).jitoAuthToken
-
-      const result = settingsSchema.safeParse(minimalSettings)
+      delete (minimalSettings.apiKeys as any).twoCaptchaKeydelete (minimalSettings.apiKeys as any).jupiterApiKeydelete (minimalSettings.apiKeys as any).jitoAuthTokenconst result = settingsSchema.safeParse(minimalSettings)
       if (!result.success) {
-        // eslint-disable-next-line no-console
-        console.log('DEBUG optional undefined error:', result.error.issues)
+        // eslint-disable-next-line no-consoleconsole.log('DEBUG optional undefined error:', result.error.issues)
       }
       expect(result.success).toBe(true)
     })
@@ -120,8 +114,7 @@ describe('Settings Validation', () => {
 
       const result = settingsSchema.safeParse(validWsUrl)
       if (!result.success) {
-        // eslint-disable-next-line no-console
-        console.log('DEBUG ws valid error:', result.error.issues)
+        // eslint-disable-next-line no-consoleconsole.log('DEBUG ws valid error:', result.error.issues)
       }
       expect(result.success).toBe(true)
     })
@@ -130,8 +123,7 @@ describe('Settings Validation', () => {
   describe('bundle configuration validation', () => {
     it('should validate jitoTipLamports range', () => {
       const tooHigh = clone(validSettings)
-      // Use free-tier URL so the cap applies
-      tooHigh.apiKeys.jitoWsUrl = 'https://mainnet.block-engine.jito.wtf/api'
+      // Use free-tier URL so the cap appliestooHigh.apiKeys.jitoWsUrl = 'https://mainnet.block-engine.jito.wtf/api'
       tooHigh.bundleConfig.jitoTipLamports = 100000
 
       const result = settingsSchema.safeParse(tooHigh)
@@ -176,17 +168,13 @@ describe('Settings Validation', () => {
   describe('custom validation rules', () => {
     it('should require pumpfunApiKey on mainnet', () => {
       const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).pumpfunApiKey
-
-      const result = settingsSchema.safeParse(mainnetSettings)
+      delete (mainnetSettings.apiKeys as any).pumpfunApiKeyconst result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
     })
 
     it('should require jupiterApiKey on mainnet', () => {
       const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).jupiterApiKey
-
-      const result = settingsSchema.safeParse(mainnetSettings)
+      delete (mainnetSettings.apiKeys as any).jupiterApiKeyconst result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
     })
 
@@ -207,8 +195,7 @@ describe('Settings Validation', () => {
 
       const result = settingsSchema.safeParse(proSettings)
       if (!result.success) {
-        // eslint-disable-next-line no-console
-        console.log('DEBUG non-free-tier high tip error:', result.error.issues)
+        // eslint-disable-next-line no-consoleconsole.log('DEBUG non-free-tier high tip error:', result.error.issues)
       }
       expect(result.success).toBe(true)
     })

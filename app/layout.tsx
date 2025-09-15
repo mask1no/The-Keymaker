@@ -3,7 +3,11 @@ import WalletContext from '@/components/Wallet/WalletContext'
 import HeaderBar from '@/components/layout/Header'
 import SideNav from '@/components/layout/SideNav'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
       <body>

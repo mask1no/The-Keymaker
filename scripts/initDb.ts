@@ -6,21 +6,18 @@ import { open } from 'sqlite'
 async function initializeDatabase() {
   console.log('🗄️  Initializing database...')
 
-  // Ensure data directory exists
-  const dataDir = path.join(process.cwd(), 'data')
+  // Ensure data directory existsconst dataDir = path.join(process.cwd(), 'data')
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true })
     console.log('✅ Created data directory')
   }
 
-  // Open database connection
-  const db = await open({
+  // Open database connectionconst db = await open({
     filename: path.join(dataDir, 'keymaker.db'),
     driver: sqlite3.Database,
   })
 
-  // Check if tables exist
-  const tables = await db.all(
+  // Check if tables existconst tables = await db.all(
     "SELECT name FROM sqlite_master WHERE type='table'",
   )
 
@@ -45,8 +42,7 @@ async function initializeDatabase() {
 
   console.log(`📝 Creating ${missingTables.length} missing tables...`)
 
-  // Read and execute init.sql
-  const initSqlPath = path.join(process.cwd(), 'init.sql')
+  // Read and execute init.sqlconst initSqlPath = path.join(process.cwd(), 'init.sql')
   if (!fs.existsSync(initSqlPath)) {
     console.error('❌ init.sql file not found!')
     process.exit(1)
@@ -54,8 +50,7 @@ async function initializeDatabase() {
 
   const initSql = fs.readFileSync(initSqlPath, 'utf-8')
 
-  // Split SQL statements and execute them
-  const statements = initSql
+  // Split SQL statements and execute themconst statements = initSql
     .split(';')
     .filter((stmt) => stmt.trim())
     .map((stmt) => stmt.trim() + ';')
@@ -64,24 +59,21 @@ async function initializeDatabase() {
     try {
       await db.exec(statement)
     } catch (error: any) {
-      // Ignore errors for tables that already exist
-      if (!error.message.includes('already exists')) {
+      // Ignore errors for tables that already existif (!error.message.includes('already exists')) {
         console.error(`❌ Error executing SQL: ${error.message}`)
         console.error(`Statement: ${statement.substring(0, 100)}...`)
       }
     }
   }
 
-  // Verify tables were created
-  const newTables = await db.all(
+  // Verify tables were createdconst newTables = await db.all(
     "SELECT name FROM sqlite_master WHERE type='table'",
   )
 
   console.log('✅ Database initialized successfully')
   console.log(`📊 Tables: ${newTables.map((t) => t.name).join(', ')}`)
 
-  // Apply migrations
-  console.log('🔄 Applying migrations...')
+  // Apply migrationsconsole.log('🔄 Applying migrations...')
   const migrationsDir = path.join(process.cwd(), 'scripts', 'migrations')
   if (fs.existsSync(migrationsDir)) {
     const migrationFiles = fs
@@ -105,8 +97,7 @@ async function initializeDatabase() {
           try {
             await db.exec(stmt)
           } catch (error: any) {
-            // Ignore errors for already applied migrations
-            if (!error.message.includes('duplicate column')) {
+            // Ignore errors for already applied migrationsif (!error.message.includes('duplicate column')) {
               console.error(`    ⚠️ Migration warning: ${error.message}`)
             }
           }
@@ -120,8 +111,7 @@ async function initializeDatabase() {
   await db.close()
 }
 
-// Run if called directly
-if (require.main === module) {
+// Run if called directlyif (require.main === module) {
   initializeDatabase().catch(console.error)
 }
 

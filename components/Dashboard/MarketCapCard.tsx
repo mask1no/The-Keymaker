@@ -11,21 +11,11 @@ import {
 } from 'lucide-react'
 
 interface MarketCapData {
-  mint: string
-  marketCap: number
-  price: number
-  volume24h: number
-  priceChange24h: number
-  fdv: number
-  liquidityUSD?: number
-  holders?: number
-  lastUpdated: string
+  mint: stringmarketCap: numberprice: numbervolume24h: numberpriceChange24h: numberfdv: numberliquidityUSD?: numberholders?: numberlastUpdated: string
 }
 
 interface MarketCapCardProps {
-  mintAddress: string
-  tokenName?: string
-  tokenSymbol?: string
+  mintAddress: stringtokenName?: stringtokenSymbol?: string
 }
 
 export function MarketCapCard({
@@ -58,8 +48,7 @@ export function MarketCapCard({
 
   useEffect(() => {
     fetchMarketCap()
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchMarketCap, 30000)
+    // Refresh every 30 secondsconst interval = setInterval(fetchMarketCap, 30000)
     return () => clearInterval(interval)
   }, [mintAddress])
 
@@ -110,8 +99,7 @@ export function MarketCapCard({
             <p className="text-sm text-muted-foreground">
               {error || 'Market data not available'}
             </p>
-            <button
-              onClick={fetchMarketCap}
+            <buttononClick={fetchMarketCap}
               className="text-xs text-primary hover:underline mt-2"
             >
               Try again
@@ -143,8 +131,7 @@ export function MarketCapCard({
             <div className="text-lg font-semibold">
               {formatPrice(data.price)}
             </div>
-            <div
-              className={`text-xs flex items-center gap-1 ${
+            <divclassName={`text-xs flex items-center gap-1 ${
                 data.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
               }`}
             >

@@ -5,13 +5,11 @@
 
 import * as Sentry from '@sentry/nextjs'
 
-// Only initialize Sentry if DSN is provided
-if (process.env.SENTRY_DSN) {
+// Only initialize Sentry if DSN is providedif (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
 
-    // Adjust this value in production, or use tracesSampler for greater control
-    tracesSampleRate: 1,
+    // Adjust this value in production, or use tracesSampler for greater controltracesSampleRate: 1,
 
     // Setting this option to true will print useful information to the console while you're setting up Sentry.
     debug: false,

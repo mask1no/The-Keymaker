@@ -16,12 +16,7 @@ import { Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react'
 import { validatePasswordStrength } from '@/lib/secureStorage'
 
 interface PasswordDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (password: string) => void
-  title: string
-  description?: string
-  mode: 'create' | 'confirm' | 'unlock'
+  isOpen: booleanonClose: () => voidonSubmit: (password: string) => voidtitle: stringdescription?: stringmode: 'create' | 'confirm' | 'unlock'
   minStrength?: number
 }
 
@@ -46,8 +41,7 @@ export function PasswordDialog({
     feedback: [] as string[],
   })
 
-  // Clear form when dialog closes
-  useEffect(() => {
+  // Clear form when dialog closesuseEffect(() => {
     if (!isOpen) {
       setPassword('')
       setConfirmPassword('')
@@ -58,8 +52,7 @@ export function PasswordDialog({
     }
   }, [isOpen])
 
-  // Validate password strength for create mode
-  useEffect(() => {
+  // Validate password strength for create modeuseEffect(() => {
     if (mode === 'create' && password) {
       const result = validatePasswordStrength(password)
       setStrength(result)
@@ -91,8 +84,7 @@ export function PasswordDialog({
       setIsSubmitting(true)
 
       try {
-        // Add small delay to prevent timing attacks
-        await new Promise((resolve) => setTimeout(resolve, 100))
+        // Add small delay to prevent timing attacksawait new Promise((resolve) => setTimeout(resolve, 100))
         onSubmit(password)
         onClose()
       } catch (err) {
@@ -118,8 +110,7 @@ export function PasswordDialog({
     return 'Weak'
   }
 
-  // Prevent dialog from being closed by escape key during submission
-  const handleEscapeKeyDown = useCallback(
+  // Prevent dialog from being closed by escape key during submissionconst handleEscapeKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSubmitting) {
         e.preventDefault()
@@ -136,8 +127,7 @@ export function PasswordDialog({
   }, [isOpen, handleEscapeKeyDown])
 
   return (
-    <Dialog
-      open={isOpen}
+    <Dialogopen={isOpen}
       onOpenChange={(open) => !open && !isSubmitting && onClose()}
     >
       <DialogContent className="sm:max-w-[425px]">
@@ -153,8 +143,7 @@ export function PasswordDialog({
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
-              <Input
-                id="password"
+              <Inputid="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -164,14 +153,12 @@ export function PasswordDialog({
                     : 'Enter your password'
                 }
                 className="pr-10"
-                autoFocus
-                autoComplete={
+                autoFocusautoComplete={
                   mode === 'unlock' ? 'current-password' : 'new-password'
                 }
                 disabled={isSubmitting}
               />
-              <button
-                type="button"
+              <buttontype="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 tabIndex={-1}
@@ -188,8 +175,7 @@ export function PasswordDialog({
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Strength:</span>
-                  <span
-                    className={`text-sm font-medium ${getStrengthColor(strength.score)}`}
+                  <spanclassName={`text-sm font-medium ${getStrengthColor(strength.score)}`}
                   >
                     {getStrengthText(strength.score)}
                   </span>
@@ -209,8 +195,7 @@ export function PasswordDialog({
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
-                <Input
-                  id="confirmPassword"
+                <Inputid="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -219,8 +204,7 @@ export function PasswordDialog({
                   autoComplete="new-password"
                   disabled={isSubmitting}
                 />
-                <button
-                  type="button"
+                <buttontype="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   tabIndex={-1}
@@ -243,8 +227,7 @@ export function PasswordDialog({
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
+            <Buttontype="button"
               variant="outline"
               onClick={onClose}
               disabled={isSubmitting}

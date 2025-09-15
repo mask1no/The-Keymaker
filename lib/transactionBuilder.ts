@@ -27,14 +27,11 @@ export interface TransactionConfig {
   signer:
     | Keypair
     | {
-        publicKey: PublicKey
-        signTransaction?: (
+        publicKey: PublicKeysignTransaction?: (
           tx: VersionedTransaction,
         ) => Promise<VersionedTransaction>
       }
-  priorityFee?: number
-  tipLamports?: number
-  mode?: 'regular' | 'instant' | 'delayed'
+  priorityFee?: numbertipLamports?: numbermode?: 'regular' | 'instant' | 'delayed'
 }
 
 export async function buildNativeV0Transaction(
@@ -76,8 +73,7 @@ export async function buildNativeV0Transaction(
   return tx
 }
 
-// Aliases for existing imports
-export async function buildBundleTransactions(
+// Aliases for existing importsexport async function buildBundleTransactions(
   conn: Connection,
   items: TransactionConfig[],
 ) {

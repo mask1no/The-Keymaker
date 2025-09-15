@@ -28,7 +28,6 @@ export async function executeBundle(
   }
 
   const { getQuote, getSwapTransaction, connection } = jupiter
-
   try {
     const builtTransactions: VersionedTransaction[] = []
 

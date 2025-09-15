@@ -6,9 +6,7 @@
  * Validate password strength
  */
 export function validatePasswordStrength(password: string): {
-  valid: boolean
-  score: number
-  feedback: string[]
+  valid: booleanscore: numberfeedback: string[]
 } {
   const feedback: string[] = []
   let score = 0
@@ -43,8 +41,7 @@ export function validatePasswordStrength(password: string): {
     score += 1
   }
 
-  // Check for common patterns
-  const commonPatterns = ['password', '12345', 'qwerty', 'admin']
+  // Check for common patternsconst commonPatterns = ['password', '12345', 'qwerty', 'admin']
   if (
     commonPatterns.some((pattern) => password.toLowerCase().includes(pattern))
   ) {

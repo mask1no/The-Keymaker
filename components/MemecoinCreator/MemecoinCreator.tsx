@@ -7,8 +7,7 @@ import { GlassCard } from '@/components/UI/GlassCard'
 
 export default function MemecoinCreator() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.divinitial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full"
     >

@@ -7,7 +7,6 @@ import {
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 // Avoid pulling sqlite3 during SSR; log dynamically when needed
-
 interface WalletWithRole {
   publicKey: string
   role: 'master' | 'dev' | 'sniper' | 'normal'
@@ -52,7 +51,6 @@ function calculateDistribution(
   // Calculate base amounts
   const distributions: FundingDistribution[] = []
   let remainingAmount = totalAmount
-
   wallets.forEach((wallet, i) => {
     if (weights[i] === 0) return // Skip master wallets
 
@@ -120,7 +118,6 @@ export async function fundWalletGroup(
   const masterBalance = await connection.getBalance(masterWallet.publicKey)
   const requiredLamports =
     totalAmount * LAMPORTS_PER_SOL + wallets.length * 5000 // Include fees
-
   if (masterBalance < requiredLamports) {
     throw new Error(
       `Insufficient balance. Required: ${requiredLamports / LAMPORTS_PER_SOL} SOL, Available: ${masterBalance / LAMPORTS_PER_SOL} SOL`,

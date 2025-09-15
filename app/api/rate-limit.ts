@@ -1,5 +1,4 @@
-// Tiny in-memory rate limiter (per IP + route) for dev/demo purposes
-const buckets = new Map<string, { count: number; resetAt: number }>()
+// Tiny in-memory rate limiter (per IP + route) for dev/demo purposesconst buckets = new Map<string, { count: number; resetAt: number }>()
 
 export function rateLimit(key: string, limit = 30, windowMs = 60_000) {
   const now = Date.now()

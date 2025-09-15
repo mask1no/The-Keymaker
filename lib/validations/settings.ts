@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
-// URL validation regex
-const urlRegex =
+// URL validation regexconst urlRegex =
   /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/
 
 export const settingsSchema = z
@@ -16,8 +15,7 @@ export const settingsSchema = z
         .string()
         .min(32, '2Captcha API key must be at least 32 characters')
         .optional(),
-      pumpfunApiKey: z.string().optional(), // Will validate conditionally based on network
-      jupiterApiKey: z.string().optional(),
+      pumpfunApiKey: z.string().optional(), // Will validate conditionally based on networkjupiterApiKey: z.string().optional(),
       jitoAuthToken: z.string().optional(),
       jitoWsUrl: z.string().optional(),
     }),
@@ -34,8 +32,7 @@ export const settingsSchema = z
       .refine((val) => {
         const ok = val.startsWith('ws://') || val.startsWith('wss://')
         if (process.env.DEBUG_SETTINGS === '1' && !ok) {
-          // eslint-disable-next-line no-console
-          console.log('DEBUG wsUrl failed:', val)
+          // eslint-disable-next-line no-consoleconsole.log('DEBUG wsUrl failed:', val)
         }
         return ok
       }, 'Must be a valid WebSocket URL'),
@@ -52,17 +49,14 @@ export const settingsSchema = z
         .max(100, 'Jupiter fee cannot exceed 100 basis points'),
     }),
     captchaConfig: z.object({
-      headlessTimeout: z.number().min(10).max(120).default(30), // Timeout in seconds
-      twoCaptchaKey: z.string().optional(),
+      headlessTimeout: z.number().min(10).max(120).default(30), // Timeout in secondstwoCaptchaKey: z.string().optional(),
     }),
   })
   .refine(
     (data) => {
-      // Require Pump.fun API key on mainnet
-      if (data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) {
+      // Require Pump.fun API key on mainnetif (data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) {
         if (process.env.DEBUG_SETTINGS === '1') {
-          // eslint-disable-next-line no-console
-          console.log('DEBUG pumpfunApiKey missing on mainnet')
+          // eslint-disable-next-line no-consoleconsole.log('DEBUG pumpfunApiKey missing on mainnet')
         }
         return false
       }
@@ -75,11 +69,9 @@ export const settingsSchema = z
   )
   .refine(
     (data) => {
-      // Require Jupiter API key on mainnet
-      if (data.network === 'mainnet-beta' && !data.apiKeys.jupiterApiKey) {
+      // Require Jupiter API key on mainnetif (data.network === 'mainnet-beta' && !data.apiKeys.jupiterApiKey) {
         if (process.env.DEBUG_SETTINGS === '1') {
-          // eslint-disable-next-line no-console
-          console.log('DEBUG jupiterApiKey missing on mainnet')
+          // eslint-disable-next-line no-consoleconsole.log('DEBUG jupiterApiKey missing on mainnet')
         }
         return false
       }
@@ -92,14 +84,12 @@ export const settingsSchema = z
   )
   .refine(
     (data) => {
-      // Bundle-cost cap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpoint
-      const jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
+      // Bundle-cost cap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpointconst jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
       const isFreeTier = jitoUrl.includes('mainnet.block-engine.jito.wtf')
 
       if (isFreeTier && data.bundleConfig.jitoTipLamports > 50000) {
         if (process.env.DEBUG_SETTINGS === '1') {
-          // eslint-disable-next-line no-console
-          console.log('DEBUG jito free-tier cap violated', {
+          // eslint-disable-next-line no-consoleconsole.log('DEBUG jito free-tier cap violated', {
             jitoUrl,
             tip: data.bundleConfig.jitoTipLamports,
           })

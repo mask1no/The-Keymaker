@@ -1,19 +1,13 @@
-// Bundle configuration constants
-export const BUNDLE_CONFIG = {
-  // Default bundle transaction limit
-  DEFAULT_TX_LIMIT: 5,
+// Bundle configuration constantsexport const BUNDLE_CONFIG = {
+  // Default bundle transaction limitDEFAULT_TX_LIMIT: 5,
 
-  // Maximum allowed transactions per bundle
-  MAX_TX_LIMIT: 20,
+  // Maximum allowed transactions per bundleMAX_TX_LIMIT: 20,
 
-  // Minimum transactions required for a bundle
-  MIN_TX_LIMIT: 1,
+  // Minimum transactions required for a bundleMIN_TX_LIMIT: 1,
 
-  // Default Jito tip amount in lamports
-  DEFAULT_JITO_TIP: 10000, // 0.00001 SOL
+  // Default Jito tip amount in lamportsDEFAULT_JITO_TIP: 10000, // 0.00001 SOL
 
-  // Maximum retries for bundle submission
-  MAX_RETRIES: 3,
+  // Maximum retries for bundle submissionMAX_RETRIES: 3,
 
   // Timeout for bundle confirmation (ms)
   CONFIRMATION_TIMEOUT: 30000,
@@ -30,10 +24,8 @@ export const BUNDLE_CONFIG = {
   },
 }
 
-// Get bundle transaction limit from environment or use default
-export function getBundleTxLimit(): number {
-  const envLimit = process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT
-  if (envLimit) {
+// Get bundle transaction limit from environment or use defaultexport function getBundleTxLimit(): number {
+  const envLimit = process.env.NEXT_PUBLIC_BUNDLE_TX_LIMITif (envLimit) {
     const limit = parseInt(envLimit, 10)
     if (
       !isNaN(limit) &&

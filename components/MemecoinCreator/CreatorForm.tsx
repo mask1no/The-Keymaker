@@ -155,8 +155,7 @@ export function CreatorForm() {
 
   return (
     <div className="space-y-6">
-      <TokenLibrary
-        onPick={(t) => {
+      <TokenLibrary onPick={(t) => {
           form.setValue('name', t.name)
           form.setValue('symbol', t.symbol)
           form.setValue('decimals', t.decimals)
@@ -182,15 +181,13 @@ export function CreatorForm() {
                 </TabsList>
                 <TabsContent value="tokenInfo" className="pt-6">
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Token Name</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="e.g., Keymaker Coin"
+                            <Inputplaceholder="e.g., Keymaker Coin"
                               {...field}
                             />
                           </FormControl>
@@ -201,8 +198,7 @@ export function CreatorForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="symbol"
                       render={({ field }) => (
                         <FormItem>
@@ -218,15 +214,13 @@ export function CreatorForm() {
                       )}
                     />
                     <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
+                      <FormFieldcontrol={form.control}
                         name="supply"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Supply</FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
+                              <Inputtype="number"
                                 placeholder="1000000"
                                 {...field}
                               />
@@ -235,8 +229,7 @@ export function CreatorForm() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
+                      <FormFieldcontrol={form.control}
                         name="decimals"
                         render={({ field }) => (
                           <FormItem>
@@ -249,14 +242,12 @@ export function CreatorForm() {
                         )}
                       />
                     </div>
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="launch_platform"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Launch Platform</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
+                          <SelectonValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -280,21 +271,18 @@ export function CreatorForm() {
                       )}
                     />
                     {launchPlatform === 'raydium' && (
-                      <FormField
-                        control={form.control}
+                      <FormFieldcontrol={form.control}
                         name="freezeAuthority"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
                               <FormLabel>Enable Freeze Authority</FormLabel>
                               <FormDescription>
-                                Allows you to freeze token accounts, preventing
-                                transfers.
+                                Allows you to freeze token accounts, preventing transfers.
                               </FormDescription>
                             </div>
                             <FormControl>
-                              <Switch
-                                checked={field.value}
+                              <Switch checked={field.value}
                                 onCheckedChange={field.onChange}
                               />
                             </FormControl>
@@ -306,15 +294,13 @@ export function CreatorForm() {
                 </TabsContent>
                 <TabsContent value="metadata" className="pt-6">
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="description"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="A brief description of your token."
+                            <Textareaplaceholder="A brief description of your token."
                               {...field}
                             />
                           </FormControl>
@@ -322,15 +308,13 @@ export function CreatorForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="website"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Website</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="https://yourtoken.com"
+                            <Inputplaceholder="https://yourtoken.com"
                               {...field}
                             />
                           </FormControl>
@@ -338,15 +322,13 @@ export function CreatorForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="twitter"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Twitter</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="https://twitter.com/yourtoken"
+                            <Inputplaceholder="https://twitter.com/yourtoken"
                               {...field}
                             />
                           </FormControl>
@@ -354,15 +336,13 @@ export function CreatorForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="telegram"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Telegram</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="https://t.me/yourtoken"
+                            <Inputplaceholder="https://t.me/yourtoken"
                               {...field}
                             />
                           </FormControl>
@@ -370,15 +350,13 @@ export function CreatorForm() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
+                    <FormFieldcontrol={form.control}
                       name="image"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Token Image</FormLabel>
                           <FormControl>
-                            <Input
-                              type="file"
+                            <Inputtype="file"
                               accept="image/png, image/jpeg, image/gif"
                               onChange={(e) =>
                                 field.onChange(e.target.files?.[0] ?? null)
@@ -400,41 +378,27 @@ export function CreatorForm() {
               <Accordion type="single" collapsible className="w-full mt-6">
                 <AccordionItem value="item-1">
                   <AccordionTrigger>
-                    <div className="flex items-center space-x-2">
-                      <FormField
-                        control={form.control}
-                        name="createLiquidityPool"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                              <FormLabel>Create Liquidity Pool</FormLabel>
-                              <FormDescription>
-                                Automatically create a Raydium liquidity pool
-                                for this token.
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                    <div className="space-y-0.5">
+                      <FormLabel>Create Liquidity Pool</FormLabel>
+                      <FormDescription>
+                        Automatically create a Raydium liquidity pool for this token.
+                      </FormDescription>
                     </div>
+                    <FormControl>
+                      <Switch checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-2 gap-4 pt-4">
-                      <FormField
-                        control={form.control}
+                      <FormFieldcontrol={form.control}
                         name="solAmount"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>SOL Amount</FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
+                              <Inputtype="number"
                                 placeholder="e.g., 10"
                                 {...field}
                               />
@@ -443,15 +407,13 @@ export function CreatorForm() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
+                      <FormFieldcontrol={form.control}
                         name="tokenAmount"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Token Amount</FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
+                              <Inputtype="number"
                                 placeholder="e.g., 500000"
                                 {...field}
                               />

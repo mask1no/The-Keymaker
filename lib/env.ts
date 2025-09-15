@@ -25,28 +25,23 @@ const envSchema = z
     DETERMINISTIC_SEED: z.string().default('episode-kingdom-sunshine-alpha'),
   })
   .refine((data) => {
-    if (data.NETWORK === 'mainnet-beta' && !data.JUPITER_API_KEY) return false
-    return true
+    if (data.NETWORK === 'mainnet-beta' && !data.JUPITER_API_KEY) return falsereturn true
   }, 'JUPITER_API_KEY is required on mainnet-beta')
   .refine((data) => {
-    if (data.NETWORK === 'mainnet-beta' && !data.PUMPFUN_API_KEY) return false
-    return true
+    if (data.NETWORK === 'mainnet-beta' && !data.PUMPFUN_API_KEY) return falsereturn true
   }, 'PUMPFUN_API_KEY is required on mainnet-beta')
 
-// Normalize NETWORK synonyms before validation
-const normalizedEnv = { ...process.env }
+// Normalize NETWORK synonyms before validationconst normalizedEnv = { ...process.env }
 if (normalizedEnv.NETWORK === 'dev-net') normalizedEnv.NETWORK = 'devnet'
 if (normalizedEnv.NETWORK === 'main-net') normalizedEnv.NETWORK = 'mainnet-beta'
 
 const parsed = envSchema.safeParse(normalizedEnv)
 
 if (!parsed.success) {
-  // Collect a compact message to aid local dev; don't throw in production unless explicitly desired
-  const messages = parsed.error.issues.map(
+  // Collect a compact message to aid local dev; don't throw in production unless explicitly desiredconst messages = parsed.error.issues.map(
     (i) => `${i.path.join('.')}: ${i.message}`,
   )
-  // eslint-disable-next-line no-console
-  console.warn('[env] Validation warnings:', messages.join('; '))
+  // eslint-disable-next-line no-consoleconsole.warn('[env] Validation warnings:', messages.join('; '))
 }
 
 export const env = parsed.success

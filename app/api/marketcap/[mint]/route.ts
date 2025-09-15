@@ -7,7 +7,6 @@ export async function GET(
 ) {
   try {
     const mint = params.mint
-
     if (!mint || typeof mint !== 'string') {
       return NextResponse.json(
         { error: 'Invalid mint address' },

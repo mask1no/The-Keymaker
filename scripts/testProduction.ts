@@ -16,11 +16,9 @@ import { getWallets, Wallet, createWallet } from '@/services/walletService'
 import { buildSwapTransaction } from '../services/jupiterService'
 import { logger } from '../lib/logger'
 
-// Load environment variables
-dotenv.config({ path: '.env.local' })
+// Load environment variablesdotenv.config({ path: '.env.local' })
 
-// Color codes for terminal output
-const colors = {
+// Color codes for terminal outputconst colors = {
   green: '\x1b[32m',
   red: '\x1b[31m',
   yellow: '\x1b[33m',
@@ -29,8 +27,7 @@ const colors = {
 }
 
 interface TestResult {
-  name: string
-  status: 'pass' | 'fail' | 'warning' | 'skip'
+  name: stringstatus: 'pass' | 'fail' | 'warning' | 'skip'
   message: string
 }
 
@@ -63,8 +60,7 @@ async function testSolanaRPC() {
 }
 
 async function testDynamicTokenCreation() {
-  // Only run on devnet unless explicitly requested
-  const network = process.env.NEXT_PUBLIC_NETWORK || 'devnet'
+  // Only run on devnet unless explicitly requestedconst network = process.env.NEXT_PUBLIC_NETWORK || 'devnet'
   const isTestMode = process.argv.includes('--test-mode')
 
   if (network === 'mainnet-beta' && !isTestMode) {
@@ -77,8 +73,7 @@ async function testDynamicTokenCreation() {
   }
 
   try {
-    // Create a test keypair for the token creator
-    const payer = Keypair.generate()
+    // Create a test keypair for the token creatorconst payer = Keypair.generate()
     const connection = getConnection()
 
     // Fund the payer (on devnet)
@@ -98,8 +93,7 @@ async function testDynamicTokenCreation() {
       return null
     }
 
-    // Create test token
-    const tokenParams = {
+    // Create test tokenconst tokenParams = {
       name: `KeymakerTest${Date.now()}`,
       symbol: `KMT${Date.now().toString().slice(-4)}`,
       decimals: 9,
@@ -139,8 +133,7 @@ async function testDynamicTokenCreation() {
 
 async function testWalletCreation() {
   try {
-    // Create test wallets
-    const wallets = []
+    // Create test walletsconst wallets = []
     for (let i = 0; i < 3; i++) {
       const wallet = await createWallet('testpassword')
       wallets.push(wallet)
@@ -180,8 +173,7 @@ async function testBundleExecution(
   try {
     const connection = getConnection()
 
-    // Fund test wallets
-    log('blue', 'Funding test wallets...')
+    // Fund test walletslog('blue', 'Funding test wallets...')
     for (const wallet of wallets) {
       const keypair = Keypair.fromSecretKey(new Uint8Array(wallet.keypair))
       const airdropSig = await connection.requestAirdrop(
@@ -191,20 +183,16 @@ async function testBundleExecution(
       await connection.confirmTransaction(airdropSig)
     }
 
-    // Build swap transactions
-    const transactions = []
+    // Build swap transactionsconst transactions = []
     const signers = []
     const walletRoles = []
 
     for (const wallet of wallets) {
       const keypair = Keypair.fromSecretKey(new Uint8Array(wallet.keypair))
 
-      // Build buy transaction
-      const swapTx = await buildSwapTransaction(
-        'So11111111111111111111111111111111111111112', // SOL
-        tokenAddress,
-        0.01 * LAMPORTS_PER_SOL, // 0.01 SOL
-        keypair.publicKey.toBase58(),
+      // Build buy transactionconst swapTx = await buildSwapTransaction(
+        'So11111111111111111111111111111111111111112', // SOLtokenAddress,
+        0.01 * LAMPORTS_PER_SOL, // 0.01 SOLkeypair.publicKey.toBase58(),
         100, // 1% slippage
         'medium' as any,
       )
@@ -217,8 +205,7 @@ async function testBundleExecution(
       })
     }
 
-    // Execute bundle
-    log('blue', 'Executing test bundle...')
+    // Execute bundlelog('blue', 'Executing test bundle...')
     // const result = await executeBundle(
     //   transactions.map((tx) => Transaction.from(tx.serialize())),
     //   walletRoles,
@@ -230,8 +217,7 @@ async function testBundleExecution(
     //   },
     // )
 
-    const successCount = 0 //result.results.filter((r) => r === 'success').length
-    if (successCount > 0) {
+    const successCount = 0 //result.results.filter((r) => r === 'success').lengthif (successCount > 0) {
       addTest(
         'Bundle Execution',
         'pass',
@@ -263,14 +249,12 @@ async function testPnLTracking(bundleResult: any) {
   }
 
   try {
-    // Open database
-    const db = await open({
+    // Open databaseconst db = await open({
       filename: path.join(process.cwd(), 'data', 'analytics.db'),
       driver: sqlite3.Database,
     })
 
-    // Check if trades were recorded
-    const trades = await db.all(
+    // Check if trades were recordedconst trades = await db.all(
       'SELECT * FROM pnl_tracking ORDER BY timestamp DESC LIMIT 10',
     )
 
@@ -304,15 +288,13 @@ async function testJitoEndpoint() {
     'https://mainnet.block-engine.jito.wtf'
 
   try {
-    // Test basic connectivity
-    const response = await axios.get(jitoUrl + '/api/v1/bundles', {
+    // Test basic connectivityconst response = await axios.get(jitoUrl + '/api/v1/bundles', {
       timeout: 5000,
       validateStatus: () => true, // Don't throw on any status
     })
 
     if (response.status === 405 || response.status === 404) {
-      // Expected - endpoint exists but needs proper method/auth
-      addTest(
+      // Expected - endpoint exists but needs proper method/authaddTest(
         'Jito Endpoint',
         'pass',
         'Jito block engine endpoint is reachable',
@@ -339,16 +321,13 @@ async function testJitoEndpoint() {
 
 async function testBirdeyeAPI() {
   // Server-only key. If absent, skip; we never require a public key in client bundles.
-  const apiKey = process.env.BIRDEYE_API_KEY
-
-  if (!apiKey) {
+  const apiKey = process.env.BIRDEYE_API_KEYif (!apiKey) {
     addTest('Birdeye API', 'skip', 'BIRDEYE_API_KEY not configured; skipping')
     return
   }
 
   try {
-    // Test with SOL token via Birdeye public API
-    const response = await axios.get(
+    // Test with SOL token via Birdeye public APIconst response = await axios.get(
       'https://public-api.birdeye.so/public/price?address=So11111111111111111111111111111111111111112',
       {
         headers: { 'X-API-KEY': apiKey },
@@ -397,12 +376,10 @@ async function testDatabase() {
 }
 
 async function testEnvironmentSecurity() {
-  // Check if .env.local exists and is not .env
-  try {
+  // Check if .env.local exists and is not .envtry {
     await fs.access('.env.local')
 
-    // Check NODE_ENV
-    if (process.env.NODE_ENV === 'production') {
+    // Check NODE_ENVif (process.env.NODE_ENV === 'production') {
       addTest('Environment', 'pass', 'NODE_ENV set to production')
     } else {
       addTest(
@@ -412,8 +389,7 @@ async function testEnvironmentSecurity() {
       )
     }
 
-    // Warn about sensitive keys
-    const sensitiveKeys = ['KEYPAIR', 'JITO_AUTH_TOKEN']
+    // Warn about sensitive keysconst sensitiveKeys = ['KEYPAIR', 'JITO_AUTH_TOKEN']
     const exposedKeys = sensitiveKeys.filter((key) => {
       const value = process.env[key]
       return value && !value.includes('YOUR_')
@@ -437,8 +413,7 @@ async function runAllTests() {
   const network = process.env.NEXT_PUBLIC_NETWORK || 'devnet'
   console.log(`📡 Network: ${network}\n`)
 
-  // Basic connectivity tests
-  await testSolanaRPC()
+  // Basic connectivity testsawait testSolanaRPC()
   await testJitoEndpoint()
   await testBirdeyeAPI()
   await testDatabase()
@@ -457,8 +432,7 @@ async function runAllTests() {
     await testPnLTracking(bundleResult)
   }
 
-  // Summary
-  console.log('\n📊 Test Summary:')
+  // Summaryconsole.log('\n📊 Test Summary:')
   console.log('═'.repeat(60))
 
   let passed = 0
@@ -517,8 +491,7 @@ async function testDynamicBundleExecution() {
   logger.info('Starting dynamic bundle execution test...')
 
   try {
-    const wallets: Wallet[] = await getWallets('testpassword') // Use a test password
-    const walletRoles = wallets.map((w, i) => ({
+    const wallets: Wallet[] = await getWallets('testpassword') // Use a test passwordconst walletRoles = wallets.map((w, i) => ({
       publicKey: w.publicKey,
       role: i === 0 ? 'sniper' : 'normal',
     }))
@@ -526,11 +499,7 @@ async function testDynamicBundleExecution() {
       Keypair.fromSecretKey(Buffer.from(w.privateKey, 'hex')),
     )
 
-    const fromMint = 'So11111111111111111111111111111111111111112' // SOL
-    const toMint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // USDC
-    const amount = 0.01 * LAMPORTS_PER_SOL
-
-    const swapTxPromises = wallets.map((wallet) =>
+    const fromMint = 'So11111111111111111111111111111111111111112' // SOLconst toMint = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // USDCconst amount = 0.01 * LAMPORTS_PER_SOLconst swapTxPromises = wallets.map((wallet) =>
       buildSwapTransaction(
         fromMint,
         toMint,

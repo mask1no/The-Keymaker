@@ -7,8 +7,7 @@ export function Slider({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SliderPr.Root>) {
   return (
-    <SliderPr.Root
-      className={cn(
+    <SliderPr.RootclassName={cn(
         'relative flex w-full touch-none select-none items-center',
         className,
       )}

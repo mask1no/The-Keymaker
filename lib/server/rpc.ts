@@ -1,5 +1,4 @@
-// Server-side RPC URL helper
-export function getServerRpc(): string {
+// Server-side RPC URL helperexport function getServerRpc(): string {
   return (
     process.env.RPC_URL ||
     process.env.NEXT_PUBLIC_HELIUS_RPC ||

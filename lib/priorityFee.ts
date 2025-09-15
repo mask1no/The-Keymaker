@@ -16,8 +16,7 @@ export function getComputeUnitPriceLamports(priority: PriorityLevel): number {
 }
 
 export function getDefaultComputeUnitLimit(): number {
-  // Conservative default; tailor per simulation if available
-  return 200_000
+  // Conservative default; tailor per simulation if availablereturn 200_000
 }
 
 export function createComputeBudgetInstructions(

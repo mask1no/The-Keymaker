@@ -1,19 +1,7 @@
 import { create } from 'zustand'
 
 interface ConnectionState {
-  rpcDown: boolean
-  wsDown: boolean
-  jitoDown: boolean
-  mainnetDown: boolean
-  retryCount: number
-  retryInSeconds: number
-  setRpcDown: (down: boolean) => void
-  setWsDown: (down: boolean) => void
-  setJitoDown: (down: boolean) => void
-  setMainnetDown: (down: boolean) => void
-  setRetryCount: (count: number) => void
-  setRetryInSeconds: (seconds: number) => void
-  isAnyServiceDown: () => boolean
+  rpcDown: booleanwsDown: booleanjitoDown: booleanmainnetDown: booleanretryCount: numberretryInSeconds: numbersetRpcDown: (down: boolean) => voidsetWsDown: (down: boolean) => voidsetJitoDown: (down: boolean) => voidsetMainnetDown: (down: boolean) => voidsetRetryCount: (count: number) => voidsetRetryInSeconds: (seconds: number) => voidisAnyServiceDown: () => boolean
 }
 
 export const useConnectionStore = create<ConnectionState>((set, get) => ({

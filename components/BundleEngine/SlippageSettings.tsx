@@ -12,10 +12,7 @@ import {
 } from '@/components/UI/tooltip'
 
 interface SlippageSettingsProps {
-  slippage: number
-  maxSlippage: number
-  onSlippageChange: (value: number) => void
-  onMaxSlippageChange: (value: number) => void
+  slippage: numbermaxSlippage: numberonSlippageChange: (value: number) => voidonMaxSlippageChange: (value: number) => void
 }
 
 export function SlippageSettings({
@@ -36,17 +33,14 @@ export function SlippageSettings({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  The starting slippage tolerance for swaps. If a swap fails due
-                  to insufficient liquidity, the system will automatically retry
-                  with higher slippage.
+                  The starting slippage tolerance for swaps. If a swap fails dueto insufficient liquidity, the system will automatically retrywith higher slippage.
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
         <div className="flex items-center gap-4">
-          <Slider
-            value={[slippage]}
+          <Slidervalue={[slippage]}
             onValueChange={(value) => onSlippageChange(value[0])}
             min={0.1}
             max={10}
@@ -54,8 +48,7 @@ export function SlippageSettings({
             className="flex-1"
           />
           <div className="flex items-center gap-1">
-            <Input
-              type="number"
+            <Inputtype="number"
               value={slippage}
               onChange={(e) =>
                 onSlippageChange(parseFloat(e.target.value) || 0)
@@ -80,17 +73,14 @@ export function SlippageSettings({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  The maximum slippage tolerance. The system will stop retrying
-                  once this limit is reached. Higher values may result in worse
-                  execution prices.
+                  The maximum slippage tolerance. The system will stop retryingonce this limit is reached. Higher values may result in worseexecution prices.
                 </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
         <div className="flex items-center gap-4">
-          <Slider
-            value={[maxSlippage]}
+          <Slidervalue={[maxSlippage]}
             onValueChange={(value) => onMaxSlippageChange(value[0])}
             min={1}
             max={20}
@@ -98,8 +88,7 @@ export function SlippageSettings({
             className="flex-1"
           />
           <div className="flex items-center gap-1">
-            <Input
-              type="number"
+            <Inputtype="number"
               value={maxSlippage}
               onChange={(e) =>
                 onMaxSlippageChange(parseFloat(e.target.value) || 1)
@@ -116,8 +105,7 @@ export function SlippageSettings({
 
       <div className="text-xs text-gray-400 mt-2">
         💡 Tip: For new tokens with low liquidity, use higher slippage values
-        (5-10%). For established tokens, lower values (0.5-2%) are usually
-        sufficient.
+        (5-10%). For established tokens, lower values (0.5-2%) are usuallysufficient.
       </div>
     </div>
   )

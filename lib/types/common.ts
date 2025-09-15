@@ -2,47 +2,32 @@
  * Common type definitions to replace 'any' types throughout the application
  */
 
-// Generic object types
-export type AnyObject = Record<string, unknown>
+// Generic object typesexport type AnyObject = Record<string, unknown>
 export type JsonValue =
   | string
   | number
   | boolean
   | null
   | JsonObject
-  | JsonArray
-export type JsonObject = { [key: string]: JsonValue }
+  | JsonArrayexport type JsonObject = { [key: string]: JsonValue }
 export type JsonArray = JsonValue[]
 
-// API Response types
-export type ApiResponse<T = unknown> = {
-  data?: T
-  error?: string
-  message?: string
-  status: number
+// API Response typesexport type ApiResponse<T = unknown> = {
+  data?: Terror?: stringmessage?: stringstatus: number
 }
 
-// Error types
-export type ErrorWithMessage = {
-  message: string
-  code?: string
-  stack?: string
+// Error typesexport type ErrorWithMessage = {
+  message: stringcode?: stringstack?: string
 }
 
-// Event handler types
-export type ChangeHandler<T = unknown> = (value: T) => void
-export type SubmitHandler<T = unknown> = (data: T) => void | Promise<void>
+// Event handler typesexport type ChangeHandler<T = unknown> = (value: T) => voidexport type SubmitHandler<T = unknown> = (data: T) => void | Promise<void>
 
-// Window extension type
-export interface ExtendedWindow extends Window {
-  NEXT_PUBLIC_HELIUS_RPC?: string
-  NEXT_PUBLIC_BIRDEYE_API_KEY?: string
-  NEXT_PUBLIC_BUNDLE_TX_LIMIT?: string
+// Window extension typeexport interface ExtendedWindow extends Window {
+  NEXT_PUBLIC_HELIUS_RPC?: stringNEXT_PUBLIC_BIRDEYE_API_KEY?: stringNEXT_PUBLIC_BUNDLE_TX_LIMIT?: string
   [key: string]: unknown
 }
 
-// Safe type guards
-export function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+// Safe type guardsexport function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
   return (
     typeof error === 'object' &&
     error !== null &&
@@ -52,9 +37,7 @@ export function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
 }
 
 export function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
-  if (isErrorWithMessage(maybeError)) return maybeError
-
-  try {
+  if (isErrorWithMessage(maybeError)) return maybeErrortry {
     return new Error(JSON.stringify(maybeError)) as ErrorWithMessage
   } catch {
     return new Error(String(maybeError)) as ErrorWithMessage

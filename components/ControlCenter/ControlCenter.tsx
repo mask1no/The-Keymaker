@@ -184,7 +184,6 @@ export function ControlCenter() {
     const masterKeypair = masterWallet
       ? getWalletWithKeypair(masterWallet.publicKey)
       : null
-
     if (!masterKeypair) {
       toast.error('No master wallet keypair available')
       return
@@ -298,7 +297,6 @@ export function ControlCenter() {
 
         // Calculate buy amount (use part of the funded amount)
         const buyAmountSol = (wallet.balance * 0.8) / LAMPORTS_PER_SOL // Use 80% of balance
-
         try {
           // Build swap transaction (SOL -> Token)
           const swapTx = await buildSwapTransaction(
@@ -327,7 +325,6 @@ export function ControlCenter() {
 
       // Execute based on strategy
       let bundleResult
-
       switch (executionStrategy) {
         case 'flash': {
           // Instant mode with Jito bundling
@@ -599,8 +596,7 @@ export function ControlCenter() {
         )
       }
 
-      // Step 7: Complete
-      updateStepStatus('complete', 'completed', 'Keymaker execution complete!')
+      // Step 7: CompleteupdateStepStatus('complete', 'completed', 'Keymaker execution complete!')
       toast.success('🔑 Keymaker execution complete!')
     } catch (error) {
       const step = executionSteps[currentStep]
@@ -636,8 +632,7 @@ export function ControlCenter() {
           {/* Strategy Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Execution Strategy</label>
-            <Select
-              value={executionStrategy}
+            <Select value={executionStrategy}
               onValueChange={(value) => setExecutionStrategy(value as any)}
               disabled={isExecuting}
             >
@@ -662,8 +657,7 @@ export function ControlCenter() {
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Pre-flight Checks</h3>
             <div className="space-y-1">
-              <CheckItem
-                label="Master Wallet"
+              <CheckItem label="Master Wallet"
                 checked={!!masterWallet}
                 detail={
                   masterWallet
@@ -671,18 +665,15 @@ export function ControlCenter() {
                     : 'Not assigned'
                 }
               />
-              <CheckItem
-                label="Dev Wallets"
+              <CheckItem label="Dev Wallets"
                 checked={devWallets.length > 0}
                 detail={`${devWallets.length} wallets`}
               />
-              <CheckItem
-                label="Sniper Wallets"
+              <CheckItem label="Sniper Wallets"
                 checked={sniperWallets.length > 0}
                 detail={`${sniperWallets.length} wallets`}
               />
-              <CheckItem
-                label="Token Config"
+              <CheckItem label="Token Config"
                 checked={!!tokenLaunchData}
                 detail={
                   tokenLaunchData
@@ -690,8 +681,7 @@ export function ControlCenter() {
                     : 'Not configured'
                 }
               />
-              <CheckItem
-                label="Jito Bundle"
+              <CheckItem label="Jito Bundle"
                 checked={jitoEnabled}
                 detail={jitoEnabled ? `${tipAmount} SOL tip` : 'Disabled'}
               />
@@ -701,8 +691,7 @@ export function ControlCenter() {
                     Suggested Tip:{' '}
                     {tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL} SOL
                   </span>
-                  <Button
-                    size="sm"
+                  <Button size="sm"
                     variant="outline"
                     onClick={() =>
                       useKeymakerStore
@@ -721,8 +710,7 @@ export function ControlCenter() {
 
           {/* Execute Button */}
           <div className="flex gap-2">
-            <Button
-              size="lg"
+            <Button size="lg"
               className="w-full"
               onClick={executeKeymaker}
               disabled={
@@ -738,8 +726,7 @@ export function ControlCenter() {
                   Executing...
                 </>
               ) : (
-                <motion.div
-                  className="flex items-center"
+                <motion.div className="flex items-center"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 >
@@ -748,8 +735,7 @@ export function ControlCenter() {
                 </motion.div>
               )}
             </Button>
-            <Button
-              size="lg"
+            <Button size="lg"
               variant="destructive"
               className="w-full"
               onClick={() => setShowSellDialog(true)}
@@ -764,8 +750,7 @@ export function ControlCenter() {
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm">
                 <strong>Token Mint:</strong>{' '}
-                <a
-                  href={`https://solscan.io/token/${mintAddress}`}
+                <a href={`https://solscan.io/token/${mintAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline"
@@ -786,8 +771,7 @@ export function ControlCenter() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+              <div className="bg-green-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -795,8 +779,7 @@ export function ControlCenter() {
             <div className="space-y-2">
               <AnimatePresence mode="sync">
                 {executionSteps.map((step, index) => (
-                  <motion.div
-                    key={step.id}
+                  <motion.div key={step.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -810,8 +793,7 @@ export function ControlCenter() {
             {executionSteps.every(
               (s) => s.status === 'completed' || s.status === 'failed',
             ) && (
-              <Button
-                variant="outline"
+              <Button variant="outline"
                 className="w-full"
                 onClick={resetExecution}
               >
@@ -833,8 +815,7 @@ export function ControlCenter() {
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
+              <Input id="password"
                 type="password"
                 value={walletPassword}
                 onChange={(e) => setWalletPassword(e.target.value)}
@@ -876,8 +857,7 @@ export function ControlCenter() {
             </p>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
+            <Button variant="outline"
               onClick={() => setShowPreflightDialog(false)}
             >
               Cancel
@@ -900,8 +880,7 @@ export function ControlCenter() {
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="token-address">Token Address</Label>
-              <Input
-                id="token-address"
+              <Input id="token-address"
                 value={sellTokenAddress}
                 onChange={(e) => setSellTokenAddress(e.target.value)}
                 placeholder="Enter token mint address"
@@ -909,7 +888,10 @@ export function ControlCenter() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="wallet-group">Wallet Group</Label>
-              <Select onValueChange={() => { /* no-op */ }}>
+              <Select onValueChange={() => {
+                  /* no-op */
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a group" />
                 </SelectTrigger>
@@ -924,15 +906,18 @@ export function ControlCenter() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="sell-password">Password</Label>
-              <Input
-                id="sell-password"
+              <Input id="sell-password"
                 type="password"
                 value={walletPassword}
                 onChange={(e) => setWalletPassword(e.target.value)}
                 placeholder="Enter your wallet password"
               />
             </div>
-            <Button onClick={() => { /* no-op */ }} className="w-full">
+            <Button onClick={() => {
+                /* no-op */
+              }}
+              className="w-full"
+            >
               Execute Sell
             </Button>
           </div>
@@ -956,8 +941,7 @@ function CheckItem({
     <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
       <div className="flex items-center gap-2">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={checked ? 'checked' : 'unchecked'}
+          <motion.div key={checked ? 'checked' : 'unchecked'}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
@@ -999,8 +983,7 @@ function StepItem({ step }: { step: ExecutionStep }) {
     <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
       <div className="flex items-center gap-3">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={step.status}
+          <motion.div key={step.status}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}

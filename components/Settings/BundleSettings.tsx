@@ -22,14 +22,12 @@ export function BundleSettings() {
   const { tipAmount, setTipAmount } = useKeymakerStore()
   const [localConfig, setLocalConfig] = React.useState({
     bundleSize: BUNDLE_CONFIG.DEFAULT_TX_LIMIT,
-    tipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP / 1e9, // Convert from lamports to SOL
-    retries: BUNDLE_CONFIG.MAX_RETRIES,
+    tipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP / 1e9, // Convert from lamports to SOLretries: BUNDLE_CONFIG.MAX_RETRIES,
     timeout: BUNDLE_CONFIG.CONFIRMATION_TIMEOUT / 1000, // Convert to seconds
   })
 
   const handleSave = () => {
-    // Validate bundle size
-    if (
+    // Validate bundle sizeif (
       localConfig.bundleSize < BUNDLE_CONFIG.MIN_TX_LIMIT ||
       localConfig.bundleSize > BUNDLE_CONFIG.MAX_TX_LIMIT
     ) {
@@ -39,14 +37,12 @@ export function BundleSettings() {
       return
     }
 
-    // Save to store
-    setTipAmount(localConfig.tipAmount * 1e9) // Convert to lamports
+    // Save to storesetTipAmount(localConfig.tipAmount * 1e9) // Convert to lamports
     // Note: Other config values should be saved to appropriate store fields
 
     // Save to environment (for persistence)
     if (typeof window !== 'undefined') {
-      const w = window as any
-      w.NEXT_PUBLIC_BUNDLE_TX_LIMIT = localConfig.bundleSize.toString()
+      const w = window as anyw.NEXT_PUBLIC_BUNDLE_TX_LIMIT = localConfig.bundleSize.toString()
     }
 
     toast.success('Bundle settings saved')
@@ -74,8 +70,7 @@ export function BundleSettings() {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">
-                    Maximum number of transactions per bundle. Higher values can
-                    be more efficient but may have lower success rates. Range:{' '}
+                    Maximum number of transactions per bundle. Higher values canbe more efficient but may have lower success rates. Range:{' '}
                     {BUNDLE_CONFIG.MIN_TX_LIMIT}-{BUNDLE_CONFIG.MAX_TX_LIMIT}
                   </p>
                 </TooltipContent>
@@ -83,8 +78,7 @@ export function BundleSettings() {
             </TooltipProvider>
           </div>
           <div className="flex items-center gap-4">
-            <Slider
-              value={[localConfig.bundleSize]}
+            <Slidervalue={[localConfig.bundleSize]}
               onValueChange={(value) =>
                 setLocalConfig({ ...localConfig, bundleSize: value[0] })
               }
@@ -93,8 +87,7 @@ export function BundleSettings() {
               step={1}
               className="flex-1"
             />
-            <Input
-              type="number"
+            <Inputtype="number"
               value={localConfig.bundleSize}
               onChange={(e) =>
                 setLocalConfig({
@@ -119,15 +112,13 @@ export function BundleSettings() {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">
-                    Tip amount for Jito block engine. Higher tips increase
-                    bundle priority. Recommended: 0.00001 - 0.001 SOL
+                    Tip amount for Jito block engine. Higher tips increasebundle priority. Recommended: 0.00001 - 0.001 SOL
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-          <Input
-            type="number"
+          <Inputtype="number"
             value={localConfig.tipAmount}
             onChange={(e) =>
               setLocalConfig({
@@ -152,16 +143,14 @@ export function BundleSettings() {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">
-                    Number of times to retry bundle submission if it fails. More
-                    retries increase chances of success but take longer.
+                    Number of times to retry bundle submission if it fails. Moreretries increase chances of success but take longer.
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
           <div className="flex items-center gap-4">
-            <Slider
-              value={[localConfig.retries]}
+            <Slidervalue={[localConfig.retries]}
               onValueChange={(value) =>
                 setLocalConfig({ ...localConfig, retries: value[0] })
               }
@@ -170,8 +159,7 @@ export function BundleSettings() {
               step={1}
               className="flex-1"
             />
-            <Input
-              type="number"
+            <Inputtype="number"
               value={localConfig.retries}
               onChange={(e) =>
                 setLocalConfig({
@@ -196,15 +184,13 @@ export function BundleSettings() {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">
-                    Maximum time to wait for bundle confirmation before timing
-                    out. Default: 30 seconds
+                    Maximum time to wait for bundle confirmation before timingout. Default: 30 seconds
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-          <Input
-            type="number"
+          <Inputtype="number"
             value={localConfig.timeout}
             onChange={(e) =>
               setLocalConfig({
@@ -218,8 +204,7 @@ export function BundleSettings() {
           />
         </div>
 
-        <Button
-          onClick={handleSave}
+        <ButtononClick={handleSave}
           className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
         >
           <Save className="w-4 h-4 mr-2" />

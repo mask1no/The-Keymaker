@@ -4,13 +4,7 @@ import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 
 type TokenMeta = {
-  name: string
-  symbol: string
-  decimals: number
-  image?: string
-  website?: string
-  twitter?: string
-  description?: string
+  name: stringsymbol: stringdecimals: numberimage?: stringwebsite?: stringtwitter?: stringdescription?: string
 }
 export default function TokenLibrary({
   onPick,
@@ -30,15 +24,13 @@ export default function TokenLibrary({
   return (
     <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
       <div className="text-sm font-medium">Token Library</div>
-      <Input
-        placeholder="Search token…"
+      <Inputplaceholder="Search token…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
       />
       <div className="grid md:grid-cols-2 gap-3">
         {list.map((t) => (
-          <div
-            key={t.symbol}
+          <divkey={t.symbol}
             className="rounded-xl border border-border p-3 flex items-center justify-between"
           >
             <div>

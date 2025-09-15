@@ -9,13 +9,11 @@ import fetch from 'node-fetch'
 import * as fs from 'fs'
 import * as path from 'path'
 
-// Test configuration
-const BASE_URL = 'http://localhost:3000'
+// Test configurationconst BASE_URL = 'http://localhost:3000'
 const TESTS_PASSED: string[] = []
 const TESTS_FAILED: string[] = []
 
-// Color codes for output
-const GREEN = '\x1b[32m'
+// Color codes for outputconst GREEN = '\x1b[32m'
 const RED = '\x1b[31m'
 const YELLOW = '\x1b[33m'
 const BLUE = '\x1b[34m'
@@ -39,15 +37,13 @@ async function test(name: string, fn: () => Promise<boolean>) {
   }
 }
 
-// Test 1: Health check
-async function testHealthCheck(): Promise<boolean> {
+// Test 1: Health checkasync function testHealthCheck(): Promise<boolean> {
   const response = await fetch(`${BASE_URL}/api/jito/tipfloor`)
   const data = (await response.json()) as { ok: boolean }
   return response.status === 200 && data.ok === true
 }
 
-// Test 2: All routes are accessible
-async function testRoutes(): Promise<boolean> {
+// Test 2: All routes are accessibleasync function testRoutes(): Promise<boolean> {
   const routes = [
     '/',
     '/home',
@@ -70,14 +66,12 @@ async function testRoutes(): Promise<boolean> {
   return true
 }
 
-// Test 3: Check if database exists
-async function testDatabase(): Promise<boolean> {
+// Test 3: Check if database existsasync function testDatabase(): Promise<boolean> {
   const dbPath = path.join(__dirname, '../data/keymaker.db')
   return fs.existsSync(dbPath)
 }
 
-// Test 4: Environment variables
-async function testEnvironment(): Promise<boolean> {
+// Test 4: Environment variablesasync function testEnvironment(): Promise<boolean> {
   const required = ['NEXT_PUBLIC_HELIUS_RPC', 'NEXT_PUBLIC_JITO_ENDPOINT']
   const missing = required.filter((key) => !process.env[key])
   if (missing.length > 0) {
@@ -86,8 +80,7 @@ async function testEnvironment(): Promise<boolean> {
   return missing.length === 0
 }
 
-// Test 5: RPC connection
-async function testRPCConnection(): Promise<boolean> {
+// Test 5: RPC connectionasync function testRPCConnection(): Promise<boolean> {
   try {
     const rpcUrl =
       process.env.NEXT_PUBLIC_HELIUS_RPC ||
@@ -100,13 +93,11 @@ async function testRPCConnection(): Promise<boolean> {
   }
 }
 
-// Test 6: No mock data in UI
-async function testNoMockData(): Promise<boolean> {
+// Test 6: No mock data in UIasync function testNoMockData(): Promise<boolean> {
   const response = await fetch(`${BASE_URL}/home`)
   const html = await response.text()
 
-  // Check for common mock data patterns
-  const mockPatterns = [
+  // Check for common mock data patternsconst mockPatterns = [
     'mockWallet',
     'demoWallet',
     'wallet1',
@@ -124,8 +115,7 @@ async function testNoMockData(): Promise<boolean> {
   return true
 }
 
-// Test 7: Docker container health
-async function testDockerHealth(): Promise<boolean> {
+// Test 7: Docker container healthasync function testDockerHealth(): Promise<boolean> {
   try {
     const result = execSync(
       'docker ps --filter "name=keymaker-prod" --format "{{.Status}}"',
@@ -137,8 +127,7 @@ async function testDockerHealth(): Promise<boolean> {
   }
 }
 
-// Main test runner
-async function runTests() {
+// Main test runnerasync function runTests() {
   console.log(`\n${BLUE}========================================${RESET}`)
   console.log(`${BLUE}   The Keymaker v1.0.1 Integration Test${RESET}`)
   console.log(`${BLUE}========================================${RESET}\n`)
@@ -168,8 +157,7 @@ async function runTests() {
   }
 }
 
-// Run the tests
-runTests().catch((error) => {
+// Run the testsrunTests().catch((error) => {
   console.error(`${RED}Test runner error: ${error.message}${RESET}`)
   process.exit(1)
 })

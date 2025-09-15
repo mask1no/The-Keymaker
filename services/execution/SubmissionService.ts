@@ -12,17 +12,14 @@ export class SubmissionService {
   ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
     try {
       const bundleId = await sendBundle(this.region, txs_b64)
-      let landedSlot: number | null = null
-      for (let i = 0; i < polls; i++) {
+      let landedSlot: number | null = nullfor (let i = 0; i < polls; i++) {
         const st = await getBundleStatuses(this.region, [bundleId])
         const v = st?.[0]
         const s = String(v?.status || 'pending').toLowerCase()
         if (s === 'landed') {
-          landedSlot = v?.landed_slot ?? null
-          break
+          landedSlot = v?.landed_slot ?? nullbreak
         }
-        if (s === 'failed' || s === 'invalid') break
-        await new Promise((r) => setTimeout(r, delayMs))
+        if (s === 'failed' || s === 'invalid') breakawait new Promise((r) => setTimeout(r, delayMs))
       }
       return ok({ bundleId, landedSlot })
     } catch (e: any) {

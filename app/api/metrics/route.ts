@@ -9,11 +9,11 @@ export async function POST() {
 
     // Get bundle metrics
     const bundleStats = await db.get(
-      `SELECT 
+      `SELECT
         COUNT(*) as totalBundles,
         SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as bundlesLanded,
         SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as bundlesDropped
-      FROM execution_logs 
+      FROM execution_logs
       WHERE action = 'bundle_execution'`,
     )
 

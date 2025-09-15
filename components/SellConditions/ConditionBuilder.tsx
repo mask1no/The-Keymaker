@@ -26,12 +26,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 
 export interface SellCondition {
-  id: string
-  type: 'price' | 'profit' | 'loss' | 'time' | 'volume'
+  id: stringtype: 'price' | 'profit' | 'loss' | 'time' | 'volume'
   operator: 'above' | 'below' | 'equals'
-  value: number
-  unit?: string
-  enabled: boolean
+  value: numberunit?: stringenabled: boolean
 }
 
 interface ConditionBuilderProps {
@@ -108,8 +105,7 @@ export function ConditionBuilder({
               {conditions.map((condition) => {
                 const Icon = getConditionIcon(condition.type)
                 return (
-                  <motion.div
-                    key={condition.id}
+                  <motion.divkey={condition.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -123,8 +119,7 @@ export function ConditionBuilder({
                       <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <Label>Condition Type</Label>
-                          <Select
-                            value={condition.type}
+                          <Selectvalue={condition.type}
                             onValueChange={(value: string) =>
                               updateCondition(condition.id, {
                                 type: value as
@@ -152,8 +147,7 @@ export function ConditionBuilder({
 
                         <div>
                           <Label>Operator</Label>
-                          <Select
-                            value={condition.operator}
+                          <Selectvalue={condition.operator}
                             onValueChange={(value: string) =>
                               updateCondition(condition.id, {
                                 operator: value as 'above' | 'below' | 'equals',
@@ -174,8 +168,7 @@ export function ConditionBuilder({
                         <div>
                           <Label>Value</Label>
                           <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
+                            <Inputtype="number"
                               value={condition.value}
                               onChange={(e) =>
                                 updateCondition(condition.id, {
@@ -193,16 +186,14 @@ export function ConditionBuilder({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Switch
-                            checked={condition.enabled}
+                          <Switchchecked={condition.enabled}
                             onCheckedChange={(checked) =>
                               updateCondition(condition.id, {
                                 enabled: checked,
                               })
                             }
                           />
-                          <Button
-                            variant="ghost"
+                          <Buttonvariant="ghost"
                             size="sm"
                             onClick={() => removeCondition(condition.id)}
                             className="text-red-400 hover:text-red-300"
@@ -217,8 +208,7 @@ export function ConditionBuilder({
                     <div className="mt-3 text-sm text-gray-400">
                       {condition.enabled ? (
                         <span className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
+                          <Badgevariant="outline"
                             className="text-green-400 border-green-400"
                           >
                             Active
@@ -229,8 +219,7 @@ export function ConditionBuilder({
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
+                          <Badgevariant="outline"
                             className="text-gray-500 border-gray-500"
                           >
                             Disabled
@@ -253,8 +242,7 @@ export function ConditionBuilder({
         {conditions.length > 0 && (
           <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-sm text-blue-300">
-              <strong>Logic:</strong> Conditions are evaluated with OR logic. A
-              sell will trigger when ANY condition is met.
+              <strong>Logic:</strong> Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met.
             </p>
           </div>
         )}

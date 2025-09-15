@@ -14,20 +14,12 @@ import bs58 from 'bs58'
 import { ExecutionResult } from './bundleService'
 import { buildSwapTransaction, getQuote } from '@/services/jupiterService'
 import { Bundle } from '@/lib/types'
-// import { logSellEvent } from './executionLogService' // Dynamic import below
+// import { logSellEvent } from './executionLogService' // Dynamic import belowexport interface SellConditions {
+  // PnL conditionsminPnlPercent?: number // Minimum profit percentage before sellingmaxLossPercent?: number // Maximum loss percentage (stop loss)
 
-export interface SellConditions {
-  // PnL conditions
-  minPnlPercent?: number // Minimum profit percentage before selling
-  maxLossPercent?: number // Maximum loss percentage (stop loss)
+  // Market cap conditionstargetMarketCap?: number // Target market cap in USDminMarketCap?: number // Minimum market cap before selling
 
-  // Market cap conditions
-  targetMarketCap?: number // Target market cap in USD
-  minMarketCap?: number // Minimum market cap before selling
-
-  // Time conditions
-  minHoldTime?: number // Minimum time to hold in seconds
-  maxHoldTime?: number // Maximum time to hold in seconds
+  // Time conditionsminHoldTime?: number // Minimum time to hold in secondsmaxHoldTime?: number // Maximum time to hold in seconds
 
   // Price conditions
   targetPrice?: number // Target token price in USD
@@ -106,7 +98,6 @@ export async function getTokenPrice(
 
     const data = response.data?.data?.[tokenMint]
     if (!data) return null
-
     return {
       price: data.price || 0,
       marketCap: data.marketCap || 0,
@@ -156,7 +147,6 @@ export async function checkSellConditions(
   // Check time conditions
   if (entryTime) {
     const holdTime = (Date.now() - entryTime) / 1000 // Convert to seconds
-
     if (conditions.minHoldTime && holdTime < conditions.minHoldTime) {
       return {
         shouldSell: false,
@@ -275,7 +265,6 @@ async function calculateDynamicSlippage(
 
     // Calculate slippage based on price impact
     let slippageBps: number
-
     if (priceImpact < 0.1) {
       // Very liquid, low impact
       slippageBps = 50 // 0.5%
@@ -471,7 +460,7 @@ export async function sellToken(
     // Get swap quote (selling tokens for SOL)
     const quote = await getSwapQuote(
       params.tokenMint.toBase58(),
-      'So11111111111111111111111111111111111111112', // SOL mint
+      'So11111111111111111111111111111111111111112', // SOL
       actualAmount,
       (params.slippage || 1) * 100, // Convert to basis points
     )

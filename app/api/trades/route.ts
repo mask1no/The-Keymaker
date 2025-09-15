@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-// server-only route
-import 'server-only'
+// server-only routeimport 'server-only'
 import path from 'path'
 
 export async function GET(request: NextRequest) {
@@ -9,8 +8,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,
@@ -46,9 +44,7 @@ export async function POST(request: NextRequest) {
       fees = 0,
       gas_fee = 0,
       jito_tip = 0,
-    } = body
-
-    if (
+    } = bodyif (
       !token_address ||
       !tx_ids ||
       !wallets ||
@@ -63,8 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
     const db = await open({
       filename: dbPath,
       driver: sqlite3.Database,

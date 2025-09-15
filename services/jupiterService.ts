@@ -27,9 +27,7 @@ function base64ToBytes(base64: string): Uint8Array {
 export async function getQuote(
   inputMint: string,
   outputMint: string,
-  amount: number, // in lamports/smallest unit
-  slippageBps = 50, // 0.5% default
-  swapMode = 'ExactIn',
+  amount: number, // in lamports/smallest unitslippageBps = 50, // 0.5% defaultswapMode = 'ExactIn',
 ): Promise<QuoteResponse> {
   try {
     const params = new URLSearchParams({

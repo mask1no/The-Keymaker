@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Connection } from '@solana/web3.js'
-// Use dynamic imports later to avoid ESM/CJS issues in Next dev
-import path from 'path'
+// Use dynamic imports later to avoid ESM/CJS issues in Next devimport path from 'path'
 import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants'
 import { getServerRpc } from '@/lib/server/rpc'
 import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'

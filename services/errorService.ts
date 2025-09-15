@@ -1,18 +1,13 @@
 import 'server-only'
 // server-only: load sqlite3 where supported; routes will catch and fallback
 // import sqlite3 from 'sqlite3'
-// import { open } from 'sqlite' // Dynamic imports below
-
-async function getDb() {
-  const path = (await import('path')).default
-  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+// import { open } from 'sqlite' // Dynamic imports belowasync function getDb() {
+  const path = (await import('path')).defaultconst dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
   try {
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
     return await open({ filename: dbPath, driver: sqlite3.Database })
   } catch {
-    // No-op adapter to avoid crashing in dev without native binding
-    return {
+    // No-op adapter to avoid crashing in dev without native bindingreturn {
       run: async () => undefined,
       all: async () => [] as any[],
       close: async () => undefined,
@@ -37,8 +32,7 @@ export async function logError(
 
     await db.close()
   } catch (error) {
-    // Fail silently to avoid infinite error loops
-    console.error('Failed to log error to database:', error)
+    // Fail silently to avoid infinite error loopsconsole.error('Failed to log error to database:', error)
   }
 }
 

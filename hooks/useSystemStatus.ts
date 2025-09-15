@@ -3,18 +3,14 @@ import { useState, useEffect } from 'react'
 type StatusState = 'healthy' | 'degraded' | 'down'
 
 interface SystemStatus {
-  rpc: StatusState
-  ws: StatusState
-  be: StatusState
-  network: 'mainnet-beta' | 'testnet' | 'devnet'
+  rpc: StatusStatews: StatusStatebe: StatusStatenetwork: 'mainnet-beta' | 'testnet' | 'devnet'
   timestamp?: string
 }
 
 export function useSystemStatus() {
   const [status, setStatus] = useState<SystemStatus>({
     rpc: 'down',
-    ws: 'healthy', // Default to healthy for WS
-    be: 'down',
+    ws: 'healthy', // Default to healthy for WSbe: 'down',
     network: 'mainnet-beta',
   })
 
@@ -24,8 +20,7 @@ export function useSystemStatus() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        // Check RPC directly
-        const rpcUrl =
+        // Check RPC directlyconst rpcUrl =
           process.env.NEXT_PUBLIC_HELIUS_RPC ||
           'https://api.mainnet-beta.solana.com'
         const rpcCheck = await fetch(rpcUrl, {
@@ -42,18 +37,14 @@ export function useSystemStatus() {
 
         const rpcHealthy = rpcCheck.ok
 
-        // Check Jito tip floor
-        const jitoCheck = await fetch('/api/jito/tipfloor', {
+        // Check Jito tip floorconst jitoCheck = await fetch('/api/jito/tipfloor', {
           cache: 'no-store',
           signal: AbortSignal.timeout(5000),
         })
 
-        const jitoHealthy = jitoCheck.ok
-
-        setStatus({
+        const jitoHealthy = jitoCheck.oksetStatus({
           rpc: rpcHealthy ? 'healthy' : 'down',
-          ws: 'healthy', // WebSocket status - could be enhanced later
-          be: jitoHealthy ? 'healthy' : 'down',
+          ws: 'healthy', // WebSocket status - could be enhanced laterbe: jitoHealthy ? 'healthy' : 'down',
           network: 'mainnet-beta',
           timestamp: new Date().toISOString(),
         })
@@ -70,17 +61,14 @@ export function useSystemStatus() {
     }
 
     checkStatus()
-    const interval = setInterval(checkStatus, 3000) // Refresh every 3s as specified
-
-    return () => clearInterval(interval)
+    const interval = setInterval(checkStatus, 3000) // Refresh every 3s as specifiedreturn () => clearInterval(interval)
   }, [])
 
   return {
     status,
     loading,
     lastUpdate,
-    // Legacy compatibility
-    rpcStatus: status.rpc,
+    // Legacy compatibilityrpcStatus: status.rpc,
     wsStatus: status.ws,
     jitoStatus: status.be,
   }

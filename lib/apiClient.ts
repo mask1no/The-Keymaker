@@ -5,9 +5,7 @@
 
 interface ProxyRequest {
   service: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun'
-  path: string
-  params?: any
-  method?: 'GET' | 'POST'
+  path: stringparams?: anymethod?: 'GET' | 'POST'
 }
 
 class APIClient {
@@ -19,8 +17,7 @@ class APIClient {
    * Make a proxied API request
    */
   async request<T = any>(request: ProxyRequest): Promise<T> {
-    // Check cache for GET requests
-    if (request.method === 'GET' || !request.method) {
+    // Check cache for GET requestsif (request.method === 'GET' || !request.method) {
       const cacheKey = `${request.service}:${request.path}:${JSON.stringify(request.params)}`
       const cached = this.cache.get(cacheKey)
 
@@ -38,8 +35,7 @@ class APIClient {
         body: JSON.stringify(request),
       })
 
-      // Check rate limit headers
-      const remaining = response.headers.get('X-RateLimit-Remaining')
+      // Check rate limit headersconst remaining = response.headers.get('X-RateLimit-Remaining')
       if (remaining && parseInt(remaining) < 10) {
         console.warn(`API rate limit warning: ${remaining} requests remaining`)
       }
@@ -50,8 +46,7 @@ class APIClient {
         throw new Error(data.error || `API error: ${response.status}`)
       }
 
-      // Cache successful GET requests
-      if (request.method === 'GET' || !request.method) {
+      // Cache successful GET requestsif (request.method === 'GET' || !request.method) {
         const cacheKey = `${request.service}:${request.path}:${JSON.stringify(request.params)}`
         this.cache.set(cacheKey, {
           data,
@@ -106,11 +101,7 @@ class APIClient {
    */
   jupiter = {
     getQuote: async (params: {
-      inputMint: string
-      outputMint: string
-      amount: string
-      slippageBps?: number
-      onlyDirectRoutes?: boolean
+      inputMint: stringoutputMint: stringamount: stringslippageBps?: numberonlyDirectRoutes?: boolean
     }) => {
       return this.request({
         service: 'jupiter',
@@ -168,8 +159,6 @@ class APIClient {
   }
 }
 
-// Export singleton instance
-export const apiClient = new APIClient()
+// Export singleton instanceexport const apiClient = new APIClient()
 
-// Also export class for testing
-export { APIClient }
+// Also export class for testingexport { APIClient }

@@ -1,35 +1,20 @@
 import { NextResponse } from 'next/server'
-import * as Sentry from '@sentry/nextjs'
-import { createToken } from '@/services/pumpfunService'
+import { ENABLE_PUMPFUN } from '@/lib/featureFlags'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
-  const {
-    name,
-    symbol,
-    supply,
-    metadata,
-  } = await req.json()
-
-  if (!name || !symbol || !supply) {
+  if (!ENABLE_PUMPFUN) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
-      { status: 400 },
+      { error: 'Pump.fun launch disabled. Set ENABLE_PUMPFUN=true to enable.' },
+      { status: 501 }
     )
   }
-
   try {
-    const result = await createToken(name, symbol, supply, metadata)
-
-    if (result) {
-      return NextResponse.json({
-        mint: result,
-      })
-    }
-  } catch (error: any) {
-    Sentry.captureException(error)
-    return NextResponse.json(
-      { error: error.message || 'Token creation failed' },
-      { status: 500 },
-    )
+    const { createToken } = await import('@/services/pumpfunService')
+    const body = await req.json()
+    const result = await createToken(body)
+    return NextResponse.json(result)
+  } catch (e:any) {
+    return NextResponse.json({ error: e?.message || 'pumpfun launch failed' }, { status: 500 })
   }
 }

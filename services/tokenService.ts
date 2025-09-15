@@ -14,15 +14,8 @@ import {
 import { Keypair, Connection } from '@solana/web3.js'
 import { getServerRpc } from '@/lib/server/rpc'
 
-// Define the structure for token creation parameters
-export interface CreateTokenParams {
-  name: string
-  symbol: string
-  decimals: number
-  supply: number
-  description: string
-  image: Buffer // Using Buffer for image data
-  wallet: Keypair // The wallet creating the token
+// Define the structure for token creation parametersexport interface CreateTokenParams {
+  name: stringsymbol: stringdecimals: numbersupply: numberdescription: stringimage: Buffer // Using Buffer for image datawallet: Keypair // The wallet creating the token
 }
 
 /**
@@ -47,8 +40,7 @@ export async function createToken(params: CreateTokenParams): Promise<string> {
     authority: umi.identity,
     name: params.name,
     symbol: params.symbol,
-    uri: '', // You might want to upload metadata to Arweave or IPFS and get a URI
-    sellerFeeBasisPoints: percentAmount(0),
+    uri: '', // You might want to upload metadata to Arweave or IPFS and get a URIsellerFeeBasisPoints: percentAmount(0),
     tokenStandard: TokenStandard.Fungible,
   }).sendAndConfirm(umi)
 

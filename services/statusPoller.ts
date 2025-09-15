@@ -1,14 +1,11 @@
 import { getJitoApiUrl } from '@/lib/server/jitoService'
 
 export type BundleInflightStatus = {
-  bundle_id: string
-  status: 'pending' | 'landed' | 'failed' | 'invalid' | 'unknown'
-  landed_slot?: number | null
-  transactions?: string[]
+  bundle_id: stringstatus: 'pending' | 'landed' | 'failed' | 'invalid' | 'unknown'
+  landed_slot?: number | nulltransactions?: string[]
 }
 type RegionCache = {
-  lastFetchMs: number
-  entries: Map<string, BundleInflightStatus>
+  lastFetchMs: numberentries: Map<string, BundleInflightStatus>
 }
 const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
 const endpoint = (region: string) => getJitoApiUrl((region as any) || 'ffm')

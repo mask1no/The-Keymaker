@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Package } from 'lucide-react'
 
 interface BundleSpinnerProps {
-  isVisible: boolean
-  message?: string
+  isVisible: booleanmessage?: string
 }
 
 export function BundleSpinner({
@@ -15,14 +14,12 @@ export function BundleSpinner({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
-          initial={{ opacity: 0 }}
+        <motion.divinitial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+          <motion.divinitial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 15 }}
@@ -31,8 +28,7 @@ export function BundleSpinner({
             <div className="flex flex-col items-center gap-6">
               {/* Animated bundle icon */}
               <div className="relative">
-                <motion.div
-                  animate={{
+                <motion.divanimate={{
                     rotateY: [0, 360],
                     scale: [1, 1.1, 1],
                   }}
@@ -46,8 +42,7 @@ export function BundleSpinner({
                   <Package className="w-16 h-16 text-green-500" />
 
                   {/* Orbiting dots */}
-                  <motion.div
-                    className="absolute -inset-4"
+                  <motion.divclassName="absolute -inset-4"
                     animate={{ rotate: 360 }}
                     transition={{
                       duration: 3,
@@ -63,8 +58,7 @@ export function BundleSpinner({
                 </motion.div>
 
                 {/* Pulse effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-full bg-green-500/20"
+                <motion.divclassName="absolute inset-0 rounded-full bg-green-500/20"
                   animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
@@ -79,8 +73,7 @@ export function BundleSpinner({
                 {/* Progress dots */}
                 <div className="flex items-center justify-center gap-1 mt-4">
                   {[0, 1, 2].map((i) => (
-                    <motion.div
-                      key={i}
+                    <motion.divkey={i}
                       className="w-2 h-2 bg-green-500 rounded-full"
                       animate={{
                         opacity: [0.3, 1, 0.3],

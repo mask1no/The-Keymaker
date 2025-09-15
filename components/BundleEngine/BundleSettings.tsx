@@ -62,8 +62,7 @@ export function BundleSettings() {
             <Label htmlFor="jito-tip" className="text-right">
               Jito Tip (SOL)
             </Label>
-            <Input
-              id="jito-tip"
+            <Input id="jito-tip"
               type="number"
               value={jitoTip}
               onChange={(e) => setJitoTip(parseFloat(e.target.value))}

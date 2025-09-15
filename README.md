@@ -864,7 +864,6 @@ node scripts/canaryTrade.js
 
 1. Create `.env.local`:
 
-
 NEXT_PUBLIC_HELIUS_RPC=https://<your-helius>.helius-rpc.com/?api-key=XXX
 NEXT_PUBLIC_HELIUS_WS=wss://<your-helius>.helius-rpc.com/?api-key=XXX
 NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
@@ -874,8 +873,8 @@ Optional feature flags (off by default):
 ENABLE_PUMPFUN=false
 ENABLE_DEV_TOKENS=false
 
-
 2. Install & run:
+
 ```bash
 pnpm i
 pnpm dev
@@ -902,7 +901,6 @@ Keys are generated locally and encrypted with AES-GCM. Nothing leaves the browse
 “Creators” routes are disabled until refactor; enable with ENABLE_PUMPFUN=true / ENABLE_DEV_TOKENS=true.
 
 To prevent “mystery files” and truncation reappearing, we ship a hygiene script that blocks literal ..., split identifiers, and junk filenames.
-
 
 ## License
 

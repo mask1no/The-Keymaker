@@ -328,9 +328,7 @@ export async function getExecutionHistory(limit = 100) {
 
   const executions = await db.all(
     `
-    SELECT * FROM bundle_executions 
-    ORDER BY created_at DESC 
-    LIMIT ?
+    SELECT * FROM bundle_executionsORDER BY created_at DESCLIMIT ?
   `,
     limit,
   )

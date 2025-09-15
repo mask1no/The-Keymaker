@@ -2,8 +2,7 @@ import { Connection } from '@solana/web3.js'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 
 class ConnectionManager {
-  private connection: Connection | null = null
-  private rttHistory: Array<{ time: string; rtt: number }> = []
+  private connection: Connection | null = nullprivate rttHistory: Array<{ time: string; rtt: number }> = []
 
   getConnection(): Connection {
     if (!this.connection) {
@@ -17,15 +16,12 @@ class ConnectionManager {
     try {
       const connection = this.getConnection()
       await connection.getSlot()
-      const rtt = Date.now() - start
-
-      this.rttHistory.push({
+      const rtt = Date.now() - startthis.rttHistory.push({
         time: new Date().toISOString(),
         rtt,
       })
 
-      // Keep last 30 measurements
-      if (this.rttHistory.length > 30) {
+      // Keep last 30 measurementsif (this.rttHistory.length > 30) {
         this.rttHistory.shift()
       }
 

@@ -11,8 +11,7 @@ export function getConnection(
   return new Connection(MAINNET_RPC, commitment)
 }
 
-// Back-compat for services depending on Jito endpoint helper
-export const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf'
+// Back-compat for services depending on Jito endpoint helperexport const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf'
 export function getJitoEndpoint(): string {
   return (
     process.env.NEXT_PUBLIC_JITO_ENDPOINT ||

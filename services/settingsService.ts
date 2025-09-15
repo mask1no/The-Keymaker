@@ -1,24 +1,11 @@
 import 'server-only'
 // import { open } from 'sqlite'
-// import sqlite3 from 'sqlite3' // Dynamic imports below
-import { toast } from 'react-hot-toast'
+// import sqlite3 from 'sqlite3' // Dynamic imports belowimport { toast } from 'react-hot-toast'
 
 export interface Settings {
   network: 'mainnet-beta' | 'devnet'
-  rpcUrl: string
-  wsUrl: string
-  jitoEnabled: boolean
-  tipAmount: number
-  defaultSlippage: number
-  defaultPriorityFee: number
-  autoRefreshInterval: number
-  darkMode: boolean
-  soundNotifications: boolean
-  apiKeys?: {
-    heliusRpc?: string
-    birdeyeApiKey?: string
-    pumpfunApiKey?: string
-    letsbonkApiKey?: string
+  rpcUrl: stringwsUrl: stringjitoEnabled: booleantipAmount: numberdefaultSlippage: numberdefaultPriorityFee: numberautoRefreshInterval: numberdarkMode: booleansoundNotifications: booleanapiKeys?: {
+    heliusRpc?: stringbirdeyeApiKey?: stringpumpfunApiKey?: stringletsbonkApiKey?: string
   }
 }
 
@@ -37,10 +24,8 @@ const DEFAULT_SETTINGS: Settings = {
 }
 
 async function getDb() {
-  const path = (await import('path')).default
-  const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-  const sqlite3 = (await import('sqlite3')).default
-  const { open } = await import('sqlite')
+  const path = (await import('path')).defaultconst dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+  const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
   return open({
     filename: dbPath,
     driver: sqlite3.Database,
@@ -51,8 +36,7 @@ async function getDb() {
  * Validate RPC URL
  */
 export function validateRpcUrl(url: string): {
-  valid: boolean
-  error?: string
+  valid: booleanerror?: string
 } {
   try {
     const parsed = new URL(url)
@@ -60,8 +44,7 @@ export function validateRpcUrl(url: string): {
       return { valid: false, error: 'RPC URL must use HTTP or HTTPS protocol' }
     }
 
-    // Check if it's a valid Solana RPC endpoint pattern
-    const validPatterns = [
+    // Check if it's a valid Solana RPC endpoint patternconst validPatterns = [
       /solana\.com/,
       /helius-rpc\.com/,
       /rpcpool\.com/,
@@ -102,8 +85,7 @@ export function validateWsUrl(url: string): { valid: boolean; error?: string } {
  * Validate API key format
  */
 export function validateApiKey(key: string): {
-  valid: boolean
-  error?: string
+  valid: booleanerror?: string
 } {
   if (!key) {
     return { valid: true } // Empty is OK (optional)
@@ -128,29 +110,25 @@ export function validateApiKey(key: string): {
  * Validate all settings
  */
 export function validateSettings(settings: Partial<Settings>): {
-  valid: boolean
-  errors: Record<string, string>
+  valid: booleanerrors: Record<string, string>
 } {
   const errors: Record<string, string> = {}
 
-  // Validate RPC URL
-  if (settings.rpcUrl) {
+  // Validate RPC URLif (settings.rpcUrl) {
     const rpcValidation = validateRpcUrl(settings.rpcUrl)
     if (!rpcValidation.valid) {
       errors.rpcUrl = rpcValidation.error!
     }
   }
 
-  // Validate WebSocket URL
-  if (settings.wsUrl) {
+  // Validate WebSocket URLif (settings.wsUrl) {
     const wsValidation = validateWsUrl(settings.wsUrl)
     if (!wsValidation.valid) {
       errors.wsUrl = wsValidation.error!
     }
   }
 
-  // Validate tip amount
-  if (settings.tipAmount !== undefined) {
+  // Validate tip amountif (settings.tipAmount !== undefined) {
     if (settings.tipAmount < 0) {
       errors.tipAmount = 'Tip amount cannot be negative'
     }
@@ -159,15 +137,13 @@ export function validateSettings(settings: Partial<Settings>): {
     }
   }
 
-  // Validate slippage
-  if (settings.defaultSlippage !== undefined) {
+  // Validate slippageif (settings.defaultSlippage !== undefined) {
     if (settings.defaultSlippage < 0 || settings.defaultSlippage > 100) {
       errors.defaultSlippage = 'Slippage must be between 0 and 100'
     }
   }
 
-  // Validate priority fee
-  if (settings.defaultPriorityFee !== undefined) {
+  // Validate priority feeif (settings.defaultPriorityFee !== undefined) {
     if (settings.defaultPriorityFee < 0) {
       errors.defaultPriorityFee = 'Priority fee cannot be negative'
     }
@@ -176,8 +152,7 @@ export function validateSettings(settings: Partial<Settings>): {
     }
   }
 
-  // Validate API keys
-  if (settings.apiKeys) {
+  // Validate API keysif (settings.apiKeys) {
     Object.entries(settings.apiKeys).forEach(([key, value]) => {
       if (value) {
         const validation = validateApiKey(value)
@@ -201,8 +176,7 @@ export async function loadSettings(): Promise<Settings> {
   try {
     const db = await getDb()
 
-    // Load from database
-    const rows = await db.all('SELECT key, value FROM settings')
+    // Load from databaseconst rows = await db.all('SELECT key, value FROM settings')
     await db.close()
 
     const dbSettings: any = {}
@@ -223,8 +197,7 @@ export async function loadSettings(): Promise<Settings> {
       }
     }
 
-    // Merge settings: localStorage > database > defaults
-    return {
+    // Merge settings: localStorage > database > defaultsreturn {
       ...DEFAULT_SETTINGS,
       ...dbSettings,
       ...localSettings,
@@ -239,8 +212,7 @@ export async function loadSettings(): Promise<Settings> {
  * Save settings to database and localStorage
  */
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {
-  // Validate settings
-  const validation = validateSettings(settings)
+  // Validate settingsconst validation = validateSettings(settings)
   if (!validation.valid) {
     const errorMessage = Object.entries(validation.errors)
       .map(([key, error]) => `${key}: ${error}`)
@@ -251,8 +223,7 @@ export async function saveSettings(settings: Partial<Settings>): Promise<void> {
   try {
     const db = await getDb()
 
-    // Save to database
-    for (const [key, value] of Object.entries(settings)) {
+    // Save to databasefor (const [key, value] of Object.entries(settings)) {
       if (value !== undefined) {
         await db.run(
           'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
@@ -266,8 +237,7 @@ export async function saveSettings(settings: Partial<Settings>): Promise<void> {
 
     await db.close()
 
-    // Save to localStorage
-    if (typeof window !== 'undefined') {
+    // Save to localStorageif (typeof window !== 'undefined') {
       const currentSettings = await loadSettings()
       const updatedSettings = { ...currentSettings, ...settings }
       localStorage.setItem('keymakerSettings', JSON.stringify(updatedSettings))
