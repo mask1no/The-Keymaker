@@ -38,7 +38,9 @@ class UpdateService {
 
       const response = await fetch(UPDATE_CHECK_URL)
       if (!response.ok) {
-        throw new Error(`Failed to fetch latest version: ${response.statusText}`)
+        throw new Error(
+          `Failed to fetch latest version: ${response.statusText}`,
+        )
       }
       return response.json()
     } catch (error: any) {

@@ -3,12 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/UI/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Badge } from '@/components/UI/badge'
 import {
   Package,

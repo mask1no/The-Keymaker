@@ -1,11 +1,14 @@
 'use client'
 
+import RequireWallet from '@/components/auth/RequireWallet'
 import { BundleBuilder } from '@/components/BundleEngine/BundleBuilder'
 
-export default function BundlePage() {
+export default function Page() {
   return (
-    <div className="container mx-auto py-10">
-      <BundleBuilder />
-    </div>
+    <RequireWallet>
+      <div className="space-y-6">
+        <BundleBuilder />
+      </div>
+    </RequireWallet>
   )
 }

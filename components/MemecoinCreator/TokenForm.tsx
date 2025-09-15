@@ -4,12 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import toast from 'react-hot-toast'
 
 type Platform = 'pump' | 'bonk' | 'spl'

@@ -1,46 +1,12 @@
-@import '@solana/wallet-adapter-react-ui/styles.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-sans font-bold tracking-tight;
-  }
+:root {
+  --radius: 1.25rem;
 }
-
-@layer components {
-  .bento-card {
-    @apply bg-card text-card-foreground rounded-lg border border-border p-4 sm:p-6 transition-all duration-300;
-  }
-  .bento-card:hover {
-    @apply border-primary shadow-lg shadow-primary/10;
-  }
-}
-
-/* Custom scrollbar for a modern look */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  @apply bg-card;
-}
-::-webkit-scrollbar-thumb {
-  @apply bg-muted rounded-full;
-}
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground;
+html,
+body {
+  background: #0f1115;
+  color: #e5e7eb;
 }

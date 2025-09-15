@@ -1,11 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import {
   TrendingUp,
   TrendingDown,

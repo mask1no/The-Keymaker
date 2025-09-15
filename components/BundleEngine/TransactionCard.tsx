@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 import { GripVertical, Trash2 } from 'lucide-react'
-import { Transaction } from './BundleBuilder'
+import { Transaction } from '@/lib/types'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { TokenSelector } from './TokenSelector'
@@ -115,10 +115,10 @@ export function TransactionCard({
                 <div
                   className={`text-sm font-bold ${
                     securityScore > 80
-                      ? 'text-green-500'
+                      ? 'text-primary'
                       : securityScore > 50
-                        ? 'text-yellow-500'
-                        : 'text-red-500'
+                        ? 'text-muted'
+                        : 'text-muted/70'
                   }`}
                 >
                   Score: {securityScore}/100
@@ -175,7 +175,7 @@ export function TransactionCard({
       {...attributes}
       data-testid={`transaction-card-${transaction.id}`}
     >
-      <Card className="bg-background/50">
+      <Card className="bg-card border border-border rounded-2xl">
         <CardHeader className="flex flex-row items-center justify-between p-4">
           <div className="flex items-center gap-2">
             <div {...listeners} className="cursor-grab">

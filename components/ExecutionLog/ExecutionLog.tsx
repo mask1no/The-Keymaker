@@ -1,12 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import {
   Table,
@@ -109,10 +104,12 @@ export function ExecutionLog() {
   const getPnLBadge = (profitLoss: number) => {
     if (profitLoss > 0) {
       return (
-        <Badge className="bg-green-500">+{formatSOL(profitLoss)} SOL</Badge>
+        <Badge className="bg-primary/20 text-primary border-primary/30">
+          +{formatSOL(profitLoss)} SOL
+        </Badge>
       )
     } else if (profitLoss < 0) {
-      return <Badge className="bg-red-500">{formatSOL(profitLoss)} SOL</Badge>
+      return <Badge variant="destructive">{formatSOL(profitLoss)} SOL</Badge>
     }
     return <Badge>0 SOL</Badge>
   }
@@ -201,7 +198,7 @@ export function ExecutionLog() {
                   <div>
                     <p className="text-sm text-gray-400">Total P/L</p>
                     <p
-                      className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                      className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-primary' : 'text-destructive'}`}
                     >
                       {totalPnL >= 0 ? '+' : ''}
                       {formatSOL(totalPnL)} SOL
@@ -252,6 +249,11 @@ export function ExecutionLog() {
           {/* Content */}
           {loading ? (
             <Skeleton className="h-64 w-full" />
+          ) : activeTab === 'executions' && executions.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm opacity-80">
+              No activity yet. Execute your first bundle on the <b>Bundler</b>{' '}
+              page.
+            </div>
           ) : activeTab === 'executions' ? (
             <div className="overflow-x-auto">
               <Table>
@@ -302,6 +304,10 @@ export function ExecutionLog() {
                 </TableBody>
               </Table>
             </div>
+          ) : pnlRecords.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm opacity-80">
+              No realized P&L yet. After trades land, totals will show up here.
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -342,8 +348,8 @@ export function ExecutionLog() {
                         <span
                           className={
                             record.profit_percentage >= 0
-                              ? 'text-green-500'
-                              : 'text-red-500'
+                              ? 'text-primary'
+                              : 'text-destructive'
                           }
                         >
                           {record.profit_percentage >= 0 ? '+' : ''}

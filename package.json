@@ -82,6 +82,7 @@
     "framer-motion": "^10.0.0",
     "jito-ts": "^4.2.0",
     "lucide-react": "^0.263.0",
+    "micromark": "^4.0.2",
     "next": "^14.2.0",
     "pino-pretty": "^10.0.0",
     "postcss": "^8.5.6",

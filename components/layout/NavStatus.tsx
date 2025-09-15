@@ -1,23 +1,21 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { CheckCircle2, XCircle } from 'lucide-react'
 
-const Light = ({ ok, label }: { ok: boolean; label: string }) => (
-  <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs">
-    {ok ? (
-      <CheckCircle2 className="h-3 w-3 text-green-400" />
-    ) : (
-      <XCircle className="h-3 w-3 text-red-400" />
-    )}
-    <span className="truncate">{label}</span>
-  </div>
-)
+function Chip({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div
+      className={`px-2 py-1 rounded-xl border text-xs ${ok ? 'border-border text-primary' : 'border-border/60 text-muted'}`}
+    >
+      {label}
+    </div>
+  )
+}
 
 export default function NavStatus() {
-  const [rpc, setRpc] = useState(false)
-  const [ws, setWs] = useState(false)
-  const [jito, setJito] = useState(false)
-  const [net, setNet] = useState<'MAINNET' | 'DEVNET' | 'UNKNOWN'>('UNKNOWN')
+  const [rpc, setRpc] = useState(false),
+    [ws, setWs] = useState(false),
+    [jito, setJito] = useState(false),
+    [net, setNet] = useState<'MAINNET' | 'DEVNET' | 'UNKNOWN'>('UNKNOWN')
 
   useEffect(() => {
     const rpcUrl = process.env.NEXT_PUBLIC_HELIUS_RPC || ''
@@ -41,7 +39,7 @@ export default function NavStatus() {
       })
 
     const wsUrl = (process.env.NEXT_PUBLIC_HELIUS_WS || '').trim()
-    if (!wsUrl) return setWs(false)
+    if (!wsUrl) return
     try {
       const sock = new WebSocket(wsUrl)
       let opened = false
@@ -59,11 +57,11 @@ export default function NavStatus() {
   }, [])
 
   return (
-    <div className="grid grid-cols-2 gap-2 mt-4">
-      <Light ok={rpc} label="RPC" />
-      <Light ok={ws} label="WS" />
-      <Light ok={jito} label="JITO" />
-      <Light ok label={net} />
+    <div className="grid grid-cols-2 gap-2">
+      <Chip ok={rpc} label="RPC" />
+      <Chip ok={ws} label="WS" />
+      <Chip ok={jito} label="JITO" />
+      <Chip ok label={net} />
     </div>
   )
 }

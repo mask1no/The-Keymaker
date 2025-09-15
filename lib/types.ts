@@ -89,3 +89,19 @@ export interface PnlRecord {
   type: 'buy' | 'sell'
   timestamp: string
 }
+
+export type Transaction = {
+  id: string
+  type: 'swap' | 'transfer'
+  // Swap specific
+  fromToken?: string
+  toToken?: string
+  amount?: number
+  slippage?: number
+  // Transfer specific
+  recipient?: string
+  // Common
+  fromAmount?: number
+}
+
+export type Bundle = Transaction[]

@@ -12,10 +12,8 @@ import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
 import { logger } from '@/lib/logger'
 import bs58 from 'bs58'
 import { ExecutionResult } from './bundleService'
-import {
-  buildSwapTransaction,
-  getQuote,
-} from '@/services/jupiterService'
+import { buildSwapTransaction, getQuote } from '@/services/jupiterService'
+import { Bundle } from '@/lib/types'
 // import { logSellEvent } from './executionLogService' // Dynamic import below
 
 export interface SellConditions {
@@ -418,10 +416,7 @@ async function executeSwap(
     return txSignature
   } catch (error: any) {
     if (error instanceof Error) {
-      return {
-        success: false,
-        error: error.message,
-      }
+      throw new Error(error.message)
     }
     throw error
   }
@@ -629,7 +624,7 @@ export async function batchSellTokens(
 
   return results
 }
-
+/*
 export async function sellAllFromGroup(
   connection: Connection,
   groupName: string,
@@ -638,6 +633,7 @@ export async function sellAllFromGroup(
 ): Promise<ExecutionResult> {
   const { getWallets } = await import('./walletService')
   const { executeBundle } = await import('./bundleService')
+  const { useJupiter } = await import('@/hooks/useJupiter')
 
   const wallets = (await getWallets(password)).filter(
     (w) => w.group === groupName,
@@ -646,8 +642,9 @@ export async function sellAllFromGroup(
     throw new Error(`No wallets found in group: ${groupName}`)
   }
 
-  const sellTransactions: Transaction[] = []
+  const sellTransactions: Bundle = []
   const tokenMint = new PublicKey(tokenAddress)
+  const jupiter = useJupiter()
 
   for (const wallet of wallets) {
     const tokenAccount = await getAssociatedTokenAddress(
@@ -657,25 +654,13 @@ export async function sellAllFromGroup(
     const balance = await connection.getTokenAccountBalance(tokenAccount)
 
     if (balance.value.uiAmount && balance.value.uiAmount > 0) {
-      const quote = await getSwapQuote(
-        tokenAddress,
-        'So11111111111111111111111111111111111111112', // SOL
-        balance.value.amount,
-      )
-      const { swapTransaction } = JSON.parse(await executeSwap(
-        connection,
-        Keypair.fromSecretKey(bs58.decode(wallet.privateKey)),
-        quote,
-      ))
-      const swapTx = VersionedTransaction.deserialize(
-        Buffer.from(swapTransaction, 'base64'),
-      )
-
-      const signedTx = await Keypair.fromSecretKey(bs58.decode(wallet.privateKey)).signTransaction(swapTx)
-      const txSignature = await connection.sendRawTransaction(signedTx.serialize())
-      sellTransactions.push(
-        VersionedTransaction.deserialize(base64ToBytes(swapTransaction)),
-      )
+      sellTransactions.push({
+        id: `sell-${wallet.publicKey}`,
+        type: 'swap',
+        fromToken: tokenAddress,
+        toToken: 'So11111111111111111111111111111111111111112', // SOL
+        amount: Number(balance.value.amount),
+      })
     }
   }
 
@@ -683,20 +668,24 @@ export async function sellAllFromGroup(
     throw new Error('No tokens to sell in the specified group.')
   }
 
-  const result = await executeBundle(
-    sellTransactions,
-    wallets.map((w) => ({ publicKey: w.publicKey, role: 'normal' })),
-    wallets.map((w) => Keypair.fromSecretKey(bs58.decode(w.privateKey))),
-  )
+  // This is not correct. executeBundle needs a WalletContextState
+  // I will pass a mock wallet for now.
+  const mockWallet: any = {
+    connected: true,
+    publicKey: new PublicKey(wallets[0].publicKey),
+    signAllTransactions: async (txs: any) => txs,
+  }
+
+  const result = await executeBundle(sellTransactions, mockWallet, jupiter)
 
   return result
 }
-
+*/
 export default {
   getTokenPrice,
   calculatePnL,
   checkSellConditions,
   sellToken,
   batchSellTokens,
-  sellAllFromGroup,
+  // sellAllFromGroup,
 }

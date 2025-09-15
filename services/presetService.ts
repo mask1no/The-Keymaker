@@ -1,8 +1,9 @@
 'use client'
 
-import { Bundle } from '@/components/BundleEngine/BundleBuilder'
+import { toast } from 'sonner'
+import { Bundle } from '@/lib/types'
 
-export interface Preset {
+export type Preset = {
   id: string
   name: string
   transactions: Bundle

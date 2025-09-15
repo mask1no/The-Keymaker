@@ -1,12 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/UI/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Button } from '@/components/UI/button'
 import { Badge } from '@/components/UI/badge'
 import {
@@ -131,7 +126,7 @@ export function PnLPanel() {
   }
 
   const getColorClass = (value: number) => {
-    return value >= 0 ? 'text-green-500' : 'text-red-500'
+    return value >= 0 ? 'text-primary' : 'text-destructive'
   }
 
   return (
@@ -142,10 +137,10 @@ export function PnLPanel() {
     >
       {/* Session Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+        <Card className="bg-card border-border rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-5 h-5 text-gray-400" />
+              <DollarSign className="w-5 h-5 text-muted" />
               <Badge
                 variant="outline"
                 className={getColorClass(sessionData.totalPnL)}
@@ -158,17 +153,17 @@ export function PnLPanel() {
             >
               {formatSOL(sessionData.totalPnL)} SOL
             </h3>
-            <p className="text-sm text-gray-400">Session P&L</p>
+            <p className="text-sm text-muted">Session P&L</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+        <Card className="bg-card border-border rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
               {sessionData.pnlPercentage >= 0 ? (
-                <TrendingUp className="w-5 h-5 text-green-500" />
+                <TrendingUp className="w-5 h-5 text-primary" />
               ) : (
-                <TrendingDown className="w-5 h-5 text-red-500" />
+                <TrendingDown className="w-5 h-5 text-destructive" />
               )}
             </div>
             <h3
@@ -176,47 +171,47 @@ export function PnLPanel() {
             >
               {formatPercentage(sessionData.pnlPercentage)}
             </h3>
-            <p className="text-sm text-gray-400">Return %</p>
+            <p className="text-sm text-muted">Return %</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+        <Card className="bg-card border-border rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <BarChart3 className="w-5 h-5 text-gray-400" />
+              <BarChart3 className="w-5 h-5 text-muted" />
             </div>
             <h3 className="text-2xl font-bold">
               {sessionData.totalVolume.toFixed(2)} SOL
             </h3>
-            <p className="text-sm text-gray-400">Total Volume</p>
+            <p className="text-sm text-muted">Total Volume</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+        <Card className="bg-card border-border rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold text-green-500">
+            <h3 className="text-2xl font-bold text-primary">
               {sessionData.profitableWallets}
             </h3>
-            <p className="text-sm text-gray-400">Profitable Wallets</p>
+            <p className="text-sm text-muted">Profitable Wallets</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+        <Card className="bg-card border-border rounded-2xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-5 h-5 text-gray-400" />
+              <DollarSign className="w-5 h-5 text-muted" />
             </div>
             <h3 className="text-2xl font-bold">{sessionData.totalWallets}</h3>
-            <p className="text-sm text-gray-400">Active Wallets</p>
+            <p className="text-sm text-muted">Active Wallets</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Wallet P&L Table */}
-      <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+      <Card className="bg-card border-border rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
@@ -257,9 +252,8 @@ export function PnLPanel() {
           {loading ? (
             <Skeleton className="h-64 w-full" />
           ) : walletPnL.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No trading activity yet. Start trading to see P&L data!</p>
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm opacity-80">
+              No realized P&L yet. After trades land, totals will show up here.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -288,10 +282,10 @@ export function PnLPanel() {
                       <TableCell className="text-right">
                         {wallet.totalReturned.toFixed(4)} SOL
                       </TableCell>
-                      <TableCell className="text-right text-yellow-500">
+                      <TableCell className="text-right text-muted">
                         {wallet.totalGasFees.toFixed(4)} SOL
                       </TableCell>
-                      <TableCell className="text-right text-purple-400">
+                      <TableCell className="text-right text-muted">
                         {wallet.totalJitoTips.toFixed(4)} SOL
                       </TableCell>
                       <TableCell
