@@ -77,11 +77,11 @@ export async function sendBundle(
   const response: any = await jitoRpc(
     region,
     'sendBundle',
-    [{ transactions }],
+    [{ encodedTransactions: transactions, bundleOnly: true }],
     true,
   )
   const bundleId =
-    response?.bundle_id || response?.result || response?.id || response
+    response?.bundleId || response?.bundle_id || response?.id || response
   if (!bundleId || typeof bundleId !== 'string') {
     throw new Error('No bundle ID returned from Jito')
   }
