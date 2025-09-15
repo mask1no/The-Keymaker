@@ -26,7 +26,6 @@ async function jitoRpc<T>(region: string|undefined, method: string, params: any[
 }
 
 export async function sendBundle(region: string, transactions: string[]): Promise<string> {
-  // JSON-RPC to /api/v1, NOT a raw REST body
   const result: any = await jitoRpc(region, 'sendBundle', [{ encodedTransactions: transactions, bundleOnly: true }])
   const id = result?.bundleId || result?.bundle_id || result?.id || result
   if (!id || typeof id !== 'string') throw new Error('No bundle ID returned')

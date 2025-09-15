@@ -35,14 +35,16 @@ export default function NavStatus() {
     } catch { setWs(false) }
   }, [])
 
-  if (isTestMode) { return (
-    <div className="grid grid-cols-2 gap-2 mt-4">
-      <Light ok label="RPC" />
-      <Light ok label="WS" />
-      <Light ok label="JITO" />
-      <Light ok label="MAINNET" />
-    </div>
-  )}
+  if (isTestMode) {
+    return (
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <Light ok label="RPC" />
+        <Light ok label="WS" />
+        <Light ok label="JITO" />
+        <Light ok label="MAINNET" />
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-2 gap-2 mt-4">
