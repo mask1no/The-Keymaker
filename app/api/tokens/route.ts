@@ -6,6 +6,15 @@ import { createToken, CreateTokenParams } from '@/services/tokenService'
 import { launchToken } from '@/services/platformService'
 import { getConnection } from '@/lib/network'
 
+// SECURITY WARNING: This endpoint uses server-side signing which is NOT production-safe
+// TODO: Convert to client-side signing where server returns unsigned transactions
+// Only enable this in development/testing environments
+const IS_DEV_MODE = process.env.NODE_ENV === 'development' || process.env.ENABLE_DEV_TOKENS === 'true'
+
+if (!IS_DEV_MODE) {
+  throw new Error('Token creation endpoint is disabled in production for security reasons')
+}
+
 // In a real app, you'd get this from a secure source
 const MOCK_WALLET_SECRET = process.env.SMOKE_SECRET
 if (!MOCK_WALLET_SECRET) {
