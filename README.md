@@ -853,18 +853,56 @@ node scripts/canaryTrade.js
 
 ## System Status
 
-The Keymaker v1.4.0 represents a fully operational, production-ready platform:
+**Build:** ✅ Green  
+**Bundler (Jito):** ✅ Preview → Execute → Poll (mainnet)  
+**WS Light:** ✅ Requires `NEXT_PUBLIC_HELIUS_WS=wss://…`  
+**Token Creators:** 🚫 Quarantined by default (enable flags when ready)  
+**Wallet UX:** ✅ Folders, AES-GCM local encryption  
+**Settings / Guide:** ✅ Restored (health checks + basic docs)
 
-✅ Complete blockchain integration with real-time data  
-✅ All application routes tested and functional  
-✅ Docker container with automated health checks  
-✅ Responsive UI with theme persistence  
-✅ Real-time monitoring with historical data  
-✅ Military-grade wallet encryption  
-✅ Jito bundle execution with MEV protection  
-✅ Multi-platform token deployment  
-✅ Comprehensive profit and loss tracking  
-✅ Robust error handling and recovery
+## Quickstart
+
+1. Create `.env.local`:
+
+
+NEXT_PUBLIC_HELIUS_RPC=https://<your-helius>.helius-rpc.com/?api-key=XXX
+NEXT_PUBLIC_HELIUS_WS=wss://<your-helius>.helius-rpc.com/?api-key=XXX
+NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
+
+Optional feature flags (off by default):
+
+ENABLE_PUMPFUN=false
+ENABLE_DEV_TOKENS=false
+
+
+2. Install & run:
+```bash
+pnpm i
+pnpm dev
+```
+
+Health check:
+
+Sidebar chips: RPC, WS, JITO green; network shows MAINNET.
+
+Open /api/jito/tipfloor → JSON with p25, p50, p75.
+
+Execute a test bundle:
+
+Click Login, connect Phantom/Backpack/Solflare.
+
+Set an active wallet in Wallets.
+
+Go to Bundler → Preview → Execute; watch status poll to landed/failed.
+
+Notes
+
+Keys are generated locally and encrypted with AES-GCM. Nothing leaves the browser.
+
+“Creators” routes are disabled until refactor; enable with ENABLE_PUMPFUN=true / ENABLE_DEV_TOKENS=true.
+
+To prevent “mystery files” and truncation reappearing, we ship a hygiene script that blocks literal ..., split identifiers, and junk filenames.
+
 
 ## License
 

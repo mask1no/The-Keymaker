@@ -114,21 +114,23 @@ export async function launchToken(
 
     // Launch token based on platform
     switch (liquidityParams.platform) {
-      case 'letsbonk.fun': {
-        const letsbonkService = await import('./letsbonkService')
-        tokenAddress = await letsbonkService.createToken(
-          tokenParams.name,
-          tokenParams.symbol,
-          tokenParams.supply,
-          metadata,
-          payer,
-        )
-        txSignature = tokenAddress // LetsBonk returns address as signature
-        decimals = tokenParams.decimals || 6
-        supply = tokenParams.supply
-        break
-      }
-
+      // case 'letsbonk.fun': {
+      //   const letsbonkService = await import('./letsbonkService')
+      //   tokenAddress = await letsbonkService.createToken(
+      //     tokenParams.name,
+      //     tokenParams.symbol,
+      //     tokenParams.supply,
+      //     {
+      //       description: tokenParams.description,
+      //       twitter: tokenParams.twitter,
+      //       telegram: tokenParams.telegram,
+      //       website: tokenParams.website,
+      //       image: tokenParams.image,
+      //     },
+      //     payer,
+      //   )
+      //   break
+      // }
       case 'pump.fun': {
         const pumpfunService = await import('./pumpfunService')
         tokenAddress = await pumpfunService.createToken(

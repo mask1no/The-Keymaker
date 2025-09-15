@@ -45,7 +45,6 @@ import { launchToken } from '@/services/platformService'
 import { buildSwapTransaction } from '@/services/jupiterService'
 import { decryptAES256ToKeypair } from '@/utils/crypto'
 import { WalletGroup } from '@/services/walletService'
-import { sellAllFromGroup } from '@/services/sellService'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 import useSWR from 'swr'
 
@@ -92,7 +91,6 @@ export function ControlCenter() {
   const [sellTokenAddress, setSellTokenAddress] = useState(
     lastCreatedTokenAddress || '',
   )
-  const [sellGroupName, setSellGroupName] = useState('')
   const [_walletGroups] = useState<WalletGroup[]>([])
   const [decryptedWallets, setDecryptedWallets] = useState<
     Map<string, Keypair>
@@ -150,32 +148,6 @@ export function ControlCenter() {
   const handlePreflightConfirmation = async () => {
     setShowPreflightDialog(false)
     await runExecution()
-  }
-
-  const handleSellAll = async () => {
-    if (!sellTokenAddress || !sellGroupName || !walletPassword) {
-      toast.error('Token address, group, and password are required.')
-      return
-    }
-
-    try {
-      const result = await sellAllFromGroup(
-        connection,
-        sellGroupName,
-        sellTokenAddress,
-        walletPassword,
-      )
-      toast.success(
-        `Sell bundle executed! Success rate: ${
-          result.metrics.successRate * 100
-        }%`,
-      )
-    } catch (error) {
-      toast.error(`Failed to sell all: ${(error as Error).message}`)
-    } finally {
-      setShowSellDialog(false)
-      setWalletPassword('')
-    }
   }
 
   const handlePasswordSubmit = async () => {
@@ -937,7 +909,7 @@ export function ControlCenter() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="wallet-group">Wallet Group</Label>
-              <Select onValueChange={setSellGroupName}>
+              <Select onValueChange={() => { /* no-op */ }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a group" />
                 </SelectTrigger>
@@ -960,7 +932,7 @@ export function ControlCenter() {
                 placeholder="Enter your wallet password"
               />
             </div>
-            <Button onClick={handleSellAll} className="w-full">
+            <Button onClick={() => { /* no-op */ }} className="w-full">
               Execute Sell
             </Button>
           </div>

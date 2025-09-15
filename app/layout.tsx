@@ -1,50 +1,19 @@
-import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { Providers } from './providers'
-import SideNav from '@/components/layout/SideNav'
+import WalletContext from '@/components/Wallet/WalletContext'
 import HeaderBar from '@/components/layout/Header'
+import SideNav from '@/components/layout/SideNav'
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
-
-const jetbrains_mono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-})
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrains_mono.variable}`}>
-      <body className="min-h-screen bg-background text-foreground">
-        <Providers>
-          <div className="min-h-screen flex">
-            {/* Sidebar - fixed width */}
-            <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50 bg-card/50 backdrop-blur-sm border-r border-border">
-              <SideNav />
-            </aside>
-
-            {/* Main content area */}
-            <div className="flex-1 md:ml-64">
-              <HeaderBar />
-              <main className="max-w-7xl mx-auto px-6 py-6 pb-16 space-y-6">
-                {children}
-              </main>
-            </div>
+    <html lang="en">
+      <body>
+        <WalletContext>
+          <HeaderBar />
+          <div className="flex">
+            <SideNav />
+            <main className="flex-1">{children}</main>
           </div>
-
-          {/* Mobile navigation */}
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-sm border-t border-border p-4">
-            <div className="flex justify-around">
-              {/* Mobile nav items will be added here */}
-            </div>
-          </div>
-        </Providers>
+        </WalletContext>
       </body>
     </html>
   )

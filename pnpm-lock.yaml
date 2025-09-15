@@ -203,6 +203,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.0
         version: 3.4.17(ts-node@10.9.2(@types/node@22.17.0)(typescript@5.1.6))
+      undici:
+        specifier: ^7.16.0
+        version: 7.16.0
       use-debounce:
         specifier: ^10.0.5
         version: 10.0.5(react@18.3.1)
@@ -8636,6 +8639,10 @@ packages:
 
   undici-types@7.13.0:
     resolution: {integrity: sha512-Ov2Rr9Sx+fRgagJ5AX0qvItZG/JKKoBRAVITs1zk7IqZGTJUwgUr7qoYBpWwakpWilTZFM98rG/AFRocu10iIQ==}
+
+  undici@7.16.0:
+    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
+    engines: {node: '>=20.18.1'}
 
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
@@ -20200,6 +20207,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici-types@7.13.0: {}
+
+  undici@7.16.0: {}
 
   unicorn-magic@0.1.0: {}
 

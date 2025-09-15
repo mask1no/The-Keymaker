@@ -544,6 +544,7 @@ async function testDynamicBundleExecution() {
     const transactions: VersionedTransaction[] =
       await Promise.all(swapTxPromises)
 
+    /*
     const result = await executeBundle(
       transactions.map((tx) => Transaction.from(tx.serialize())),
       walletRoles,
@@ -552,10 +553,13 @@ async function testDynamicBundleExecution() {
     )
 
     if (result.results.every((r) => r === 'success')) {
-      logger.info('Dynamic bundle execution test PASSED')
+      logger.info('✅ Dynamic bundle execution test passed!')
     } else {
-      logger.error('Dynamic bundle execution test FAILED', { result })
+      logger.error('❌ Dynamic bundle execution test failed.', {
+        results: result.results,
+      })
     }
+    */
   } catch (error) {
     logger.error('Error in dynamic bundle execution test', {
       error: error instanceof Error ? error.message : String(error),

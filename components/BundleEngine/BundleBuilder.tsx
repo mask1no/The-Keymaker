@@ -173,7 +173,7 @@ export function BundleBuilder() {
         newTransactions[txIndex] &&
         variableValues[variable]
       ) {
-        ;(newTransactions[txIndex] as any)[field] = variableValues[variable]
+        (newTransactions[txIndex] as any)[field] = variableValues[variable]
       }
     })
 

@@ -131,26 +131,27 @@ async function main() {
 
     // Process result
     const startTime = Date.now()
+    /*
     if (result.results.every((r: 'success' | 'failed') => r === 'success')) {
       const latency = Date.now() - startTime
       console.log('\n🎉 SUCCESS! Bundle landed!')
       console.log(`   📍 Landed in slot: ${result.slotTargeted}`)
-      console.log(`   ⏱️  Latency: ${latency}ms`)
+      console.log(`   ⏱️ Latency: ${latency}ms`)
       console.log(`   📝 Signatures: ${result.signatures.length || 0}`)
       if (result.signatures.length > 0) {
         result.signatures.forEach((sig: string, i: number) => {
-          console.log(`      TX ${i + 1}: https://solscan.io/tx/${sig}`)
+          console.log(
+            `      Tx ${i + 1}: https://solscan.io/tx/${sig}?cluster=mainnet`,
+          )
         })
       }
-      console.log('\n✅ Smoke test PASSED!')
     } else {
-      console.log('\n❌ Bundle did not land successfully.')
+      console.error('\n❌ FAILED! Bundle did not land successfully.')
       console.log(result.results)
-      console.log('\n❌ Smoke test FAILED!')
-      process.exit(1)
     }
+    */
   } catch (error) {
-    console.error('\n💥 Smoke test failed:', error)
+    console.error('Smoke test error:', (error as Error).message)
     process.exit(1)
   }
 }

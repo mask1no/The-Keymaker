@@ -3,6 +3,7 @@ import { validatePublicKey, sanitizeString } from '@/lib/validation'
 import { spawn } from 'child_process'
 import path from 'path'
 import { getServerRpc } from '@/lib/server/rpc'
+import '@/lib/server/httpAgent'
 
 // Supported API services
 const API_SERVICES = {
