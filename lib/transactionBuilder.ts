@@ -76,15 +76,29 @@ export async function buildNativeV0Transaction(
   return tx
 }
 
-export async function buildBundleTransactions(
+export async function buildV0Tx(
+  connection: Connection,
+  cfg: TransactionConfig,
+): Promise<VersionedTransaction> {
+  return buildNativeV0Transaction(connection, cfg)
+}
+
+export async function buildBundle(
   conn: Connection,
   items: TransactionConfig[],
-) {
+): Promise<VersionedTransaction[]> {
   const out: VersionedTransaction[] = []
   for (const it of items) out.push(await buildNativeV0Transaction(conn, it))
   return out
 }
-export const serializeBundleTransactions = (txs: VersionedTransaction[]) =>
+
+export const serializeBundle = (txs: VersionedTransaction[]): string[] =>
   txs.map((t) => Buffer.from(t.serialize()).toString('base64'))
-export const testTransfer = (from: PublicKey, to: PublicKey, lamports = 1) =>
+
+export const testLamport = (from: PublicKey, to: PublicKey, lamports = 1) =>
   SystemProgram.transfer({ fromPubkey: from, toPubkey: to, lamports })
+
+// Legacy exports for backward compatibility
+export const buildBundleTransactions = buildBundle
+export const serializeBundleTransactions = serializeBundle
+export const testTransfer = testLamport

@@ -202,7 +202,7 @@ export default function Dashboard() {
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
                       <div className="text-xs text-muted-foreground mb-1">
-                        ...
+                        Loading
                       </div>
                       <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
                     </div>

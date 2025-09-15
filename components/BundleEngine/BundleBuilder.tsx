@@ -82,9 +82,15 @@ export function BundleBuilder() {
     ? async (tx: any) => tx // no-op signer
     : signAllTransactions
   const [transactions, setTransactions] = useState<Bundle>([
-    { id: `tx-${Date.now()}`, type: 'swap', amount: 0, slippage: 0.5 },
+    { 
+      id: `tx-${Date.now()}`, 
+      type: 'transfer', 
+      recipient: '', 
+      fromAmount: 0.000001 // 1 lamport
+    },
   ])
   const [isExecuting, setIsExecuting] = useState(false)
+  const [isPreviewing, setIsPreviewing] = useState(false)
   const [presets, setPresets] = useState<Preset[]>([])
   const [showSavePresetDialog, setShowSavePresetDialog] = useState(false)
   const [presetName, setPresetName] = useState('')
@@ -290,13 +296,13 @@ export function BundleBuilder() {
           const swapTx = VersionedTransaction.deserialize(Buffer.from(swapResult.swapTransaction, 'base64'))
           builtTransactions.push(swapTx)
         }
-        // Handle 'transfer' type here in the future
+        // Handle 'transfer' type - minimal lamport transfer
         if (tx.type === 'transfer') {
-            if (!tx.recipient || !tx.fromAmount || !tx.fromAmount <= 0) {
+            if (!tx.recipient || !tx.fromAmount || tx.fromAmount <= 0) {
                 throw new Error(`Invalid transfer parameters for transaction ${tx.id}`);
             }
             const recipientPubKey = new PublicKey(tx.recipient);
-            const lamports = tx.fromAmount * LAMPORTS_PER_SOL;
+            const lamports = Math.max(1, Math.floor(tx.fromAmount * LAMPORTS_PER_SOL));
             
             const transferInstruction = SystemProgram.transfer({
                 fromPubkey: publicKeySafe,
@@ -339,6 +345,23 @@ export function BundleBuilder() {
         throw new Error(result.error || 'Failed to submit bundle')
       }
       
+      // Record to history
+      try {
+        await fetch('/api/history/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bundle_id: result.bundle_id,
+            region: 'ffm',
+            signatures: result.signatures || [],
+            status: 'pending',
+            tip_sol: 0.00005 // 50k lamports default
+          }),
+        })
+      } catch (historyError) {
+        console.warn('Failed to record to history:', historyError)
+      }
+      
       toast.success('Bundle executed successfully!', {
         id: toastId,
         description: `Bundle ID: ${result.bundle_id}`,
@@ -353,6 +376,99 @@ export function BundleBuilder() {
       setIsExecuting(false)
     }
   }, [transactions, connectedSafe, publicKeySafe, getQuote, getSwapTransaction, signTxSafe])
+
+  const previewBundle = useCallback(async () => {
+    if (!connectedSafe || !publicKeySafe) {
+      toast.error('Please connect your wallet.')
+      return
+    }
+
+    setIsPreviewing(true)
+    const toastId = toast.loading('Simulating bundle...')
+
+    try {
+      const builtTransactions: VersionedTransaction[] = []
+
+      for (const tx of transactions) {
+        if (tx.type === 'swap') {
+          if (!tx.fromToken || !tx.toToken || !tx.amount || tx.amount <= 0) {
+            throw new Error(`Invalid swap parameters for transaction ${tx.id}`)
+          }
+          const quote = await getQuote(
+            tx.fromToken,
+            tx.toToken,
+            tx.amount,
+            (tx.slippage || 0.5) * 100,
+          )
+          if (!quote) {
+            throw new Error(`Could not get a quote for transaction ${tx.id}`)
+          }
+          const swapResult = await getSwapTransaction(quote, publicKeySafe.toBase58())
+          if (!swapResult?.swapTransaction) {
+            throw new Error(`Could not build swap transaction ${tx.id}`)
+          }
+          const swapTx = VersionedTransaction.deserialize(Buffer.from(swapResult.swapTransaction, 'base64'))
+          builtTransactions.push(swapTx)
+        }
+        // Handle 'transfer' type - minimal lamport transfer
+        if (tx.type === 'transfer') {
+            if (!tx.recipient || !tx.fromAmount || tx.fromAmount <= 0) {
+                throw new Error(`Invalid transfer parameters for transaction ${tx.id}`);
+            }
+            const recipientPubKey = new PublicKey(tx.recipient);
+            const lamports = Math.max(1, Math.floor(tx.fromAmount * LAMPORTS_PER_SOL));
+            
+            const transferInstruction = SystemProgram.transfer({
+                fromPubkey: publicKeySafe,
+                toPubkey: recipientPubKey,
+                lamports: lamports,
+            });
+
+            const { blockhash } = await connection.getLatestBlockhash();
+            const message = new TransactionMessage({
+                payerKey: publicKeySafe,
+                recentBlockhash: blockhash,
+                instructions: [transferInstruction],
+            }).compileToV0Message();
+
+            const transferTx = new VersionedTransaction(message);
+            builtTransactions.push(transferTx);
+        }
+      }
+      
+      if(builtTransactions.length === 0) {
+        throw new Error("No valid transactions to bundle.")
+      }
+
+      const serializedTxs = builtTransactions.map(tx => 
+        Buffer.from(tx.serialize()).toString('base64')
+      );
+
+      const response = await fetch('/api/bundles/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ txs_b64: serializedTxs, region: 'ffm', simulateOnly: true }), 
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.error || 'Simulation failed')
+      }
+      
+      toast.success('Bundle simulation successful!', {
+        id: toastId,
+        description: `${builtTransactions.length} transactions simulated successfully`,
+      })
+
+    } catch (error) {
+      toast.error('Bundle simulation failed', {
+        id: toastId,
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      })
+    } finally {
+      setIsPreviewing(false)
+    }
+  }, [transactions, connectedSafe, publicKeySafe, getQuote, getSwapTransaction, connection])
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -546,15 +662,25 @@ export function BundleBuilder() {
 
         <BundleSettings />
 
-        <Button
-          className="w-full"
-          data-testid="execute-bundle-button"
-          onClick={executeBundle}
-          disabled={!connectedSafe || isExecuting || transactions.length === 0}
-        >
-          <Send className="mr-2 h-4 w-4" />
-          {isExecuting ? 'Executing...' : 'Execute Bundle'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            className="flex-1"
+            variant="outline"
+            onClick={previewBundle}
+            disabled={!connectedSafe || isPreviewing || isExecuting || transactions.length === 0}
+          >
+            {isPreviewing ? 'Simulating...' : 'Preview Bundle'}
+          </Button>
+          <Button
+            className="flex-1"
+            data-testid="execute-bundle-button"
+            onClick={executeBundle}
+            disabled={!connectedSafe || isExecuting || isPreviewing || transactions.length === 0}
+          >
+            <Send className="mr-2 h-4 w-4" />
+            {isExecuting ? 'Executing...' : 'Execute Bundle'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

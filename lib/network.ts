@@ -1,10 +1,12 @@
 import { Connection } from '@solana/web3.js'
 
 export const MAINNET_RPC =
-  process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+  process.env.RPC_URL || 
+  process.env.NEXT_PUBLIC_HELIUS_RPC || 
+  'https://api.mainnet-beta.solana.com'
 
 export function getConnection(
-  commitment: 'processed' | 'confirmed' | 'finalized' = 'confirmed',
+  commitment: 'processed' | 'confirmed' | 'finalized' = 'processed',
 ): Connection {
   return new Connection(MAINNET_RPC, commitment)
 }

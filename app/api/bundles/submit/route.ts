@@ -46,15 +46,27 @@ export async function POST(req: Request) {
     const connection = new Connection(getServerRpc(), 'confirmed')
 
     if (simulateOnly) {
-      const sim = await connection.simulateTransaction(decoded[0], {
-        sigVerify: false,
+      const sims = []
+      for (let i = 0; i < decoded.length; i++) {
+        const sim = await connection.simulateTransaction(decoded[i], {
+          sigVerify: false,
+        })
+        if (sim.value.err) {
+          return NextResponse.json(
+            { error: `Simulation failed on tx ${i}: ${JSON.stringify(sim.value.err)}` },
+            { status: 400 },
+          )
+        }
+        sims.push({ idx: i, err: null })
+      }
+      const { blockhash } = await connection.getLatestBlockhash('processed')
+      const slot = await connection.getSlot('processed')
+      return NextResponse.json({ 
+        ok: true, 
+        sims, 
+        blockhash,
+        slot 
       })
-      if (sim.value.err)
-        return NextResponse.json(
-          { error: `Simulation failed: ${JSON.stringify(sim.value.err)}` },
-          { status: 400 },
-        )
-      return NextResponse.json({ ok: true, simulation: sim.value })
     }
 
     if (mode === 'delayed' && delaySec > 0) {
@@ -84,7 +96,7 @@ export async function POST(req: Request) {
           ? Buffer.from(v.signatures[0]).toString('base64')
           : null,
       )
-      .filter(Boolean)
+      .filter(Boolean) as string[]
     return NextResponse.json({
       bundle_id: bundleId,
       signatures,

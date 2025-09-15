@@ -18,6 +18,10 @@ export function getJitoApiUrl(region?: string): string {
   return `${getJitoBaseUrl(region)}/api/v1`
 }
 
+export function bundlesUrl(region?: string): string {
+  return `${getJitoApiUrl(region)}/bundles`
+}
+
 function getJitoHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -107,8 +111,15 @@ export function validateTipAccount(
   return keys.some((k) => new Set(JITO_TIP_ACCOUNTS).has(k))
 }
 
-export async function getTipFloor(region: string): Promise<any> {
-  const url = `${getJitoApiUrl(region)}/tip-streams`
+export async function getTipFloor(region: string): Promise<{
+  p25: number
+  p50: number
+  p75: number
+  ema_50th: number
+  ema_landed: number
+  time: number
+}> {
+  const url = `${getJitoApiUrl(region)}/bundles/tipfloor`
   const response = await fetch(url, {
     method: 'GET',
     headers: getJitoHeaders(),
@@ -118,5 +129,15 @@ export async function getTipFloor(region: string): Promise<any> {
     throw new Error(`Failed to fetch Jito tip floor: ${response.statusText}`)
   }
 
-  return response.json()
+  const data = await response.json()
+  
+  // Transform the response to match expected format
+  return {
+    p25: data[0]?.percentile_25th || 1000,
+    p50: data[0]?.percentile_50th || 2000,
+    p75: data[0]?.percentile_75th || 3000,
+    ema_50th: data[0]?.ema_50th || 1800,
+    ema_landed: data[0]?.ema_landed || 1900,
+    time: Date.now()
+  }
 }
