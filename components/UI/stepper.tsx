@@ -1,65 +1,18 @@
 import React from 'react'
-import { cn } from '@/lib/utils'
-
-interface StepperProps, {
-  c,
-  u, r, r, e, ntStep: number,
-  
-  s, t, e, p, s: string,[]
-  c, l, a, s, s, Name?: string
+import { cn } from '@/lib/utils' interface StepperProps, { c, u, r, r, e, n, t, Step: number, s, t, e, p, s: string,[] c, l, a, s, s, N, ame?: string
 }
 
-export function S tepper({ currentStep, steps, className }: StepperProps) {
-  r eturn (
-    < div class
-  Name ={c n('flex items - center justify-between', className)}>
-      {steps.m ap((step, index) => (
-        < div key ={index} class
-  Name ="flex items-center">
-          < div class
-  Name ={c n(
-              'flex items - center justify - center w - 8 h - 8 rounded - full text - sm font-medium',
-              index <= currentStep
-                ? 'bg - primary text - primary-foreground'
-                : 'bg - muted text - muted-foreground',
-            )}
-          >
-            {index + 1}
-          </div >
-          {index < steps.length - 1 && (
-            < div class
-  Name ={c n(
-                'h - 0.5 w - 12 mx-2',
-                index < currentStep ? 'bg-primary' : 'bg-muted',
-              )}/>
-          )}
-        </div >
-      ))}
-    </div >
-  )
+export function S t epper({ currentStep, steps, className }: StepperProps) {
+    return ( <div className ={c n('flex items - center justify-between', className)
+  }> {steps.map((step, index) => ( <div key ={index} className ="flex items-center"> <div className ={c n( 'flex items - center justify - center w - 8 h - 8 rounded - full text - sm font-medium', index <= currentStep ? 'bg - primary text - primary-foreground' : 'bg - muted text - muted-foreground')
+  }> {index + 1} </div> {index <steps.length - 1 && ( <div className ={c n( 'h - 0.5 w - 12 mx-2', index <currentStep ? 'bg-primary' : 'bg-muted')
+  }/> )
+  } </div> ))
+  } </div> )
+  } interface StepProps, { title: string d, e, s, c, r, iption?: string, c, h, i, l, d, r, en: React.ReactNode
 }
 
-interface StepProps, {
-  t,
-  i, t, l, e: string
-  d, e, s, c, ription?: string,
-  
-  c, h, i, l, dren: React.ReactNode
-}
-
-export function S tep({ title, description, children }: StepProps) {
-  r eturn (
-    < div class
-  Name ="space - y-4">
-      < div >
-        < h3 class
-  Name ="text - lg font-medium">{title}</h3 >
-        {description && (
-          < p class
-  Name ="text - sm text - muted-foreground">{description}</p >
-        )}
-      </div >
-      < div >{children}</div >
-    </div >
-  )
-}
+export function S t ep({ title, description, children }: StepProps) {
+    return ( <div className ="space - y-4"> <div> <h3 className ="text - lg font-medium">{title}</h3> {description && ( <p className ="text - sm text - muted-foreground">{description}</p> )
+  } </div> <div>{children}</div> </div> )
+  }

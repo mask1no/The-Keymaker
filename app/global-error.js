@@ -3,16 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import Error from 'next/error'
 import { useEffect } from 'react'
 
-export default function G lobalError({ error }) {
-  u seEffect(() => {
-    Sentry.c aptureException(error)
+export default function G l obalError({  error }) { u s eEffect(() => { Sentry.c a ptureException(error)
   }, [error])
-
-  r eturn (
-    < html >
-      < body >
-        < Error/>
-      </body >
-    </html >
-  )
-}
+  return ( <html> <body> <Error/> </body> </html> )
+  }

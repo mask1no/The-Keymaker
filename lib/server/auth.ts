@@ -1,61 +1,26 @@
 import nacl from 'tweetnacl'
 import { PublicKey } from '@solana/web3.js'
 
-export function v erifySignedIntent({
-  address,
-  nonce,
-  signatureBase64,
-  body,
-}: {
-  a,
-  
-  d, d, r, e, ss: string,
-  
-  n, o, n, c, e: string
-  s,
-  
-  i, g, n, a, tureBase64: string
-  b,
-  
-  o, d, y: unknown
+export function v e rifySignedIntent({ address, nonce, signatureBase64, body }: { a, d, d, r, e, s, s: string, n, o, n, c, e: string s, i, g, n, a, t, u, reBase64: string b, o, d, y: unknown
 }) {
-  try, {
-    const message = new T extEncoder().e ncode(`$,{nonce}:$,{JSON.s tringify(body)}`)
-    const signature = Buffer.f rom(signatureBase64, 'base64')
-    const public
-  Key = new P ublicKey(address).t oBytes()
-
-    return nacl.sign.detached.v erify(message, signature, publicKey)
-  } c atch (error) {
-    return false
+  try {
+  const message = new T e xtEncoder().e n code(`${nonce}:${JSON.s t ringify(body)
+  }`) const signature = Buffer.f r om(signatureBase64, 'base64') const public Key = new P u blicKey(address).t oB ytes() return nacl.sign.detached.v e rify(message, signature, publicKey)
   }
+} catch (error) {
+    return false }
 }//In - memory nonce cache with TTL
-const nonce
-  Cache = new Map < string, number >()
-const N
-  ONCE_TTL = 5 * 60 * 1000//5 minutes
-
-export function g enerateNonce(): string, {
-  const nonce = Math.r andom().t oString(36).s ubstring(2, 15)
-  nonceCache.s et(nonce, Date.n ow() + NONCE_TTL)
-  return nonce
+const nonce Cache = new Map <string, number>()
+const N O NCE_TTL = 5 * 60 * 1000//5 minutes export function g e nerateNonce(): string, {
+  const nonce = Math.r a ndom().t oS tring(36).s u bstring(2, 15) nonceCache.set(nonce, Date.n o w() + NONCE_TTL) return nonce
 }
 
-export function v alidateNonce(n,
-  o, n, c, e: string): boolean, {
-  const expiry = nonceCache.g et(nonce)
-  i f (! expiry || Date.n ow() > expiry) {
-    nonceCache.d elete(nonce)
-    return false
-  }//Use n once (remove it)
-  nonceCache.d elete(nonce)
-  return true
+export function v a lidateNonce(n, o, n, c, e: string): boolean, {
+  const expiry = nonceCache.get(nonce) if (!expiry || Date.n o w()> expiry) { nonceCache.d e lete(nonce) return false }//Use n o nce (remove it) nonceCache.d e lete(nonce) return true
 }//Cleanup expired nonces periodically
-s etInterval(() => {
-  const now = Date.n ow()
-  f or (const, [nonce, expiry] of nonceCache.e ntries()) {
-    i f (now > expiry) {
-      nonceCache.d elete(nonce)
-    }
+s e tInterval(() => {
+  const now = Date.n o w() f o r (const [nonce, expiry] of nonceCache.e n tries()) {
+  if (now> expiry) { nonceCache.d e lete(nonce)
   }
+}
 }, 60 * 1000)//Every minute

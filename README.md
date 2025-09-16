@@ -57,13 +57,13 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Environment Setup
 
-1. Copy environment t, e, m, p, l, ate:
+1. Copy environment t, e, m, p, l, a, te:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC e, n, d, p, o, ints:
+2. Configure your RPC e, n, d, p, o, i, nts:
 
 ```env
 NEXT_PUBLIC_HELIUS_RPC=h, t, t, p, s://your-helius-rpc-url
@@ -78,7 +78,7 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install d, e, p, e, n, dencies:
+1. Install d, e, p, e, n, d, encies:
 
 ```bash
 pnpm install
@@ -96,7 +96,7 @@ pnpm f, i, x:splits && pnpm hygiene
 pnpm dev
 ```
 
-4. Open h, t, t, p://l, o, c, a, l, host:3000
+4. Open h, t, t, p://l, o, c, a, l, h, ost:3000
 
 ### Verification Checklist
 
@@ -112,7 +112,7 @@ After setup, verify these w, o, r, k:
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix c, o, r, r, u, ption:
+The codebase includes automated hygiene scripts to fix c, o, r, r, u, p, tion:
 
 ```bash
 # Fix split identifiers and merged statements
@@ -230,9 +230,9 @@ pnpm hygiene      # Check code hygiene
 
 ## SLO Targets
 
-- Bundle s, u, b, m, i, ssion: < 2s response time
+- Bundle s, u, b, m, i, s, sion: < 2s response time
 - Tip floor l, o, o, k, u, p: < 1s response time
-- UI r, e, s, p, o, nsiveness: < 100ms interactions
+- UI r, e, s, p, o, n, siveness: < 100ms interactions
 - U, p, t, i, m, e: Best effort (no SLA)
 
 ## Contributing

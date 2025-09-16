@@ -1,12 +1,5 @@
-export async function r egister() {
-  i f (process.env.N
-  EXT_RUNTIME === 'nodejs') {
-    await i mport('./lib/server/httpAgent')
-    await i mport('./sentry.server.config')
-  }
-
-  i f (process.env.N
-  EXT_RUNTIME === 'edge') {
-    await i mport('./sentry.edge.config')
+export async function r e gister() {
+  if (process.env.N E XT_RUNTIME === 'nodejs') { await import('./lib/server/httpAgent') await import('./sentry.server.config')
+  } if (process.env.N E XT_RUNTIME === 'edge') { await import('./sentry.edge.config')
   }
 }

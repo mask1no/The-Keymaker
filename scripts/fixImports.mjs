@@ -5,7 +5,17 @@ const ROOT = process.cwd()
 
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
-    if (['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some(s => d.includes(s))) continue
+    if (
+      [
+        'node_modules',
+        '.git',
+        '.next',
+        'dist',
+        'coverage',
+        'test-results',
+      ].some((s) => d.includes(s))
+    )
+      continue
     const p = path.join(d, n)
     const st = fs.statSync(p)
     if (st.isDirectory()) {
@@ -31,15 +41,21 @@ const importFixes = [
   [/from\s+"next\s+\/\s+([^"]*)"/g, 'from "next/$1"'],
   [/from\s+'@solana\s+\/\s+([^']*)'/g, "from '@solana/$1'"],
   [/from\s+"@solana\s+\/\s+([^"]*)"/g, 'from "@solana/$1"'],
-  
+
   // Fix broken export const declarations
-  [/export\s+const\s+dynamic\s+=\s+'force\s+-\s+dynamic'/g, "export const dynamic = 'force-dynamic'"],
-  [/export\s+const\s+dynamic\s+=\s+"force\s+-\s+dynamic"/g, 'export const dynamic = "force-dynamic"'],
-  
+  [
+    /export\s+const\s+dynamic\s+=\s+'force\s+-\s+dynamic'/g,
+    "export const dynamic = 'force-dynamic'",
+  ],
+  [
+    /export\s+const\s+dynamic\s+=\s+"force\s+-\s+dynamic"/g,
+    'export const dynamic = "force-dynamic"',
+  ],
+
   // Fix broken string literals in general
   [/'([^']*)\s+-\s+([^']*)'/g, "'$1-$2'"],
   [/"([^"]*)\s+-\s+([^"]*)"/g, '"$1-$2"'],
-  
+
   // Fix spacing issues in paths
   [/\/\s+/g, '/'],
   [/\s+\//g, '/'],
@@ -49,12 +65,12 @@ let changed = 0
 for (const p of walk(ROOT)) {
   let s = fs.readFileSync(p, 'utf8')
   let o = s
-  
+
   // Apply import fixes
   for (const [re, rep] of importFixes) {
     s = s.replace(re, rep)
   }
-  
+
   if (s !== o) {
     fs.writeFileSync(p, s)
     console.log('fixed', p)

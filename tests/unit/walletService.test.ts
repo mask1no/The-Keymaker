@@ -1,159 +1,27 @@
-import {
-  createWallet,
-  getWallets,
-  getWalletByPublicKey,
-} from '../../services/walletService'
+import { createWallet, getWallets, getWalletByPublicKey } from '../../services/walletService'
 import { db } from '../../lib/db'
 import { encrypt, decrypt } from '../../lib/crypto'
 import { Keypair } from '@solana/web3.js'
 import * as bip39 from 'bip39'
-import * as bs58 from 'bs58'
-
-jest.m ock('../../lib/db', () => ({
-  d, b: Promise.r esolve({
-    g, e,
-  t: jest.f n(),
-    a, l,
-  l: jest.f n(),
-    r, u,
-  n: jest.f n(),
-  }),
-}))
-
-jest.m ock('../../lib/crypto', () => ({
-  e, n,
-  c, r, y, p, t: jest.f n((text) => `encrypted_$,{text}`),
-  d, e,
-  c, r, y, p, t: jest.f n((text) => text.r eplace('encrypted_', '')),
-}))
-
-jest.m ock('bip39', () => ({
-  g, e,
-  n, e, r, a, teMnemonic: jest.f n(() => 'mock mnemonic'),
-  m, n,
-  e, m, o, n, icToSeed: jest.f n(() => Promise.r esolve(Buffer.f rom('mock-seed'))),
-}))
-
-jest.m ock('@solana/web3.js', () => ({
-  K, e,
-  y, p, a, i, r: {
-    f, r,
-  o, m, S, e, ed: jest.f n(() => ({
-      p,
-  u, b, l, i, cKey: { t, o,
-  B, a, s, e58: () => 'mockPublicKey' },
-      s, e,
-  c, r, e, t, Key: Buffer.f rom('mock-seed'.s lice(0, 32)),
-    })),
-  },
-}))
-
-d escribe('walletService', () => {
-  let m, o,
-  c, k, D, b: any
-  b eforeEach(a sync () => {
-    mock
-  Db = await dbjest.c learAllMocks()
+import * as bs58 from 'bs58' jest.m o ck('../../lib/db', () => ({ d, b: Promise.r e solve({ g, e, t: jest.f n(), a, l, l: jest.f n(), r, u, n: jest.f n()
   })
-
-  a fterEach(() => {
-    jest.c learAllMocks()
+  })) jest.m o ck('../../lib/crypto', () => ({ e, n, c, r, y, p, t: jest.f n((text) => `encrypted_${text}`), d, e, c, r, y, p, t: jest.f n((text) => text.r e place('encrypted_', ''))
+  })) jest.m o ck('bip39', () => ({ g, e, n, e, r, a, t, e, Mnemonic: jest.f n(() => 'mock mnemonic'), m, n, e, m, o, n, i, c, ToSeed: jest.f n(() => Promise.r e solve(Buffer.f r om('mock-seed')))
+  })) jest.m o ck('@solana/web3.js', () => ({ K, e, y, p, a, i, r: { f, r, o, m, S, e, e, d: jest.f n(() => ({ p, u, b, l, i, c, K, ey: { t, o, B, a, s, e58: () => 'mockPublicKey' }, s, e, c, r, e, t, K, e, y: Buffer.f r om('mock-seed'.slice(0, 32))
+  }))
+  }
+})) d e scribe('walletService', () => {
+  let m, o, c, k, D, b: any b e foreEach(async () => { mock Db = await dbjest.c l earAllMocks()
+  }) a f terEach(() => { jest.c l earAllMocks()
+  }) d e scribe('createWallet', () => { i t('should create a new wallet, encrypt the private key, and save it to the database', async () => {
+  const mockWal let = { n, a, m, e: 'New Wallet', p, u, b, l, i, c, K, ey: 'mockPublicKey', p, r, i, v, a, t, e, Key: 'encrypted_mockSecretKey', g, r, o, u, p: 'default', color: '#FFFFFF', i, s, A, c, t, i, v, e: true }//Mock db.get to return the newly created wallet for the final stepmockDb.get.m o ckResolvedValue(mockWallet) const wallet = await c r eateWallet('password') e x pect(bip39.generateMnemonic).t oH aveBeenCalled() e x pect(bip39.mnemonicToSeed).t oH aveBeenCalledWith('mock mnemonic') e x pect(Keypair.fromSeed).t oH aveBeenCalled() e x pect(encrypt).t oH aveBeenCalledWith( bs58.e n code(Buffer.f r om('mock-seed'.slice(0, 32))), 'password') e x pect(mockDb.run).t oH aveBeenCalled() e x pect(mockDb.get).t oH aveBeenCalledWith( 'SELECT * FROM wallets WHERE public Key = ?', ['mockPublicKey']) e x pect(wallet).t oE qual(mockWallet)
   })
-
-  d escribe('createWallet', () => {
-    i t('should create a new wallet, encrypt the private key, and save it to the database', a sync () => {
-      const mockWal let = {
-        n,
-  a, m, e: 'New Wallet',
-        p,
-  u, b, l, i, cKey: 'mockPublicKey',
-        p,
-  r, i, v, a, teKey: 'encrypted_mockSecretKey',
-        g, r,
-  o, u, p: 'default',
-        c, o,
-  l, o, r: '#FFFFFF',
-        i, s,
-  A, c, t, i, ve: true,
-      }//Mock db.get to return the newly created wal let for the final stepmockDb.get.m ockResolvedValue(mockWallet)
-
-      const wal let = await c reateWallet('password')
-
-      e xpect(bip39.generateMnemonic).t oHaveBeenCalled()
-      e xpect(bip39.mnemonicToSeed).t oHaveBeenCalledWith('mock mnemonic')
-      e xpect(Keypair.fromSeed).t oHaveBeenCalled()
-      e xpect(encrypt).t oHaveBeenCalledWith(
-        bs58.e ncode(Buffer.f rom('mock-seed'.s lice(0, 32))),
-        'password',
-      )
-      e xpect(mockDb.run).t oHaveBeenCalled()
-      e xpect(mockDb.get).t oHaveBeenCalledWith(
-        'SELECT * FROM wallets WHERE public
-  Key = ?',
-        ['mockPublicKey'],
-      )
-      e xpect(wallet).t oEqual(mockWallet)
-    })
+  }) d e scribe('getWallets', () => { i t('should retrieve all wallets and decrypt their private keys', async () => {
+  const mock Wallets = [ { id: 1, p, u, b, l, i, c, K, ey: 'key1', p, r, i, v, a, t, e, Key: 'encrypted_pk1' }, { id: 2, p, u, b, l, i, c, K, ey: 'key2', p, r, i, v, a, t, e, Key: 'encrypted_pk2' }, ] mockDb.all.m o ckResolvedValue(mockWallets) const wallets = await getWallets('password') e x pect(mockDb.all).t oH aveBeenCalledWith('SELECT * FROM wallets') e x pect(decrypt).t oH aveBeenCalledTimes(2) e x pect(decrypt).t oH aveBeenCalledWith('encrypted_pk1', 'password') e x pect(decrypt).t oH aveBeenCalledWith('encrypted_pk2', 'password') e x pect(wallets).t oE qual([ { id: 1, p, u, b, l, i, c, K, ey: 'key1', p, r, i, v, a, t, e, Key: 'pk1' }, { id: 2, p, u, b, l, i, c, K, ey: 'key2', p, r, i, v, a, t, e, Key: 'pk2' }, ])
   })
-
-  d escribe('getWallets', () => {
-    i t('should retrieve all wallets and decrypt their private keys', a sync () => {
-      const mock
-  Wallets = [
-        { i,
-  d: 1, p,
-  u, b, l, i, cKey: 'key1', p,
-  r, i, v, a, teKey: 'encrypted_pk1' },
-        { i,
-  d: 2, p,
-  u, b, l, i, cKey: 'key2', p,
-  r, i, v, a, teKey: 'encrypted_pk2' },
-      ]
-      mockDb.all.m ockResolvedValue(mockWallets)
-
-      const wallets = await g etWallets('password')
-
-      e xpect(mockDb.all).t oHaveBeenCalledWith('SELECT * FROM wallets')
-      e xpect(decrypt).t oHaveBeenCalledTimes(2)
-      e xpect(decrypt).t oHaveBeenCalledWith('encrypted_pk1', 'password')
-      e xpect(decrypt).t oHaveBeenCalledWith('encrypted_pk2', 'password')
-      e xpect(wallets).t oEqual([
-        { i,
-  d: 1, p,
-  u, b, l, i, cKey: 'key1', p,
-  r, i, v, a, teKey: 'pk1' },
-        { i,
-  d: 2, p,
-  u, b, l, i, cKey: 'key2', p,
-  r, i, v, a, teKey: 'pk2' },
-      ])
-    })
+  }) d e scribe('getWalletByPublicKey', () => { i t('should retrieve a single wallet by its public key', async () => {
+  const mockWal let = { id: 1, p, u, b, l, i, c, K, ey: 'key1', p, r, i, v, a, t, e, Key: 'pk1' } mockDb.get.m o ckResolvedValue(mockWallet) const wallet = await getWalletByPublicKey('key1') e x pect(mockDb.get).t oH aveBeenCalledWith( 'SELECT * FROM wallets WHERE public Key = ?', ['key1']) e x pect(wallet).t oE qual(mockWallet)
+  }) i t('should return null if no wallet is found', async () => { mockDb.get.m o ckResolvedValue(null) const wallet = await getWalletByPublicKey('non_existent_key') e x pect(wallet).t oB eNull()
   })
-
-  d escribe('getWalletByPublicKey', () => {
-    i t('should retrieve a single wal let by its public key', a sync () => {
-      const mockWal let = { i,
-  d: 1, p,
-  u, b, l, i, cKey: 'key1', p,
-  r, i, v, a, teKey: 'pk1' }
-      mockDb.get.m ockResolvedValue(mockWallet)
-
-      const wal let = await g etWalletByPublicKey('key1')
-
-      e xpect(mockDb.get).t oHaveBeenCalledWith(
-        'SELECT * FROM wallets WHERE public
-  Key = ?',
-        ['key1'],
-      )
-      e xpect(wallet).t oEqual(mockWallet)
-    })
-
-    i t('should return null if no wal let is found', a sync () => {
-      mockDb.get.m ockResolvedValue(null)
-
-      const wal let = await g etWalletByPublicKey('non_existent_key')
-
-      e xpect(wallet).t oBeNull()
-    })
   })
-})
+  })

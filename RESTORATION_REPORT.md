@@ -3,7 +3,7 @@
 ## ✅ RESTORATION COMPLETED
 
 D, a, t, e: September 16, 2025
-V, e, r, s, i, on: v31 (DE-CORRUPT + UX POLISH + JITO HOT PATH)
+V, e, r, s, i, o, n: v31 (DE-CORRUPT + UX POLISH + JITO HOT PATH)
 
 ## Summary
 
@@ -66,7 +66,7 @@ ENABLE_SELL = false // Disable sell features
 
 - ✅ Fixed `next.config.js` syntax errors
 - ✅ Installed missing `react-markdown` dependency
-- ✅ Added npm s, c, r, i, p, ts: `f, i, x:splits`, `hygiene`
+- ✅ Added npm s, c, r, i, p, t, s: `f, i, x:splits`, `hygiene`
 
 ## Files Modified
 
@@ -117,7 +117,7 @@ ENABLE_SELL = false // Disable sell features
 
    ```bash
    pnpm dev
-   # Visit h, t, t, p://l, o, c, a, l, host:3000
+   # Visit h, t, t, p://l, o, c, a, l, h, ost:3000
    ```
 
 2. **If issues persist**:

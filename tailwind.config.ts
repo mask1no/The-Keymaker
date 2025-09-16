@@ -1,62 +1,55 @@
-import type, { Config } from 'tailwindcss'
-const c,
-  o,
-  n, f, i, g: Config = {
-    d,
-    a,
-  r, k, M, o, de: ['class'],
-    c,
-    o,
-  n, t, e, n, t: [
-      './app/**/*.{ts,tsx}',
-      './components/**/*.{ts,tsx}',
-      './pages/**/*.{ts,tsx}',
-    ],
-    t,
-    h,
-  e, m, e: {
-      e,
-      x,
-  t, e, n, d: {
-        c,
-        o,
-  l, o, r, s: {
-          b,
-          a,
-  c, k, g, r, ound: '#0f1115',
-          s,
-          i,
-  d, e, b, a, r: '#151821',
-          c,
-          a,
-  r, d: '#12151b',
-          b,
-          o,
-  r, d, e, r: '#232835',
-          p,
-          r,
-  i, m, a, r, y: '#e5e7eb',
-          a,
-          c,
-  c, e, n, t: '#e5e7eb',
-          m,
-          u,
-  t, e, d: { D, E,
-  F, A, U, L, T: '#94a3b8', f, o,
-  r, e, g, r, ound: '#cbd5e1' },
-        },
-        b,
-        o,
-  r, d, e, r, Radius: { x,
-  l: '1rem', '2xl': '1.25rem', '3xl': '1.5rem' },
-        b,
-        o,
-  x, S, h, a, dow: { s, o,
-  f, t: '0 4px 24px r gba(0,0,0,0.25)' },
-      },
-    },
-    p,
-    l,
-  u, g, i, n, s: [],
-  }
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  darkMode: ['class'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './pages/**/*.{ts,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))' },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))' },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))' },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))' },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))' },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))' },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))' } },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)' },
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' } },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' } } },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out' } } },
+  plugins: [require('tailwindcss-animate')] }
+
 export default config

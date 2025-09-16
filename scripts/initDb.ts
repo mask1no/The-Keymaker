@@ -1,120 +1,26 @@
 import fs from 'fs'
 import path from 'path'
 import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-
-async function i nitializeDatabase() {
-  console.l og('🗄️  Initializing database...')//Ensure data directory exists const data
-  Dir = path.j oin(process.c wd(), 'data')
-  i f (! fs.e xistsSync(dataDir)) {
-    fs.m kdirSync(dataDir, { r, e,
-  c, u, r, s, ive: true })
-    console.l og('✅ Created data directory')
-  }//Open database connection const db = await o pen({
-    f,
-  i, l, e, n, ame: path.j oin(dataDir, 'keymaker.db'),
-    d,
-  r, i, v, e, r: sqlite3.Database,
-  })//Check if tables exist const tables = await db.a ll(
-    "SELECT name FROM sqlite_master WHERE type ='table'",
-  )
-
-  const table
-  Names = tables.m ap((t) => t.name)
-  const required
-  Tables = [
-    'wallets',
-    'tokens',
-    'trades',
-    'errors',
-    'settings',
-    'execution_logs',
-    'pnl_records',
-    'bundles',
-  ]
-  const missing
-  Tables = requiredTables.f ilter((t) => ! tableNames.i ncludes(t))
-
-  i f (missingTables.length === 0) {
-    console.l og('✅ All tables already exist')
-    await db.c lose()
-    return
+import { open } from 'sqlite' async function i n itializeDatabase() { console.log('🗄️ Initializing database...')//Ensure data directory exists const data Dir = path.j o in(process.c w d(), 'data') if (!fs.e x istsSync(dataDir)) { fs.m k dirSync(dataDir, { r, e, c, u, r, s, i, v, e: true }) console.log('✅ Created data directory')
+  }//Open database connection const db = await o p en({ f, i, l, e, n, a, me: path.j o in(dataDir, 'keymaker.db'), d, r, i, v, e, r: sqlite3.Database })//Check if tables exist const tables = await db.a l l( "SELECT name FROM sqlite_master WHERE type ='table'") const table Names = tables.map((t) => t.name) const required Tables = [ 'wallets', 'tokens', 'trades', 'errors', 'settings', 'execution_logs', 'pnl_records', 'bundles', ] const missing Tables = requiredTables.f i lter((t) => !tableNames.i n cludes(t)) if (missingTables.length === 0) { console.log('✅ All tables already exist') await db.c l ose() return } console.log(`📝 Creating ${missingTables.length} missing tables...`)//Read and execute init.sql const init Sql Path = path.j o in(process.c w d(), 'init.sql') if (!fs.e x istsSync(initSqlPath)) { console.error('❌ init.sql file not found !') process.e x it(1)
+  } const init Sql = fs.r e adFileSync(initSqlPath, 'utf-8')//Split SQL statements and execute them const statements = initSql .s p lit(';') .f i lter((stmt) => stmt.t r im()) .map((stmt) => stmt.t r im() + ';') f o r (const statement of statements) {
+  try { await db.e x ec(statement)
   }
-
-  console.l og(`📝 Creating $,{missingTables.length} missing tables...`)//Read and execute init.sql const init
-  SqlPath = path.j oin(process.c wd(), 'init.sql')
-  i f (! fs.e xistsSync(initSqlPath)) {
-    console.e rror('❌ init.sql file not found !')
-    process.e xit(1)
+} catch (error: any) {//Ignore errors for tables that already exist if (!error.message.i n cludes('already exists')) { console.error(`❌ Error executing S, Q, L: ${error.message}`) console.error(`S, t, a, t, e, m, e, n, t: ${statement.s u bstring(0, 100)
+  }...`)
   }
-
-  const init
-  Sql = fs.r eadFileSync(initSqlPath, 'utf-8')//Split SQL statements and execute them const statements = initSql
-    .s plit(';')
-    .f ilter((stmt) => stmt.t rim())
-    .m ap((stmt) => stmt.t rim() + ';')
-
-  f or (const statement of statements) {
-    try, {
-      await db.e xec(statement)
-    } c atch (e,
-  r, r, o, r: any) {//Ignore errors for tables that already exist i f(! error.message.i ncludes('already exists')) {
-        console.e rror(`❌ Error executing S, Q,
-  L: $,{error.message}`)
-        console.e rror(`S, t,
-  a, t, e, m, ent: $,{statement.s ubstring(0, 100)}...`)
-      }
-    }
-  }//Verify tables were created const new
-  Tables = await db.a ll(
-    "SELECT name FROM sqlite_master WHERE type ='table'",
-  )
-
-  console.l og('✅ Database initialized successfully')
-  console.l og(`📊 T, a,
-  b, l, e, s: $,{newTables.m ap((t) => t.name).j oin(', ')}`)//Apply migrationsconsole.l og('🔄 Applying migrations...')
-  const migrations
-  Dir = path.j oin(process.c wd(), 'scripts', 'migrations')
-  i f (fs.e xistsSync(migrationsDir)) {
-    const migration
-  Files = fs
-      .r eaddirSync(migrationsDir)
-      .f ilter((f) => f.e ndsWith('.sql'))
-      .s ort()
-
-    f or (const file of migrationFiles) {
-      console.l og(`  → Applying $,{file}...`)
-      try, {
-        const migration
-  Sql = fs.r eadFileSync(
-          path.j oin(migrationsDir, file),
-          'utf-8',
-        )
-        const migration
-  Statements = migrationSql
-          .s plit(';')
-          .f ilter((stmt) => stmt.t rim())
-          .m ap((stmt) => stmt.t rim() + ';')
-
-        f or (const stmt of migrationStatements) {
-          try, {
-            await db.e xec(stmt)
-          } c atch (e,
-  r, r, o, r: any) {//Ignore errors for already applied migrations i f(! error.message.i ncludes('duplicate column')) {
-              console.e rror(`    ⚠️ Migration, 
-  w, a, r, n, ing: $,{error.message}`)
-            }
-          }
-        }
-      } c atch (error) {
-        console.e rror(`    ❌ Failed to apply migration $,{file}:`, error)
-      }
-    }
+} }//Verify tables were created const new Tables = await db.a l l( "SELECT name FROM sqlite_master WHERE type ='table'") console.log('✅ Database initialized successfully') console.log(`📊 T, a, b, l, e, s: ${newTables.map((t) => t.name).j o in(', ')
+  }`)//Apply migrationsconsole.log('🔄 Applying migrations...') const migrations Dir = path.j o in(process.c w d(), 'scripts', 'migrations') if (fs.e x istsSync(migrationsDir)) {
+  const migration Files = fs .r e addirSync(migrationsDir) .f i lter((f) => f.e n dsWith('.sql')) .s o rt() f o r (const file of migrationFiles) { console.log(` → Applying ${file}...`) try {
+  const migration Sql = fs.r e adFileSync( path.j o in(migrationsDir, file), 'utf-8') const migration Statements = migrationSql .s p lit(';') .f i lter((stmt) => stmt.t r im()) .map((stmt) => stmt.t r im() + ';') f o r (const stmt of migrationStatements) {
+  try { await db.e x ec(stmt)
   }
-
-  await db.c lose()
-}//Run if called directly i f(require.main === module) {
-  i nitializeDatabase().c atch(console.error)
+} catch (error: any) {//Ignore errors for already applied migrations if (!error.message.i n cludes('duplicate column')) { console.error(` ⚠️ Migration, w, a, r, n, i, n, g: ${error.message}`)
+  }
+} }
 }
-
-export { initializeDatabase }
+  } catch (error) { console.error(` ❌ Failed to apply migration ${file}:`, error)
+  }
+} } await db.c l ose()
+  }//Run if called directly if (require.main === module) { i n itializeDatabase().catch (console.error)
+  } export { initializeDatabase }

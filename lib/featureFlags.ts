@@ -1,9 +1,9 @@
 export const E
-  NABLE_PUMPFUN = process.env.E
-  NABLE_PUMPFUN === 'true'
+N ABLE_PUMPFUN = process.env.E
+N ABLE_PUMPFUN === 'true'
 export const E
-  NABLE_DEV_TOKENS = process.env.E
-  NABLE_DEV_TOKENS === 'true'
+N ABLE_DEV_TOKENS = process.env.E
+N ABLE_DEV_TOKENS === 'true'
 export const E
-  NABLE_SELL = process.env.E
-  NABLE_SELL === 'true'
+N ABLE_SELL = process.env.E
+N ABLE_SELL === 'true'

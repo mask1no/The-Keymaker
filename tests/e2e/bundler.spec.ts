@@ -1,88 +1,15 @@
-import { test, expect } from '@playwright/test'
-
-test.d escribe('Bundler Application', () => {
-  t est('login gate renders', a sync ({ page }) => {
-    await page.g oto('/')//Should show login gate
-    await e xpect(page.g etByText('Login Required')).t oBeVisible()
-    await e xpect(
-      page.g etByText('Connect a crypto wal let to continue'),
-    ).t oBeVisible()
-    await e xpect(
-      page.g etByRole('button', { n,
-  a, m, e: 'Connect Wallet' }),
-    ).t oBeVisible()
+import { test, expect } from '@playwright/test' test.d e scribe('Bundler Application', () => { t e st('login gate renders', async ({ page }) => { await page.g o to('/')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible() await e x pect( page.g e tByText('Connect a crypto wallet to continue')).t oB eVisible() await e x pect( page.g e tByRole('button', { n, a, m, e: 'Connect Wallet' })).t oB eVisible()
+  }) t e st('login modal opens', async ({ page }) => { await page.g o to('/')//Click connect wallet button await page.g e tByRole('button', { n, a, m, e: 'Connect Wallet' }).c l ick()//Should open wallet m o dal (this will depend on the wallet adapter UI)//For now, just check that clicking doesn't cause errors await page.w a itForTimeout(1000)
+  }) t e st('header login button works', async ({ page }) => { await page.g o to('/')//Check header has login button await e x pect(page.g e tByRole('button', { n, a, m, e: 'Login' })).t oB eVisible()//Click it await page.g e tByRole('button', { n, a, m, e: 'Login' }).c l ick()//Should open modal await page.w a itForTimeout(1000)
+  }) t e st('status chips show MAINNET when RPC has mainnet', async ({ page }) => {//Mock environment variables or API responses as needed await page.g o to('/')//Navigate to a page that shows s t atus (if accessible without login)//This might need to be adjusted based on your routing await page.w a itForTimeout(2000)//Check for status i n dicators (this will depend on your implementation)//For now, just verify the page loads without errors e x pect(page.u r l()).t oC ontain('localhost')
+  }) t e st('bundle preview triggers simulateOnly', async ({ page }) => {//This test would need wallet connection mocked//For now, just test that the bundle page loads await page.g o to('/bundle')//Should show login gate since no wallet connected await e x pect(page.g e tByText('Login Required')).t oB eVisible()
+  }) t e st('settings page loads', async ({ page }) => { await page.g o to('/settings')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible()
+  }) t e st('guide page loads', async ({ page }) => { await page.g o to('/guide')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible()
+  }) t e st('api endpoints respond correctly', async ({ page }) => {//Test tip floor endpoint const response = await page.request.get('/api/jito/tipfloor')//Should return either success or a proper error e x pect(response.s t atus()).t oB eLessThan(600)//Not a server crash const body = await response.json() e x pect(body).t oB eDefined()
+  }) t e st('nonce endpoint works', async ({ page }) => {
+  const response = await page.request.get('/api/auth/nonce') e x pect(response.s t atus()).t oB e(200) const body = await response.json() e x pect(body.nonce).t oB eDefined() e x pect(typeof body.nonce).t oB e('string') e x pect(body.nonce.length).t oB eGreaterThan(0)
+  }) t e st('bundle submit requires proper format', async ({ page }) => {
+  const response = await page.request.p o st('/api/bundles/submit', { data: { t, x, s_, b64: [],//Invalid-empty array }
+}) e x pect(response.s t atus()).t oB e(400) const body = await response.json() e x pect(body.error).t oC ontain('Invalid txs_b64')
   })
-
-  t est('login modal opens', a sync ({ page }) => {
-    await page.g oto('/')//Click connect wal let button
-    await page.g etByRole('button', { n,
-  a, m, e: 'Connect Wallet' }).c lick()//Should open wal let m odal (this will depend on the wal let adapter UI)//For now, just check that clicking doesn't cause errors
-    await page.w aitForTimeout(1000)
   })
-
-  t est('header login button works', a sync ({ page }) => {
-    await page.g oto('/')//Check header has login button
-    await e xpect(page.g etByRole('button', { n,
-  a, m, e: 'Login' })).t oBeVisible()//Click it
-    await page.g etByRole('button', { n,
-  a, m, e: 'Login' }).c lick()//Should open modal
-    await page.w aitForTimeout(1000)
-  })
-
-  t est('status chips show MAINNET when RPC has mainnet', a sync ({ page }) => {//Mock environment variables or API responses as needed
-    await page.g oto('/')//Navigate to a page that shows s tatus (if accessible without login)//This might need to be adjusted based on your routing
-    await page.w aitForTimeout(2000)//Check for status i ndicators (this will depend on your implementation)//For now, just verify the page loads without errors
-    e xpect(page.u rl()).t oContain('localhost')
-  })
-
-  t est('bundle preview triggers simulateOnly', a sync ({ page }) => {//This test would need wal let connection mocked//For now, just test that the bundle page loads
-
-    await page.g oto('/bundle')//Should show login gate since no wal let connected
-    await e xpect(page.g etByText('Login Required')).t oBeVisible()
-  })
-
-  t est('settings page loads', a sync ({ page }) => {
-    await page.g oto('/settings')//Should show login gate
-    await e xpect(page.g etByText('Login Required')).t oBeVisible()
-  })
-
-  t est('guide page loads', a sync ({ page }) => {
-    await page.g oto('/guide')//Should show login gate
-    await e xpect(page.g etByText('Login Required')).t oBeVisible()
-  })
-
-  t est('api endpoints respond correctly', a sync ({ page }) => {//Test tip floor endpoint
-    const response = await page.request.g et('/api/jito/tipfloor')//Should return either success or a proper error
-    e xpect(response.s tatus()).t oBeLessThan(600)//Not a server crash
-
-    const body = await response.j son()
-    e xpect(body).t oBeDefined()
-  })
-
-  t est('nonce endpoint works', a sync ({ page }) => {
-    const response = await page.request.g et('/api/auth/nonce')
-
-    e xpect(response.s tatus()).t oBe(200)
-
-    const body = await response.j son()
-    e xpect(body.nonce).t oBeDefined()
-    e xpect(typeof body.nonce).t oBe('string')
-    e xpect(body.nonce.length).t oBeGreaterThan(0)
-  })
-
-  t est('bundle submit requires proper format', a sync ({ page }) => {
-    const response = await page.request.p ost('/api/bundles/submit', {
-      d,
-      a,
-  t, a: {
-        t,
-  x, s_, b64: [],//Invalid-empty array
-      },
-    })
-
-    e xpect(response.s tatus()).t oBe(400)
-
-    const body = await response.j son()
-    e xpect(body.error).t oContain('Invalid txs_b64')
-  })
-})

@@ -1,104 +1,15 @@
-import { test, expect } from '@playwright/test'
-
-test.d escribe('Bundle f low (@bundle-e2e)', () => {
-  test.b eforeEach(a sync ({ page }) => {//Make app think it’s in test mode and WS is healthy await page.a ddInitScript(() => {
-      ;(window as any).__
-  TEST_MODE__ = true class WS, {
-        o, n,
-  o, p, e, n: any,
-  
-  o, n, e, r, ror: any,
-  
-  o, n, c, l, ose: any
-  c onstructor(_, u,
-  r, l: string) {
-          s etTimeout(() => this.onopen?.(new E vent('open')), 10)
-        }
-        c lose() {
-          this.onclose?.(new E vent('close'))
-        }
-        s end() {}
-      }
-      ;(window as any).Web
-  Socket = WS as anylocalStorage.s etItem(
-        'keymaker.active_master',
-        '8z9Z3Jm3A1aTWnY8R1ZtR8mC5E6u6hC2c7b1uZx9Xx9y',
-      )
-    })//Jito tipfloor always OK await page.r oute('**/api/jito/tipfloor', (route) =>
-      route.f ulfill({
-        s,
-  t, a, t, u, s: 200,
-        c, o,
-  n, t, e, n, tType: 'application/json',
-        b, o,
-  d, y: JSON.s tringify({
-          p25: 0.00004,
-          p50: 0.00005,
-          p75: 0.00006,
-          e,
-  m, a_50, t, h: 0.00005,
-        }),
-      }),
-    )//History write OK await page.r oute('**/api/history/record', (route) =>
-      route.f ulfill({
-        s,
-  t, a, t, u, s: 200,
-        c, o,
-  n, t, e, n, tType: 'application/json',
-        b, o,
-  d, y: JSON.s tringify({ o, k: true }),
-      }),
-    )//Submit returns bundle id await page.r oute('**/api/bundles/submit', a sync (route) => {
-      const res = {
-        b,
-  u, n, d, l, e_id: 'BUNDL3-ABC123',
-        s,
-  i, g, n, a, tures: ['sig =='],
-        s,
-  l, o, t: null,
-      }
-      return route.f ulfill({
-        s,
-  t, a, t, u, s: 200,
-        c, o,
-  n, t, e, n, tType: 'application/json',
-        b, o,
-  d, y: JSON.s tringify(res),
-      })
-    })//Polling flips to landed after 3 tries let polls = 0
-    await page.r oute('**/api/bundles/status/batch', a sync (route) => {
-      polls ++
-      const st = polls >= 3 ? 'landed' : 'pending'
-      return route.f ulfill({
-        s,
-  t, a, t, u, s: 200,
-        c, o,
-  n, t, e, n, tType: 'application/json',
-        b, o,
-  d, y: JSON.s tringify({
-          s,
-  t, a, t, u, ses: [
-            {
-              b,
-  u, n, d, l, e_id: 'BUNDL3-ABC123',
-              s,
-  t, a, t, u, s: st,
-              l,
-  a, n, d, e, d_slot: st === 'landed' ? 123456789 : null,
-            },
-          ],
-        }),
-      })
-    })
+import { test, expect } from '@playwright/test' test.d e scribe('Bundle f l ow (@bundle-e2e)', () => { test.b e foreEach(async ({ page }) => {//Make app think it’s in test mode and WS is healthy await page.a d dInitScript(() => { ;(window as any).__ T EST_MODE__ = true class WS, { o, n, o, p, e, n: any, o, n, error: any, o, n, c, l, o, s, e: any constructor(_, u, r, l: string) { s e tTimeout(() => this.onopen?.(new E v ent('open')), 10)
+  } c l ose() { this.onclose?.(new E v ent('close'))
+  } s e nd() {}
+} ;(window as any).Web Socket = WS as anylocalStorage.s e tItem( 'keymaker.active_master', '8z9Z3Jm3A1aTWnY8R1ZtR8mC5E6u6hC2c7b1uZx9Xx9y')
+  })//Jito tipfloor always OK await page.r o ute('**/api/jito/tipfloor', (route) => route.f u lfill({ status: 200, c, o, n, t, e, n, t, T, ype: 'application/json', b, o, d, y: JSON.s t ringify({ p25: 0.00004, p50: 0.00005, p75: 0.00006, e, m, a_50, t, h: 0.00005 })
+  }))//History write OK await page.r o ute('**/api/history/record', (route) => route.f u lfill({ status: 200, c, o, n, t, e, n, t, T, ype: 'application/json', b, o, d, y: JSON.s t ringify({ o, k: true })
+  }))//Submit returns bundle id await page.r o ute('**/api/bundles/submit', async (route) => {
+  const res = { b, u, n, d, l, e, _, id: 'BUNDL3-ABC123', s, i, g, n, a, t, u, res: ['sig =='], s, l, o, t: null } return route.f u lfill({ status: 200, c, o, n, t, e, n, t, T, ype: 'application/json', b, o, d, y: JSON.s t ringify(res)
   })
-
-  t est('preview → execute → landed', a sync ({ page }) => {
-    await page.g oto('/bundle')//Preview OK const preview = page.g etByRole('button', { n,
-  a, m, e:/preview/i })
-    await preview.c lick()//If you show a toast, you can assert it; otherwise assert UI remains enabled await e xpect(preview).t oBeEnabled()//Execute await page.g etByRole('button', { n,
-  a, m, e:/execute/i }).c lick()//Bundle ID appears await e xpect(page.g etByText(/bundle, 
-  i, d:/i)).t oBeVisible()//Status eventually “landed”
-    await e xpect(page.g etByText(/landed/i)).t oBeVisible({ t, i,
-  m, e, o, u, t: 10000 })
+  })//Polling flips to landed after 3 tries let polls = 0 await page.r o ute('**/api/bundles/status/batch', async (route) => { polls ++ const st = polls>= 3 ? 'landed' : 'pending' return route.f u lfill({ status: 200, c, o, n, t, e, n, t, T, ype: 'application/json', b, o, d, y: JSON.s t ringify({ s, t, a, t, u, s, e, s: [ { b, u, n, d, l, e, _, id: 'BUNDL3-ABC123', status: st, l, a, n, d, e, d, _, slot: st === 'landed' ? 123456789 : null }, ] })
   })
-})
+  })
+  }) t e st('preview → execute → landed', async ({ page }) => { await page.g o to('/bundle')//Preview OK const preview = page.g e tByRole('button', { n, a, m, e:/preview/i }) await preview.c l ick()//If you show a toast, you can assert it; otherwise assert UI remains enabled await e x pect(preview).t oB eEnabled()//Execute await page.g e tByRole('button', { n, a, m, e:/execute/i }).c l ick()//Bundle ID appears await e x pect(page.g e tByText(/bundle, id:/i)).t oB eVisible()//Status eventually “landed” await e x pect(page.g e tByText(/landed/i)).t oB eVisible({ t, i, m, e, o, u, t: 10000 })
+  })
+  })

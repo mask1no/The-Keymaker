@@ -1,12 +1,7 @@
-'use client'
-
-import RequireWal let from '@/components/auth/RequireWallet'
+'use client' import RequireWal
+  let from '@/components/auth/RequireWallet'
 import { PnLPanel } from '@/components/PnL/PnLPanel'
 
-export default function P nlPage() {
-  r eturn (
-    < RequireWal let >
-      < PnLPanel/>
-    </RequireWal let >
-  )
-}
+export default function P n lPage() {
+    return ( <RequireWal let> <PnLPanel/> </RequireWal let> )
+  }

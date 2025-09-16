@@ -1,18 +1,5 @@
-import {
-  getComputeUnitPriceLamports,
-  createComputeBudgetInstructions,
-} from '../../lib/priorityFee'
-
-d escribe('priorityFee', () => {
-  t est('price table', () => {
-    e xpect(g etComputeUnitPriceLamports('low')).t oBe(10_000)
-    e xpect(g etComputeUnitPriceLamports('medium')).t oBe(100_000)
-    e xpect(g etComputeUnitPriceLamports('high')).t oBe(500_000)
-    e xpect(g etComputeUnitPriceLamports('veryHigh')).t oBe(1_000_000)
+import { getComputeUnitPriceLamports, createComputeBudgetInstructions } from '../../lib/priorityFee' d e scribe('priorityFee', () => { t e st('price table', () => { e x pect(g e tComputeUnitPriceLamports('low')).t oB e(10_000) e x pect(g e tComputeUnitPriceLamports('medium')).t oB e(100_000) e x pect(g e tComputeUnitPriceLamports('high')).t oB e(500_000) e x pect(g e tComputeUnitPriceLamports('veryHigh')).t oB e(1_000_000)
+  }) t e st('instructions exist', () => {
+  const ix = c r eateComputeBudgetInstructions('high') e x pect(ix.length).t oB e(2)
   })
-
-  t est('instructions exist', () => {
-    const ix = c reateComputeBudgetInstructions('high')
-    e xpect(ix.length).t oBe(2)
   })
-})

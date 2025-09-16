@@ -88,7 +88,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 #### Detailed F, l, o, w:
 
 1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, ateOnly: true`)
+2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, teOnly: true`)
 3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
@@ -137,7 +137,7 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response S, t, r, u, c, ture:**
+**Response S, t, r, u, c, t, ure:**
 
 ```json
 {
@@ -222,7 +222,7 @@ System Health → UI State → User Actions → System Response
 
 - [ ] **Wal let Selection**: At least 1 wal let in active group (Neo or configured default)
 - [ ] **Transaction Limit**: ≤ 5 transactions per bundle (Jito limit)
-- [ ] **Region Selection**: Valid Jito region selected (d, e, f, a, u, lt: ffm)
+- [ ] **Region Selection**: Valid Jito region selected (d, e, f, a, u, l, t: ffm)
 - [ ] **Blockhash Freshness**: < 3 seconds old (server-side validation)
 
 #### Transaction Validation Gates
@@ -333,8 +333,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 - **Tooltips**: Clear explanations for disabled actions and validation failures
 - **Toast Notifications**:
-  - S, u, c, c, e, ss: "Bundle landed in slot X" with transaction links
-  - W, a, r, n, i, ng: "Bundle pending > 30s" with status updates
+  - S, u, c, c, e, s, s: "Bundle landed in slot X" with transaction links
+  - W, a, r, n, i, n, g: "Bundle pending > 30s" with status updates
   - E, r, r, o, r: "Bundle f, a, i, l, e, d: [specific reason]" with resolution steps
 - **Loading States**: Skeleton screens and progress indicators
 - **Empty States**: Helpful guidance for new users and empty data scenarios
@@ -513,8 +513,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 ### Non-custodial guarantees
 
-- **Client-side s, i, g, n, i, ng:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
-- **AES-GCM key s, t, o, r, a, ge:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
+- **Client-side s, i, g, n, i, n, g:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
+- **AES-GCM key s, t, o, r, a, g, e:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
 
 ### Failure handling
 

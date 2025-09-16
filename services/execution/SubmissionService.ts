@@ -2,36 +2,14 @@ import { Result, ok, err } from './Result'
 import { sendBundle, getBundleStatuses } from '@/lib/server/jitoService'
 
 export class SubmissionService, {
-  c onstructor(
-    private, 
-  r, e, g, i, on: 'ffm' | 'ams' | 'ny' | 'tokyo' | 'unknown' = 'ffm',
-  ) {}
-  async s ubmitAndPoll(
-    t,
-  x, s_, b64: string,[],
-    polls = 20,
-    delay
-  Ms = 1200,
-  ): Promise < Result <{ b, u,
-  n, d, l, e, Id: string; l, a,
-  n, d, e, d, Slot: number | null }>> {
-    try, {
-      const bundle
-  Id = await s endBundle(this.region, txs_b64)
-      let l, a,
-  n, d, e, d, Slot: number | null = null f or(let i = 0; i < polls; i ++) {
-        const st = await g etBundleStatuses(this.region, [bundleId])
-        const v = st?.[0]
-        const s = S tring(v?.status || 'pending').t oLowerCase()
-        i f (s === 'landed') {
-          landed
-  Slot = v?.landed_slot ?? nullbreak
-        }
-        i f (s === 'failed' || s === 'invalid') break await new P romise((r) => s etTimeout(r, delayMs))
-      }
-      return o k({ bundleId, landedSlot })
-    } c atch (e: any) {
-      return e rr(e)
-    }
+  constructor( private, r, e, g, i, o, n: 'ffm' | 'ams' | 'ny' | 'tokyo' | 'unknown' = 'ffm') {} async s u bmitAndPoll( t, x, s_, b64: string,[], polls = 20, delay Ms = 1200): Promise <Result <{ b, u, n, d, l, e, I, d: string; l, a, n, d, e, d, S, l, ot: number | null }>> {
+  try {
+  const bundle Id = await s e ndBundle(this.region, txs_b64) let l, a, n, d, e, d, S, l, ot: number | null = null f o r(let i = 0; i <polls; i ++) {
+  const st = await getBundleStatuses(this.region, [bundleId]) const v = st?.[0] const s = S t ring(v?.status || 'pending').t oL owerCase() if (s === 'landed') { landed Slot = v?.landed_slot ?? nullbreak } if (s === 'failed' || s === 'invalid') break await new P r omise((r) => s e tTimeout(r, delayMs))
+  } return o k({ bundleId, landedSlot })
   }
+} catch (e: any) {
+    return e r r(e)
+  }
+}
 }

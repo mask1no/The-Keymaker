@@ -1,4 +1,3 @@
 /*
-N, O,
-  T, E: The content of this file has been temporarily commented out to resolve build issuesstemming from the disabled puppeteer helper.
-*/export {}
+N, O, T, E: The content of this file has been temporarily commented out to resolve build issuesstemming from the disabled puppeteer helper.
+*/ export {}

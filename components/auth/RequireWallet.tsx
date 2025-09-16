@@ -1,41 +1,13 @@
 'use client'
-import { useWal let } from '@solana/wal let - adapter-react'
-import { useWalletModal } from '@solana/wal let - adapter - react-ui'
-import { Button } from '@/components/UI/button'
-
-interface RequireWalletProps, {
-  c, h,
-  i, l, d, r, en: React.ReactNode
-}
-
-export default function R equireWallet({ children }: RequireWalletProps) {
-  const, { connected } = u seWallet()
-  const, { setVisible } = u seWalletModal()
-
-  i f (! connected) {
-    r eturn (
-      < div class
-  Name ="flex flex - col items - center justify - center min - h -[60vh] space - y-6">
-        < div class
-  Name ="text - center space - y-3">
-          < h2 class
-  Name ="text - 2xl font - semibold text-foreground"> Login Required </h2 >
-          < p class
-  Name ="text - muted - foreground max - w-md">
-            Connect a crypto wal let to continue using The Keymaker bundler.
-          </p >
-        </div >
-        < Button 
-          on
-  Click ={() => s etVisible(true)}
-          class
-  Name ="rounded - 2xl px - 6 py-3"
-          size ="lg"
-        >
-          Connect Wal let         </Button >
-      </div >
-    )
-  }
-
-  return <>{children}</>
+import { useWal
+  let } from '@solana/wallet - adapter-react'
+import { useWalletModal } from '@solana/wallet - adapter - react-ui'
+import { Button } from '@/components/UI/button' interface RequireWalletProps, { c, h, i, l, d, r, e, n: React.ReactNode
+} export default function R e quireWallet({  children }: RequireWalletProps) {
+  const { connected } = u s eWallet()
+  const { setVisible } = u s eWalletModal()
+  if (!connected) {
+    return ( <div className ="flex flex - col items - center justify - center min - h -[60vh] space - y-6"> <div className ="text - center space - y-3"> <h2 className ="text - 2xl font - semibold text-foreground"> Login Required </h2> <p className ="text - muted - foreground max - w-md"> Connect a crypto wallet to continue using The Keymaker bundler. </p> </div> <Button onClick = {() => s e tVisible(true)
+  } className ="rounded - 2xl px - 6 py-3" size ="lg"> Connect Wallet </Button> </div> )
+  } return <>{children}</>
 }

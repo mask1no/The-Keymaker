@@ -1,135 +1,14 @@
-#!/usr/bin/env tsx import {
-  Connection,
-  Keypair,
-  PublicKey,
-  VersionedTransaction,
-  TransactionMessage,
-  SystemProgram,
-} from '@solana/web3.js'
+#!/usr/bin/env tsx import { Connection, Keypair, PublicKey, VersionedTransaction, TransactionMessage, SystemProgram } from '@solana/web3.js'
 import bs58 from 'bs58'
-const R
-  PC = process.env.RPC_URL || 'h, t,
-  t, p, s://api.mainnet-beta.solana.com'
-const J
-  ITO =
-  (
-    process.env.JITO_RPC_URL ||
-    process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
-    'h, t,
-  t, p, s://mainnet.block-engine.jito.wtf'
-  ).r eplace(/\/$/, '') + '/api/v1/bundles'
-const T
-  IP = new P ublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe')
-
-async function m ain() {
-  i f (! process.env.SMOKE_SECRET)
-    throw new E rror('Set SMOKE_SECRET (bs58 private key)')
-  const kp = Keypair.f romSecretKey(bs58.d ecode(process.env.SMOKE_SECRET))
-  const conn = new C onnection(RPC, 'confirmed')
-  const, { blockhash } = await conn.g etLatestBlockhash('confirmed')
-
-  const vtx = (i, x,
-  s: any,[]) => {
-    const msg = new T ransactionMessage({
-      p, a,
-  y, e, r, K, ey: kp.publicKey,
-      r, e,
-  c, e, n, t, Blockhash: blockhash,
-      i, n,
-  s, t, r, u, ctions: ixs,
-    }).c ompileToV0Message()
-    const tx = new V ersionedTransaction(msg)
-    tx.s ign([kp])
-    return tx
-  }
-
-  const tx1 = v tx([
-    SystemProgram.t ransfer({
-      f, r,
-  o, m, P, u, bkey: kp.publicKey,
-      t, o,
-  P, u, b, k, ey: kp.publicKey,
-      l, a,
-  m, p, o, r, ts: 0,
-    }),
-  ])
-  const tx2 = v tx([
-    SystemProgram.t ransfer({
-      f, r,
-  o, m, P, u, bkey: kp.publicKey,
-      t, o,
-  P, u, b, k, ey: TIP,
-      l, a,
-  m, p, o, r, ts: 2000,
-    }),
-  ])//tip ≥ 1000
-
-  const encoded
-  Transactions = [tx1, tx2].m ap((t) =>
-    Buffer.f rom(t.s erialize()).t oString('base64'),
-  )
-  const body = {
-    j, s,
-  o, n, r, p, c: '2.0',
-    i,
-  d: Date.n ow(),
-    m,
-  e, t, h, o, d: 'sendBundle',
-    p,
-  a, r, a, m, s: [{ encodedTransactions, b, u,
-  n, d, l, e, Only: true }],
-  }
-
-  const res = await f etch(JITO, {
-    m,
-  e, t, h, o, d: 'POST',
-    h,
-  e, a, d, e, rs: { 'Content-Type': 'application/json' },
-    b, o,
-  d, y: JSON.s tringify(body),
-    s,
-  i, g, n, a, l: AbortSignal.t imeout(10000),
-  })
-  i f (! res.ok) throw new E rror(await res.t ext())
-  const jr = await res.j son()
-  const bundle
-  Id = jr?.result || jr?.bundle_idconsole.l og('b, u,
-  n, d, l, e, Id:', bundleId)//Poll status const status
-  Req = {
-    j, s,
-  o, n, r, p, c: '2.0',
-    i,
-  d: Date.n ow() + 1,
-    m,
-  e, t, h, o, d: 'getBundleStatuses',
-    p,
-  a, r, a, m, s: [[bundleId]],
-  }
-  f or (let i = 0; i < 20; i ++) {
-    const s = await f etch(JITO, {
-      m,
-  e, t, h, o, d: 'POST',
-      h,
-  e, a, d, e, rs: { 'Content-Type': 'application/json' },
-      b, o,
-  d, y: JSON.s tringify(statusReq),
-      s,
-  i, g, n, a, l: AbortSignal.t imeout(8000),
-    })
-    const js = await s.j son()
-    const v = js?.result?.value?.[0]
-    console.l og(',
-  s, t, a, t, us:', v?.status, ',
-  s, l, o, t:', v?.landed_slot)
-    i f (
-      v?.status === 'Landed' ||
-      v?.status === 'Invalid' ||
-      v?.status === 'Failed'
-    )
-      break await new P romise((r) => s etTimeout(r, 1500))
+const R P C = process.env.RPC_URL || 'h, t, t, p, s://api.mainnet-beta.solana.com'
+const J I TO = ( process.env.JITO_RPC_URL || process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'h, t, t, p, s://mainnet.block-engine.jito.wtf' ).r e place(/\/$/, '') + '/api/v1/bundles'
+const T I P = new P u blicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe') async function m a in() {
+  if (!process.env.SMOKE_SECRET) throw new E r ror('Set SMOKE_SECRET (bs58 private key)') const kp = Keypair.f r omSecretKey(bs58.d e code(process.env.SMOKE_SECRET)) const conn = new C o nnection(RPC, 'confirmed') const { blockhash } = await conn.g e tLatestBlockhash('confirmed') const vtx = (i, x, s: any,[]) => {
+  const msg = new T r ansactionMessage({ p, a, y, e, r, K, e, y: kp.publicKey, r, e, c, e, n, t, B, l, ockhash: blockhash, i, n, s, t, r, u, c, t, ions: ixs }).c o mpileToV0Message() const tx = new V e rsionedTransaction(msg) tx.s i gn([kp]) return tx } const tx1 = v t x([ SystemProgram.t r ansfer({ f, r, o, m, P, u, b, key: kp.publicKey, t, o, P, u, b, k, e, y: kp.publicKey, l, a, m, p, o, r, t, s: 0 }), ]) const tx2 = v t x([ SystemProgram.t r ansfer({ f, r, o, m, P, u, b, key: kp.publicKey, t, o, P, u, b, k, e, y: TIP, l, a, m, p, o, r, t, s: 2000 }), ])//tip ≥ 1000 const encoded Transactions = [tx1, tx2].map((t) => Buffer.f r om(t.s e rialize()).t oS tring('base64')) const body = { j, s, o, n, r, p, c: '2.0', id: Date.n o w(), m, e, t, h, o, d: 'sendBundle', p, a, r, a, m, s: [{ encodedTransactions, b, u, n, d, l, e, O, n, ly: true }] } const res = await fetch(JITO, { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify(body), s, i, g, n, a, l: AbortSignal.t i meout(10000)
+  }) if (!res.ok) throw new E r ror(await res.t e xt()) const jr = await res.json() const bundle Id = jr?.result || jr?.bundle_idconsole.log('b, u, n, d, l, e, I, d:', bundleId)//Poll status const status Req = { j, s, o, n, r, p, c: '2.0', id: Date.n o w() + 1, m, e, t, h, o, d: 'getBundleStatuses', p, a, r, a, m, s: [[bundleId]] } f o r (let i = 0; i <20; i ++) {
+  const s = await fetch(JITO, { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify(statusReq), s, i, g, n, a, l: AbortSignal.t i meout(8000)
+  }) const js = await s.json() const v = js?.result?.value?.[0] console.log(', status:', v?.status, ', s, l, o, t:', v?.landed_slot) if ( v?.status === 'Landed' || v?.status === 'Invalid' || v?.status === 'Failed' ) break await new P r omise((r) => s e tTimeout(r, 1500))
   }
 }
-m ain().c atch((e) => {
-  console.e rror(e)
-  process.e xit(1)
-})
+m a in().catch ((e) => { console.error(e) process.e x it(1)
+  })

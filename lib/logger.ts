@@ -1,108 +1,20 @@
-/**
- * Production - ready logger utility
- * Uses Sentry in production, console in development
- */import * as Sentry from '@sentry/nextjs'
-
-type Log
-  Level = 'debug' | 'info' | 'warn' | 'error'
-
-interface LogContext, {
-  [k,
-  e, y: string]: any
-}
-
-class Logger, {
-  private is
-  Development = process.env.N
-  ODE_ENV === 'development'
-
-  private l og(l, e,
-  v, e, l: LogLevel, m,
-  e, s, s, a, ge: string, c, o, n, t, e, xt?: LogContext) {//In production, only log warnings and errors i f(! this.isDevelopment && (level === 'debug' || level === 'info')) {
-      return
-    }
-
-    const timestamp = new D ate().t oISOString()//Console output in development i f(this.isDevelopment) {
-      const console
-  Method =
-        level === 'error'
-          ? console.error
-          : level === 'warn'
-            ? console.warn
-            : console.l ogconsoleMethod(
-        `,[$,{timestamp}] [$,{level.t oUpperCase()}]`,
-        message,
-        context || '',
-      )
-    }//Sentry logging for errors and warnings i f(level === 'error') {
-      Sentry.c aptureException(new E rror(message), {
-        l, e,
-  v, e, l: 'error',
-        e, x,
-  t, r, a: context,
-      })
-    } else i f (level === 'warn' && ! this.isDevelopment) {
-      Sentry.c aptureMessage(message, {
-        l, e,
-  v, e, l: 'warning',
-        e, x,
-  t, r, a: context,
-      })
-    }
+/** * Production - ready logger utility * Uses Sentry in production, console in development */import * as Sentry from '@sentry/nextjs' type Log Level = 'debug' | 'info' | 'warn' | 'error' interface LogContext, { [k, e, y: string]: any
+} class Logger, { private is Development = process.env.N O DE_ENV === 'development' private l o g(l, e, v, e, l: LogLevel, m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) {//In production, only log warnings and errors if (!this.isDevelopment && (level === 'debug' || level === 'info')) {
+    return } const timestamp = new Date().t oISOS tring()//Console output in development if (this.isDevelopment) {
+  const console Method = level === 'error' ? console.error : level === 'warn' ? console.warn : console.logconsoleMethod( `,[${timestamp}] [${level.t oU pperCase()
+  }]`, message, context || '')
+  }//Sentry logging for errors and warnings if (level === 'error') { Sentry.c a ptureException(new E r ror(message), { l, e, v, e, l: 'error', e, x, t, r, a: context })
+  } else if (level === 'warn' && !this.isDevelopment) { Sentry.c a ptureMessage(message, { l, e, v, e, l: 'warning', e, x, t, r, a: context })
   }
-
-  d ebug(m,
-  e, s, s, a, ge: string, c, o, n, t, e, xt?: LogContext) {
-    this.l og('debug', message, context)
+} d e bug(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('debug', message, context)
+  } i n fo(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('info', message, context)
+  } w a rn(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('warn', message, context)
+  } e r ror(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('error', message, context)
+  }//Special method for API e r rorsapiError(s, e, r, v, i, c, e: string, error: any, c, o, n, t, e, x, t?: LogContext) {
+  const error Message = error?.response?.data?.message || error?.message || 'Unknown error' const status Code = error?.response?.statusthis.error(`${service} API, error: ${errorMessage}`, { service, statusCode, error: error?.response?.data || error, ...context })
+  }//Transaction l o ggingtransaction(a, c, t, i, o, n: string, d, e, t, a, i, l, s: LogContext) { this.i n fo(`T, r, a, n, s, a, c, t, ion: ${action}`, { action, ...details, t, i, m, e, s, t, a, mp: Date.n o w()
+  })
+  }//Security event l o ggingsecurity(e, v, e, n, t: string, d, e, t, a, i, l, s: LogContext) { this.w a rn(`Security e, v, e, n, t: ${event}`, { event, ...details, t, i, m, e, s, t, a, mp: Date.n o w()
+  })
   }
-
-  i nfo(m,
-  e, s, s, a, ge: string, c, o, n, t, e, xt?: LogContext) {
-    this.l og('info', message, context)
-  }
-
-  w arn(m,
-  e, s, s, a, ge: string, c, o, n, t, e, xt?: LogContext) {
-    this.l og('warn', message, context)
-  }
-
-  e rror(m,
-  e, s, s, a, ge: string, c, o, n, t, e, xt?: LogContext) {
-    this.l og('error', message, context)
-  }//Special method for API e rrorsapiError(s,
-  e, r, v, i, ce: string, e,
-  r, r, o, r: any, c, o, n, t, e, xt?: LogContext) {
-    const error
-  Message =
-      error?.response?.data?.message || error?.message || 'Unknown error'
-    const status
-  Code = error?.response?.statusthis.e rror(`$,{service} API, 
-  e, r, r, o, r: $,{errorMessage}`, {
-      service,
-      statusCode,
-      e,
-  r, r, o, r: error?.response?.data || error,
-      ...context,
-    })
-  }//Transaction l oggingtransaction(a, c,
-  t, i, o, n: string, d, e,
-  t, a, i, l, s: LogContext) {
-    this.i nfo(`T, r,
-  a, n, s, a, ction: $,{action}`, {
-      action,
-      ...details,
-      t,
-  i, m, e, s, tamp: Date.n ow(),
-    })
-  }//Security event l oggingsecurity(e, v,
-  e, n, t: string, d, e,
-  t, a, i, l, s: LogContext) {
-    this.w arn(`Security e, v,
-  e, n, t: $,{event}`, {
-      event,
-      ...details,
-      t,
-  i, m, e, s, tamp: Date.n ow(),
-    })
-  }
-}//Export singleton instance export const logger = new L ogger()//Also export for testing export { Logger }
+}//Export singleton instance export const logger = new L o gger()//Also export for testing export { Logger }

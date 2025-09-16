@@ -5,7 +5,17 @@ const ROOT = process.cwd()
 
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
-    if (['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some(s => d.includes(s))) continue
+    if (
+      [
+        'node_modules',
+        '.git',
+        '.next',
+        'dist',
+        'coverage',
+        'test-results',
+      ].some((s) => d.includes(s))
+    )
+      continue
     const p = path.join(d, n)
     const st = fs.statSync(p)
     if (st.isDirectory()) {
@@ -146,18 +156,18 @@ const allFixes = [
   [/\bs, etRetryCount:/g, 'setRetryCount:'],
   [/\bs, etRetryInSeconds:/g, 'setRetryInSeconds:'],
   [/\bi, sAnyServiceDown:/g, 'isAnyServiceDown:'],
-  
+
   // Fix type annotations
   [/: string([a-zA-Z])/g, ': string\n  $1'],
   [/: number([a-zA-Z])/g, ': number\n  $1'],
   [/: boolean([a-zA-Z])/g, ': boolean\n  $1'],
   [/: any([a-zA-Z])/g, ': any\n  $1'],
-  
+
   // Fix function declarations
   [/const ([a-zA-Z_$][a-zA-Z0-9_$]*) = /g, 'const $1 = '],
   [/let ([a-zA-Z_$][a-zA-Z0-9_$]*) = /g, 'let $1 = '],
   [/var ([a-zA-Z_$][a-zA-Z0-9_$]*) = /g, 'var $1 = '],
-  
+
   // Fix missing semicolons and spaces
   [/([a-zA-Z0-9_$])([A-Z][a-zA-Z0-9_$]*\s*=)/g, '$1\n  $2'],
   [/([a-zA-Z0-9_$])([a-z][a-zA-Z0-9_$]*\s*\()/g, '$1 $2'],
@@ -183,7 +193,7 @@ const allFixes = [
   [/([a-zA-Z0-9_$])(type\s+)/g, '$1 $2'],
   [/([a-zA-Z0-9_$])(class\s+)/g, '$1 $2'],
   [/([a-zA-Z0-9_$])(function\s+)/g, '$1 $2'],
-  
+
   // Fix JSX issues
   [/<([a-zA-Z][a-zA-Z0-9]*)(className)/g, '<$1 $2'],
   [/<([a-zA-Z][a-zA-Z0-9]*)(id)/g, '<$1 $2'],
@@ -204,17 +214,17 @@ const allFixes = [
   [/<([a-zA-Z][a-zA-Z0-9]*)(role)/g, '<$1 $2'],
   [/<([a-zA-Z][a-zA-Z0-9]*)(aria-)/g, '<$1 $2'],
   [/<([a-zA-Z][a-zA-Z0-9]*)(data-)/g, '<$1 $2'],
-  
+
   // Fix CSS classes
   [/className="([^"]*) ([^"]*)"([a-zA-Z])/g, 'className="$1 $2"\n    $3'],
   [/className='([^']*)([^']*)'([a-zA-Z])/g, "className='$1$2'\n    $3"],
   [/className={`([^`]*) ([^`]*)`}([a-zA-Z])/g, 'className={`$1 $2`}\n    $3'],
-  
+
   // Fix missing commas in objects and arrays
   [/([a-zA-Z0-9_$"'`}])(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*:)/g, '$1,$2\n  $3'],
   [/([a-zA-Z0-9_$"'`}])(\s*)(\{)/g, '$1,$2$3'],
   [/([a-zA-Z0-9_$"'`}])(\s*)(\[)/g, '$1,$2$3'],
-  
+
   // Fix missing spaces around operators
   [/([a-zA-Z0-9_$])([=!<>]=?)/g, '$1 $2'],
   [/([=!<>]=?)([a-zA-Z0-9_$])/g, '$1 $2'],
@@ -222,7 +232,7 @@ const allFixes = [
   [/([+\-*/%])([a-zA-Z0-9_$])/g, '$1 $2'],
   [/([a-zA-Z0-9_$])(&&|\|\|)/g, '$1 $2'],
   [/(&&|\|\|)([a-zA-Z0-9_$])/g, '$1 $2'],
-  
+
   // Fix specific patterns that cause parsing errors
   [/\} catch \(/g, '} catch ('],
   [/\} finally \{/g, '} finally {'],
@@ -232,7 +242,7 @@ const allFixes = [
   [/\}\s*catch/g, '} catch'],
   [/\}\s*finally/g, '} finally'],
   [/\}\s*else/g, '} else'],
-  
+
   // Fix import/export statements
   [/import\s*\{([^}]*)\}\s*from/g, 'import { $1 } from'],
   [/export\s*\{([^}]*)\}/g, 'export { $1 }'],
@@ -242,7 +252,7 @@ const allFixes = [
   [/export\s*class\s+/g, 'export class '],
   [/export\s*interface\s+/g, 'export interface '],
   [/export\s*type\s+/g, 'export type '],
-  
+
   // Fix common TypeScript patterns
   [/:\s*([A-Z][a-zA-Z0-9_$]*)\s*\|/g, ': $1 |'],
   [/\|\s*([A-Z][a-zA-Z0-9_$]*)/g, '| $1'],
@@ -256,18 +266,18 @@ let changed = 0
 for (const p of walk(ROOT)) {
   let s = fs.readFileSync(p, 'utf8')
   let o = s
-  
+
   // Apply all fixes
   for (const [re, rep] of allFixes) {
     s = s.replace(re, rep)
   }
-  
+
   // Remove any remaining standalone ... lines
   s = s.replace(/^\s*\.\.\.\s*$/gm, '')
-  
+
   // Fix any remaining className issues
   s = s.replace(/(className=["'{][^"'}]*)\.\.\./g, '$1')
-  
+
   if (s !== o) {
     fs.writeFileSync(p, s)
     console.log('fixed', p)

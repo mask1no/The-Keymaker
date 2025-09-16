@@ -1,27 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    // Exclude sqlite3 from client bundle
+  webpack: (config, { isServer }) => {// Exclude sqlite3 from client bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         path: false,
-        sqlite3: false,
-      }
-      // Ignore sqlite3 in client bundle
+        sqlite3: false }// Ignore sqlite3 in client bundle
       config.externals = config.externals || []
       config.externals.push({
         sqlite3: 'sqlite3',
-        sqlite: 'sqlite',
-      })
+        sqlite: 'sqlite' })
     }
-
     return config
   },
   experimental: {
-    serverComponentsExternalPackages: ['sqlite3', 'sqlite'],
-  },
+    serverComponentsExternalPackages: ['sqlite3', 'sqlite'] },
   async headers() {
     return [
       {
@@ -30,23 +24,24 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
-          },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+              "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
+            value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff' },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY' },
           {
             key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          },
-        ],
-      },
+            value: 'max-age=31536000; includeSubDomains' },
+        ] },
     ]
-  },
-}
+  } }
 
 module.exports = nextConfig
