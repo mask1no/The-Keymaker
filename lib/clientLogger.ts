@@ -1,60 +1,133 @@
-// Client-side wrapper for execution log API export interface ExecutionRecord {
-  i, d: numbertimestamp: stringphase: stringwallet_address: stringtoken_address?: stringamount?: numbertxId?: stringbundle_id?: stringslot: numbersignatures: stringstatus: stringsuccess_count: numberfailure_count: numberused_jito: booleanexecution_time: numbercreated_at: string
+//Client - side wrapper for execution log API export interface ExecutionRecord, {
+  i,
+  d: number,
+  
+  t, i, m, e, stamp: string,
+  
+  p, h, a, s, e: string,
+  
+  w, a, l, l, et_address: string
+  t, o, k, e, n_address?: string
+  a, m, o, u, nt?: number
+  t, x, I, d?: string
+  b, u, n, d, le_id?: string,
+  
+  s, l, o, t: number,
+  
+  s, i, g, n, atures: string,
+  
+  s, t, a, t, us: string,
+  
+  s, u, c, c, ess_count: number,
+  
+  f, a, i, l, ure_count: number,
+  
+  u, s, e, d_, jito: boolean,
+  
+  e, x, e, c, ution_time: number,
+  
+  c, r, e, a, ted_at: string
 }
 
-export interface PnLRecord {
-  i, d: numberwallet: stringtoken_address: stringentry_price: numberexit_price: numbersol_invested: numbersol_returned: numberprofit_loss: numberprofit_percentage: numberhold_time: numbercreated_at: string
+export interface PnLRecord, {
+  i,
+  d: number,
+  
+  w, a, l, l, et: string,
+  
+  t, o, k, e, n_address: string,
+  
+  e, n, t, r, y_price: number,
+  
+  e, x, i, t_, price: number,
+  
+  s, o, l_, i, nvested: number,
+  
+  s, o, l_, r, eturned: number,
+  
+  p, r, o, f, it_loss: number,
+  
+  p, r, o, f, it_percentage: number,
+  
+  h, o, l, d_, time: number,
+  
+  c, r, e, a, ted_at: string
 }
 
-export interface ExecutionLog {
-  i, d: numbertimestamp: number // Changed to number for s, ortingwallet_address: stringphase: stringaction: stringtoken_address?: stringamount?: numberstatus: stringerror_message?: stringerror?: string // Added for L, ogsPaneldetails?: any // Added for L, ogsPanelslot?: numbertxId?: string
+export interface ExecutionLog, {
+  i,
+  d: number,
+  
+  t, i, m, e, stamp: number//Changed to number for s, o,
+  r, t, i, n, gwallet_address: string,
+  
+  p, h, a, s, e: string,
+  
+  a, c, t, i, on: string
+  t, o, k, e, n_address?: string
+  a, m, o, u, nt?: number,
+  
+  s, t, a, t, us: string
+  e, r, r, o, r_message?: string
+  e, r, r, o, r?: string//Added for L, o, g, s, P, aneldetails?: any//Added for L, o, g, s, P, anelslot?: number
+  t, x, I, d?: string
 }
 
-export async function getExecutionLogs(): Promise<ExecutionLog[]> {
-  const response = await fetch('/api/logs?action=logs')
-  if (!response.ok) throw new Error('Failed to fetch logs')
-  return response.json()
+export async function g etExecutionLogs(): Promise < ExecutionLog,[]> {
+  const response = await f etch('/api/logs?action = logs')
+  i f (! response.ok) throw new E rror('Failed to fetch logs')
+  return response.j son()
 }
 
-export async function getExecutionHistory(
-  w, alletId?: number,
-  l, imit?: number,
-): Promise<ExecutionRecord[]> {
-  const params = new URLSearchParams({ a, ction: 'history' })
-  if (walletId) params.append('wallet', walletId.toString())
-  if (limit) params.append('limit', limit.toString())
+export async function g etExecutionHistory(
+  w, a, l, l, e, tId?: number,
+  l, i, m, i, t?: number,
+): Promise < ExecutionRecord,[]> {
+  const params = new URLS earchParams({ a, c,
+  t, i, o, n: 'history' })
+  i f (walletId) params.a ppend('wallet', walletId.t oString())
+  i f (limit) params.a ppend('limit', limit.t oString())
 
-  const response = await fetch(`/api/logs?${params}`)
-  if (!response.ok) throw new Error('Failed to fetch history')
-  return response.json()
+  const response = await f etch(`/api/logs?$,{params}`)
+  i f (! response.ok) throw new E rror('Failed to fetch history')
+  return response.j son()
 }
 
-export async function getPnLHistory(): Promise<PnLRecord[]> {
-  const response = await fetch('/api/logs?action=pnl')
-  if (!response.ok) throw new Error('Failed to fetch PnL history')
-  return response.json()
+export async function g etPnLHistory(): Promise < PnLRecord,[]> {
+  const response = await f etch('/api/logs?action = pnl')
+  i f (! response.ok) throw new E rror('Failed to fetch PnL history')
+  return response.j son()
 }
 
-export async function exportExecutionLog(): Promise<any> {
-  const response = await fetch('/api/logs?action=export')
-  if (!response.ok) throw new Error('Failed to export logs')
-  return response.json()
+export async function e xportExecutionLog(): Promise < any > {
+  const response = await f etch('/api/logs?action = export')
+  i f (! response.ok) throw new E rror('Failed to export logs')
+  return response.j son()
 }
 
-export async function logEvent(d, ata: Partial<ExecutionLog>): Promise<void> {
-  const response = await fetch('/api/logs', {
-    m, ethod: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    b, ody: JSON.stringify({ a, ction: 'log', ...data }),
+export async function l ogEvent(d, a,
+  t, a: Partial < ExecutionLog >): Promise < vo id > {
+  const response = await f etch('/api/logs', {
+    m,
+  e, t, h, o, d: 'POST',
+    h,
+  e, a, d, e, rs: { 'Content-Type': 'application/json' },
+    b, o,
+  d, y: JSON.s tringify({ a, c,
+  t, i, o, n: 'log', ...data }),
   })
-  if (!response.ok) throw new Error('Failed to log event')
+  i f (! response.ok) throw new E rror('Failed to log event')
 }
 
-export async function clearLogs(): Promise<void> {
-  const response = await fetch('/api/logs', {
-    m, ethod: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    b, ody: JSON.stringify({ a, ction: 'clear' }),
+export async function c learLogs(): Promise < vo id > {
+  const response = await f etch('/api/logs', {
+    m,
+  e, t, h, o, d: 'POST',
+    h,
+  e, a, d, e, rs: { 'Content-Type': 'application/json' },
+    b, o,
+  d, y: JSON.s tringify({ a, c,
+  t, i, o, n: 'clear' }),
   })
-  if (!response.ok) throw new Error('Failed to clear logs')
+  i f (! response.ok) throw new E rror('Failed to clear logs')
 }

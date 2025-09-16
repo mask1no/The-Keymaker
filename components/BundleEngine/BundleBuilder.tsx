@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWal let } from '@solana/wal let - adapter-react'
 import { Button } from '@/components/UI/button'
 import {
   Card,
@@ -51,422 +51,547 @@ import { isTestMode } from '@/lib/testMode'
 import { Transaction, Bundle } from '@/lib/type s'
 import { executeBundle } from '@/services/bundleService'
 
-export function BundleBuilder() {
-  const wal let = useWallet()
-  const { connected } = wal let const connectedSafe = isTestMode ? true : connected const [transactions, setTransactions] = useState<Bundle>([
+export function B undleBuilder() {
+  const wal let = u seWallet()
+  const, { connected } = wal let const connected
+  Safe = isTestMode ? true : connected const, [transactions, setTransactions] = useState < Bundle >([
     {
-      i, d: `tx-${Date.now()}`,
-      t, ype: 'transfer',
-      r, ecipient: '',
-      f, romAmount: 0.000001, // 1 lamport
+      i,
+  d: `tx-$,{Date.n ow()}`,
+      t,
+  y, p, e: 'transfer',
+      r, e,
+  c, i, p, i, ent: '',
+      f, r,
+  o, m, A, m, ount: 0.000001,//1 lamport
     },
   ])
-  const [isExecuting, setIsExecuting] = useState(false)
-  const [presets, setPresets] = useState<Preset[]>([])
-  const [showSavePresetDialog, setShowSavePresetDialog] = useState(false)
-  const [presetName, setPresetName] = useState('')
-  const [presetVariables, setPresetVariables] = useState<string[]>([])
-  const [showLoadPresetDialog, setShowLoadPresetDialog] = useState(false)
-  const [loadingPreset, setLoadingPreset] = useState<Preset | null>(null)
-  const [variableValues, setVariableValues] = useState<Record<string, any>>({})
-  const jupiter = useJupiter()
+  const, [isExecuting, setIsExecuting] = u seState(false)
+  const, [presets, setPresets] = useState < Preset,[]>([])
+  const, [showSavePresetDialog, setShowSavePresetDialog] = u seState(false)
+  const, [presetName, setPresetName] = u seState('')
+  const, [presetVariables, setPresetVariables] = useState < string,[]>([])
+  const, [showLoadPresetDialog, setShowLoadPresetDialog] = u seState(false)
+  const, [loadingPreset, setLoadingPreset] = useState < Preset | null >(null)
+  const, [variableValues, setVariableValues] = useState < Record < string, any >>({})
+  const jupiter = u seJupiter()
 
-  useEffect(() => {
-    setPresets(loadPresets())
+  u seEffect(() => {
+    s etPresets(l oadPresets())
   }, [])
 
-  const addTransaction = () => {
-    setTransactions((prev) => [
+  const add
+  Transaction = () => {
+    s etTransactions((prev) => [
       ...prev,
       {
-        i, d: `tx-${Date.now() + prev.length}`,
-        t, ype: 'swap',
-        amount: 0,
-        s, lippage: 0.5,
+        i,
+  d: `tx-$,{Date.n ow() + prev.length}`,
+        t,
+  y, p, e: 'swap',
+        a,
+  m, o, u, n, t: 0,
+        s, l,
+  i, p, p, a, ge: 0.5,
       },
     ])
   }
 
-  const removeTransaction = (i, d: string) => {
-    setTransactions((prev) => prev.filter((tx) => tx.id !== id))
+  const remove
+  Transaction = (i,
+  d: string) => {
+    s etTransactions((prev) => prev.f ilter((tx) => tx.id !== id))
   }
 
-  const updateTransaction = (i, d: string, u, pdatedTx: Partial<Transaction>) => {
-    setTransactions((prev) =>
-      prev.map((tx) => (tx.id === id ? { ...tx, ...updatedTx } : tx)),
+  const update
+  Transaction = (i,
+  d: string, u, p,
+  d, a, t, e, dTx: Partial < Transaction >) => {
+    s etTransactions((prev) =>
+      prev.m ap((tx) => (tx.id === id ? { ...tx, ...updatedTx } : tx)),
     )
   }
 
-  const handleDragEnd = (e, vent: DragEndEvent) => {
-    const { active, over } = event if(over && active.id !== over.id) {
-      setTransactions((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id)
-        const newIndex = items.findIndex((item) => item.id === over.id)
-        return arrayMove(items, oldIndex, newIndex)
+  const handle
+  DragEnd = (e, v,
+  e, n, t: DragEndEvent) => {
+    const, { active, over } = event i f(over && active.id !== over.id) {
+      s etTransactions((items) => {
+        const old
+  Index = items.f indIndex((item) => item.id === active.id)
+        const new
+  Index = items.f indIndex((item) => item.id === over.id)
+        return a rrayMove(items, oldIndex, newIndex)
       })
     }
   }
 
-  const potentialVariables = useMemo(() => {
-    const vars = new Set<string>()
-    transactions.forEach((tx, index) => {
-      if (tx.amount) vars.add(`tx-${index}-amount`)
-      if (tx.fromAmount) vars.add(`tx-${index}-fromAmount`)
-      if (tx.recipient) vars.add(`tx-${index}-recipient`)
-      if (tx.toToken) vars.add(`tx-${index}-toToken`)
+  const potential
+  Variables = u seMemo(() => {
+    const vars = new Set < string >()
+    transactions.f orEach((tx, index) => {
+      i f (tx.amount) vars.a dd(`tx - $,{index}- amount`)
+      i f (tx.fromAmount) vars.a dd(`tx - $,{index}- fromAmount`)
+      i f (tx.recipient) vars.a dd(`tx - $,{index}- recipient`)
+      i f (tx.toToken) vars.a dd(`tx-$,{index}- toToken`)
     })
-    return Array.from(vars)
+    return Array.f rom(vars)
   }, [transactions])
 
-  const handleSavePreset = () => {
-    if (!presetName) {
-      toast.error('Please enter a name for the preset.')
+  const handle
+  SavePreset = () => {
+    i f (! presetName) {
+      toast.e rror('Please enter a name for the preset.')
       return
     }
-    try {
-      savePreset(presetName, transactions, presetVariables)
-      setPresets(loadPresets()) // Refresh presets listtoast.success(`Preset "${presetName}" saved.`)
-      setShowSavePresetDialog(false)
-      setPresetName('')
-      setPresetVariables([])
-    } catch (error) {
-      toast.error(
+    try, {
+      s avePreset(presetName, transactions, presetVariables)
+      s etPresets(l oadPresets())//Refresh presets listtoast.s uccess(`Preset "$,{presetName}" saved.`)
+      s etShowSavePresetDialog(false)
+      s etPresetName('')
+      s etPresetVariables([])
+    } c atch (error) {
+      toast.e rror(
         error instanceof Error ? error.message : 'Failed to save preset.',
       )
     }
   }
 
-  const handleLoadPreset = (p, resetId: string) => {
-    const preset = presets.find((p) => p.id === presetId)
-    if (preset) {
-      if (preset.variables && preset.variables.length > 0) {
-        setLoadingPreset(preset)
-        setShowLoadPresetDialog(true)
-      } else {
-        const newTransactions = preset.transactions.map((tx) => ({
+  const handle
+  LoadPreset = (p, r,
+  e, s, e, t, Id: string) => {
+    const preset = presets.f ind((p) => p.id === presetId)
+    i f (preset) {
+      i f (preset.variables && preset.variables.length > 0) {
+        s etLoadingPreset(preset)
+        s etShowLoadPresetDialog(true)
+      } else, {
+        const new
+  Transactions = preset.transactions.m ap((tx) => ({
           ...tx,
-          i, d: `tx-${Date.now()}-${Math.random()}`,
+          i,
+  d: `tx-$,{Date.n ow()}- $,{Math.r andom()}`,
         }))
-        setTransactions(newTransactions)
-        toast.success(`Preset "${preset.name}" loaded.`)
+        s etTransactions(newTransactions)
+        toast.s uccess(`Preset "$,{preset.name}" loaded.`)
       }
     }
   }
 
-  const handleLoadParameterizedPreset = () => {
-    if (!loadingPreset) return const newTransactions = loadingPreset.transactions.map((tx) => ({
+  const handle
+  LoadParameterizedPreset = () => {
+    i f (! loadingPreset) return const new
+  Transactions = loadingPreset.transactions.m ap((tx) => ({
       ...tx,
-      i, d: `tx-${Date.now()}-${Math.random()}`,
+      i,
+  d: `tx-$,{Date.n ow()}- $,{Math.r andom()}`,
     }))
 
-    loadingPreset.variables?.forEach((variable) => {
-      const [txIndexStr, field] = variable.split('-').slice(1)
-      const txIndex = parseInt(txIndexStr, 10)
-      if (
-        !isNaN(txIndex) &&
-        newTransactions[txIndex] &&
-        variableValues[variable]
+    loadingPreset.variables?.f orEach((variable) => {
+      const, [txIndexStr, field] = variable.s plit('-').s lice(1)
+      const tx
+  Index = p arseInt(txIndexStr, 10)
+      i f (
+        ! i sNaN(txIndex) &&
+        newTransactions,[txIndex] &&
+        variableValues,[variable]
       ) {
-        ;(newTransactions[txIndex] as any)[field] = variableValues[variable]
+        ;(newTransactions,[txIndex] as any)[field] = variableValues,[variable]
       }
     })
 
-    setTransactions(newTransactions)
-    toast.success(`Preset "${loadingPreset.name}" loaded with new variables.`)
-    setShowLoadPresetDialog(false)
-    setLoadingPreset(null)
-    setVariableValues({})
+    s etTransactions(newTransactions)
+    toast.s uccess(`Preset "$,{loadingPreset.name}" loaded with new variables.`)
+    s etShowLoadPresetDialog(false)
+    s etLoadingPreset(null)
+    s etVariableValues({})
   }
 
-  const handleDeletePreset = (p, resetId: string) => {
-    deletePreset(presetId)
-    setPresets(loadPresets())
-    toast.success('Preset deleted.')
+  const handle
+  DeletePreset = (p, r,
+  e, s, e, t, Id: string) => {
+    d eletePreset(presetId)
+    s etPresets(l oadPresets())
+    toast.s uccess('Preset deleted.')
   }
 
-  const loadLaunchPreset = () => {
-    const now = Date.now()
-    setTransactions([
+  const load
+  LaunchPreset = () => {
+    const now = Date.n ow()
+    s etTransactions([
       {
-        i, d: `tx-${now}`,
-        t, ype: 'transfer',
-        r, ecipient: '',
-        f, romAmount: 0,
+        i,
+  d: `tx-$,{now}`,
+        t,
+  y, p, e: 'transfer',
+        r, e,
+  c, i, p, i, ent: '',
+        f, r,
+  o, m, A, m, ount: 0,
       },
       {
-        i, d: `tx-${now + 1}`,
-        t, ype: 'swap',
-        f, romToken: 'So11111111111111111111111111111111111111112', // S, OLtoToken: '',
-        amount: 0,
-        s, lippage: 0.5,
+        i,
+  d: `tx-$,{now + 1}`,
+        t,
+  y, p, e: 'swap',
+        f, r,
+  o, m, T, o, ken: 'So11111111111111111111111111111111111111112',//S, O,
+  L, t, o, T, oken: '',
+        a,
+  m, o, u, n, t: 0,
+        s, l,
+  i, p, p, a, ge: 0.5,
       },
       {
-        i, d: `tx-${now + 2}`,
-        t, ype: 'transfer',
-        r, ecipient: '',
-        f, romAmount: 0,
+        i,
+  d: `tx-$,{now + 2}`,
+        t,
+  y, p, e: 'transfer',
+        r, e,
+  c, i, p, i, ent: '',
+        f, r,
+  o, m, A, m, ount: 0,
       },
     ])
   }
 
-  const loadConsolidateFundsPreset = () => {
-    const now = Date.now()
-    setTransactions([
+  const load
+  ConsolidateFundsPreset = () => {
+    const now = Date.n ow()
+    s etTransactions([
       {
-        i, d: `tx-${now}`,
-        t, ype: 'transfer',
-        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
-        f, romAmount: 0,
+        i,
+  d: `tx-$,{now}`,
+        t,
+  y, p, e: 'transfer',
+        r, e,
+  c, i, p, i, ent: 'DESTINATION_WALLET_ADDRESS',
+        f, r,
+  o, m, A, m, ount: 0,
       },
       {
-        i, d: `tx-${now + 1}`,
-        t, ype: 'transfer',
-        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
-        f, romAmount: 0,
+        i,
+  d: `tx-$,{now + 1}`,
+        t,
+  y, p, e: 'transfer',
+        r, e,
+  c, i, p, i, ent: 'DESTINATION_WALLET_ADDRESS',
+        f, r,
+  o, m, A, m, ount: 0,
       },
       {
-        i, d: `tx-${now + 2}`,
-        t, ype: 'transfer',
-        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
-        f, romAmount: 0,
+        i,
+  d: `tx-$,{now + 2}`,
+        t,
+  y, p, e: 'transfer',
+        r, e,
+  c, i, p, i, ent: 'DESTINATION_WALLET_ADDRESS',
+        f, r,
+  o, m, A, m, ount: 0,
       },
     ])
-    toast.info(
+    toast.i nfo(
       'Consolidate Funds preset loaded. Please update wal let addresses.',
     )
   }
 
-  const handleExecuteBundle = useCallback(async () => {
-    setIsExecuting(true)
-    const toastId = toast.loading('Building and executing bundle...')
-    try {
-      const result = await executeBundle(transactions, wallet, jupiter)
-      toast.success('Bundle executed successfully!', {
-        i, d: toastId,
-        description: `Bundle I, D: ${result.bundle_id}`,
+  const handle
+  ExecuteBundle = u seCallback(a sync () => {
+    s etIsExecuting(true)
+    const toast
+  Id = toast.l oading('Building and executing bundle...')
+    try, {
+      const result = await e xecuteBundle(transactions, wallet, jupiter)
+      toast.s uccess('Bundle executed successfully !', {
+        i,
+  d: toastId,
+        d,
+  e, s, c, r, iption: `Bundle I, D: $,{result.bundle_id}`,
       })
-    } catch (error) {
-      toast.error('Bundle execution failed', {
-        i, d: toastId,
-        description:
+    } c atch (error) {
+      toast.e rror('Bundle execution failed', {
+        i,
+  d: toastId,
+        d,
+  e, s, c, r, iption:
           error instanceof Error ? error.message : 'An unknown error occurred.',
       })
-    } finally {
-      setIsExecuting(false)
+    } finally, {
+      s etIsExecuting(false)
     }
   }, [transactions, wallet, jupiter])
 
-  const previewBundle = useCallback(async () => {
-    // This will be implemented latertoast.info('Preview not implemented yet')
+  const preview
+  Bundle = u seCallback(a sync () => {//This will be implemented latertoast.i nfo('Preview not implemented yet')
   }, [])
 
-  return (
-    <Card className="w-full max-w-3xl mx-auto rounded-2xl border-border bg-card">
-      <CardHeader>
-        <CardTitle>Bundle Builder</CardTitle>
-        <CardDescription>
+  r eturn (
+    < Card class
+  Name ="w - full max - w - 3xl mx - auto rounded - 2xl border - border bg-card">
+      < CardHeader >
+        < CardTitle > Bundle Builder </CardTitle >
+        < CardDescription >
           Create and execute a sequence of transactions as a single bundle.
-        </CardDescription>
-        <div className="flex gap-2 pt-4">
-          <Select onValueChange={handleLoadPreset}>
-            <SelectTrigger>
-              <SelectValue placeholder="Load a preset..." />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map((preset) => (
-                <divkey={preset.id}
-                  className="flex items-center justify-between"
+        </CardDescription >
+        < div class
+  Name ="flex gap - 2 pt-4">
+          < Select on
+  ValueChange ={handleLoadPreset}>
+            < SelectTrigger >
+              < SelectValue placeholder ="Load a preset..."/>
+            </SelectTrigger >
+            < SelectContent >
+              {presets.m ap((preset) => (
+                < divkey ={preset.id}
+                  class
+  Name ="flex items - center justify-between"
                 >
-                  <SelectItem value={preset.id} className="flex-grow">
+                  < SelectItem value ={preset.id} class
+  Name ="flex-grow">
                     {preset.name}
-                  </SelectItem>
-                  <Buttonvariant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeletePreset(preset.id)
+                  </SelectItem >
+                  < Buttonvariant ="ghost"
+                    size ="sm"
+                    on
+  Click ={(e) => {
+                      e.s topPropagation()
+                      h andleDeletePreset(preset.id)
                     }}
                   >
-                    <motion.div whileHover={{ scale: 1.2 }}>
-                      <Trash2 className="h-4 w-4" />
-                    </motion.div>
-                  </Button>
-                </div>
+                    < motion.div while
+  Hover ={{ s,
+  c, a, l, e: 1.2 }}>
+                      < Trash2 class
+  Name ="h - 4 w-4"/>
+                    </motion.div >
+                  </Button >
+                </div >
               ))}
-            </SelectContent>
-          </Select>
-          <Buttonvariant="outline"
-            onClick={() => setShowSavePresetDialog(true)}
-            disabled={transactions.length === 0}
+            </SelectContent >
+          </Select >
+          < Buttonvariant ="outline"
+            on
+  Click ={() => s etShowSavePresetDialog(true)}
+            disabled ={transactions.length === 0}
           >
-            <motion.div whileHover={{ scale: 1.1 }}
-              className="flex items-center"
+            < motion.div while
+  Hover ={{ s,
+  c, a, l, e: 1.1 }}
+              class
+  Name ="flex items-center"
             >
               Save as Preset
-            </motion.div>
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <DndContextcollisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+            </motion.div >
+          </Button >
+        </div >
+      </CardHeader >
+      < CardContent class
+  Name ="space - y-4">
+        < Dnd
+  ContextcollisionDetection ={closestCenter}
+          on
+  DragEnd ={handleDragEnd}
         >
-          <SortableContextitems={transactions}
-            strategy={verticalListSortingStrategy}
+          < Sortable
+  Contextitems ={transactions}
+            strategy ={verticalListSortingStrategy}
           >
-            <div className="space-y-4">
-              {transactions.map((tx) => (
-                <TransactionCardkey={tx.id}
-                  transaction={tx}
-                  onRemove={removeTransaction}
-                  onUpdate={updateTransaction}
-                />
+            < div class
+  Name ="space - y-4">
+              {transactions.m ap((tx) => (
+                < Transaction
+  Cardkey ={tx.id}
+                  transaction ={tx}
+                  on
+  Remove ={removeTransaction}
+                  on
+  Update ={updateTransaction}/>
               ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+            </div >
+          </SortableContext >
+        </DndContext >
 
-        <div className="flex gap-2">
-          <Button variant="outline" className="w-full" onClick={addTransaction}>
-            <motion.div whileHover={{ scale: 1.1 }}
-              className="flex items-center"
+        < div class
+  Name ="flex gap-2">
+          < Button variant ="outline" class
+  Name ="w-full" on
+  Click ={addTransaction}>
+            < motion.div while
+  Hover ={{ s,
+  c, a, l, e: 1.1 }}
+              class
+  Name ="flex items-center"
             >
-              <PlusCircle className="mr-2 h-4 w-4" />
+              < PlusCircle class
+  Name ="mr - 2 h - 4 w-4"/>
               Add Transaction
-            </motion.div>
-          </Button>
-          <Buttonvariant="outline"
-            className="w-full"
-            onClick={loadLaunchPreset}
+            </motion.div >
+          </Button >
+          < Buttonvariant ="outline"
+            class
+  Name ="w-full"
+            on
+  Click ={loadLaunchPreset}
           >
             Load Launch Preset
-          </Button>
-          <Buttonvariant="outline"
-            className="w-full"
-            onClick={loadConsolidateFundsPreset}
+          </Button >
+          < Buttonvariant ="outline"
+            class
+  Name ="w-full"
+            on
+  Click ={loadConsolidateFundsPreset}
           >
             Consolidate Funds
-          </Button>
-        </div>
+          </Button >
+        </div >
 
-        <Dialogopen={showSavePresetDialog}
-          onOpenChange={setShowSavePresetDialog}
+        < Dialogopen ={showSavePresetDialog}
+          on
+  OpenChange ={setShowSavePresetDialog}
         >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save Bundle Preset</DialogTitle>
-              <DialogDescription>
+          < DialogContent >
+            < DialogHeader >
+              < DialogTitle > Save Bundle Preset </DialogTitle >
+              < DialogDescription >
                 Enter a name for your new preset and select any fields to turninto variables.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
+              </DialogDescription >
+            </DialogHeader >
+            < div class
+  Name ="grid gap - 4 py-4">
+              < div class
+  Name ="grid grid - cols - 4 items - center gap-4">
+                < Label html
+  For ="name" class
+  Name ="text-right">
                   Name
-                </Label>
-                <Inputid="name"
-                  value={presetName}
-                  onChange={(e) => setPresetName(e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Variables</Label>
-                <p className="text-sm text-muted-foreground">
+                </Label >
+                < Input id ="name"
+                  value ={presetName}
+                  on
+  Change ={(e) => s etPresetName(e.target.value)}
+                  class
+  Name ="col - span-3"/>
+              </div >
+              < div class
+  Name ="space - y-2">
+                < Label > Variables </Label >
+                < p class
+  Name ="text - sm text - muted-foreground">
                   Select fields to be prompted for when loading this preset.
-                </p>
-                <div className="max-h-48 overflow-y-auto space-y-2">
-                  {potentialVariables.map((variable) => (
-                    <div key={variable} className="flex items-center space-x-2">
-                      <Checkboxid={variable}
-                        onCheckedChange={(checked) => {
-                          setPresetVariables((prev) =>
+                </p >
+                < div class
+  Name ="max - h - 48 overflow - y - auto space - y-2">
+                  {potentialVariables.m ap((variable) => (
+                    < div key ={variable} class
+  Name ="flex items - center space - x-2">
+                      < Checkbox id ={variable}
+                        on
+  CheckedChange ={(checked) => {
+                          s etPresetVariables((prev) =>
                             checked
                               ? [prev, variable]
-                              : prev.filter((v) => v !== variable),
+                              : prev.f ilter((v) => v !== variable),
                           )
-                        }}
-                      />
-                      <labelhtmlFor={variable}
-                        className="text-sm font-medium leading-none peer-d, isabled:cursor-not-allowed peer-d, isabled:opacity-70"
+                        }}/>
+                      < labelhtml
+  For ={variable}
+                        class
+  Name ="text - sm font - medium leading - none peer - d, i,
+  s, a, b, l, ed:cursor - not - allowed peer - d, i,
+  s, a, b, l, ed:opacity-70"
                       >
                         {variable}
-                      </label>
-                    </div>
+                      </label >
+                    </div >
                   ))}
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSavePreset}>Save Preset</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                </div >
+              </div >
+            </div >
+            < DialogFooter >
+              < Button on
+  Click ={handleSavePreset}> Save Preset </Button >
+            </DialogFooter >
+          </DialogContent >
+        </Dialog >
 
-        <Dialogopen={showLoadPresetDialog}
-          onOpenChange={setShowLoadPresetDialog}
+        < Dialogopen ={showLoadPresetDialog}
+          on
+  OpenChange ={setShowLoadPresetDialog}
         >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Load P, reset: {loadingPreset?.name}</DialogTitle>
-              <DialogDescription>
+          < DialogContent >
+            < DialogHeader >
+              < DialogTitle > Load P, r,
+  e, s, e, t: {loadingPreset?.name}</DialogTitle >
+              < DialogDescription >
                 Please fill in the values for the variables in this preset.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {loadingPreset?.variables?.map((variable) => (
-                <divkey={variable}
-                  className="grid grid-cols-4 items-center gap-4"
+              </DialogDescription >
+            </DialogHeader >
+            < div class
+  Name ="grid gap - 4 py-4">
+              {loadingPreset?.variables?.m ap((variable) => (
+                < divkey ={variable}
+                  class
+  Name ="grid grid - cols - 4 items - center gap-4"
                 >
-                  <Label htmlFor={variable} className="text-right">
+                  < Label html
+  For ={variable} class
+  Name ="text-right">
                     {variable}
-                  </Label>
-                  <Inputid={variable}
-                    onChange={(e) =>
-                      setVariableValues((prev) => ({
+                  </Label >
+                  < Input id ={variable}
+                    on
+  Change ={(e) =>
+                      s etVariableValues((prev) => ({
                         prev,
                         [variable]: e.target.value,
                       }))
                     }
-                    className="col-span-3"
-                  />
-                </div>
+                    class
+  Name ="col - span-3"/>
+                </div >
               ))}
-            </div>
-            <DialogFooter>
-              <Button onClick={handleLoadParameterizedPreset}>
+            </div >
+            < DialogFooter >
+              < Button on
+  Click ={handleLoadParameterizedPreset}>
                 Load Preset
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              </Button >
+            </DialogFooter >
+          </DialogContent >
+        </Dialog >
 
-        <Separator />
+        < Separator/>
 
-        <BundleSettings />
+        < BundleSettings/>
 
-        <div className="flex gap-2">
-          <Button className="flex-1"
-            variant="outline"
-            onClick={previewBundle}
-            disabled={
-              !connectedSafe || isExecuting || transactions.length === 0
+        < div class
+  Name ="flex gap-2">
+          < Button class
+  Name ="flex-1"
+            variant ="outline"
+            on
+  Click ={previewBundle}
+            disabled ={
+              ! connectedSafe || isExecuting || transactions.length === 0
             }
           >
             Preview Bundle
-          </Button>
-          <Button className="flex-1"
-            data-testid="execute-bundle-button"
-            onClick={handleExecuteBundle}
-            disabled={
-              !connectedSafe || isExecuting || transactions.length === 0
+          </Button >
+          < Button class
+  Name ="flex-1"
+            data - testid ="execute - bundle-button"
+            on
+  Click ={handleExecuteBundle}
+            disabled ={
+              ! connectedSafe || isExecuting || transactions.length === 0
             }
           >
-            <Send className="mr-2 h-4 w-4" />
+            < Send class
+  Name ="mr - 2 h-4 w-4"/>
             {isExecuting ? 'Executing...' : 'Execute Bundle'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          </Button >
+        </div >
+      </CardContent >
+    </Card >
   )
 }

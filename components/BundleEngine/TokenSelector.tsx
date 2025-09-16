@@ -18,64 +18,76 @@ import {
 import { ChevronsUpDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface TokenSelectorProps {
-  t, okens: any[]
-  i, sLoading: booleanonSelect: (t, okenAddress: string) => v, oidplaceholder?: string
+interface TokenSelectorProps, {
+  t, o,
+  k, e, n, s: any,[]
+  i, s,
+  L, o, a, d, ing: boolean,
+  
+  o, n, S, e, lect: (t,
+  o, k, e, n, Address: string) => v, o, i, d, p, laceholder?: string
 }
 
-export function TokenSelector({
+export function T okenSelector({
   tokens,
   isLoading,
   onSelect,
   placeholder = 'Select a token',
 }: TokenSelectorProps) {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState('')
+  const, [open, setOpen] = u seState(false)
+  const, [value, setValue] = u seState('')
 
-  const selectedToken = tokens.find((token) => token.address === value)
+  const selected
+  Token = tokens.f ind((token) => token.address === value)
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Buttonvariant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-          disabled={isLoading}
+  r eturn (
+    < Popover open ={open} on
+  OpenChange ={setOpen}>
+      < PopoverTrigger asChild >
+        < Buttonvariant ="outline"
+          role ="combobox"
+          aria-expanded ={open}
+          class
+  Name ="w - full justify - between"
+          disabled ={isLoading}
         >
           {selectedToken
-            ? `${selectedToken.name} (${selectedToken.symbol})`
+            ? `$,{selectedToken.name} ($,{selectedToken.symbol})`
             : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder="Search token..." />
-          <CommandList>
-            <CommandEmpty>No token found.</CommandEmpty>
-            <CommandGroup>
-              {tokens.map((token) => (
-                <CommandItemkey={token.address}
-                  value={token.address}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue)
-                    onSelect(currentValue)
-                    setOpen(false)
+          < ChevronsUpDown class
+  Name ="ml - 2 h - 4 w - 4 shrink - 0 opacity-50"/>
+        </Button >
+      </PopoverTrigger >
+      < PopoverContent class
+  Name ="w -[-- radix - popover - trigger-width] p-0">
+        < Command >
+          < CommandInput placeholder ="Search token..."/>
+          < CommandList >
+            < CommandEmpty > No token found.</CommandEmpty >
+            < CommandGroup >
+              {tokens.m ap((token) => (
+                < Command
+  Itemkey ={token.address}
+                  value ={token.address}
+                  on
+  Select ={(currentValue) => {
+                    s etValue(currentValue)
+                    o nSelect(currentValue)
+                    s etOpen(false)
                   }}
                 >
-                  <Check className={cn(
-                      'mr-2 h-4 w-4',
+                  < Check class
+  Name ={c n(
+                      'mr - 2 h - 4 w - 4',
                       value === token.address ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
+                    )}/>
                   {token.name} ({token.symbol})
-                </CommandItem>
+                </CommandItem >
               ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            </CommandGroup >
+          </CommandList >
+        </Command >
+      </PopoverContent >
+    </Popover >
   )
 }

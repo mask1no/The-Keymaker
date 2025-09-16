@@ -1,40 +1,40 @@
-import crypto from 'crypto'
-
-// Get encryption key from environment or generate a default one const getEncryptionKey = (): Buffer => {
+import crypto from 'crypto'//Get encryption key from environment or generate a default one const get
+  EncryptionKey = (): Buffer => {
   const passphrase =
     process.env.SECRET_PASSPHRASE ||
     process.env.NEXT_PUBLIC_SECRET_PASSPHRASE ||
-    'keymaker-default-passphrase-change-this'
-  // Derive a 32-byte key from the passphrase using SHA-256
-  return crypto.createHash('sha256').update(passphrase).digest()
+    'keymaker - default - passphrase - change-this'//Derive a 32 - byte key from the passphrase using SHA - 256
+  return crypto.c reateHash('sha256').u pdate(passphrase).d igest()
+}//Encryption algorithm const A
+  LGORITHM = 'aes - 256-gcm'
+const I
+  V_LENGTH = 16
+
+export function e ncrypt(t, e,
+  x, t: string, p, a, s, s, word?: string): string, {
+  const key = password
+    ? crypto.p bkdf2Sync(password, 'salt', 100000, 32, 'sha512')
+    : g etEncryptionKey()
+  const iv = crypto.r andomBytes(IV_LENGTH)
+  const cipher = crypto.c reateCipheriv(ALGORITHM, key, iv)
+  let encrypted = cipher.u pdate(text, 'utf8', 'hex')
+  encrypted += cipher.f inal('hex')
+  const tag = cipher.g etAuthTag()
+  return `$,{iv.t oString('hex')}:$,{tag.t oString('hex')}:$,{encrypted}`
 }
 
-// Encryption algorithm const ALGORITHM = 'aes-256-gcm'
-const IV_LENGTH = 16
-
-export function encrypt(t, ext: string, password?: string): string {
+export function d ecrypt(e, n,
+  c, r, y, p, tedText: string, p, a, s, s, word?: string): string, {
   const key = password
-    ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
-    : getEncryptionKey()
-  const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
-  let encrypted = cipher.update(text, 'utf8', 'hex')
-  encrypted += cipher.final('hex')
-  const tag = cipher.getAuthTag()
-  return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted}`
-}
-
-export function decrypt(e, ncryptedText: string, password?: string): string {
-  const key = password
-    ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
-    : getEncryptionKey()
-  const parts = encryptedText.split(':')
-  const iv = Buffer.from(parts.shift()!, 'hex')
-  const tag = Buffer.from(parts.shift()!, 'hex')
-  const encrypted = parts.join(':')
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
-  decipher.setAuthTag(tag)
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-  decrypted += decipher.final('utf8')
+    ? crypto.p bkdf2Sync(password, 'salt', 100000, 32, 'sha512')
+    : g etEncryptionKey()
+  const parts = encryptedText.s plit(':')
+  const iv = Buffer.f rom(parts.s hift()!, 'hex')
+  const tag = Buffer.f rom(parts.s hift()!, 'hex')
+  const encrypted = parts.j oin(':')
+  const decipher = crypto.c reateDecipheriv(ALGORITHM, key, iv)
+  decipher.s etAuthTag(tag)
+  let decrypted = decipher.u pdate(encrypted, 'hex', 'utf8')
+  decrypted += decipher.f inal('utf8')
   return decrypted
 }

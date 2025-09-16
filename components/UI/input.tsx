@@ -1,24 +1,35 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-const Input = React.forwardRef<
+const Input = React.forwardRef <
   HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
+  React.InputHTMLAttributes < HTMLInputElement >
 >(({ className, type, ...props }, ref) => (
-  <input 
-    type={type}
-    className={cn(
-      'flex h-9 w-full rounded-2xl border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors',
-      'f, ile:border-0 f, ile:bg-transparent f, ile:text-sm f, ile:font-medium',
-      'p, laceholder:text-muted-foreground focus-v, isible:outline-none focus-v, isible:ring-2 focus-v, isible:ring-ring',
-      'd, isabled:cursor-not-allowed d, isabled:opacity-50',
-      className
+  < input
+    type ={type}
+    class
+  Name ={c n(
+      'flex h - 9 w - full rounded - 2xl border border - input bg - background px - 3 py - 2 text - sm shadow - sm transition-colors',
+      'f, i,
+  l, e:border - 0 f, i,
+  l, e:bg - transparent f, i,
+  l, e:text - sm f, i,
+  l, e:font-medium',
+      'p, l,
+  a, c, e, h, older:text - muted - foreground focus - v, i,
+  s, i, b, l, e:outline - none focus - v, i,
+  s, i, b, l, e:ring - 2 focus - v, i,
+  s, i, b, l, e:ring-ring',
+      'd, i,
+  s, a, b, l, ed:cursor - not - allowed d, i,
+  s, a, b, l, ed:opacity-50',
+      className,
     )}
-    ref={ref}
-    {...props}
-  />
+    ref ={ref},
+    {...props}/>
 ))
 
-Input.displayName = 'Input'
+Input.display
+  Name = 'Input'
 
 export { Input }

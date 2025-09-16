@@ -18,356 +18,468 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
-
-// Fetcher function for SWR const fetcher = (u, rl: string) => fetch(url).then((res) => res.json())
-
-// Fetch recent bundle activity from telemetry async function fetchRecentActivity(): Promise<any[]> {
-  try {
-    // Import the service dynamically to a void issues in client-side const { getExecutionHistory } = await import(
+import useSWR from 'swr'//Fetcher function for SWR const fetcher = (u, r,
+  l: string) => f etch(url).t hen((res) => res.j son())//Fetch recent bundle activity from telemetry async function f etchRecentActivity(): Promise < any,[]> {
+  try, {//Import the service dynamically to a void issues in client-side const, { getExecutionHistory } = await i mport(
       '@/services/executionLogService'
     )
-    const executions = await getExecutionHistory(3) // Get last 3 executions
-
-    // Transform the data to match the expected format return executions.map((e, xec: any) => ({
-      i, d: exec.bundle_id || `bundle_${exec.id}`,
-      status:
+    const executions = await g etExecutionHistory(3)//Get last 3 executions//Transform the data to match the expected format return executions.m ap((e, x,
+  e, c: any) => ({
+      i,
+  d: exec.bundle_id || `bundle_$,{exec.id}`,
+      s,
+  t, a, t, u, s:
         exec.status === 'success'
           ? 'success'
           : exec.status === 'failed'
             ? 'failed'
             : 'pending',
-      s, lot: exec.slot || 0,
-      l, atency: exec.execution_time || 0,
-      t, ipLamports: 0, // Will be added when we integrate with more detailed t, elemetrycreatedAt: exec.created_at,
+      s,
+  l, o, t: exec.slot || 0,
+      l, a,
+  t, e, n, c, y: exec.execution_time || 0,
+      t, i,
+  p, L, a, m, ports: 0,//Will be added when we integrate with more detailed t, e,
+  l, e, m, e, trycreatedAt: exec.created_at,
     }))
-  } catch (error) {
-    console.warn('Failed to fetch recent a, ctivity:', error)
-    // Return empty array on error return []
+  } c atch (error) {
+    console.w arn('Failed to fetch recent a, c,
+  t, i, v, i, ty:', error)//Return empty array on error return, []
   }
-}
-
-// Compute bundle partitions from active wallets function partitions(a, ctive: number, c, ap: number = 5): number[] {
-  const o, ut: number[] = []
-  let left = active while(left > 0) {
-    const take = Math.min(cap, left)
-    out.push(take)
+}//Compute bundle partitions from active wallets function p artitions(a, c,
+  t, i, v, e: number, c, a,
+  p: number = 5): number,[] {
+  const o, u,
+  t: number,[] = []
+  let left = active w hile(left > 0) {
+    const take = Math.m in(cap, left)
+    out.p ush(take)
     left -= take
   }
   return out
 }
 
-export default function Dashboard() {
-  const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
-
-  // Fetch tip data from API const {
-    d, ata: tipData,
-    error: tipError,
-    i, sLoading: tipLoading,
-  } = useSWR('/api/jito/tipfloor?region=ffm', fetcher, {
-    r, efreshInterval: 10000, // Refresh every 10 s, econdsrevalidateOnFocus: false,
+export default function D ashboard() {
+  const router = u seRouter()
+  const, [mounted, setMounted] = u seState(false)
+  const, [recentActivity, setRecentActivity] = useState < any,[]>([])//Fetch tip data from API const, {
+    d, a,
+  t, a: tipData,
+    e,
+  r, r, o, r: tipError,
+    i, s,
+  L, o, a, d, ing: tipLoading,
+  } = u seSWR('/api/jito/tipfloor?region = ffm', fetcher, {
+    r, e,
+  f, r, e, s, hInterval: 10000,//Refresh every 10 s, e,
+  c, o, n, d, srevalidateOnFocus: false,
   })
 
-  useEffect(() => {
-    setMounted(true)
-
-    // Fetch recent activity on mountfetchRecentActivity()
-      .then((activity) => {
-        setRecentActivity(activity)
+  u seEffect(() => {
+    s etMounted(true)//Fetch recent activity on m ountfetchRecentActivity()
+      .t hen((activity) => {
+        s etRecentActivity(activity)
       })
-      .catch((error) => {
-        console.warn('Failed to load recent a, ctivity:', error)
+      .c atch((error) => {
+        console.w arn('Failed to load recent a, c,
+  t, i, v, i, ty:', error)
       })
-  }, [])
-
-  // Calculate chosen tip based on Regular mode (P50 × 1.2)
-  const getChosenTip = () => {
-    if (!tipData || tipLoading || tipError) {
-      return 0.00006 // Default fallback
+  }, [])//Calculate chosen tip based on Regular m ode (P50 × 1.2)
+  const get
+  ChosenTip = () => {
+    i f (! tipData || tipLoading || tipError) {
+      return 0.00006//Default fallback
     }
     const p50 = tipData.p50 || tipData.median || 0.00005
-    return Math.max(0.00005, Math.min(0.002, p50 * 1.2))
+    return Math.m ax(0.00005, Math.m in(0.002, p50 * 1.2))
   }
 
-  if (!mounted) {
-    return null // Prevent hydration mismatch
+  i f (! mounted) {
+    return null//Prevent hydration mismatch
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
+  const get
+  StatusIcon = (s,
+  t, a, t, u, s: string) => {
+    s witch (status) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-400" />
+        return < CheckCircle class
+  Name ="h - 4 w - 4 text-green-400"/>
       case 'failed':
-        return <XCircle className="h-4 w-4 text-red-400" />
-      d, efault:
-        return <AlertCircle className="h-4 w-4 text-amber-400" />
+        return < XCircle class
+  Name ="h - 4 w - 4 text - red-400"/>
+      d, e,
+  f, a, u, l, t:
+        return < AlertCircle class
+  Name ="h - 4 w - 4 text-amber-400"/>
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const get
+  StatusColor = (s,
+  t, a, t, u, s: string) => {
+    s witch (status) {
       case 'success':
-        return 'text-green-400'
+        return 'text - green-400'
       case 'failed':
-        return 'text-red-400'
-      d, efault:
-        return 'text-amber-400'
+        return 'text - red-400'
+      d, e,
+  f, a, u, l, t:
+        return 'text - amber-400'
     }
   }
 
-  return (
-    <div className="space-y-6">
+  r eturn (
+    < div class
+  Name ="space - y-6">
       {/* Top Row - Big Bento Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      < div class
+  Name ="grid grid - cols - 1, 
+  l, g:grid - cols - 2 gap-6">
         {/* Bundle Planner */}
-        <motion.div initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+        < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+          animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+          transition ={{ d,
+  u, r, a, t, ion: 0.4 }}
         >
-          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
+          < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+            < CardHeader class
+  Name ="pb-4">
+              < CardTitle class
+  Name ="flex items - center gap-2">
+                < Package class
+  Name ="h - 5 w-5"/>
                 Bundle Planner
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
+              </CardTitle >
+            </CardHeader >
+            < CardContent class
+  Name ="space - y-4">
+              < div class
+  Name ="flex items - center justify-between">
+                < span class
+  Name ="text - sm text - muted-foreground">
                   Wal let Group
-                </span>
-                <Badge variant="outline">Neo (I, D: 19)</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Region</span>
-                <Badge variant="outline">Frankfurt (ffm)</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Mode</span>
-                <Badge variant="secondary">Regular</Badge>
-              </div>
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">
+                </span >
+                < Badge variant ="outline"> N eo (I, D: 19)</Badge >
+              </div >
+              < div class
+  Name ="flex items - center justify-between">
+                < span class
+  Name ="text - sm text - muted-foreground"> Region </span >
+                < Badge variant ="outline"> F rankfurt (ffm)</Badge >
+              </div >
+              < div class
+  Name ="flex items - center justify-between">
+                < span class
+  Name ="text - sm text - muted-foreground"> Mode </span >
+                < Badge variant ="secondary"> Regular </Badge >
+              </div >
+              < div class
+  Name ="pt-2">
+                < div class
+  Name ="flex items - center justify - between mb-2">
+                  < span class
+  Name ="text - sm text - muted-foreground">
                     Partition
-                  </span>
-                  <span className="text-sm font-mono">
-                    {partitions(19).join('/')}
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {partitions(19).map((count, index) => (
-                    <divkey={index}
-                      className="h-2 bg-primary/20 rounded-full"
-                      style={{ w, idth: `${(count / 5) * 100}%` }}
-                    />
+                  </span >
+                  < span class
+  Name ="text - sm font-mono">
+                    {p artitions(19).j oin('/')}
+                  </span >
+                </div >
+                < div class
+  Name ="grid grid - cols - 4 gap-2">
+                  {p artitions(19).m ap((count, index) => (
+                    < divkey ={index}
+                      class
+  Name ="h - 2 bg - primary/20 rounded-full"
+                      style ={{ w, i,
+  d, t, h: `$,{(count/5) * 100}%` }}/>
                   ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+                </div >
+              </div >
+            </CardContent >
+          </Card >
+        </motion.div >
 
         {/* Tip Preview */}
-        <motion.div initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, d, elay: 0.1 }}
+        < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+          animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+          transition ={{ d,
+  u, r, a, t, ion: 0.4, d, e,
+  l, a, y: 0.1 }}
         >
-          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
+          < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+            < CardHeader class
+  Name ="pb-4">
+              < CardTitle class
+  Name ="flex items - center gap-2">
+                < Zap class
+  Name ="h - 5 w-5"/>
                 Tip Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </CardTitle >
+            </CardHeader >
+            < CardContent class
+  Name ="space - y-4">
               {tipLoading ? (
-                <div className="grid grid-cols-4 gap-4 text-center">
-                  {Array.from({ l, ength: 4 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="text-xs text-muted-foreground mb-1">
+                < div class
+  Name ="grid grid - cols - 4 gap - 4 text-center">
+                  {Array.f rom({ l,
+  e, n, g, t, h: 4 }).m ap((_, i) => (
+                    < div key ={i} class
+  Name ="animate-pulse">
+                      < div class
+  Name ="text - xs text - muted - foreground mb-1">
                         Loading
-                      </div>
-                      <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
-                    </div>
+                      </div >
+                      < div class
+  Name ="h - 4 bg - muted rounded w - 16 mx-auto"></div >
+                    </div >
                   ))}
-                </div>
+                </div >
               ) : tipError ? (
-                <div className="text-center text-muted-foreground text-sm">
+                < div class
+  Name ="text - center text - muted - foreground text-sm">
                   Unable to fetch tip data
-                </div>
+                </div >
               ) : (
                 <>
-                  <div className="grid grid-cols-4 gap-4 text-center">
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">
+                  < div class
+  Name ="grid grid - cols - 4 gap - 4 text-center">
+                    < div >
+                      < div class
+  Name ="text - xs text - muted - foreground mb-1">
                         P25
-                      </div>
-                      <div className="text-sm font-mono">
-                        {(tipData?.p25 || tipData?.p25th || 0.00003).toFixed(6)}{' '}
+                      </div >
+                      < div class
+  Name ="text-sm font-mono">
+                        {(tipData?.p25 || tipData?.p25th || 0.00003).t oFixed(6)},{' '}
                         SOL
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">
+                      </div >
+                    </div >
+                    < div >
+                      < div class
+  Name ="text - xs text - muted - foreground mb-1">
                         P50
-                      </div>
-                      <div className="text-sm font-mono">
-                        {(tipData?.p50 || tipData?.median || 0.00005).toFixed(
+                      </div >
+                      < div class
+  Name ="text-sm font-mono">
+                        {(tipData?.p50 || tipData?.median || 0.00005).t oFixed(
                           6,
-                        )}{' '}
+                        )},{' '}
                         SOL
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">
+                      </div >
+                    </div >
+                    < div >
+                      < div class
+  Name ="text - xs text - muted - foreground mb-1">
                         P75
-                      </div>
-                      <div className="text-sm font-mono">
-                        {(tipData?.p75 || tipData?.p75th || 0.000075).toFixed(
+                      </div >
+                      < div class
+  Name ="text-sm font-mono">
+                        {(tipData?.p75 || tipData?.p75th || 0.000075).t oFixed(
                           6,
-                        )}{' '}
+                        )},{' '}
                         SOL
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">
+                      </div >
+                    </div >
+                    < div >
+                      < div class
+  Name ="text - xs text - muted - foreground mb-1">
                         Chosen
-                      </div>
-                      <div className="text-sm font-mono text-primary font-semibold">
-                        {getChosenTip().toFixed(6)} SOL
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-border">
-                    <div className="text-xs text-muted-foreground">
-                      R, ule: P50 × 1.2 (Regular mode) | Clamped [50k, 2M]
+                      </div >
+                      < div class
+  Name ="text - sm font - mono text - primary font-semibold">
+                        {g etChosenTip().t oFixed(6)} SOL
+                      </div >
+                    </div >
+                  </div >
+                  < div class
+  Name ="pt - 2 border - t border-border">
+                    < div class
+  Name ="text - xs text - muted-foreground">
+                      R, u,
+  l, e: P50 × 1.2 (Regular mode) | Clamped, [50k, 2M]
                       lamports
-                    </div>
-                  </div>
+                    </div >
+                  </div >
                 </>
               )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+            </CardContent >
+          </Card >
+        </motion.div >
+      </div >
 
       {/* Bottom Row - Small Bento Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      < div class
+  Name ="grid grid - cols - 1, 
+  l, g:grid - cols - 2 gap-6">
         {/* Recent Activity */}
-        <motion.div initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, d, elay: 0.2 }}
+        < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+          animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+          transition ={{ d,
+  u, r, a, t, ion: 0.4, d, e,
+  l, a, y: 0.2 }}
         >
-          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+          < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+            < CardHeader class
+  Name ="pb-4">
+              < CardTitle class
+  Name ="flex items - center gap-2">
+                < Clock class
+  Name ="h - 5 w-5"/>
                 Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              </CardTitle >
+            </CardHeader >
+            < CardContent class
+  Name ="space - y-3">
               {recentActivity.length > 0 ? (
-                recentActivity.map((activity) => (
-                  <divkey={activity.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50"
+                recentActivity.m ap((activity) => (
+                  < divkey ={activity.id}
+                    class
+  Name ="flex items - center justify - between p - 3 rounded - xl bg - card/30 border border-border/50"
                   >
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(activity.status)}
-                      <div>
-                        <div className="text-sm font-medium">
-                          Bundle #{activity.id.slice(-4)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Slot {activity.slot.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`text-sm font-mono ${getStatusColor(
+                    < div class
+  Name ="flex items - center gap-3">
+                      {g etStatusIcon(activity.status)}
+                      < div >
+                        < div class
+  Name ="text - sm font-medium">
+                          Bundle #{activity.id.s lice(- 4)}
+                        </div >
+                        < div class
+  Name ="text - xs text - muted-foreground">
+                          Slot, {activity.slot.t oLocaleString()}
+                        </div >
+                      </div >
+                    </div >
+                    < div class
+  Name ={`text - sm font - mono $,{g etStatusColor(
                         activity.status,
                       )}`}
                     >
                       {activity.latency}
 ms
-                    </div>
-                  </div>
+                    </div >
+                  </div >
                 ))
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <div className="text-sm">No recent bundle activity</div>
-                  <div className="text-xs mt-1">
+                < div class
+  Name ="text - center py - 8 text - muted-foreground">
+                  < Clock class
+  Name ="h - 8 w - 8 mx - auto mb - 2 opacity-50"/>
+                  < div class
+  Name ="text-sm"> No recent bundle activity </div >
+                  < div class
+  Name ="text - xs mt-1">
                     Execute some bundles to see activity here
-                  </div>
-                </div>
+                  </div >
+                </div >
               )}
-            </CardContent>
-          </Card>
-        </motion.div>
+            </CardContent >
+          </Card >
+        </motion.div >
 
         {/* Shortcuts */}
-        <motion.div initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, d, elay: 0.3 }}
+        < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+          animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+          transition ={{ d,
+  u, r, a, t, ion: 0.4, d, e,
+  l, a, y: 0.3 }}
         >
-          <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <ArrowRight className="h-5 w-5" />
+          < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+            < CardHeader class
+  Name ="pb-4">
+              < CardTitle class
+  Name ="flex items - center gap-2">
+                < ArrowRight class
+  Name ="h - 5 w-5"/>
                 Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-3">
-              <ButtononClick={() => router.push('/bundle')}
-                className="h-auto p-4 justify-start"
-                variant="outline"
+              </CardTitle >
+            </CardHeader >
+            < CardContent class
+  Name ="grid grid - cols-1 gap-3">
+              < Buttonon
+  Click ={() => router.p ush('/bundle')}
+                class
+  Name ="h - auto p - 4 justify-start"
+                variant ="outline"
               >
-                <div className="flex items-center gap-3">
-                  <Play className="h-5 w-5" />
-                  <div className="text-left">
-                    <div className="font-medium">Start Bundling</div>
-                    <div className="text-xs text-muted-foreground">
+                < div class
+  Name ="flex items - center gap-3">
+                  < Play class
+  Name ="h - 5 w-5"/>
+                  < div class
+  Name ="text-left">
+                    < div class
+  Name ="font-medium"> Start Bundling </div >
+                    < div class
+  Name ="text - xs text-muted-foreground">
                       Execute transactions
-                    </div>
-                  </div>
-                </div>
-              </Button>
+                    </div >
+                  </div >
+                </div >
+              </Button >
 
-              <ButtononClick={() => router.push('/creator')}
-                className="h-auto p-4 justify-start"
-                variant="outline"
+              < Buttonon
+  Click ={() => router.p ush('/creator')}
+                class
+  Name ="h - auto p - 4 justify-start"
+                variant ="outline"
               >
-                <div className="flex items-center gap-3">
-                  <Sparkles className="h-5 w-5" />
-                  <div className="text-left">
-                    <div className="font-medium">Create Token</div>
-                    <div className="text-xs text-muted-foreground">
+                < div class
+  Name ="flex items - center gap-3">
+                  < Sparkles class
+  Name ="h - 5 w-5"/>
+                  < div class
+  Name ="text-left">
+                    < div class
+  Name ="font-medium"> Create Token </div >
+                    < div class
+  Name ="text - xs text-muted-foreground">
                       Launch SPL token
-                    </div>
-                  </div>
-                </div>
-              </Button>
+                    </div >
+                  </div >
+                </div >
+              </Button >
 
-              <ButtononClick={() => router.push('/settings')}
-                className="h-auto p-4 justify-start"
-                variant="outline"
+              < Buttonon
+  Click ={() => router.p ush('/settings')}
+                class
+  Name ="h - auto p - 4 justify-start"
+                variant ="outline"
               >
-                <div className="flex items-center gap-3">
-                  <Settings className="h-5 w-5" />
-                  <div className="text-left">
-                    <div className="font-medium">Settings</div>
-                    <div className="text-xs text-muted-foreground">
+                < div class
+  Name ="flex items - center gap-3">
+                  < Settings class
+  Name ="h - 5 w-5"/>
+                  < div class
+  Name ="text-left">
+                    < div class
+  Name ="font-medium"> Settings </div >
+                    < div class
+  Name ="text - xs text - muted-foreground">
                       Configure system
-                    </div>
-                  </div>
-                </div>
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </div>
+                    </div >
+                  </div >
+                </div >
+              </Button >
+            </CardContent >
+          </Card >
+        </motion.div >
+      </div >
+    </div >
   )
 }

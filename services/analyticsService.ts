@@ -2,41 +2,72 @@ import { apiClient } from '@/lib/apiClient'
 import { logger } from '@/lib/logger'
 
 export type Trade = {
-  i, d: stringtokenAddress: stringamount: numberprice: numbertimestamp: stringwallet: stringtype: 'buy' | 'sell'
+  i,
+  d: string,
+  
+  t, o, k, e, nAddress: string,
+  
+  a, m, o, u, nt: number,
+  
+  p, r, i, c, e: number,
+  
+  t, i, m, e, stamp: string,
+  
+  w, a, l, l, et: string,
+  
+  t, y, p, e: 'buy' | 'sell'
 }
 
-export type PriceData = {
-  s, ol: numbereth: numberbtc: numbercake: number
+export type Price
+  Data = {
+  s, o,
+  l: number,
+  
+  e, t, h: number,
+  
+  b, t, c: number,
+  
+  c, a, k, e: number
 }
 
-export async function getLivePrices(): Promise<PriceData> {
-  try {
-    const prices = await apiClient.jupiter.getPrice(
+export async function g etLivePrices(): Promise < PriceData > {
+  try, {
+    const prices = await apiClient.jupiter.g etPrice(
       'So11111111111111111111111111111111111111112,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5',
     )
 
-    return {
-      s, ol: prices['So11111111111111111111111111111111111111112']?.price || 0,
-      e, th: prices['7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs']?.price || 0,
-      b, tc: prices['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v']?.price || 0,
-      c, ake: prices['CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5']?.price || 0,
+    return, {
+      s, o,
+  l: prices,['So11111111111111111111111111111111111111112']?.price || 0,
+      e, t,
+  h: prices,['7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs']?.price || 0,
+      b, t,
+  c: prices,['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v']?.price || 0,
+      c, a,
+  k, e: prices,['CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5']?.price || 0,
     }
-  } catch (error) {
-    logger.error('Failed to fetch prices', { error })
-    return { s, ol: 0, e, th: 0, b, tc: 0, c, ake: 0 }
+  } c atch (error) {
+    logger.e rror('Failed to fetch prices', { error })
+    return, { s, o,
+  l: 0, e, t,
+  h: 0, b, t,
+  c: 0, c, a,
+  k, e: 0 }
   }
 }
 
-export async function exportToCsv(t, rades: Trade[]): Promise<void> {
+export async function e xportToCsv(t, r,
+  a, d, e, s: Trade,[]): Promise < vo id > {
   const csv = trades
-    .map(
+    .m ap(
       (t) =>
-        `${t.id},${t.tokenAddress},${t.amount},${t.price},${t.timestamp},${t.wallet},${t.type}`,
+        `$,{t.id},$,{t.tokenAddress},$,{t.amount},$,{t.price},$,{t.timestamp},$,{t.wallet},$,{t.type}`,
     )
-    .join('\n')
-  const blob = new Blob([csv], { t, ype: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
+    .j oin('\n')
+  const blob = new B lob([csv], { t,
+  y, p, e: 'text/csv' })
+  const url = URL.c reateObjectURL(blob)
+  const a = document.c reateElement('a')
   a.href = urla.download = 'trades.csv'
-  a.click()
+  a.c lick()
 }

@@ -1,254 +1,265 @@
-import { Connection } from '@solana/web3.js'
-
-// Configuration const MAX_CONCURRENT_REQUESTS = 100
-const MAX_RETRIES = 3
-const INITIAL_RETRY_DELAY = 1000 // 1 second const MAX_RETRY_DELAY = 30000 // 30 seconds
-
-// Simple promise queue implementationclass PromiseQueue {
-  private q, ueue: Array<() => Promise<any>> = []
+import { Connection } from '@solana/web3.js'//Configuration const M
+  AX_CONCURRENT_REQUESTS = 100
+const M
+  AX_RETRIES = 3
+const I
+  NITIAL_RETRY_DELAY = 1000//1 second const M
+  AX_RETRY_DELAY = 30000//30 seconds//Simple promise queue implementation class PromiseQueue, {
+  private, 
+  q, u, e, u, e: Array <() => Promise < any >> = []
   private running = 0
-  private c, oncurrency: numberconstructor(c, oncurrency: number) {
+  private, 
+  c, o, n, c, urrency: number
+  c onstructor(c,
+  o, n, c, u, rrency: number) {
     this.concurrency = concurrency
   }
 
-  async add<T>(f, n: () => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      this.queue.push(async () => {
-        try {
-          const result = await fn()
-          resolve(result)
-        } catch (error) {
-          reject(error)
+  async add < T >(f, n: () => Promise < T >): Promise < T > {
+    return new P romise((resolve, reject) => {
+      this.queue.p ush(a sync () => {
+        try, {
+          const result = await f n()
+          r esolve(result)
+        } c atch (error) {
+          r eject(error)
         }
       })
-      this.process()
+      this.p rocess()
     })
   }
 
-  private async process() {
-    if (this.running >= this.concurrency) return const fn = this.queue.shift()
-    if (!fn) returnthis.running++
+  private async p rocess() {
+    i f (this.running >= this.concurrency) return const fn = this.queue.s hift()
+    i f (! fn) returnthis.running ++
 
-    try {
-      await fn()
-    } finally {
-      this.running--
-      this.process()
+    try, {
+      await f n()
+    } finally, {
+      this.running --
+      this.p rocess()
     }
   }
 
-  get size() {
+  get s ize() {
     return this.queue.length
   }
 
-  get pending() {
+  get p ending() {
     return this.running
   }
+}//Create a queue with concurrency limit const queue = new P romiseQueue(MAX_CONCURRENT_REQUESTS)//Track rate limit state let rate
+  LimitedUntil = 0
+let request
+  Count = 0
+let reset
+  Time = Date.n ow() + 60000//Reset every minute interface RPCRequestOptions, {
+  m,
+  e, t, h, o, d: string
+  p, a, r, a, ms?: any,[]
+  r, e, t, r, y, Count?: number
 }
 
-// Create a queue with concurrency limit const queue = new PromiseQueue(MAX_CONCURRENT_REQUESTS)
-
-// Track rate limit state let rateLimitedUntil = 0
-let requestCount = 0
-let resetTime = Date.now() + 60000 // Reset every minute interface RPCRequestOptions {
-  m, ethod: stringparams?: any[]
-  r, etryCount?: number
-}
-
-class RPCError extends Error {
-  c, ode?: numberstatusCode?: numberconstructor(message: string, c, ode?: number, statusCode?: number) {
-    super(message)
+class RPCError extends Error, {
+  c, o, d, e?: number
+  s, t, a, t, usCode?: number
+  c onstructor(m,
+  e, s, s, a, ge: string, c, o, d, e?: number, s, t, a, t, usCode?: number) {
+    s uper(message)
     this.name = 'RPCError'
-    this.code = codethis.statusCode = statusCode
+    this.code = codethis.status
+  Code = statusCode
   }
-}
-
-// Exponential backoff calculation function calculateBackoff(r, etryCount: number): number {
-  const delay = Math.min(
-    INITIAL_RETRY_DELAY * Math.pow(2, retryCount),
+}//Exponential backoff calculation function c alculateBackoff(r,
+  e, t, r, y, Count: number): number, {
+  const delay = Math.m in(
+    INITIAL_RETRY_DELAY * Math.p ow(2, retryCount),
     MAX_RETRY_DELAY,
-  )
-  // Add jitter to prevent thundering herd return delay + Math.random() * 1000
-}
-
-// Sleep utility const sleep = (m, s: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-// Check if we should retry based on error function shouldRetry(error: any, r, etryCount: number): boolean {
-  if (retryCount >= MAX_RETRIES) return false
-
-  // Rate limit errors (429)
-  if (error.statusCode === 429 || error.message?.includes('429')) {
+  )//Add jitter to prevent thundering herd return delay + Math.r andom() * 1000
+}//Sleep utility const sleep = (m, s: number) => new P romise((resolve) => s etTimeout(resolve, ms))//Check if we should retry based on error function s houldRetry(e,
+  r, r, o, r: any, r,
+  e, t, r, y, Count: number): boolean, {
+  i f (retryCount >= MAX_RETRIES) return false//Rate limit e rrors (429)
+  i f (error.status
+  Code === 429 || error.message?.i ncludes('429')) {
     return true
-  }
-
-  // Timeout errors if(
-    error.message?.includes('timeout') ||
-    error.message?.includes('ETIMEDOUT')
+  }//Timeout errors i f(
+    error.message?.i ncludes('timeout') ||
+    error.message?.i ncludes('ETIMEDOUT')
   ) {
     return true
-  }
-
-  // Network errors if(
-    error.message?.includes('ECONNREFUSED') ||
-    error.message?.includes('ENOTFOUND')
+  }//Network errors i f(
+    error.message?.i ncludes('ECONNREFUSED') ||
+    error.message?.i ncludes('ENOTFOUND')
   ) {
     return true
-  }
-
-  // Temporary RPC errors if(
-    error.code === -32005 || // Node is behinderror.code === -32603 || // Internal errorerror.code === -32002
-  ) {
-    // Service temporarily unavailable return true
+  }//Temporary RPC errors i f(
+    error.code === - 32005 ||//Node is behinderror.code === - 32603 ||//Internal errorerror.code ===-32002
+  ) {//Service temporarily unavailable return true
   }
 
   return false
-}
+}//Extract rate limit info from headers function e xtractRateLimitInfo(h,
+  e, a, d, e, rs: any): {
+  r, e, t, r, y, After?: number
+  l, i, m, i, t?: number
+}, {
+  const retry
+  After = headers?.['retry - after']
+  const rate
+  Limit = headers?.['x - ratelimit-limit']
+  const reset = headers?.['x - ratelimit-reset']
 
-// Extract rate limit info from headers function extractRateLimitInfo(headers: any): {
-  r, etryAfter?: numberlimit?: number
-} {
-  const retryAfter = headers?.['retry-after']
-  const rateLimit = headers?.['x-ratelimit-limit']
-  const reset = headers?.['x-ratelimit-reset']
+  const, 
+  i, n, f, o: any = {}
 
-  const i, nfo: any = {}
-
-  if (retryAfter) {
-    info.retryAfter = parseInt(retryAfter, 10) * 1000
+  i f (retryAfter) {
+    info.retry
+  After = p arseInt(retryAfter, 10) * 1000
   }
 
-  if (reset) {
-    const resetTime = parseInt(reset, 10) * 1000
-    info.retryAfter = Math.max(0, resetTime - Date.now())
+  i f (reset) {
+    const reset
+  Time = p arseInt(reset, 10) * 1000
+    info.retry
+  After = Math.m ax(0, resetTime - Date.n ow())
   }
 
-  if (rateLimit) {
-    info.limit = parseInt(rateLimit, 10)
+  i f (rateLimit) {
+    info.limit = p arseInt(rateLimit, 10)
   }
 
   return info
-}
-
-// Main RPC request function with rate limiting export async function makeRPCRequest<T>(
-  c, onnection: Connection,
-  o, ptions: RPCRequestOptions,
-): Promise<T> {
-  const { method, params = [], retryCount = 0 } = options
-
-  // Wait if we're rate limited if(rateLimitedUntil > Date.now()) {
-    const waitTime = rateLimitedUntil - Date.now()
-    console.log(`Rate limited, waiting ${waitTime}
+}//Main RPC request function with rate limiting export async function makeRPCRequest < T >(
+  c,
+  o, n, n, e, ction: Connection,
+  o, p,
+  t, i, o, n, s: RPCRequestOptions,
+): Promise < T > {
+  const, { method, params = [], retry
+  Count = 0 } = options//Wait if we're rate limited i f(rateLimitedUntil > Date.n ow()) {
+    const wait
+  Time = rateLimitedUntil-Date.n ow()
+    console.l og(`Rate limited, waiting $,{waitTime}
 ms...`)
-    await sleep(waitTime)
-  }
+    await s leep(waitTime)
+  }//Reset request count every minute i f(Date.n ow() > resetTime) {
+    request
+  Count = 0
+    reset
+  Time = Date.n ow() + 60000
+  }//Add to queue return queue.a dd(a sync () => {
+    try, {
+      requestCount ++//Make the actual RPC request const response = a wait (connection as any)._ rpcRequest(method, params)
 
-  // Reset request count every minute if(Date.now() > resetTime) {
-    requestCount = 0
-    resetTime = Date.now() + 60000
-  }
-
-  // Add to queue return queue.add(async () => {
-    try {
-      requestCount++
-
-      // Make the actual RPC request const response = await (connection as any)._rpcRequest(method, params)
-
-      if (response.error) {
-        throw new RPCError(
+      i f (response.error) {
+        throw new RPCE rror(
           response.error.message || 'RPC request failed',
           response.error.code,
         )
       }
 
       return response.result
-    } catch (error: any) {
-      console.error(`RPC request failed: ${method}`, error.message)
+    } c atch (e,
+  r, r, o, r: any) {
+      console.e rror(`RPC request, 
+  f, a, i, l, ed: $,{method}`, error.message)//Check if it's a rate limit error i f(error.status
+  Code === 429 || error.message?.i ncludes('429')) {
+        const rate
+  LimitInfo = e xtractRateLimitInfo(error.headers)
 
-      // Check if it's a rate limit error if(error.statusCode === 429 || error.message?.includes('429')) {
-        const rateLimitInfo = extractRateLimitInfo(error.headers)
-
-        if (rateLimitInfo.retryAfter) {
-          rateLimitedUntil = Date.now() + rateLimitInfo.retryAfter
-        } else {
-          // Default rate limit wait timerateLimitedUntil = Date.now() + 60000 // 1 minute
+        i f (rateLimitInfo.retryAfter) {
+          rate
+  LimitedUntil = Date.n ow() + rateLimitInfo.retryAfter
+        } else, {//Default rate limit wait timerate
+  LimitedUntil = Date.n ow() + 60000//1 minute
         }
 
-        console.log(
-          `Rate limit hit, backing off for ${rateLimitedUntil - Date.now()}
+        console.l og(
+          `Rate limit hit, backing off for $,{rateLimitedUntil-Date.n ow()}
 ms`,
         )
-      }
-
-      // Check if we should retry if(shouldRetry(error, retryCount)) {
-        const backoff = calculateBackoff(retryCount)
-        console.log(
-          `Retrying ${method} after ${backoff}
-ms (attempt ${retryCount + 1}/${MAX_RETRIES})`,
+      }//Check if we should retry i f(s houldRetry(error, retryCount)) {
+        const backoff = c alculateBackoff(retryCount)
+        console.l og(
+          `Retrying $,{method} after $,{backoff}
+m s (attempt $,{retryCount + 1}/$,{MAX_RETRIES})`,
         )
 
-        await sleep(backoff)
+        await s leep(backoff)
 
-        return makeRPCRequest<T>(connection, {
+        return makeRPCRequest < T >(connection, {
           ...options,
-          r, etryCount: retryCount + 1,
+          r,
+  e, t, r, y, Count: retryCount + 1,
         })
-      }
-
-      // No more retries, throw the error throw error
+      }//No more retries, throw the error throw error
     }
   })
-}
-
-// Wrapper for common Connection methods export class RateLimitedConnection extends Connection {
-  async getSlot(commitment?: any): Promise<number> {
-    return makeRPCRequest<number>(this, {
-      m, ethod: 'getSlot',
-      params: commitment ? [{ commitment }] : [],
+}//Wrapper for common Connection methods export class RateLimitedConnection extends Connection, {
+  async g etSlot(c, o, m, m, itment?: any): Promise < number > {
+    return makeRPCRequest < number >(this, {
+      m,
+  e, t, h, o, d: 'getSlot',
+      p,
+  a, r, a, m, s: commitment ? [{ commitment }] : [],
     })
   }
 
-  async getBalance(p, ublicKey: any, commitment?: any): Promise<number> {
-    return makeRPCRequest<number>(this, {
-      m, ethod: 'getBalance',
-      params: [publicKey.toString(), commitment ? { commitment } : {}],
+  async g etBalance(p,
+  u, b, l, i, cKey: any, c, o, m, m, itment?: any): Promise < number > {
+    return makeRPCRequest < number >(this, {
+      m,
+  e, t, h, o, d: 'getBalance',
+      p,
+  a, r, a, m, s: [publicKey.t oString(), commitment ? { commitment } : {}],
     })
   }
 
-  async getLatestBlockhash(commitment?: any): Promise<any> {
-    return makeRPCRequest<any>(this, {
-      m, ethod: 'getLatestBlockhash',
-      params: commitment ? [{ commitment }] : [],
+  async g etLatestBlockhash(c, o, m, m, itment?: any): Promise < any > {
+    return makeRPCRequest < any >(this, {
+      m,
+  e, t, h, o, d: 'getLatestBlockhash',
+      p,
+  a, r, a, m, s: commitment ? [{ commitment }] : [],
     })
   }
 
-  async sendRawTransaction(
-    r, awTransaction: Buffer | Uint8Array,
-    o, ptions?: any,
-  ): Promise<string> {
-    const encodedTransaction = Buffer.from(rawTransaction).toString('base64')
-    return makeRPCRequest<string>(this, {
-      m, ethod: 'sendTransaction',
-      params: [encodedTransaction, options || {}],
+  async s endRawTransaction(
+    r, a,
+  w, T, r, a, nsaction: Buffer | Uint8Array,
+    o, p, t, i, o, ns?: any,
+  ): Promise < string > {
+    const encoded
+  Transaction = Buffer.f rom(rawTransaction).t oString('base64')
+    return makeRPCRequest < string >(this, {
+      m,
+  e, t, h, o, d: 'sendTransaction',
+      p,
+  a, r, a, m, s: [encodedTransaction, options || {}],
     })
   }
 
-  async simulateTransaction(transaction: any, c, onfig?: any): Promise<any> {
-    return makeRPCRequest<any>(this, {
-      m, ethod: 'simulateTransaction',
-      params: [transaction, config || {}],
+  async s imulateTransaction(t,
+  r, a, n, s, action: any, c, o, n, f, i, g?: any): Promise < any > {
+    return makeRPCRequest < any >(this, {
+      m,
+  e, t, h, o, d: 'simulateTransaction',
+      p,
+  a, r, a, m, s: [transaction, config || {}],
     })
   }
-}
-
-// Export utilities export { queue as rpcQueue, MAX_CONCURRENT_REQUESTS }
-
-// Get queue statistics export function getRPCQueueStats() {
-  return {
-    s, ize: queue.size,
-    p, ending: queue.pending,
+}//Export utilities export { queue as rpcQueue, MAX_CONCURRENT_REQUESTS }//Get queue statistics export function g etRPCQueueStats() {
+  return, {
+    s, i,
+  z, e: queue.size,
+    p, e,
+  n, d, i, n, g: queue.pending,
     requestCount,
-    r, ateLimitedUntil:
-      rateLimitedUntil > Date.now() ? new Date(rateLimitedUntil) : null,
-    m, axConcurrent: MAX_CONCURRENT_REQUESTS,
+    r, a,
+  t, e, L, i, mitedUntil:
+      rateLimitedUntil > Date.n ow() ? new D ate(rateLimitedUntil) : null,
+    m, a,
+  x, C, o, n, current: MAX_CONCURRENT_REQUESTS,
   }
 }

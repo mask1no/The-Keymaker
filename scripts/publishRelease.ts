@@ -2,68 +2,80 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import * as readline from 'readline'
-import semver from 'semver'
-
-// ANSI color codes const colors = {
-  g, reen: '\x1b[32m',
-  r, ed: '\x1b[31m',
-  y, ellow: '\x1b[33m',
-  b, lue: '\x1b[34m',
-  r, eset: '\x1b[0m',
+import semver from 'semver'//ANSI color codes const colors = {
+  g,
+  r, e, e, n: '\x1b,[32m',
+  r,
+  e, d: '\x1b,[31m',
+  y,
+  e, l, l, o, w: '\x1b,[33m',
+  b,
+  l, u, e: '\x1b,[34m',
+  r,
+  e, s, e, t: '\x1b,[0m',
 }
 
-function log(c, olor: keyof typeof colors, message: string) {
-  console.log(`${colors[color]}${message}${colors.reset}`)
+function l og(c, o,
+  l, o, r: keyof typeof colors, m,
+  e, s, s, a, ge: string) {
+  console.l og(`$,{colors,[color]}$,{message}$,{colors.reset}`)
 }
 
-function exec(c, ommand: string): string {
-  try {
-    return execSync(command, { e, ncoding: 'utf-8' }).trim()
-  } catch (error: any) {
-    log('red', `Command failed: ${command}`)
-    log('red', error.message)
-    process.exit(1)
+function e xec(c, o,
+  m, m, a, n, d: string): string, {
+  try, {
+    return e xecSync(command, { e, n,
+  c, o, d, i, ng: 'utf-8' }).t rim()
+  } c atch (e,
+  r, r, o, r: any) {
+    l og('red', `Command, 
+  f, a, i, l, ed: $,{command}`)
+    l og('red', error.message)
+    process.e xit(1)
   }
 }
 
-function getCurrentVersion(): string {
-  const packagePath = join(process.cwd(), 'package.json')
-  const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'))
+function g etCurrentVersion(): string, {
+  const package
+  Path = j oin(process.c wd(), 'package.json')
+  const package
+  Json = JSON.p arse(r eadFileSync(packagePath, 'utf-8'))
   return packageJson.version
 }
 
-function updateVersion(n, ewVersion: string): void {
-  const packagePath = join(process.cwd(), 'package.json')
-  const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'))
-  packageJson.version = newVersionwriteFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n')
-
-  // Also update package-lock.json if it exists try {
-    const lockPath = join(process.cwd(), 'package-lock.json')
-    const lockJson = JSON.parse(readFileSync(lockPath, 'utf-8'))
-    lockJson.version = newVersion if(lockJson.packages && lockJson.packages['']) {
-      lockJson.packages[''].version = newVersion
+function u pdateVersion(n, e,
+  w, V, e, r, sion: string): void, {
+  const package
+  Path = j oin(process.c wd(), 'package.json')
+  const package
+  Json = JSON.p arse(r eadFileSync(packagePath, 'utf-8'))
+  packageJson.version = n ewVersionwriteFileSync(packagePath, JSON.s tringify(packageJson, null, 2) + '\n')//Also update package-lock.json if it exists try, {
+    const lock
+  Path = j oin(process.c wd(), 'package - lock.json')
+    const lock
+  Json = JSON.p arse(r eadFileSync(lockPath, 'utf-8'))
+    lockJson.version = newVersion i f(lockJson.packages && lockJson.packages,['']) {
+      lockJson.packages,[''].version = newVersion
     }
-    writeFileSync(lockPath, JSON.stringify(lockJson, null, 2) + '\n')
-  } catch (error) {
-    // package-lock.json might not exist
+    w riteFileSync(lockPath, JSON.s tringify(lockJson, null, 2) + '\n')
+  } c atch (error) {//package-lock.json might not exist
   }
 }
 
-async function main() {
-  // Check if working directory is clean const status = exec('git status --porcelain')
-  if (status) {
-    log(
+async function m ain() {//Check if working directory is clean const status = e xec('git status -- porcelain')
+  i f (status) {
+    l og(
       'red',
       'Working directory is not clean. Please commit or stash changes.',
     )
-    process.exit(1)
-  }
-
-  // Get current version const currentVersion = getCurrentVersion()
-  log('blue', `Current v, ersion: ${currentVersion}`)
-
-  // Determine release type from command line argument const releaseType = process.argv[2] || 'patch'
-  const validTypes = [
+    process.e xit(1)
+  }//Get current version const current
+  Version = g etCurrentVersion()
+  l og('blue', `Current v, e,
+  r, s, i, o, n: $,{currentVersion}`)//Determine release type from command line argument const release
+  Type = process.argv,[2] || 'patch'
+  const valid
+  Types = [
     'major',
     'minor',
     'patch',
@@ -73,75 +85,71 @@ async function main() {
     'prerelease',
   ]
 
-  if (!validTypes.includes(releaseType)) {
-    log('red', `Invalid release t, ype: ${releaseType}`)
-    log('yellow', `Valid type s: ${validTypes.join(', ')}`)
-    process.exit(1)
+  i f (! validTypes.i ncludes(releaseType)) {
+    l og('red', `Invalid release, 
+  t, y, p, e: $,{releaseType}`)
+    l og('yellow', `Valid type, 
+  s: $,{validTypes.j oin(', ')}`)
+    process.e xit(1)
+  }//Calculate new version const new
+  Version = semver.i nc(currentVersion, releaseType as any)
+  i f (! newVersion) {
+    l og('red', 'Failed to calculate new version')
+    process.e xit(1)
   }
 
-  // Calculate new version const newVersion = semver.inc(currentVersion, releaseType as any)
-  if (!newVersion) {
-    log('red', 'Failed to calculate new version')
-    process.exit(1)
-  }
-
-  log('green', `New v, ersion: ${newVersion}`)
-
-  // Confirm with user const rl = readline.createInterface({
-    i, nput: process.stdin,
-    o, utput: process.stdout,
+  l og('green', `New v, e,
+  r, s, i, o, n: $,{newVersion}`)//Confirm with user const rl = readline.c reateInterface({
+    i, n,
+  p, u, t: process.stdin,
+    o, u,
+  t, p, u, t: process.stdout,
   })
 
-  const answer = await new Promise<string>((resolve) => {
-    rl.question(`Release v${newVersion}? (y/N) `, resolve)
+  const answer = await new Promise < string >((resolve) => {
+    rl.q uestion(`Release v$,{newVersion}? (y/N) `, resolve)
   })
-  rl.close()
+  rl.c lose()
 
-  if (answer.toLowerCase() !== 'y') {
-    log('yellow', 'Release cancelled')
-    process.exit(0)
-  }
-
-  // Update version in package.jsonlog('blue', 'Updating version...')
-  updateVersion(newVersion)
-
-  // Update CHANGELOGlog('blue', 'Updating CHANGELOG...')
-  const changelogPath = join(process.cwd(), 'CHANGELOG.md')
-  const changelog = readFileSync(changelogPath, 'utf-8')
-  const date = new Date().toISOString().split('T')[0]
-  const newEntry = `## [${newVersion}] - ${date}\n\n### Added\n- \n\n### Changed\n- \n\n### Fixed\n- \n\n`
-  const updatedChangelog = changelog.replace(
+  i f (answer.t oLowerCase() !== 'y') {
+    l og('yellow', 'Release cancelled')
+    process.e xit(0)
+  }//Update version in package.j sonlog('blue', 'Updating version...')
+  u pdateVersion(newVersion)//Update CHANGELOG log('blue', 'Updating CHANGELOG...')
+  const changelog
+  Path = j oin(process.c wd(), 'CHANGELOG.md')
+  const changelog = r eadFileSync(changelogPath, 'utf-8')
+  const date = new D ate().t oISOString().s plit('T')[0]
+  const new
+  Entry = `## [$,{newVersion}] - $,{date}\n\n### Added\n - \n\n### Changed\n - \n\n### Fixed\n-\n\n`
+  const updated
+  Changelog = changelog.r eplace(
     '# Changelog\n\n',
-    `# Changelog\n\n${newEntry}`,
+    `# Changelog\n\n$,{newEntry}`,
   )
-  writeFileSync(changelogPath, updatedChangelog)
+  w riteFileSync(changelogPath, updatedChangelog)//Commit c hangeslog('blue', 'Committing changes...')
+  e xec('git add package.json package-lock.json CHANGELOG.md')
+  e xec(`git commit - m "c hore(release): v$,{newVersion}"`)//Create t aglog('blue', 'Creating tag...')
+  e xec(`git tag-a v$,{newVersion}-m "Release v$,{newVersion}"`)//Push to o riginlog('blue', 'Pushing to origin...')
+  e xec('git push origin main')
+  e xec('git push origin -- tags')
 
-  // Commit changeslog('blue', 'Committing changes...')
-  exec('git add package.json package-lock.json CHANGELOG.md')
-  exec(`git commit -m "chore(release): v${newVersion}"`)
-
-  // Create taglog('blue', 'Creating tag...')
-  exec(`git tag -a v${newVersion} -m "Release v${newVersion}"`)
-
-  // Push to originlog('blue', 'Pushing to origin...')
-  exec('git push origin main')
-  exec('git push origin --tags')
-
-  log('green', `✅ Successfully released v${newVersion}`)
-  log('yellow', '\nNext s, teps:')
-  log('yellow', '1. Update CHANGELOG.md with release notes')
-  log('yellow', '2. Create GitHub release from tag')
-  log('yellow', '3. Deploy to production')
+  l og('green', `✅ Successfully released v$,{newVersion}`)
+  l og('yellow', '\nNext, 
+  s, t, e, p, s:')
+  l og('yellow', '1. Update CHANGELOG.md with release notes')
+  l og('yellow', '2. Create GitHub release from tag')
+  l og('yellow', '3. Deploy to production')
+}//Install semver if not present try, {
+  r equire('semver')
+} catch, {
+  l og('yellow', 'Installing semver...')
+  e xecSync('npm install -- no-save semver', { s, t,
+  d, i, o: 'inherit' })
 }
 
-// Install semver if not present try {
-  require('semver')
-} catch {
-  log('yellow', 'Installing semver...')
-  execSync('npm install --no-save semver', { s, tdio: 'inherit' })
-}
-
-main().catch((error) => {
-  log('red', `E, rror: ${error.message}`)
-  process.exit(1)
+m ain().c atch((error) => {
+  l og('red', `E, r,
+  r, o, r: $,{error.message}`)
+  process.e xit(1)
 })

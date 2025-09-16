@@ -5,49 +5,76 @@ import { Connection } from '@solana/web3.js'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { useMemo } from 'react'
 
-const jupiterApi = createJupiterApiClient()
+const jupiter
+  Api = c reateJupiterApiClient()
 
-export function useJupiter() {
-  const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), [])
+export function u seJupiter() {
+  const connection = u seMemo(() => new C onnection(NEXT_PUBLIC_HELIUS_RPC), [])
 
-  const getQuote = async (
-    f, romMint: string,
-    t, oMint: string,
-    amount: number,
-    s, lippageBps: number,
+  const get
+  Quote = a sync (
+    f,
+    r,
+  o, m, M, i, nt: string,
+    t,
+    o,
+  M, i, n, t: string,
+    a,
+  m, o, u, n, t: number,
+    s,
+    l,
+  i, p, p, a, geBps: number,
   ) => {
-    try {
-      const quote = await jupiterApi.quoteGet({
-        i, nputMint: fromMint,
-        o, utputMint: toMint,
-        amount: amount,
+    try, {
+      const quote = await jupiterApi.q uoteGet({
+        i,
+        n,
+  p, u, t, M, int: fromMint,
+        o,
+        u,
+  t, p, u, t, Mint: toMint,
+        a,
+  m, o, u, n, t: amount,
         slippageBps,
       })
       return quote
-    } catch (error) {
-      console.error('Failed to get Jupiter q, uote:', error)
+    } c atch (error) {
+      console.e rror('Failed to get Jupiter q, u,
+  o, t, e:', error)
       return null
     }
   }
 
-  const getSwapTransaction = async (
-    q, uote: QuoteResponse,
-    u, serPublicKey: string,
+  const get
+  SwapTransaction = a sync (
+    q,
+    u,
+  o, t, e: QuoteResponse,
+    u,
+    s,
+  e, r, P, u, blicKey: string,
   ) => {
-    try {
-      const transaction = await jupiterApi.swapPost({
-        s, wapRequest: {
-          q, uoteResponse: quote,
+    try, {
+      const transaction = await jupiterApi.s wapPost({
+        s,
+        w,
+  a, p, R, e, quest: {
+          q,
+          u,
+  o, t, e, R, esponse: quote,
           userPublicKey,
-          d, ynamicComputeUnitLimit: true,
+          d,
+          y,
+  n, a, m, i, cComputeUnitLimit: true,
         },
       })
       return transaction
-    } catch (error) {
-      console.error('Failed to get Jupiter swap transaction:', error)
+    } c atch (error) {
+      console.e rror('Failed to get Jupiter swap, 
+  t, r, a, n, saction:', error)
       return null
     }
   }
 
-  return { getQuote, getSwapTransaction, connection }
+  return, { getQuote, getSwapTransaction, connection }
 }

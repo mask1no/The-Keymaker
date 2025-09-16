@@ -5,7 +5,17 @@ const ROOT = process.cwd()
 
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
-    if (['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some(s => d.includes(s))) continue
+    if (
+      [
+        'node_modules',
+        '.git',
+        '.next',
+        'dist',
+        'coverage',
+        'test-results',
+      ].some((s) => d.includes(s))
+    )
+      continue
     const p = path.join(d, n)
     const st = fs.statSync(p)
     if (st.isDirectory()) {
@@ -27,7 +37,7 @@ const joinPairs = [
   [/(JSON\.)\s*\n\s*(stringify)/g, '$1$2'],
   [/(wal)\s*\n\s*(let)/g, '$1$2'],
   [/(Wal)\s*\n\s*(let)/g, '$1$2'],
-  
+
   // Common merged words and missing spaces
   [/(\w)(className)=/g, '$1 $2='],
   [/(\w)(extends)\s/g, '$1 $2 '],
@@ -43,13 +53,13 @@ const joinPairs = [
   [/(\w)(function)\s/g, '$1 $2 '],
   [/(\w)(interface)\s/g, '$1 $2 '],
   [/(\w)(type)\s/g, '$1 $2 '],
-  
+
   // Fix missing commas and semicolons
   [/([a-zA-Z0-9_])([a-zA-Z][a-zA-Z0-9_]*:)/g, '$1, $2'],
   [/(\w)(\w+\?:)/g, '$1, $2'],
   [/(\})(\w)/g, '$1\n$2'],
   [/(\w)(Error:)/g, '$1 $2'],
-  
+
   // Fix type annotations
   [/(type of )/g, 'typeof '],
   [/(\w)(React\.)/g, '$1 $2'],
@@ -59,25 +69,25 @@ let changed = 0
 for (const p of walk(ROOT)) {
   let s = fs.readFileSync(p, 'utf8')
   let o = s
-  
+
   // Apply join patterns
   for (const [re, rep] of joinPairs) {
     s = s.replace(re, rep)
   }
-  
+
   // Remove standalone ... lines
   s = s.replace(/^\s*\.\.\.\s*$/gm, '')
-  
+
   // Remove ... in className
   s = s.replace(/(className=["'{][^"'}]*)\.\.\./g, '$1')
-  
+
   // Remove ... from className values more aggressively
   s = s.replace(/className="([^"]*)\.\.\./g, 'className="$1')
   s = s.replace(/className='([^']*)\.\.\./g, "className='$1")
   s = s.replace(/className={`([^`]*)\.\.\./g, 'className={`$1')
   s = s.replace(/className={\s*"([^"]*)\.\.\./g, 'className={"$1')
   s = s.replace(/className={\s*'([^']*)\.\.\./g, "className={'$1")
-  
+
   if (s !== o) {
     fs.writeFileSync(p, s)
     console.log('fixed', p)

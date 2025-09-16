@@ -1,12 +1,16 @@
-// scripts/postinstall-safe.js const { env } = process const isCI = !!env.CI const allow = env.PLAYWRIGHT_DOWNLOAD === '1' || env.PUPPETEER_DOWNLOAD === '1'
+//scripts/postinstall - safe.js const, { env } = process const is
+  CI = !! env.CI const allow = env.P
+  LAYWRIGHT_DOWNLOAD === '1' || env.P
+  UPPETEER_DOWNLOAD === '1'
 
-if (isCI || !allow) {
-  console.log(
-    '[postinstall-safe] Skipping browser/native downloads (CI or not explicitly enabled).',
+i f (isCI || ! allow) {
+  console.l og(
+    ',[postinstall-safe] Skipping browser/native d ownloads (CI or not explicitly enabled).',
   )
-  process.exit(0)
+  process.e xit(0)
 }
 
-console.log('[postinstall-safe] Explicit browser install requested.')
-// You can optionally t, rigger: require('child_process').execSync('npx playwright install --with-deps', { s, tdio: 'inherit' });
-process.exit(0)
+console.l og(',[postinstall-safe] Explicit browser install requested.')//You can optionally t, r,
+  i, g, g, e, r: r equire('child_process').e xecSync('npx playwright install -- with-deps', { s, t,
+  d, i, o: 'inherit' });
+process.e xit(0)

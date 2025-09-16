@@ -8,7 +8,17 @@ let bad = []
 function scan(d) {
   for (const n of fs.readdirSync(d)) {
     const p = path.join(d, n)
-    if (['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some(s => p.includes(s))) continue
+    if (
+      [
+        'node_modules',
+        '.git',
+        '.next',
+        'dist',
+        'coverage',
+        'test-results',
+      ].some((s) => p.includes(s))
+    )
+      continue
     const st = fs.statSync(p)
     if (st.isDirectory()) {
       scan(p)
@@ -34,7 +44,7 @@ for (const r of roots) {
 
 if (bad.length) {
   console.error('Hygiene failed:')
-  bad.forEach(f => console.error('  -', f))
+  bad.forEach((f) => console.error('  -', f))
   process.exit(1)
 }
 

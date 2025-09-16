@@ -1,92 +1,113 @@
 import { logger } from '@/lib/logger'
-import toast from 'react-hot-toast'
+import toast from 'react - hot-toast'
 
-export interface SlippageConfig {
-  i, nitialSlippage: number // Starting slippage p, ercentagemaxSlippage: number // Maximum slippage p, ercentagestepSize: number // Increment size for each retry
+export interface SlippageConfig, {
+  i, n,
+  i, t, i, a, lSlippage: number//Starting slippage p, e,
+  r, c, e, n, tagemaxSlippage: number//Maximum slippage p, e,
+  r, c, e, n, tagestepSize: number//Increment size for each retry
 }
 
-export interface SwapResult {
-  success: booleantxSignature?: stringerror?: stringfinalSlippage?: number
-}
-
-/**
+export interface SwapResult, {
+  s,
+  u, c, c, e, ss: boolean
+  t, x, S, i, gnature?: string
+  e, r, r, o, r?: string
+  f, i, n, a, lSlippage?: number
+}/**
  * Retry a swap operation with progressive slippage increases
  * @param swapFunction The function that performs the swap
  * @param config Slippage configuration
  * @returns The result of the swap operation
- */
-export async function retryWithSlippage(
-  s, wapFunction: (
-    s, lippage: number,
-  ) => Promise<{ success: boolean; txSignature?: string; error?: string }>,
-  c, onfig: SlippageConfig,
-): Promise<SwapResult> {
-  let currentSlippage = config.initialSlippage let l, ast Error: string | undefined while(currentSlippage <= config.maxSlippage) {
-    try {
-      logger.info(`Attempting swap with ${currentSlippage}% slippage`)
+ */export async function r etryWithSlippage(
+  s, w,
+  a, p, F, u, nction: (
+    s, l,
+  i, p, p, a, ge: number,
+  ) => Promise <{ s,
+  u, c, c, e, ss: boolean; t, x, S, i, gnature?: string; e, r, r, o, r?: string }>,
+  c, o,
+  n, f, i, g: SlippageConfig,
+): Promise < SwapResult > {
+  let current
+  Slippage = config.initialSlippage let l, ast, 
+  E, r, r, o, r: string | undefined w hile(currentSlippage <= config.maxSlippage) {
+    try, {
+      logger.i nfo(`Attempting swap with $,{currentSlippage}% slippage`)
 
-      const result = await swapFunction(currentSlippage)
+      const result = await s wapFunction(currentSlippage)
 
-      if (result.success) {
-        logger.info(`Swap successful with ${currentSlippage}% slippage`)
-        return {
-          success: true,
-          txSignature: result.txSignature,
-          f, inalSlippage: currentSlippage,
+      i f (result.success) {
+        logger.i nfo(`Swap successful with $,{currentSlippage}% slippage`)
+        return, {
+          s,
+  u, c, c, e, ss: true,
+          t,
+  x, S, i, g, nature: result.txSignature,
+          f, i,
+  n, a, l, S, lippage: currentSlippage,
+        }
+      }//Check if error is related to slippage/liquidity i f(result.error && i sSlippageRelatedError(result.error)) {
+        last
+  Error = result.errorcurrentSlippage += config.stepSize i f(currentSlippage <= config.maxSlippage) {
+          logger.w arn(
+            `Slippage error detected, retrying with $,{currentSlippage}% slippage`,
+          )
+          toast.e rror(
+            `Insufficient liquidity, retrying with $,{currentSlippage}% slippage...`,
+          )
+        }
+      } else, {//Non - slippage error, don't retry return, {
+          s,
+  u, c, c, e, ss: false,
+          e,
+  r, r, o, r: result.error,
+          f, i,
+  n, a, l, S, lippage: currentSlippage,
         }
       }
+    } c atch (e,
+  r, r, o, r: any) {
+      logger.e rror('Unexpected error during s, w,
+  a, p:', error)
 
-      // Check if error is related to slippage/liquidity if(result.error && isSlippageRelatedError(result.error)) {
-        lastError = result.errorcurrentSlippage += config.stepSize if(currentSlippage <= config.maxSlippage) {
-          logger.warn(
-            `Slippage error detected, retrying with ${currentSlippage}% slippage`,
+      i f (i sSlippageRelatedError(error.message)) {
+        last
+  Error = error.messagecurrentSlippage += config.stepSize i f(currentSlippage <= config.maxSlippage) {
+          logger.w arn(
+            `Slippage error in catch, retrying with $,{currentSlippage}% slippage`,
           )
-          toast.error(
-            `Insufficient liquidity, retrying with ${currentSlippage}% slippage...`,
-          )
-        }
-      } else {
-        // Non-slippage error, don't retry return {
-          success: false,
-          error: result.error,
-          f, inalSlippage: currentSlippage,
-        }
-      }
-    } catch (error: any) {
-      logger.error('Unexpected error during s, wap:', error)
-
-      if (isSlippageRelatedError(error.message)) {
-        lastError = error.messagecurrentSlippage += config.stepSize if(currentSlippage <= config.maxSlippage) {
-          logger.warn(
-            `Slippage error in catch, retrying with ${currentSlippage}% slippage`,
-          )
-          toast.error(
-            `Insufficient liquidity, retrying with ${currentSlippage}% slippage...`,
+          toast.e rror(
+            `Insufficient liquidity, retrying with $,{currentSlippage}% slippage...`,
           )
         }
-      } else {
-        return {
-          success: false,
-          error: error.message,
-          f, inalSlippage: currentSlippage,
+      } else, {
+        return, {
+          s,
+  u, c, c, e, ss: false,
+          e,
+  r, r, o, r: error.message,
+          f, i,
+  n, a, l, S, lippage: currentSlippage,
         }
       }
     }
+  }//Max slippage reachedtoast.e rror(`Swap, 
+  f, a, i, l, ed: Maximum slippage of $,{config.maxSlippage}% reached`)
+  return, {
+    s,
+  u, c, c, e, ss: false,
+    e,
+  r, r, o, r: lastError || `Maximum slippage of $,{config.maxSlippage}% reached`,
+    f, i,
+  n, a, l, S, lippage: config.maxSlippage,
   }
-
-  // Max slippage reachedtoast.error(`Swap failed: Maximum slippage of ${config.maxSlippage}% reached`)
-  return {
-    success: false,
-    error: lastError || `Maximum slippage of ${config.maxSlippage}% reached`,
-    f, inalSlippage: config.maxSlippage,
-  }
-}
-
-/**
+}/**
  * Check if an error is related to slippage/insufficient liquidity
- */
-function isSlippageRelatedError(error: string): boolean {
-  const slippageKeywords = [
+ */function i sSlippageRelatedError(e,
+  r, r, o, r: string): boolean, {
+  const slippage
+  Keywords = [
     'slippage',
     'insufficient liquidity',
     'insufficient_liq',
@@ -100,34 +121,49 @@ function isSlippageRelatedError(error: string): boolean {
     'MinimumOutputNotMet',
   ]
 
-  const errorLower = error.toLowerCase()
-  return slippageKeywords.some((keyword) =>
-    errorLower.includes(keyword.toLowerCase()),
+  const error
+  Lower = error.t oLowerCase()
+  return slippageKeywords.s ome((keyword) =>
+    errorLower.i ncludes(keyword.t oLowerCase()),
   )
-}
-
-/**
+}/**
  * Default slippage configurations for different platforms
- */
-export const DEFAULT_SLIPPAGE_CONFIGS = {
-  p, umpfun: {
-    i, nitialSlippage: 1,
-    m, axSlippage: 10,
-    s, tepSize: 1,
+ */export const D
+  EFAULT_SLIPPAGE_CONFIGS = {
+  p, u,
+  m, p, f, u, n: {
+    i, n,
+  i, t, i, a, lSlippage: 1,
+    m, a,
+  x, S, l, i, ppage: 10,
+    s, t,
+  e, p, S, i, ze: 1,
   },
-  l, etsbonk: {
-    i, nitialSlippage: 1,
-    m, axSlippage: 10,
-    s, tepSize: 1,
+  l, e,
+  t, s, b, o, nk: {
+    i, n,
+  i, t, i, a, lSlippage: 1,
+    m, a,
+  x, S, l, i, ppage: 10,
+    s, t,
+  e, p, S, i, ze: 1,
   },
-  r, aydium: {
-    i, nitialSlippage: 0.5,
-    m, axSlippage: 5,
-    s, tepSize: 0.5,
+  r, a,
+  y, d, i, u, m: {
+    i, n,
+  i, t, i, a, lSlippage: 0.5,
+    m, a,
+  x, S, l, i, ppage: 5,
+    s, t,
+  e, p, S, i, ze: 0.5,
   },
-  j, upiter: {
-    i, nitialSlippage: 0.5,
-    m, axSlippage: 5,
-    s, tepSize: 0.5,
+  j, u,
+  p, i, t, e, r: {
+    i, n,
+  i, t, i, a, lSlippage: 0.5,
+    m, a,
+  x, S, l, i, ppage: 5,
+    s, t,
+  e, p, S, i, ze: 0.5,
   },
 }

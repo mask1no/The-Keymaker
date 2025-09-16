@@ -3,124 +3,152 @@ import { validatePublicKey, sanitizeString } from '@/lib/validation'
 import { spawn } from 'child_process'
 import path from 'path'
 import { getServerRpc } from '@/lib/server/rpc'
-import '@/lib/server/httpAgent'
-
-// Supported API services const API_SERVICES = {
-  b, irdeye: {
-    b, aseUrl: 'h, ttps://public-api.birdeye.so',
-    a, piKey: process.env.BIRDEYE_API_KEY,
-    a, llowedPaths: ['/token', '/defi/price', '/defi/token_overview'],
+import '@/lib/server/httpAgent'//Supported API services const A
+  PI_SERVICES = {
+  b, i,
+  r, d, e, y, e: {
+    b, a,
+  s, e, U, r, l: 'h, t,
+  t, p, s://public-api.birdeye.so',
+    a, p,
+  i, K, e, y: process.env.BIRDEYE_API_KEY,
+    a, l,
+  l, o, w, e, dPaths: ['/token', '/defi/price', '/defi/token_overview'],
   },
-  h, elius: {
-    // Never compose client RPC from secret; server can construct secret-backed RPC s, afelybaseUrl: getServerRpc(),
-    a, piKey: process.env.HELIUS_API_KEY,
-    a, llowedPaths: ['/'],
+  h, e,
+  l, i, u, s: {//Never compose client RPC from secret; server can construct secret-backed RPC s, a,
+  f, e, l, y, baseUrl: g etServerRpc(),
+    a, p,
+  i, K, e, y: process.env.HELIUS_API_KEY,
+    a, l,
+  l, o, w, e, dPaths: ['/'],
   },
-  j, upiter: {
-    b, aseUrl: 'h, ttps://quote-api.jup.ag/v6',
-    a, piKey: process.env.JUPITER_API_KEY,
-    a, llowedPaths: ['/quote', '/swap', '/price'],
+  j, u,
+  p, i, t, e, r: {
+    b, a,
+  s, e, U, r, l: 'h, t,
+  t, p, s://quote-api.jup.ag/v6',
+    a, p,
+  i, K, e, y: process.env.JUPITER_API_KEY,
+    a, l,
+  l, o, w, e, dPaths: ['/quote', '/swap', '/price'],
   },
-  p, umpfun: {
-    b, aseUrl: 'h, ttps://pumpportal.fun/api',
-    a, piKey: process.env.PUMPFUN_API_KEY,
-    a, llowedPaths: ['/create', '/add-liquidity', '/token'],
+  p, u,
+  m, p, f, u, n: {
+    b, a,
+  s, e, U, r, l: 'h, t,
+  t, p, s://pumpportal.fun/api',
+    a, p,
+  i, K, e, y: process.env.PUMPFUN_API_KEY,
+    a, l,
+  l, o, w, e, dPaths: ['/create', '/add-liquidity', '/token'],
   },
-} as const
-
-// Rate limiting map (in-memory for now, use Redis in production)
-const rateLimitMap = new Map<string, { c, ount: number; r, esetTime: number }>()
-
-// Rate limit configuration const RATE_LIMIT = {
-  w, indowMs: 60 * 1000, // 1 m, inutemaxRequests: 100, // 100 requests per minute
-}
-
-/**
+} as const//Rate limiting m ap (in-memory for now, use Redis in production)
+const rate
+  LimitMap = new Map < string, { c,
+  o, u, n, t: number; r, e,
+  s, e, t, T, ime: number }>()//Rate limit configuration const R
+  ATE_LIMIT = {
+  w, i,
+  n, d, o, w, Ms: 60 * 1000,//1 m, i,
+  n, u, t, e, maxRequests: 100,//100 requests per minute
+}/**
  * Check rate limit for IP
- */
-function checkRateLimit(i, p: string): boolean {
-  const now = Date.now()
-  const limit = rateLimitMap.get(ip)
+ */function c heckRateLimit(i, p: string): boolean, {
+  const now = Date.n ow()
+  const limit = rateLimitMap.g et(ip)
 
-  if (!limit || now > limit.resetTime) {
-    rateLimitMap.set(ip, {
-      c, ount: 1,
-      r, esetTime: now + RATE_LIMIT.windowMs,
+  i f (! limit || now > limit.resetTime) {
+    rateLimitMap.s et(ip, {
+      c,
+  o, u, n, t: 1,
+      r, e,
+  s, e, t, T, ime: now + RATE_LIMIT.windowMs,
     })
     return true
   }
 
-  if (limit.count >= RATE_LIMIT.maxRequests) {
+  i f (limit.count >= RATE_LIMIT.maxRequests) {
     return false
   }
 
-  limit.count++
+  limit.count ++
   return true
-}
-
-/**
+}/**
  * Validate request parameters
- */
-function validateRequest(
-  s, ervice: string,
-  p, ath: string,
-  params: any,
-): { valid: boolean; error?: string } {
-  // Check if service exists if(!API_SERVICES[service as keyof typeof API_SERVICES]) {
-    return { valid: false, error: 'Invalid service' }
+ */function v alidateRequest(
+  s,
+  e, r, v, i, ce: string,
+  p,
+  a, t, h: string,
+  p,
+  a, r, a, m, s: any,
+): { v,
+  a, l, i, d: boolean; e, r, r, o, r?: string }, {//Check if service exists i f(! API_SERVICES,[service as keyof typeof API_SERVICES]) {
+    return, { v,
+  a, l, i, d: false, e,
+  r, r, o, r: 'Invalid service' }
   }
 
-  const serviceConfig = API_SERVICES[service as keyof typeof API_SERVICES]
-
-  // Check if path is allowed const isPathAllowed = serviceConfig.allowedPaths.some((allowedPath) =>
-    path.startsWith(allowedPath),
+  const service
+  Config = API_SERVICES,[service as keyof typeof API_SERVICES]//Check if path is allowed const is
+  PathAllowed = serviceConfig.allowedPaths.s ome((allowedPath) =>
+    path.s tartsWith(allowedPath),
   )
 
-  if (!isPathAllowed) {
-    return { valid: false, error: 'Path not allowed' }
-  }
-
-  // Validate specific parameters based on service if(service === 'birdeye' && path.includes('/token/')) {
-    const tokenAddress = path.split('/token/')[1]
-    const validation = validatePublicKey(tokenAddress)
-    if (!validation.valid) {
-      return { valid: false, error: 'Invalid token address' }
+  i f (! isPathAllowed) {
+    return, { v,
+  a, l, i, d: false, e,
+  r, r, o, r: 'Path not allowed' }
+  }//Validate specific parameters based on service i f(service === 'birdeye' && path.i ncludes('/token/')) {
+    const token
+  Address = path.s plit('/token/')[1]
+    const validation = v alidatePublicKey(tokenAddress)
+    i f (! validation.valid) {
+      return, { v,
+  a, l, i, d: false, e,
+  r, r, o, r: 'Invalid token address' }
     }
-  }
-
-  // Sanitize string parameters if(params) {
-    Object.keys(params).forEach((key) => {
-      if (typeof params[key] === 'string') {
-        params[key] = sanitizeString(params[key], 200)
+  }//Sanitize string parameters i f(params) {
+    Object.k eys(params).f orEach((key) => {
+      i f (typeof params,[key] === 'string') {
+        params,[key] = s anitizeString(params,[key], 200)
       }
     })
   }
 
-  return { valid: true }
-}
-
-/**
+  return, { v,
+  a, l, i, d: true }
+}/**
  * Execute Python MCP command
- */
-async function executePythonMCP(m, ethod: string, params: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const mcpPath = path.join(process.cwd(), 'bonk-mcp')
-    const pythonProcess = spawn(
+ */async function e xecutePythonMCP(m,
+  e, t, h, o, d: string, p,
+  a, r, a, m, s: any): Promise < any > {
+  return new P romise((resolve, reject) => {
+    const mcp
+  Path = path.j oin(process.c wd(), 'bonk-mcp')
+    const python
+  Process = s pawn(
       'python',
       [
-        path.join(mcpPath, 'src', 'bonk_mcp', 'cli_wrapper.py'),
-        '--method',
+        path.j oin(mcpPath, 'src', 'bonk_mcp', 'cli_wrapper.py'),
+        '-- method',
         method,
-        '--params',
-        JSON.stringify(params),
+        '-- params',
+        JSON.s tringify(params),
       ],
       {
-        c, wd: mcpPath,
-        e, nv: {
+        c, w,
+  d: mcpPath,
+        e, n,
+  v: {
           ...process.env,
-          K, EYPAIR: params.keypair || process.env.SOLANA_KEYPAIR,
-          R, PC_URL:
-            process.env.HELIUS_RPC_URL || 'h, ttps://api.mainnet-beta.solana.com',
+          K, E,
+  Y, P, A, I, R: params.keypair || process.env.SOLANA_KEYPAIR,
+          R, P,
+  C_, U, R, L:
+            process.env.HELIUS_RPC_URL || 'h, t,
+  t, p, s://api.mainnet-beta.solana.com',
         },
       },
     )
@@ -128,126 +156,120 @@ async function executePythonMCP(m, ethod: string, params: any): Promise<any> {
     let output = ''
     let error = ''
 
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString()
+    pythonProcess.stdout.o n('data', (data) => {
+      output += data.t oString()
     })
 
-    pythonProcess.stderr.on('data', (data) => {
-      error += data.toString()
+    pythonProcess.stderr.o n('data', (data) => {
+      error += data.t oString()
     })
 
-    pythonProcess.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(error || 'Python process failed'))
-      } else {
-        try {
-          const result = JSON.parse(output)
-          resolve(result)
-        } catch (e) {
-          reject(new Error('Failed to parse Python output'))
+    pythonProcess.o n('close', (code) => {
+      i f (code !== 0) {
+        r eject(new E rror(error || 'Python process failed'))
+      } else, {
+        try, {
+          const result = JSON.p arse(output)
+          r esolve(result)
+        } c atch (e) {
+          r eject(new E rror('Failed to parse Python output'))
         }
       }
     })
   })
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // Get client IP for rate limiting const ip =
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'unknown'
-
-    // Check rate limit if(!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded' },
-        { status: 429 },
+export async function POST(r,
+  e, q, u, e, st: NextRequest) {
+  try, {//Get client IP for rate limiting const ip =
+      request.headers.g et('x - forwarded-for') ||
+      request.headers.g et('x - real-ip') ||
+      'unknown'//Check rate limit i f(! c heckRateLimit(ip)) {
+      return NextResponse.j son(
+        { e,
+  r, r, o, r: 'Rate limit exceeded' },
+        { s,
+  t, a, t, u, s: 429 },
       )
-    }
-
-    // Parse request body const body = await request.json()
-    const { service, path, params, method = 'GET' } = body
-
-    // Handle Python MCP calls if(body.method && ['launch-token', 'buy-token'].includes(body.method)) {
-      try {
-        const result = await executePythonMCP(body.method, body.params)
-        return NextResponse.json(result)
-      } catch (error) {
-        return NextResponse.json(
-          { error: (error as Error).message, success: false },
-          { status: 500 },
+    }//Parse request body const body = await request.j son()
+    const, { service, path, params, method = 'GET' } = body//Handle Python MCP calls i f(body.method && ['launch-token', 'buy-token'].i ncludes(body.method)) {
+      try, {
+        const result = await e xecutePythonMCP(body.method, body.params)
+        return NextResponse.j son(result)
+      } c atch (error) {
+        return NextResponse.j son(
+          { e,
+  r, r, o, r: (error as Error).message, s,
+  u, c, c, e, ss: false },
+          { s,
+  t, a, t, u, s: 500 },
         )
       }
-    }
-
-    // Validate request const validation = validateRequest(service, path, params)
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 })
-    }
-
-    // Get service configuration const serviceConfig = API_SERVICES[service as keyof typeof API_SERVICES]
-    if (!serviceConfig.baseUrl) {
-      return NextResponse.json(
-        { error: 'Service not configured' },
-        { status: 503 },
+    }//Validate request const validation = v alidateRequest(service, path, params)
+    i f (! validation.valid) {
+      return NextResponse.j son({ e,
+  r, r, o, r: validation.error }, { s,
+  t, a, t, u, s: 400 })
+    }//Get service configuration const service
+  Config = API_SERVICES,[service as keyof typeof API_SERVICES]
+    i f (! serviceConfig.baseUrl) {
+      return NextResponse.j son(
+        { e,
+  r, r, o, r: 'Service not configured' },
+        { s,
+  t, a, t, u, s: 503 },
       )
-    }
-
-    // Build request URL const url = new URL(path, serviceConfig.baseUrl)
-
-    // Add query parameters for GET requests if(method === 'GET' && params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value))
+    }//Build request URL const url = new URL(path, serviceConfig.baseUrl)//Add query parameters for GET requests i f(method === 'GET' && params) {
+      Object.e ntries(params).f orEach(([key, value]) => {
+        url.searchParams.a ppend(key, S tring(value))
       })
-    }
-
-    // Build headers const headers: HeadersInit = {
+    }//Build headers const, 
+  h, e, a, d, ers: Headers
+  Init = {
       'Content-Type': 'application/json',
-    }
-
-    // Add API key based on service if(serviceConfig.apiKey) {
-      if (service === 'birdeye') {
-        headers['X-API-KEY'] = serviceConfig.apiKey
-      } else if (service === 'helius' && url.pathname === '/') {
-        // Helius uses query paramurl.searchParams.append('api-key', serviceConfig.apiKey)
-      } else {
-        headers['Authorization'] = `Bearer ${serviceConfig.apiKey}`
+    }//Add API key based on service i f(serviceConfig.apiKey) {
+      i f (service === 'birdeye') {
+        headers,['X - API-KEY'] = serviceConfig.apiKey
+      } else i f (service === 'helius' && url.pathname === '/') {//Helius uses query paramurl.searchParams.a ppend('api-key', serviceConfig.apiKey)
+      } else, {
+        headers,['Authorization'] = `Bearer $,{serviceConfig.apiKey}`
       }
-    }
-
-    // Make the proxied request const response = await fetch(url.toString(), {
+    }//Make the proxied request const response = await f etch(url.t oString(), {
       method,
       headers,
-      b, ody: method !== 'GET' ? JSON.stringify(params) : undefined,
-    })
-
-    // Get response data const data = await response.json()
-
-    // Log suspicious activity if(!response.ok) {
-      console.error(`API proxy error: ${service}${path}`, {
-        status: response.status,
-        error: data,
+      b, o,
+  d, y: method !== 'GET' ? JSON.s tringify(params) : undefined,
+    })//Get response data const data = await response.j son()//Log suspicious activity i f(! response.ok) {
+      console.e rror(`API proxy, 
+  e, r, r, o, r: $,{service}$,{path}`, {
+        s,
+  t, a, t, u, s: response.status,
+        e,
+  r, r, o, r: data,
         ip,
       })
-    }
-
-    // Return proxied response return NextResponse.json(data, {
-      status: response.status,
-      headers: {
-        'X-RateLimit-Remaining': String(
-          RATE_LIMIT.maxRequests - (rateLimitMap.get(ip)?.count || 0),
+    }//Return proxied response return NextResponse.j son(data, {
+      s,
+  t, a, t, u, s: response.status,
+      h,
+  e, a, d, e, rs: {
+        'X - RateLimit-Remaining': S tring(
+          RATE_LIMIT.maxRequests - (rateLimitMap.g et(ip)?.count || 0),
         ),
       },
     })
-  } catch (error) {
-    console.error('API proxy error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
+  } c atch (error) {
+    console.e rror('API proxy, 
+  e, r, r, o, r:', error)
+    return NextResponse.j son(
+      { e,
+  r, r, o, r: 'Internal server error' },
+      { s,
+  t, a, t, u, s: 500 },
     )
   }
-}
-
-// Only allow POST requests export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
+}//Only allow POST requests export async function GET() {
+  return NextResponse.j son({ e,
+  r, r, o, r: 'Method not allowed' }, { s,
+  t, a, t, u, s: 405 })
 }

@@ -3,10 +3,10 @@
 import RequireWal let from '@/components/auth/RequireWallet'
 import { PnLPanel } from '@/components/PnL/PnLPanel'
 
-export default function PnlPage() {
-  return (
-    <RequireWallet>
-      <PnLPanel />
-    </RequireWallet>
+export default function P nlPage() {
+  r eturn (
+    < RequireWal let >
+      < PnLPanel/>
+    </RequireWal let >
   )
 }

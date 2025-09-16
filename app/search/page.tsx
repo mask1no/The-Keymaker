@@ -7,53 +7,77 @@ import { Button } from '@/components/UI/button'
 import { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide-react'
 
 const entries = [
-  { l, abel: 'Bundle', h, ref: '/bundle', i, con: Zap },
-  { l, abel: 'Wallets', h, ref: '/wallets', i, con: Wal let },
-  { l, abel: 'PNL', h, ref: '/pnl', i, con: BarChart2 },
-  { l, abel: 'Settings', h, ref: '/settings', i, con: Settings },
+  { l, a,
+  b, e, l: 'Bundle', h, r,
+  e, f: '/bundle', i, c,
+  o, n: Zap },
+  { l, a,
+  b, e, l: 'Wallets', h, r,
+  e, f: '/wallets', i, c,
+  o, n: Wal let },
+  { l, a,
+  b, e, l: 'PNL', h, r,
+  e, f: '/pnl', i, c,
+  o, n: BarChart2 },
+  { l, a,
+  b, e, l: 'Settings', h, r,
+  e, f: '/settings', i, c,
+  o, n: Settings },
 ]
 
-export default function CommandPalettePage() {
-  const [q, setQ] = useState('')
-  const router = useRouter()
-  const filtered = useMemo(
+export default function C ommandPalettePage() {
+  const, [q, setQ] = u seState('')
+  const router = u seRouter()
+  const filtered = u seMemo(
     () =>
-      entries.filter((e) => e.label.toLowerCase().includes(q.toLowerCase())),
+      entries.f ilter((e) => e.label.t oLowerCase().i ncludes(q.t oLowerCase())),
     [q],
   )
 
-  return (
-    <div className="container mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Command className="w-5 h-5" /> Command Palette
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-white/50" />
-            <InputautoFocusvalue={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Type to search actions..."
-              className="bg-black/50"
-            />
-          </div>
-          <div className="space-y-2">
-            {filtered.map((e) => {
-              const Icon = e.icon return (
-                <Buttonkey={e.href}
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => router.push(e.href)}
+  r eturn (
+    < div class
+  Name ="container mx - auto p-6">
+      < Card >
+        < CardHeader >
+          < CardTitle class
+  Name ="flex items - center gap-2">
+            < Command class
+  Name ="w - 5 h-5"/> Command Palette
+          </CardTitle >
+        </CardHeader >
+        < CardContent class
+  Name ="space - y-3">
+          < div class
+  Name ="flex items - center gap-2">
+            < Search class
+  Name ="w - 4 h - 4 text-white/50"/>
+            < Inputauto
+  Focusvalue ={q}
+              on
+  Change ={(e) => s etQ(e.target.value)}
+              placeholder ="Type to search actions..."
+              class
+  Name ="bg-black/50"/>
+          </div >
+          < div class
+  Name ="space - y-2">
+            {filtered.m ap((e) => {
+              const Icon = e.icon r eturn (
+                < Buttonkey ={e.href}
+                  variant ="outline"
+                  class
+  Name ="w - full justify-start"
+                  on
+  Click ={() => router.p ush(e.href)}
                 >
-                  <Icon className="w-4 h-4 mr-2" /> {e.label}
-                </Button>
+                  < Icon class
+  Name ="w - 4 h - 4 mr-2"/> {e.label}
+                </Button >
               )
             })}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </div >
+        </CardContent >
+      </Card >
+    </div >
   )
 }

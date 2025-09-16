@@ -8,57 +8,103 @@ import { NotificationCenter } from '@/components/Notifications/NotificationCente
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel'
 import { ControlCenter } from '@/components/ControlCenter/ControlCenter'
 
-const DashboardWrapper = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="p-4 sm:p-6 md:p-8"
+const Dashboard
+  Wrapper = () => {
+  r eturn (
+    < motion.div
+      initial ={{ o,
+  p, a, c, i, ty: 0, s,
+  c, a, l, e: 0.95 }}
+      animate ={{ o,
+  p, a, c, i, ty: 1, s,
+  c, a, l, e: 1 }}
+      transition ={{ d,
+  u, r, a, t, ion: 0.3 }}
+      class
+  Name ="p - 4, 
+  s, m:p - 6, 
+  m, d:p-8"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-2 lg:col-span-3 bento-card"
+      < div class
+  Name ="grid grid - cols - 1, 
+  m, d:grid - cols - 3, 
+  l, g:grid - cols - 4 gap - 4, 
+  s, m:gap-6">
+        < motion.div
+          while
+  Hover ={{ y: - 5, s,
+  c, a, l, e: 1.02 }}
+          class
+  Name =",
+  m, d:col - span - 2, 
+  l, g:col - span - 3 bento-card"
         >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <ControlCenter />
-          </Suspense>
-        </motion.div>
+          < Suspense fallback ={< Skeleton class
+  Name ="h - full w-full"/>}>
+            < ControlCenter/>
+          </Suspense >
+        </motion.div >
 
-        <motion.div whileHover={{ y: -5, scale: 1.02 }}
-          className="lg:col-span-1 bento-card"
+        < motion.div
+          while
+  Hover ={{ y: - 5, s,
+  c, a, l, e: 1.02 }}
+          class
+  Name =",
+  l, g:col - span - 1 bento-card"
         >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <AnalyticsPanel />
-          </Suspense>
-        </motion.div>
+          < Suspense fallback ={< Skeleton class
+  Name ="h - full w-full"/>}>
+            < AnalyticsPanel/>
+          </Suspense >
+        </motion.div >
 
-        <motion.div whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-1 lg:col-span-2 bento-card"
+        < motion.div
+          while
+  Hover ={{ y: - 5, s,
+  c, a, l, e: 1.02 }}
+          class
+  Name =",
+  m, d:col - span - 1, 
+  l, g:col - span - 2 bento-card"
         >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <BundleBuilder />
-          </Suspense>
-        </motion.div>
+          < Suspense fallback ={< Skeleton class
+  Name ="h - full w-full"/>}>
+            < BundleBuilder/>
+          </Suspense >
+        </motion.div >
 
-        <motion.div whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-1 lg:col-span-1 bento-card"
+        < motion.div
+          while
+  Hover ={{ y: - 5, s,
+  c, a, l, e: 1.02 }}
+          class
+  Name =",
+  m, d:col - span - 1, 
+  l, g:col - span - 1 bento-card"
         >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <CreatorForm />
-          </Suspense>
-        </motion.div>
+          < Suspense fallback ={< Skeleton class
+  Name ="h - full w-full"/>}>
+            < CreatorForm/>
+          </Suspense >
+        </motion.div >
 
-        <motion.div whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-1 lg:col-span-1 bento-card"
+        < motion.div
+          while
+  Hover ={{ y: - 5, s,
+  c, a, l, e: 1.02 }}
+          class
+  Name =",
+  m, d:col - span - 1, 
+  l, g:col - span - 1 bento-card"
         >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <NotificationCenter />
-          </Suspense>
-        </motion.div>
-      </div>
-    </motion.div>
+          < Suspense fallback ={< Skeleton class
+  Name ="h - full w-full"/>}>
+            < NotificationCenter/>
+          </Suspense >
+        </motion.div >
+      </div >
+    </motion.div >
   )
 }
 

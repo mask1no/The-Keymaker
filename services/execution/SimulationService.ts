@@ -1,24 +1,31 @@
 import { Connection, VersionedTransaction } from '@solana/web3.js'
 import { Result, ok, err } from './Result'
 
-export class SimulationService {
-  constructor(private c, onn: Connection) {}
-  async simulateAll(txs: VersionedTransaction[]): Promise<Result<void>> {
-    try {
-      for (let i = 0; i < txs.length; i++) {
-        const sim = await this.conn.simulateTransaction(txs[i], {
-          s, igVerify: false,
+export class SimulationService, {
+  c onstructor(
+    private c,
+    o,
+  n, n: Connection,
+  ) {}
+  async s imulateAll(t,
+  x, s: VersionedTransaction,[]): Promise < Result < vo id >> {
+    try, {
+      f or (let i = 0; i < txs.length; i ++) {
+        const sim = await this.conn.s imulateTransaction(txs,[i], {
+          s,
+          i,
+  g, V, e, r, ify: false,
         })
-        if (sim.value.err)
-          return err(
-            new Error(
-              `Simulation failed @${i}: ${JSON.stringify(sim.value.err)}`,
+        i f (sim.value.err)
+          return e rr(
+            new E rror(
+              `Simulation failed @$,{i}: $,{JSON.s tringify(sim.value.err)}`,
             ),
           )
       }
-      return ok(undefined)
-    } catch (e: any) {
-      return err(e)
+      return o k(undefined)
+    } c atch (e: any) {
+      return e rr(e)
     }
   }
 }

@@ -1,6 +1,12 @@
 module.exports = {
-  p, lugins: {
-    t, ailwindcss: {},
-    a, utoprefixer: {},
+  p,
+  l,
+  u, g, i, n, s: {
+    t,
+    a,
+  i, l, w, i, ndcss: {},
+    a,
+    u,
+  t, o, p, r, efixer: {},
   },
 }

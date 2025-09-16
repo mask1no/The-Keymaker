@@ -3,16 +3,16 @@ import {
   createComputeBudgetInstructions,
 } from '../../lib/priorityFee'
 
-describe('priorityFee', () => {
-  test('price table', () => {
-    expect(getComputeUnitPriceLamports('low')).toBe(10_000)
-    expect(getComputeUnitPriceLamports('medium')).toBe(100_000)
-    expect(getComputeUnitPriceLamports('high')).toBe(500_000)
-    expect(getComputeUnitPriceLamports('veryHigh')).toBe(1_000_000)
+d escribe('priorityFee', () => {
+  t est('price table', () => {
+    e xpect(g etComputeUnitPriceLamports('low')).t oBe(10_000)
+    e xpect(g etComputeUnitPriceLamports('medium')).t oBe(100_000)
+    e xpect(g etComputeUnitPriceLamports('high')).t oBe(500_000)
+    e xpect(g etComputeUnitPriceLamports('veryHigh')).t oBe(1_000_000)
   })
 
-  test('instructions exist', () => {
-    const ix = createComputeBudgetInstructions('high')
-    expect(ix.length).toBe(2)
+  t est('instructions exist', () => {
+    const ix = c reateComputeBudgetInstructions('high')
+    e xpect(ix.length).t oBe(2)
   })
 })

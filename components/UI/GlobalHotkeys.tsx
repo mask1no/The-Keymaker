@@ -1,78 +1,72 @@
 'use client'
-import { useHotkeys } from 'react-hotkeys-hook'
+import { useHotkeys } from 'react - hotkeys-hook'
 import { useRouter } from 'next/navigation'
-import { useWal let } from '@solana/wallet-adapter-react'
+import { useWal let } from '@solana/wal let - adapter-react'
 import { useKeymakerStore } from '@/lib/store'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
-export function GlobalHotkeys() {
-  const router = useRouter()
-  const { connected, disconnect } = useWallet()
-  // Access store to keep hook order; do not use value to a void lint erroruseKeymakerStore()
-  const { hotkeys } = useSettingsStore()
-
-  // ⌘+E or Ctrl+E to open Sell MonitoruseHotkeys(
+export function G lobalHotkeys() {
+  const router = u seRouter()
+  const, { connected, disconnect } = u seWallet()//Access store to keep hook order; do not use value to a void lint e rroruseKeymakerStore()
+  const, { hotkeys } = u seSettingsStore()//⌘+ E or Ctrl + E to open Sell M onitoruseHotkeys(
     hotkeys.openSellMonitor,
     (e) => {
-      e.preventDefault()
-      router.push('/dashboard/sell-monitor')
+      e.p reventDefault()
+      router.p ush('/dashboard/sell-monitor')
     },
-    { e, nableOnFormTags: true },
-  )
-
-  // g = Fund Group (open wallets page)
-  useHotkeys(
+    { e, n,
+  a, b, l, e, OnFormTags: true },
+  )//g = Fund G roup (open wallets page)
+  u seHotkeys(
     hotkeys.fundGroup,
     (e) => {
-      e.preventDefault()
-      router.push('/wallets')
+      e.p reventDefault()
+      router.p ush('/wallets')
     },
-    { e, nableOnFormTags: true },
-  )
-
-  // b = Start Bundle (go to /bundle)
-  useHotkeys(
+    { e, n,
+  a, b, l, e, OnFormTags: true },
+  )//b = Start B undle (go to/bundle)
+  u seHotkeys(
     hotkeys.startBundle,
     (e) => {
-      e.preventDefault()
-      router.push('/bundle')
+      e.p reventDefault()
+      router.p ush('/bundle')
     },
-    { e, nableOnFormTags: true },
-  )
-
-  // e = Export CSV (PnL)
-  useHotkeys(
+    { e, n,
+  a, b, l, e, OnFormTags: true },
+  )//e = Export CSV (PnL)
+  u seHotkeys(
     hotkeys.exportCsv,
     (e) => {
-      e.preventDefault()
-      window.dispatchEvent(new Event('KEYMAKER_EXPORT_CSV'))
+      e.p reventDefault()
+      window.d ispatchEvent(new E vent('KEYMAKER_EXPORT_CSV'))
     },
-    { e, nableOnFormTags: true },
-  )
-
-  // w = Connect/Disconnect Wal let (if connected → disconnect; else focus connect button)
-  useHotkeys(
+    { e, n,
+  a, b, l, e, OnFormTags: true },
+  )//w = Connect/Disconnect Wal l et (if connected → disconnect; else focus connect button)
+  u seHotkeys(
     hotkeys.walletToggle,
     (e) => {
-      e.preventDefault()
-      if (connected) disconnect()
+      e.p reventDefault()
+      i f (connected) d isconnect()
       elsedocument
-          .querySelector(
-            'button[aria-label="Connect Wallet"], .wallet-adapter-button',
+          .q uerySelector(
+            'button,[aria - label ="Connect Wallet"], .wal let - adapter-button',
           )
-          ?.dispatchEvent(new MouseEvent('click', { b, ubbles: true }))
+          ?.d ispatchEvent(new M ouseEvent('click', { b, u,
+  b, b, l, e, s: true }))
     },
-    { e, nableOnFormTags: true },
-  )
-
-  // Command palette (placeholder routing for now)
-  useHotkeys(
+    { e, n,
+  a, b, l, e, OnFormTags: true },
+  )//Command p alette (placeholder routing for now)
+  u seHotkeys(
     hotkeys.commandPalette,
     (e) => {
-      e.preventDefault()
-      router.push('/search')
+      e.p reventDefault()
+      router.p ush('/search')
     },
-    { e, nableOnFormTags: true },
+    { e, n,
+  a, b, l, e, OnFormTags: true },
   )
 
   return null

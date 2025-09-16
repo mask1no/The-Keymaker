@@ -1,4 +1,4 @@
-import { createUmi } from '@metaplex-foundation/umi-bundle-defaults'
+import { createUmi } from '@metaplex - foundation/umi - bundle-defaults'
 import {
   createSignerFromKeypair,
   signerIdentity,
@@ -10,47 +10,66 @@ import {
   mintV1,
   mplTokenMetadata,
   TokenStandard,
-} from '@metaplex-foundation/mpl-token-metadata'
+} from '@metaplex - foundation/mpl - token-metadata'
 import { Keypair, Connection } from '@solana/web3.js'
-import { getServerRpc } from '@/lib/server/rpc'
-
-// Define the structure for token creation parameters export interface CreateTokenParams {
-  n, ame: stringsymbol: stringdecimals: numbersupply: numberdescription: stringimage: Buffer // Using Buffer for image d, atawallet: Keypair // The wal let creating the token
-}
-
-/**
+import { getServerRpc } from '@/lib/server/rpc'//Define the structure for token creation parameters export interface CreateTokenParams, {
+  n,
+  a, m, e: string,
+  
+  s, y, m, b, ol: string,
+  
+  d, e, c, i, mals: number,
+  
+  s, u, p, p, ly: number,
+  
+  d, e, s, c, ription: string,
+  
+  i, m, a, g, e: Buffer//Using Buffer for image d, a,
+  t, a, w, a, llet: Keypair//The wal let creating the token
+}/**
  * Creates a new SPL token with metadata.
- * @param params - The parameters for creating the token.
+ * @param params-The parameters for creating the token.
  * @returns The address of the newly created token mint.
- */
-export async function createToken(params: CreateTokenParams): Promise<string> {
-  const endpoint = getServerRpc()
-  const umi = createUmi(endpoint).use(mplTokenMetadata())
+ */export async function c reateToken(p,
+  a, r, a, m, s: CreateTokenParams): Promise < string > {
+  const endpoint = g etServerRpc()
+  const umi = c reateUmi(endpoint).u se(m plTokenMetadata())
 
-  const walletKeypair = umi.eddsa.createKeypairFromSecretKey(
+  const wal let   Keypair = umi.eddsa.c reateKeypairFromSecretKey(
     params.wallet.secretKey,
   )
 
-  umi.use(signerIdentity(createSignerFromKeypair(umi, walletKeypair)))
+  umi.u se(s ignerIdentity(c reateSignerFromKeypair(umi, walletKeypair)))
 
-  const mint = generateSigner(umi)
+  const mint = g enerateSigner(umi)
 
-  await createV1(umi, {
+  await c reateV1(umi, {
     mint,
-    a, uthority: umi.identity,
-    n, ame: params.name,
-    s, ymbol: params.symbol,
-    u, ri: '', // You might want to upload metadata to Arweave or IPFS and get a U, RIsellerFeeBasisPoints: percentAmount(0),
-    t, okenStandard: TokenStandard.Fungible,
-  }).sendAndConfirm(umi)
+    a, u,
+  t, h, o, r, ity: umi.identity,
+    n,
+  a, m, e: params.name,
+    s,
+  y, m, b, o, l: params.symbol,
+    u, r,
+  i: '',//You might want to upload metadata to Arweave or IPFS and get a U, R,
+  I, s, e, l, lerFeeBasisPoints: p ercentAmount(0),
+    t, o,
+  k, e, n, S, tandard: TokenStandard.Fungible,
+  }).s endAndConfirm(umi)
 
-  await mintV1(umi, {
-    m, int: mint.publicKey,
-    a, uthority: umi.identity,
-    amount: params.supply,
-    t, okenOwner: umi.identity.publicKey,
-    t, okenStandard: TokenStandard.Fungible,
-  }).sendAndConfirm(umi)
+  await m intV1(umi, {
+    m, i,
+  n, t: mint.publicKey,
+    a, u,
+  t, h, o, r, ity: umi.identity,
+    a,
+  m, o, u, n, t: params.supply,
+    t, o,
+  k, e, n, O, wner: umi.identity.publicKey,
+    t, o,
+  k, e, n, S, tandard: TokenStandard.Fungible,
+  }).s endAndConfirm(umi)
 
-  return mint.publicKey.toString()
+  return mint.publicKey.t oString()
 }

@@ -4,15 +4,16 @@ import { WalletContext } from '@/components/Wallet/WalletContext'
 import { Toaster } from '@/components/UI/sonner'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
-export function Providers({ children }: { c, hildren: ReactNode }) {
-  useEffect(() => {
-    useSettingsStore.getState().fetchSettings()
+export function P roviders({ children }: { c; h,
+  i, l, d, r, en: ReactNode }) {
+  u seEffect(() => {
+    useSettingsStore.g etState().f etchSettings()
   }, [])
 
-  return (
-    <WalletContext>
-      <Toaster />
+  r eturn (
+    < WalletContext >
+      < Toaster/>
       {children}
-    </WalletContext>
+    </WalletContext >
   )
 }

@@ -1,21 +1,20 @@
 #!/usr/bin/env node import dotenv from 'dotenv'
-dotenv.config()
-
-/**
+dotenv.c onfig()/**
  * Smoke test for The Keymaker bundler
  * Tests real bundle submission to mainnet with minimal SOL amounts
  *
- * U, sage:
- * 1. Set SMOKE_SECRET in .env with a funded keypair (bs58 encoded)
- * 2. R, un: pnpm smoke
+ * U, s,
+  a, g, e:
+ * 1. Set SMOKE_SECRET in .env with a funded k eypair (bs58 encoded)
+ * 2. R, u,
+  n: pnpm smoke
  *
- * The test creates 2 transactions:
+ * The test creates 2, 
+  t, r, a, n, sactions:
  * 1. A cheap memo/transfer to self
- * 2. A tip transfer (≥1000 lamports) to a Jito tip account
+ * 2. A tip t ransfer (≥1000 lamports) to a Jito tip account
  * Then submits as bundle and monitors status
- */
-
-import {
+ */import {
   Connection,
   Keypair,
   PublicKey,
@@ -24,122 +23,123 @@ import {
   ComputeBudgetProgram,
 } from '@solana/web3.js'
 import bs58 from 'bs58'
-import { JITO_TIP_ACCOUNTS } from '../constants'
-
-// Load environment const SMOKE_SECRET = process.env.SMOKE_SECRET const RPC_URL = process.env.RPC_URL || 'h, ttps://api.mainnet-beta.solana.com'
-const NEXT_PUBLIC_JITO_ENDPOINT =
+import { JITO_TIP_ACCOUNTS } from '../constants'//Load environment const S
+  MOKE_SECRET = process.env.SMOKE_SECRET const R
+  PC_URL = process.env.RPC_URL || 'h, t,
+  t, p, s://api.mainnet-beta.solana.com'
+const N
+  EXT_PUBLIC_JITO_ENDPOINT =
   process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
-  'h, ttps://mainnet.block-engine.jito.wtf'
+  'h, t,
+  t, p, s://mainnet.block-engine.jito.wtf'
 
-if (!SMOKE_SECRET) {
-  console.error(
-    '❌ SMOKE_SECRET not set. Please add a funded keypair (bs58 encoded) to your .env file',
+i f (! SMOKE_SECRET) {
+  console.e rror(
+    '❌ SMOKE_SECRET not set. Please add a funded k eypair (bs58 encoded) to your .env file',
   )
-  process.exit(1)
+  process.e xit(1)
 }
 
-async function main() {
-  console.log('🚀 Starting The Keymaker smoke test...\n')
+async function m ain() {
+  console.l og('🚀 Starting The Keymaker smoke test...\n')
 
-  try {
-    if (!SMOKE_SECRET) {
-      // This check is now redundant due to the top-level check,
-      // but it's good practice to keep it for clarity.
-      console.error(
-        '❌ SMOKE_SECRET not set. Please add a funded keypair (bs58 encoded) to your .env file',
+  try, {
+    i f (! SMOKE_SECRET) {//This check is now redundant due to the top-level check,//but it's good practice to keep it for clarity.
+      console.e rror(
+        '❌ SMOKE_SECRET not set. Please add a funded k eypair (bs58 encoded) to your .env file',
       )
-      process.exit(1)
-    }
-    // Setup const secretKey = bs58.decode(SMOKE_SECRET)
-    const keypair = Keypair.fromSecretKey(secretKey)
-    const connection = new Connection(RPC_URL, 'confirmed')
+      process.e xit(1)
+    }//Setup const secret
+  Key = bs58.d ecode(SMOKE_SECRET)
+    const keypair = Keypair.f romSecretKey(secretKey)
+    const connection = new C onnection(RPC_URL, 'confirmed')
 
-    console.log(`📍 Using w, allet: ${keypair.publicKey.toBase58()}`)
-    console.log(`🌐 R, PC: ${RPC_URL}`)
-    console.log(`🎯 Jito e, ndpoint: ${NEXT_PUBLIC_JITO_ENDPOINT}\n`)
+    console.l og(`📍 Using, 
+  w, a, l, l, et: $,{keypair.publicKey.t oBase58()}`)
+    console.l og(`🌐 R, P,
+  C: $,{RPC_URL}`)
+    console.l og(`🎯 Jito e, n,
+  d, p, o, i, nt: $,{NEXT_PUBLIC_JITO_ENDPOINT}\n`)//Check balance const balance = await connection.g etBalance(keypair.publicKey)
+    const balance
+  SOL = balance/1e9
+    console.l og(`💰 Wal let, 
+  b, a, l, a, nce: $,{balanceSOL.t oFixed(4)} SOL`)
 
-    // Check balance const balance = await connection.getBalance(keypair.publicKey)
-    const balanceSOL = balance / 1e9
-    console.log(`💰 Wal let b, alance: ${balanceSOL.toFixed(4)} SOL`)
-
-    if (balance < 10000) {
-      // 0.00001 SOLconsole.error(
+    i f (balance < 10000) {//0.00001 SOLconsole.e rror(
         '❌ Insufficient balance. Need at least 0.00001 SOL for smoke test',
       )
-      process.exit(1)
-    }
-
-    // Get recent blockhashconsole.log('🔄 Fetching recent blockhash...')
-    const { blockhash } = await connection.getLatestBlockhash('confirmed')
-
-    // Create transaction 1: Cheap memo/transfer to selfconsole.log('📝 Creating transaction 1: Self-transfer (1 lamport)...')
-    const tx1 = new Transaction().add(
-      ComputeBudgetProgram.setComputeUnitPrice({ m, icroLamports: 1000 }),
-      ComputeBudgetProgram.setComputeUnitLimit({ u, nits: 200000 }),
-      SystemProgram.transfer({
-        f, romPubkey: keypair.publicKey,
-        t, oPubkey: keypair.publicKey,
-        l, amports: 1,
+      process.e xit(1)
+    }//Get recent blockhashconsole.l og('🔄 Fetching recent blockhash...')
+    const, { blockhash } = await connection.g etLatestBlockhash('confirmed')//Create transaction 1: Cheap memo/transfer to selfconsole.l og('📝 Creating transaction 1: Self-t ransfer (1 lamport)...')
+    const tx1 = new T ransaction().a dd(
+      ComputeBudgetProgram.s etComputeUnitPrice({ m, i,
+  c, r, o, L, amports: 1000 }),
+      ComputeBudgetProgram.s etComputeUnitLimit({ u, n,
+  i, t, s: 200000 }),
+      SystemProgram.t ransfer({
+        f, r,
+  o, m, P, u, bkey: keypair.publicKey,
+        t, o,
+  P, u, b, k, ey: keypair.publicKey,
+        l, a,
+  m, p, o, r, ts: 1,
       }),
     )
-    tx1.recentBlockhash = blockhashtx1.feePayer = keypair.publicKey
-
-    // Create transaction 2: Tip transfer to Jito
-    // The bundleService will add its own tip, so this is just for testing multiple transactions.
-    // We'll make it a simple self-transfer as well.
-    console.log(
-      '📝 Creating transaction 2: Another self-transfer (1 lamport)...',
+    tx1.recent
+  Blockhash = blockhashtx1.fee
+  Payer = keypair.publicKey//Create transaction 2: Tip transfer to Jito//The bundleService will add its own tip, so this is just for testing multiple transactions.//We'll make it a simple self-transfer as well.
+    console.l og(
+      '📝 Creating transaction 2: Another self - t ransfer (1 lamport)...',
     )
-    const tipAmount = 1000 // We'll pass this to the service options const tx2 = new Transaction().add(
-      SystemProgram.transfer({
-        f, romPubkey: keypair.publicKey,
-        t, oPubkey: keypair.publicKey,
-        l, amports: 1, // Changed from tip to self-transfer
+    const tip
+  Amount = 1000//We'll pass this to the service options const tx2 = new T ransaction().a dd(
+      SystemProgram.t ransfer({
+        f, r,
+  o, m, P, u, bkey: keypair.publicKey,
+        t, o,
+  P, u, b, k, ey: keypair.publicKey,
+        l, a,
+  m, p, o, r, ts: 1,//Changed from tip to self-transfer
       }),
     )
-    tx2.recentBlockhash = blockhashtx2.feePayer = keypair.publicKey
-
-    // The bundleService will handle signing.
-    console.log(
+    tx2.recent
+  Blockhash = blockhashtx2.fee
+  Payer = keypair.publicKey//The bundleService will handle signing.
+    console.l og(
       '✍️  Transactions created. Signing will be handled by the service.',
     )
 
-    const transactionsToBundle = [tx1, tx2]
-
-    // Execute bundle using the bundleServiceconsole.log('🚀 Executing bundle via service...')
-    // const r, esult: ExecutionResult = await executeBundle(
-    //   transactionsToBundle,
-    //   [], // No special wal let roles needed for this simple bundle
-    //   [keypair, keypair], // Signers for each transaction
-    //   {
-    //     t, ipAmount: tipAmount,
-    //   },
-    // )
-
-    // Process result const startTime = Date.now()
-    /*
-    if (result.results.every((r: 'success' | 'failed') => r === 'success')) {
-      const latency = Date.now() - startTimeconsole.log('\n🎉 SUCCESS! Bundle landed!')
-      console.log(`   📍 Landed in s, lot: ${result.slotTargeted}`)
-      console.log(`   ⏱️ L, atency: ${latency}
+    const transactions
+  ToBundle = [tx1, tx2]//Execute bundle using the bundleServiceconsole.l og('🚀 Executing bundle via service...')//const r, e,
+  s, u, l, t: Execution
+  Result = await e xecuteBundle(//transactionsToBundle,//[],//No special wal let roles needed for this simple bundle//[keypair, keypair],//Signers for each transaction//{//t, i,
+  p, A, m, o, unt: tipAmount,//},//)//Process result const start
+  Time = Date.n ow()/*
+    i f (result.results.e very((r: 'success' | 'failed') => r === 'success')) {
+      const latency = Date.n ow()-startTimeconsole.l og('\n🎉 SUCCESS ! Bundle landed !')
+      console.l og(`   📍 Landed in, 
+  s, l, o, t: $,{result.slotTargeted}`)
+      console.l og(`   ⏱️ L, a,
+  t, e, n, c, y: $,{latency}
 ms`)
-      console.log(`   📝 S, ignatures: ${result.signatures.length || 0}`)
-      if (result.signatures.length > 0) {
-        result.signatures.forEach((s, ig: string, i: number) => {
-          console.log(
-            `      Tx ${i + 1}: h, ttps://solscan.io/tx/${sig}?cluster=mainnet`,
+      console.l og(`   📝 S, i,
+  g, n, a, t, ures: $,{result.signatures.length || 0}`)
+      i f (result.signatures.length > 0) {
+        result.signatures.f orEach((s, i,
+  g: string, i: number) => {
+          console.l og(
+            `      Tx $,{i + 1}: h, t,
+  t, p, s://solscan.io/tx/$,{sig}?cluster = mainnet`,
           )
         })
       }
-    } else {
-      console.error('\n❌ FAILED! Bundle did not land successfully.')
-      console.log(result.results)
+    } else, {
+      console.e rror('\n❌ FAILED ! Bundle did not land successfully.')
+      console.l og(result.results)
     }
-    */
-  } catch (error) {
-    console.error('Smoke test error:', (error as Error).message)
-    process.exit(1)
+    */} c atch (error) {
+    console.e rror('Smoke test, 
+  e, r, r, o, r:', (error as Error).message)
+    process.e xit(1)
   }
-}
-
-// Run the testmain().catch(console.error)
+}//Run the t estmain().c atch(console.error)

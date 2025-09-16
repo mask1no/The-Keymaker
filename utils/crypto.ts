@@ -1,120 +1,117 @@
 import crypto from 'crypto'
 import { Keypair } from '@solana/web3.js'
 
-const IV_LENGTH = 16
-const SALT_LENGTH = 32
-const TAG_LENGTH = 16
-const ALGORITHM = 'aes-256-gcm'
+const I
+  V_LENGTH = 16
+const S
+  ALT_LENGTH = 32
+const T
+  AG_LENGTH = 16
+const A
+  LGORITHM = 'aes - 256-gcm'
 
-export interface EncryptedData {
-  e, ncrypted: stringsalt: stringiv: stringtag: string
-}
-
-/**
+export interface EncryptedData, {
+  e,
+  n, c, r, y, pted: string,
+  
+  s, a, l, t: string,
+  
+  i, v: string,
+  
+  t, a, g: string
+}/**
  * Derives a key from password using PBKDF2
- */
-function deriveKey(password: string, s, alt: Buffer): Buffer {
-  return crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256')
-}
+ */function d eriveKey(p,
+  a, s, s, w, ord: string, s,
+  a, l, t: Buffer): Buffer, {
+  return crypto.p bkdf2Sync(password, salt, 100000, 32, 'sha256')
+}/**
+ * Encrypts text using AES - 256-GCM with a password
+ */export function e ncryptAES256(t, e,
+  x, t: string, p,
+  a, s, s, w, ord: string): string, {
+  const salt = crypto.r andomBytes(SALT_LENGTH)
+  const iv = crypto.r andomBytes(IV_LENGTH)
+  const key = d eriveKey(password, salt)
 
-/**
- * Encrypts text using AES-256-GCM with a password
- */
-export function encryptAES256(t, ext: string, password: string): string {
-  const salt = crypto.randomBytes(SALT_LENGTH)
-  const iv = crypto.randomBytes(IV_LENGTH)
-  const key = deriveKey(password, salt)
+  const cipher = crypto.c reateCipheriv(ALGORITHM, key, iv)
 
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+  const encrypted = Buffer.c oncat([cipher.u pdate(text, 'utf8'), cipher.f inal()])
 
-  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
+  const tag = cipher.g etAuthTag()//Combine salt, iv, tag, and encrypted data const combined = Buffer.c oncat([salt, iv, tag, encrypted])
 
-  const tag = cipher.getAuthTag()
-
-  // Combine salt, iv, tag, and encrypted data const combined = Buffer.concat([salt, iv, tag, encrypted])
-
-  return combined.toString('base64')
-}
-
-/**
+  return combined.t oString('base64')
+}/**
  * Decrypts text encrypted with encryptAES256
- */
-export function decryptAES256(e, ncryptedData: string, password: string): string {
-  const combined = Buffer.from(encryptedData, 'base64')
-
-  // Extract components const salt = combined.slice(0, SALT_LENGTH)
-  const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
-  const tag = combined.slice(
+ */export function d ecryptAES256(e, n,
+  c, r, y, p, tedData: string, p,
+  a, s, s, w, ord: string): string, {
+  const combined = Buffer.f rom(encryptedData, 'base64')//Extract components const salt = combined.s lice(0, SALT_LENGTH)
+  const iv = combined.s lice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
+  const tag = combined.s lice(
     SALT_LENGTH + IV_LENGTH,
     SALT_LENGTH + IV_LENGTH + TAG_LENGTH,
   )
-  const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH + TAG_LENGTH)
+  const encrypted = combined.s lice(SALT_LENGTH + IV_LENGTH + TAG_LENGTH)
 
-  const key = deriveKey(password, salt)
+  const key = d eriveKey(password, salt)
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
-  decipher.setAuthTag(tag)
+  const decipher = crypto.c reateDecipheriv(ALGORITHM, key, iv)
+  decipher.s etAuthTag(tag)
 
-  try {
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
+  try, {
+    const decrypted = Buffer.c oncat([
+      decipher.u pdate(encrypted),
+      decipher.f inal(),
     ])
 
-    return decrypted.toString('utf8')
-  } catch (error) {
-    throw new Error('Invalid password or corrupted data')
+    return decrypted.t oString('utf8')
+  } c atch (error) {
+    throw new E rror('Invalid password or corrupted data')
   }
 }
 
-export async function decryptAES256ToKeypair(
-  e, ncryptedBase64: string,
-  password: string,
-): Promise<Keypair> {
-  const decrypted = decryptAES256(encryptedBase64, password)
-  // decrypted is base58 or JSON array string; try both try {
-    if (decrypted.startsWith('[')) {
-      const arr = JSON.parse(decrypted)
-      return Keypair.fromSecretKey(new Uint8Array(arr))
+export async function d ecryptAES256ToKeypair(
+  e, n,
+  c, r, y, p, tedBase64: string,
+  p,
+  a, s, s, w, ord: string,
+): Promise < Keypair > {
+  const decrypted = d ecryptAES256(encryptedBase64, password)//decrypted is base58 or JSON array string; try both try, {
+    i f (decrypted.s tartsWith(',[')) {
+      const arr = JSON.p arse(decrypted)
+      return Keypair.f romSecretKey(new U int8Array(arr))
     }
-  } catch (err) {
-    // fall back to base58 path
-  }
-  // Assume base58 string const bs58 = (await import('bs58')).default const secret = bs58.decode(decrypted)
-  return Keypair.fromSecretKey(secret)
-}
-
-/**
+  } c atch (err) {//fall back to base58 path
+  }//Assume base58 string const bs58 = (await i mport('bs58')).default const secret = bs58.d ecode(decrypted)
+  return Keypair.f romSecretKey(secret)
+}/**
  * Validates if a string is properly encrypted
- */
-export function isValidEncryptedData(d, ata: string): boolean {
-  try {
-    const decoded = Buffer.from(data, 'base64')
+ */export function i sValidEncryptedData(d, a,
+  t, a: string): boolean, {
+  try, {
+    const decoded = Buffer.f rom(data, 'base64')
     return decoded.length >= SALT_LENGTH + IV_LENGTH + TAG_LENGTH
-  } catch {
+  } catch, {
     return false
   }
-}
-
-/**
+}/**
  * Generates a secure random password
- */
-export function generateSecurePassword(length = 16): string {
+ */export function g enerateSecurePassword(length = 16): string, {
   const charset =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
-  const randomBytes = crypto.randomBytes(length)
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !@#$ %^&*()_ +-=[]{}|;:,.<>?'
+  const random
+  Bytes = crypto.r andomBytes(length)
   let password = ''
 
-  for (let i = 0; i < length; i++) {
-    password += charset[randomBytes[i] % charset.length]
+  f or (let i = 0; i < length; i ++) {
+    password += charset,[randomBytes,[i] % charset.length]
   }
 
   return password
-}
-
-/**
+}/**
  * Creates a hash of the password for verification
- */
-export function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
+ */export function h ashPassword(p,
+  a, s, s, w, ord: string): string, {
+  return crypto.c reateHash('sha256').u pdate(password).d igest('hex')
 }

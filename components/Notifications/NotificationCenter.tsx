@@ -15,225 +15,286 @@ import { Button } from '@/components/UI/button'
 import { useKeymakerStore } from '@/lib/store'
 import { Card } from '@/components/UI/Card'
 
-export interface Notification {
-  id: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  title: string
-  message?: string
-  timestamp: number
-  read?: boolean
+export interface Notification, {
+  i,
+  d: string,
+  
+  t, y, p, e: 'success' | 'error' | 'warning' | 'info',
+  
+  t, i, t, l, e: string
+  m, e, s, s, age?: string,
+  
+  t, i, m, e, stamp: number
+  r, e, a, d?: boolean
 }
 
-export function NotificationCenter() {
-  const {
+export function N otificationCenter() {
+  const, {
     notifications,
     removeNotification,
     clearNotifications,
     markNotificationAsRead,
-  } = useKeymakerStore()
-  const [isOpen, setIsOpen] = useState(false)
-  const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
-  const [dragging, setDragging] = useState(false)
-  const dragStart = useRef<{ x: number; y: number } | null>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  } = u seKeymakerStore()
+  const, [isOpen, setIsOpen] = u seState(false)
+  const, [pos, setPos] = useState <{ x: number; y: number }>({ x: 0, y: 0 })
+  const, [dragging, setDragging] = u seState(false)
+  const drag
+  Start = useRef <{ x: number; y: number } | null >(null)
+  const dropdown
+  Ref = useRef < HTMLDivElement >(null)
 
-  const unreadCount = notifications.filter((n) => !n.read).length
-
-  // Close dropdown when clicking outsideuseEffect(() => {
-    const handleClickOutside = (e, vent: MouseEvent) => {
-      if (
+  const unread
+  Count = notifications.f ilter((n) => ! n.read).length//Close dropdown when clicking o utsideuseEffect(() => {
+    const handle
+  ClickOutside = (e, v,
+  e, n, t: MouseEvent) => {
+      i f (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        ! dropdownRef.current.c ontains(event.target as Node)
       ) {
-        setIsOpen(false)
+        s etIsOpen(false)
       }
     }
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+    i f (isOpen) {
+      document.a ddEventListener('mousedown', handleClickOutside)
     }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+    r eturn () => {
+      document.r emoveEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen])
 
-  useEffect(() => {
-    const saved = localStorage.getItem('notif-pos')
-    if (saved) {
-      try {
-        const p = JSON.parse(saved)
-        setPos({ x: p.x || 0, y: p.y || 0 })
-      } catch (err) {
-        // ignore malformed saved position
+  u seEffect(() => {
+    const saved = localStorage.g etItem('notif-pos')
+    i f (saved) {
+      try, {
+        const p = JSON.p arse(saved)
+        s etPos({ x: p.x || 0, y: p.y || 0 })
+      } c atch (err) {//ignore malformed saved position
       }
     }
   }, [])
 
   const clamp = (x: number, y: number) => {
-    const vw = window.innerWidth const vh = window.innerHeight const width = 384 // ~w-96
-    const height = 520 // header + list const nx = Math.min(Math.max(0, x), Math.max(0, vw - width - 16))
-    const ny = Math.min(Math.max(0, y), Math.max(0, vh - height - 16))
-    return { x: nx, y: ny }
+    const vw = window.innerWidth const vh = window.innerHeight const width = 384//~w - 96
+    const height = 520//header + list const nx = Math.m in(Math.m ax(0, x), Math.m ax(0, vw - width - 16))
+    const ny = Math.m in(Math.m ax(0, y), Math.m ax(0, vh - height - 16))
+    return, { x: nx, y: ny }
   }
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    setDragging(true)
+  const on
+  MouseDown = (e: React.MouseEvent) => {
+    s etDragging(true)
     dragStart.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }
   }
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!dragging || !dragStart.current) return const nx = e.clientX - dragStart.current.x const ny = e.clientY - dragStart.current.y const c = clamp(nx, ny)
-    setPos(c)
+  const on
+  MouseMove = (e: React.MouseEvent) => {
+    i f (! dragging || ! dragStart.current) return const nx = e.clientX - dragStart.current.x const ny = e.clientY - dragStart.current.y const c = c lamp(nx, ny)
+    s etPos(c)
   }
-  const onMouseUp = () => {
-    if (!dragging) returnsetDragging(false)
-    localStorage.setItem('notif-pos', JSON.stringify(pos))
+  const on
+  MouseUp = () => {
+    i f (! dragging) r eturnsetDragging(false)
+    localStorage.s etItem('notif-pos', JSON.s tringify(pos))
   }
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen)
-    // Mark all as read when opening if(!isOpen) {
-      notifications.forEach((n) => {
-        if (!n.read) {
-          markNotificationAsRead(n.id)
+  const toggle
+  Dropdown = () => {
+    s etIsOpen(! isOpen)//Mark all as read when opening i f(! isOpen) {
+      notifications.f orEach((n) => {
+        i f (! n.read) {
+          m arkNotificationAsRead(n.id)
         }
       })
     }
   }
 
-  const getIcon = (t, ype: Notification['type']) => {
-    switch (type) {
+  const get
+  Icon = (t,
+  y, p, e: Notification,['type']) => {
+    s witch (type) {
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return < CheckCircle class
+  Name ="h - 4 w - 4 text-green-500"/>
       case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return < XCircle class
+  Name ="h - 4 w - 4 text-red-500"/>
       case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />
+        return < AlertCircle class
+  Name ="h - 4 w - 4 text-yellow-500"/>
       case 'info':
-        return <Info className="h-4 w-4 text-blue-500" />
+        return < Info class
+  Name ="h - 4 w - 4 text - blue-500"/>
     }
   }
 
-  const formatTime = (t, imestamp: number) => {
-    const now = Date.now()
-    const diff = now - timestamp if(diff < 60000) {
+  const format
+  Time = (t,
+  i, m, e, s, tamp: number) => {
+    const now = Date.n ow()
+    const diff = now-timestamp i f(diff < 60000) {
       return 'just now'
-    } else if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000)
-      return `${minutes}
+    } else i f (diff < 3600000) {
+      const minutes = Math.f loor(diff/60000)
+      return `$,{minutes}
 m ago`
-    } else if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000)
-      return `${hours}
+    } else i f (diff < 86400000) {
+      const hours = Math.f loor(diff/3600000)
+      return `$,{hours}
 h ago`
-    } else {
-      return new Date(timestamp).toLocaleDateString()
+    } else, {
+      return new D ate(timestamp).t oLocaleDateString()
     }
   }
 
-  return (
-    <div className="relative" ref={dropdownRef}>
+  r eturn (
+    < div class
+  Name ="relative" ref ={dropdownRef}>
       {/* Bell Icon Button */}
-      <Buttonvariant="ghost"
-        size="icon"
-        onClick={toggleDropdown}
-        className="relative"
+      < Buttonvariant ="ghost"
+        size ="icon"
+        on
+  Click ={toggleDropdown}
+        class
+  Name ="relative"
       >
-        <Bell className="h-5 w-5" />
+        < Bell class
+  Name ="h - 5 w-5"/>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+          < span class
+  Name ="absolute - top - 1 - right - 1 h - 5 w - 5 rounded - full bg - red - 500 text - xs text - white flex items-center justify-center">
+            {unreadCount > 9 ? '9 +' : unreadCount}
+          </span >
         )}
-      </Button>
+      </Button >
 
       {/* Dropdown */}
-      <AnimatePresence>
+      < AnimatePresence >
         {isOpen && (
-          <motion.div initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed z-[9999]"
-            style={{ l, eft: pos.x, t, op: pos.y }}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
+          < motion.div initial ={{ o,
+  p, a, c, i, ty: 0 }}
+            animate ={{ o,
+  p, a, c, i, ty: 1 }}
+            exit ={{ o,
+  p, a, c, i, ty: 0 }}
+            transition ={{ d,
+  u, r, a, t, ion: 0.15 }}
+            class
+  Name ="fixed z -[9999]"
+            style ={{ l, e,
+  f, t: pos.x, t, o,
+  p: pos.y }}
+            on
+  MouseMove ={onMouseMove}
+            on
+  MouseUp ={onMouseUp}
           >
-            <Card className="w-96 max-h-[500px] overflow-hidden shadow-xl border-gray-800 bg-gray-900/95 backdrop-blur-md">
+            < Card class
+  Name ="w - 96 max - h -[500px] overflow - hidden shadow - xl border - gray - 800 bg - gray - 900/95 backdrop - blur-md">
               {/* Header */}
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
-                onMouseDown={onMouseDown}
+              < div class
+  Name ="p - 4 border - b border - gray - 800 flex items - center justify - between cursor - move select-none"
+                on
+  MouseDown ={onMouseDown}
               >
-                <h3 className="font-semibold text-lg">Notifications</h3>
-                <div className="flex items-center gap-2">
+                < h3 class
+  Name ="font - semibold text-lg"> Notifications </h3 >
+                < div class
+  Name ="flex items - center gap-2">
                   {notifications.length > 0 && (
-                    <Buttonsize="sm"
-                      variant="ghost"
-                      onClick={clearNotifications}
-                      className="text-xs"
+                    < Buttonsize ="sm"
+                      variant ="ghost"
+                      on
+  Click ={clearNotifications}
+                      class
+  Name ="text-xs"
                     >
-                      <Trash2 className="h-3 w-3 mr-1" />
+                      < Trash2 class
+  Name ="h - 3 w - 3 mr-1"/>
                       Clear All
-                    </Button>
+                    </Button >
                   )}
-                  <Buttonsize="icon"
-                    variant="ghost"
-                    onClick={() => setIsOpen(false)}
-                    className="h-8 w-8"
+                  < Buttonsize ="icon"
+                    variant ="ghost"
+                    on
+  Click ={() => s etIsOpen(false)}
+                    class
+  Name ="h - 8 w-8"
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                    < X class
+  Name ="h - 4 w-4"/>
+                  </Button >
+                </div >
+              </div >
 
               {/* Notifications List */}
-              <div className="overflow-y-auto max-h-[400px]">
+              < div class
+  Name ="overflow - y - auto max-h -[400px]">
                 {notifications.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No notifications yet</p>
-                  </div>
+                  < div class
+  Name ="p - 8 text - center text - muted-foreground">
+                    < Bell class
+  Name ="h - 8 w - 8 mx - auto mb - 2 opacity-50"/>
+                    < p class
+  Name ="text-sm"> No notifications yet </p >
+                  </div >
                 ) : (
-                  <div className="divide-y divide-gray-800">
-                    {notifications.slice(0, 20).map((notification, index) => (
-                      <motion.divkey={notification.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ d, elay: index * 0.05 }}
-                        className="p-4 h, over:bg-gray-800/50 transition-colors relative group"
+                  < div class
+  Name ="divide - y divide - gray-800">
+                    {notifications.s lice(0, 20).m ap((notification, index) => (
+                      < motion.divkey ={notification.id}
+                        initial ={{ o,
+  p, a, c, i, ty: 0, x: - 20 }}
+                        animate ={{ o,
+  p, a, c, i, ty: 1, x: 0 }}
+                        transition ={{ d, e,
+  l, a, y: index * 0.05 }}
+                        class
+  Name ="p - 4 h, o,
+  v, e, r:bg - gray - 800/50 transition-colors relative group"
                       >
-                        <div className="flex items-start gap-3">
-                          {getIcon(notification.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm">
+                        < div class
+  Name ="flex items - start gap-3">
+                          {g etIcon(notification.type)}
+                          < div class
+  Name ="flex - 1 min - w-0">
+                            < p class
+  Name ="font - medium text-sm">
                               {notification.title}
-                            </p>
+                            </p >
                             {notification.message && (
-                              <p className="text-xs text-muted-foreground mt-1">
+                              < p class
+  Name ="text - xs text - muted - foreground mt-1">
                                 {notification.message}
-                              </p>
+                              </p >
                             )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {formatTime(notification.timestamp)}
-                            </p>
-                          </div>
-                          <Buttonsize="icon"
-                            variant="ghost"
-                            onClick={() => removeNotification(notification.id)}
-                            className="h-6 w-6 opacity-0 group-h, over:opacity-100 transition-opacity"
+                            < p class
+  Name ="text - xs text - muted - foreground mt-2">
+                              {f ormatTime(notification.timestamp)}
+                            </p >
+                          </div >
+                          < Buttonsize ="icon"
+                            variant ="ghost"
+                            on
+  Click ={() => r emoveNotification(notification.id)}
+                            class
+  Name ="h - 6 w - 6 opacity - 0 group - h, o,
+  v, e, r:opacity - 100 transition-opacity"
                           >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </motion.div>
+                            < X class
+  Name ="h - 3 w-3"/>
+                          </Button >
+                        </div >
+                      </motion.div >
                     ))}
-                  </div>
+                  </div >
                 )}
-              </div>
-            </Card>
-          </motion.div>
+              </div >
+            </Card >
+          </motion.div >
         )}
-      </AnimatePresence>
-    </div>
+      </AnimatePresence >
+    </div >
   )
 }

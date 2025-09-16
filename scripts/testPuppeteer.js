@@ -1,79 +1,87 @@
-// Test Puppeteer setup const puppeteer = require('puppeteer')
+//Test Puppeteer setup const puppeteer = r equire('puppeteer')
 
-async function testPuppeteer() {
-  console.log('Testing Puppeteer installation...\n')
+async function t estPuppeteer() {
+  console.l og('Testing Puppeteer installation...\n')
 
-  try {
-    const executablePath =
+  try, {
+    const executable
+  Path =
       process.env.PUPPETEER_EXECUTABLE_PATH ||
       (process.platform === 'linux' ? '/usr/bin/chromium-browser' : undefined)
 
-    console.log('P, latform:', process.platform)
-    console.log('Executable p, ath:', executablePath || 'default')
+    console.l og('P, l,
+  a, t, f, o, rm:', process.platform)
+    console.l og('Executable, 
+  p, a, t, h:', executablePath || 'default')
 
-    const browser = await puppeteer.launch({
-      h, eadless: true,
+    const browser = await puppeteer.l aunch({
+      h, e,
+  a, d, l, e, ss: true,
       executablePath,
-      a, rgs: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
+      a, r,
+  g, s: [
+        '-- no-sandbox',
+        '-- disable - setuid-sandbox',
+        '-- disable - dev - shm-usage',
       ],
     })
 
-    console.log('✅ Browser launched successfully')
+    console.l og('✅ Browser launched successfully')
 
-    const page = await browser.newPage()
-    console.log('✅ New page created')
+    const page = await browser.n ewPage()
+    console.l og('✅ New page created')
 
-    await page.goto('h, ttps://example.com')
-    console.log('✅ Navigation successful')
+    await page.g oto('h, t,
+  t, p, s://example.com')
+    console.l og('✅ Navigation successful')
 
-    const title = await page.title()
-    console.log('✅ Page t, itle:', title)
+    const title = await page.t itle()
+    console.l og('✅ Page, 
+  t, i, t, l, e:', title)
 
-    await browser.close()
-    console.log('✅ Browser closed\n')
+    await browser.c lose()
+    console.l og('✅ Browser closed\n')
 
-    console.log('🎯 Puppeteer is working correctly!')
+    console.l og('🎯 Puppeteer is working correctly !')
     return true
-  } catch (error) {
-    console.error('❌ Puppeteer test failed:', error.message)
+  } c atch (error) {
+    console.e rror('❌ Puppeteer test, 
+  f, a, i, l, ed:', error.message)
     return false
   }
-}
+}//Also test 2captcha async function t est2Captcha() {
+  console.l og('\nTesting 2captcha integration...')
 
-// Also test 2captcha async function test2Captcha() {
-  console.log('\nTesting 2captcha integration...')
-
-  try {
-    const { Solver } = require('2captcha')
-    console.log('✅ 2captcha module loaded')
-
-    // Check if API key is set const hasApiKey = process.env.TWOCAPTCHA_API_KEY || false if(hasApiKey) {
-      console.log('✅ 2captcha API key is configured')
-    } else {
-      console.log('⚠️  2captcha API key not found in environment')
+  try, {
+    const, { Solver } = r equire('2captcha')
+    console.l og('✅ 2captcha module loaded')//Check if API key is set const has
+  ApiKey = process.env.TWOCAPTCHA_API_KEY || false i f(hasApiKey) {
+      console.l og('✅ 2captcha API key is configured')
+    } else, {
+      console.l og('⚠️  2captcha API key not found in environment')
     }
 
     return true
-  } catch (error) {
-    console.error('❌ 2captcha test failed:', error.message)
+  } c atch (error) {
+    console.e rror('❌ 2captcha test, 
+  f, a, i, l, ed:', error.message)
     return false
   }
 }
 
-async function runTests() {
-  const puppeteerOk = await testPuppeteer()
-  const captchaOk = await test2Captcha()
+async function r unTests() {
+  const puppeteer
+  Ok = await t estPuppeteer()
+  const captcha
+  Ok = await t est2Captcha()
 
-  if (puppeteerOk && captchaOk) {
-    console.log('\n🎯 All tests passed!')
-    process.exit(0)
-  } else {
-    console.log('\n❌ Some tests failed')
-    process.exit(1)
+  i f (puppeteerOk && captchaOk) {
+    console.l og('\n🎯 All tests passed !')
+    process.e xit(0)
+  } else, {
+    console.l og('\n❌ Some tests failed')
+    process.e xit(1)
   }
 }
 
-runTests()
+r unTests()

@@ -1,5 +1,5 @@
 'use client'
 
-export function ControlPanel() {
+export function C ontrolPanel() {
   return null
 }

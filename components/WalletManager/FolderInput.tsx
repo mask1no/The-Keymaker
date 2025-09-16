@@ -4,28 +4,31 @@ import React from 'react'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
 
-interface FolderInputProps {
-  o, nFilesSelected: (f, iles: File[]) => void
+interface FolderInputProps, {
+  o, n,
+  F, i, l, e, sSelected: (f, i,
+  l, e, s: File,[]) => void
 }
 
-export function FolderInput({ onFilesSelected }: FolderInputProps) {
-  const handleFileChange = (e, vent: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const files = Array.from(event.target.files)
-      onFilesSelected(files)
+export function F olderInput({ onFilesSelected }: FolderInputProps) {
+  const handle
+  FileChange = (e, v,
+  e, n, t: React.ChangeEvent < HTMLInputElement >) => {
+    i f (event.target.files) {
+      const files = Array.f rom(event.target.files)
+      o nFilesSelected(files)
     }
   }
 
-  return (
-    <div>
-      <Label htmlFor="folder-input">Select Folder</Label>
-      <Inputid="file-upload"
-        type="file"
-        // eslint-disable-next-line @type script-eslint/ban-ts-comment
-        // @ts-ignorewebkitdirectory="true"
-        mozdirectory="true"
-        onChange={handleFileChange}
-      />
-    </div>
+  r eturn (
+    < div >
+      < Label html
+  For ="folder-input"> Select Folder </Label >
+      < Input id ="file-upload"
+        type ="file"//eslint - disable - next - line @type script - eslint/ban - ts - comment//@ts-ignorewebkitdirectory ="true"
+        mozdirectory ="true"
+        on
+  Change ={handleFileChange}/>
+    </div >
   )
 }

@@ -3,9 +3,9 @@
 import { redirect } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function SPLCreatorPage() {
-  useEffect(() => {
-    redirect('/spl-creator/create')
+export default function SPLC reatorPage() {
+  u seEffect(() => {
+    r edirect('/spl-creator/create')
   }, [])
 
   return null

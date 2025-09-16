@@ -22,55 +22,68 @@ import {
 } from '@/components/UI/select'
 import { Settings } from 'lucide-react'
 
-export function BundleSettings() {
-  const [jitoRegion, setJitoRegion] = useState('ffm')
-  const [jitoTip, setJitoTip] = useState(0.0001)
+export function B undleSettings() {
+  const, [jitoRegion, setJitoRegion] = u seState('ffm')
+  const, [jitoTip, setJitoTip] = u seState(0.0001)
 
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <Settings className="mr-2 h-4 w-4" />
+  r eturn (
+    < Sheet >
+      < SheetTrigger asChild >
+        < Button variant ="outline" class
+  Name ="w-full">
+          < Settings class
+  Name ="mr - 2 h - 4 w-4"/>
           Bundle Settings
-        </Button>
-      </SheetTrigger>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Bundle Settings</SheetTitle>
-          <SheetDescription>
+        </Button >
+      </SheetTrigger >
+      < SheetContent >
+        < SheetHeader >
+          < SheetTitle > Bundle Settings </SheetTitle >
+          < SheetDescription >
             Configure global settings for your bundle execution.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jito-region" className="text-right">
+          </SheetDescription >
+        </SheetHeader >
+        < div class
+  Name ="grid gap - 4 py-4">
+          < div class
+  Name ="grid grid - cols - 4 items - center gap-4">
+            < Label html
+  For ="jito-region" class
+  Name ="text-right">
               Jito Region
-            </Label>
-            <Select defaultValue={jitoRegion} onValueChange={setJitoRegion}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ffm">Frankfurt</SelectItem>
-                <SelectItem value="ny">New York</SelectItem>
-                <SelectItem value="ams">Amsterdam</SelectItem>
-                <SelectItem value="tokyo">Tokyo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jito-tip" className="text-right">
-              Jito Tip (SOL)
-            </Label>
-            <Inputid="jito-tip"
-              type="number"
-              value={jitoTip}
-              onChange={(e) => setJitoTip(parseFloat(e.target.value))}
-              className="col-span-3"
-            />
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+            </Label >
+            < Select default
+  Value ={jitoRegion} on
+  ValueChange ={setJitoRegion}>
+              < SelectTrigger class
+  Name ="col - span-3">
+                < SelectValue placeholder ="Select a region"/>
+              </SelectTrigger >
+              < SelectContent >
+                < SelectItem value ="ffm"> Frankfurt </SelectItem >
+                < SelectItem value ="ny"> New York </SelectItem >
+                < SelectItem value ="ams"> Amsterdam </SelectItem >
+                < SelectItem value ="tokyo"> Tokyo </SelectItem >
+              </SelectContent >
+            </Select >
+          </div >
+          < div class
+  Name ="grid grid - cols - 4 items - center gap-4">
+            < Label html
+  For ="jito-tip" class
+  Name ="text-right">
+              Jito T ip (SOL)
+            </Label >
+            < Input id ="jito-tip"
+              type ="number"
+              value ={jitoTip}
+              on
+  Change ={(e) => s etJitoTip(p arseFloat(e.target.value))}
+              class
+  Name ="col - span-3"/>
+          </div >
+        </div >
+      </SheetContent >
+    </Sheet >
   )
 }

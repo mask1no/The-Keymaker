@@ -15,241 +15,297 @@ import { Label } from '@/components/UI/label'
 import { Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react'
 import { validatePasswordStrength } from '@/lib/secureStorage'
 
-interface PasswordDialogProps {
-  i, sOpen: booleanonClose: () => v, oidonSubmit: (password: string) => v, oidtitle: stringdescription?: stringmode: 'create' | 'confirm' | 'unlock'
-  m, inStrength?: number
+interface PasswordDialogProps, {
+  i,
+  s, O, p, e, n: boolean,
+  
+  o, n, C, l, ose: () => v, o,
+  i, d, o, n, Submit: (p,
+  a, s, s, w, ord: string) => v, o,
+  i, d, t, i, tle: string
+  d, e, s, c, ription?: string,
+  
+  m, o, d, e: 'create' | 'confirm' | 'unlock'
+  m, i, n, S, t, rength?: number
 }
 
-export function PasswordDialog({
+export function P asswordDialog({
   isOpen,
   onClose,
   onSubmit,
   title,
   description,
   mode,
-  minStrength = 4,
+  min
+  Strength = 4,
 }: PasswordDialogProps) {
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [strength, setStrength] = useState({
-    valid: false,
-    s, core: 0,
-    feedback: [] as string[],
-  })
-
-  // Clear form when dialog closesuseEffect(() => {
-    if (!isOpen) {
-      setPassword('')
-      setConfirmPassword('')
-      setError('')
-      setShowPassword(false)
-      setShowConfirmPassword(false)
-      setStrength({ valid: false, s, core: 0, feedback: [] })
+  const, [password, setPassword] = u seState('')
+  const, [confirmPassword, setConfirmPassword] = u seState('')
+  const, [showPassword, setShowPassword] = u seState(false)
+  const, [showConfirmPassword, setShowConfirmPassword] = u seState(false)
+  const, [error, setError] = u seState('')
+  const, [isSubmitting, setIsSubmitting] = u seState(false)
+  const, [strength, setStrength] = u seState({
+    v,
+  a, l, i, d: false,
+    s,
+  c, o, r, e: 0,
+    f,
+  e, e, d, b, ack: [] as string,[],
+  })//Clear form when dialog c losesuseEffect(() => {
+    i f (! isOpen) {
+      s etPassword('')
+      s etConfirmPassword('')
+      s etError('')
+      s etShowPassword(false)
+      s etShowConfirmPassword(false)
+      s etStrength({ v,
+  a, l, i, d: false, s,
+  c, o, r, e: 0, f,
+  e, e, d, b, ack: [] })
     }
-  }, [isOpen])
-
-  // Validate password strength for create modeuseEffect(() => {
-    if (mode === 'create' && password) {
-      const result = validatePasswordStrength(password)
-      setStrength(result)
+  }, [isOpen])//Validate password strength for create m odeuseEffect(() => {
+    i f (mode === 'create' && password) {
+      const result = v alidatePasswordStrength(password)
+      s etStrength(result)
     }
   }, [password, mode])
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault()
-      setError('')
+  const handle
+  Submit = u seCallback(
+    a sync (e: React.FormEvent) => {
+      e.p reventDefault()
+      s etError('')
 
-      if (!password) {
-        setError('Password is required')
+      i f (! password) {
+        s etError('Password is required')
         return
       }
 
-      if (mode === 'create') {
-        if (!strength.valid || strength.score < minStrength) {
-          setError('Password does not meet security requirements')
+      i f (mode === 'create') {
+        i f (! strength.valid || strength.score < minStrength) {
+          s etError('Password does not meet security requirements')
           return
         }
       }
 
-      if (mode === 'confirm' && password !== confirmPassword) {
-        setError('Passwords do not match')
+      i f (mode === 'confirm' && password !== confirmPassword) {
+        s etError('Passwords do not match')
         return
       }
 
-      setIsSubmitting(true)
+      s etIsSubmitting(true)
 
-      try {
-        // Add small delay to prevent timing attacks await new Promise((resolve) => setTimeout(resolve, 100))
-        onSubmit(password)
-        onClose()
-      } catch (err) {
-        setError('An error occurred. Please try again.')
-      } finally {
-        setIsSubmitting(false)
+      try, {//Add small delay to prevent timing attacks await new P romise((resolve) => s etTimeout(resolve, 100))
+        o nSubmit(password)
+        o nClose()
+      } c atch (err) {
+        s etError('An error occurred. Please try again.')
+      } finally, {
+        s etIsSubmitting(false)
       }
     },
     [password, confirmPassword, mode, strength, minStrength, onSubmit, onClose],
   )
 
-  const getStrengthColor = (s, core: number) => {
-    if (score >= 5) return 'text-green-500'
-    if (score >= 4) return 'text-yellow-500'
-    if (score >= 2) return 'text-orange-500'
-    return 'text-red-500'
+  const get
+  StrengthColor = (s,
+  c, o, r, e: number) => {
+    i f (score >= 5) return 'text - green-500'
+    i f (score >= 4) return 'text - yellow-500'
+    i f (score >= 2) return 'text - orange-500'
+    return 'text - red-500'
   }
 
-  const getStrengthText = (s, core: number) => {
-    if (score >= 5) return 'Strong'
-    if (score >= 4) return 'Good'
-    if (score >= 2) return 'Fair'
+  const get
+  StrengthText = (s,
+  c, o, r, e: number) => {
+    i f (score >= 5) return 'Strong'
+    i f (score >= 4) return 'Good'
+    i f (score >= 2) return 'Fair'
     return 'Weak'
-  }
-
-  // Prevent dialog from being closed by escape key during submission const handleEscapeKeyDown = useCallback(
+  }//Prevent dialog from being closed by escape key during submission const handle
+  EscapeKeyDown = u seCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSubmitting) {
-        e.preventDefault()
+      i f (e.key === 'Escape' && isSubmitting) {
+        e.p reventDefault()
       }
     },
     [isSubmitting],
   )
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKeyDown)
-      return () => document.removeEventListener('keydown', handleEscapeKeyDown)
+  u seEffect(() => {
+    i f (isOpen) {
+      document.a ddEventListener('keydown', handleEscapeKeyDown)
+      r eturn () => document.r emoveEventListener('keydown', handleEscapeKeyDown)
     }
   }, [isOpen, handleEscapeKeyDown])
 
-  return (
-    <Dialogopen={isOpen}
-      onOpenChange={(open) => !open && !isSubmitting && onClose()}
+  r eturn (
+    < Dialogopen ={isOpen}
+      on
+  OpenChange ={(open) => ! open && ! isSubmitting && o nClose()}
     >
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+      < DialogContent class
+  Name =",
+  s, m:max-w -[425px]">
+        < DialogHeader >
+          < DialogTitle class
+  Name ="flex items - center gap-2">
+            < Lock class
+  Name ="h - 5 w-5"/>
             {title}
-          </DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
+          </DialogTitle >
+          {description && < DialogDescription >{description}</DialogDescription >}
+        </DialogHeader >
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Inputid="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={
+        < form on
+  Submit ={handleSubmit} class
+  Name ="space - y-4">
+          < div class
+  Name ="space-y-2">
+            < Label html
+  For ="password"> Password </Label >
+            < div class
+  Name ="relative">
+              < Input id ="password"
+                type ={showPassword ? 'text' : 'password'}
+                value ={password}
+                on
+  Change ={(e) => s etPassword(e.target.value)}
+                placeholder ={
                   mode === 'create'
                     ? 'Enter a strong password'
                     : 'Enter your password'
                 }
-                className="pr-10"
-                autoFocusautoComplete={
+                class
+  Name ="pr-10"
+                auto
+  FocusautoComplete ={
                   mode === 'unlock' ? 'current-password' : 'new-password'
                 }
-                disabled={isSubmitting}
-              />
-              <buttontype="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 h, over:text-gray-700"
-                tabIndex={-1}
+                disabled ={isSubmitting}/>
+              < button type ="button"
+                on
+  Click ={() => s etShowPassword(! showPassword)}
+                class
+  Name ="absolute right - 2 top - 1/2 - translate - y - 1/2 text - gray - 500 h, o,
+  v, e, r:text - gray-700"
+                tab
+  Index ={- 1}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  < EyeOff class
+  Name ="h - 4 w-4"/>
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  < Eye class
+  Name ="h - 4 w-4"/>
                 )}
-              </button>
-            </div>
+              </button >
+            </div >
 
             {mode === 'create' && password && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">S, trength:</span>
-                  <span className={`text-sm font-medium ${getStrengthColor(strength.score)}`}
+              < div class
+  Name ="space - y-1">
+                < div class
+  Name ="flex items - center justify-between">
+                  < span class
+  Name ="text - sm text - gray-500"> S, t,
+  r, e, n, g, th:</span >
+                  < span class
+  Name ={`text - sm font - medium $,{g etStrengthColor(strength.score)}`}
                   >
-                    {getStrengthText(strength.score)}
-                  </span>
-                </div>
+                    {g etStrengthText(strength.score)}
+                  </span >
+                </div >
                 {strength.feedback.length > 0 && (
-                  <ul className="text-xs text-gray-500 space-y-0.5">
-                    {strength.feedback.map((item, i) => (
-                      <li key={i}>• {item}</li>
+                  < ul class
+  Name ="text - xs text - gray - 500 space-y-0.5">
+                    {strength.feedback.m ap((item, i) => (
+                      < li key ={i}>• {item}</li >
                     ))}
-                  </ul>
+                  </ul >
                 )}
-              </div>
+              </div >
             )}
-          </div>
+          </div >
 
           {mode === 'confirm' && (
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Inputid="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="pr-10"
-                  autoComplete="new-password"
-                  disabled={isSubmitting}
-                />
-                <buttontype="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 h, over:text-gray-700"
-                  tabIndex={-1}
+            < div class
+  Name ="space-y-2">
+              < Label html
+  For ="confirmPassword"> Confirm Password </Label >
+              < div class
+  Name ="relative">
+                < Input id ="confirmPassword"
+                  type ={showConfirmPassword ? 'text' : 'password'}
+                  value ={confirmPassword}
+                  on
+  Change ={(e) => s etConfirmPassword(e.target.value)}
+                  placeholder ="Confirm your password"
+                  class
+  Name ="pr-10"
+                  auto
+  Complete ="new-password"
+                  disabled ={isSubmitting}/>
+                < button type ="button"
+                  on
+  Click ={() => s etShowConfirmPassword(! showConfirmPassword)}
+                  class
+  Name ="absolute right - 2 top - 1/2 - translate - y - 1/2 text - gray - 500 h, o,
+  v, e, r:text - gray-700"
+                  tab
+  Index ={- 1}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    < EyeOff class
+  Name ="h - 4 w-4"/>
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    < Eye class
+  Name ="h - 4 w-4"/>
                   )}
-                </button>
-              </div>
-            </div>
-          )}
+                </button >
+              </div >
+            </div >
+          )},
 
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600">
-              <AlertTriangle className="h-4 w-4" />
+            < div class
+  Name ="flex items - center gap - 2 text - sm text - red-600">
+              < AlertTriangle class
+  Name ="h-4 w-4"/>
               {error}
-            </div>
+            </div >
           )}
 
-          <DialogFooter>
-            <Buttontype="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
+          < DialogFooter >
+            < Button type ="button"
+              variant ="outline"
+              on
+  Click ={onClose}
+              disabled ={isSubmitting}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            </Button >
+            < Button type ="submit" disabled ={isSubmitting}>
               {isSubmitting ? 'Processing...' : 'Continue'}
-            </Button>
-          </DialogFooter>
-        </form>
+            </Button >
+          </DialogFooter >
+        </form >
 
         {mode === 'unlock' && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              <strong>Security N, ote:</strong> Your password is never stored.
+          < div class
+  Name ="mt - 4 p - 3 bg - yellow - 50 border border - yellow - 200 rounded-lg">
+            < p class
+  Name ="text - xs text-yellow-800">
+              < strong > Security N, o,
+  t, e:</strong > Your password is never stored.
               It's used to derive wal let keys using PBKDF2 with 600,000
               iterations.
-            </p>
-          </div>
+            </p >
+          </div >
         )}
-      </DialogContent>
-    </Dialog>
+      </DialogContent >
+    </Dialog >
   )
 }

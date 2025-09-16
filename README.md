@@ -1,8 +1,8 @@
 # The Keymaker - Solana Bundler
 
-![Solana](h, ttps://img.shields.io/badge/Solana-Mainnet-blue)
-![License](h, ttps://img.shields.io/badge/license-MIT-green)
-![Version](h, ttps://img.shields.io/badge/version-1.5.2-orange)
+![Solana](h, t, t, p, s://img.shields.io/badge/Solana-Mainnet-blue)
+![License](h, t, t, p, s://img.shields.io/badge/license-MIT-green)
+![Version](h, t, t, p, s://img.shields.io/badge/version-1.5.2-orange)
 
 ## Overview
 
@@ -27,6 +27,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 ## Core Features
 
 ### Bundle Execution
+
 - Jito Block Engine integration with tip floor API
 - Bundle submission with status polling
 - Transaction simulation before execution
@@ -34,11 +35,13 @@ The Keymaker is a Solana bundler application for executing transactions through 
 - Automatic tip validation on last transaction
 
 ### Wal let Integration
+
 - Phantom, Backpack, and Solflare wal let adapters
 - Login gate protecting all routes
 - Client-side transaction signing only
 
 ### API Endpoints
+
 - `/api/jito/tipfloor` - Get current tip floor data
 - `/api/bundles/submit` - Submit bundle with polling
 - `/api/auth/nonce` - Generate nonce for signed requests
@@ -47,22 +50,25 @@ The Keymaker is a Solana bundler application for executing transactions through 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - pnpm
 - Solana wal let extension (Phantom/Backpack/Solflare)
 
 ### Environment Setup
 
-1. Copy environment t, emplate:
+1. Copy environment t, e, m, p, l, ate:
+
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC e, ndpoints:
+2. Configure your RPC e, n, d, p, o, ints:
+
 ```env
-NEXT_PUBLIC_HELIUS_RPC=h, ttps://your-helius-rpc-url
-NEXT_PUBLIC_HELIUS_WS=w, ss://your-helius-ws-url
-NEXT_PUBLIC_JITO_ENDPOINT=h, ttps://frankfurt.mainnet.block-engine.jito.wtf
+NEXT_PUBLIC_HELIUS_RPC=h, t, t, p, s://your-helius-rpc-url
+NEXT_PUBLIC_HELIUS_WS=w, s, s://your-helius-ws-url
+NEXT_PUBLIC_JITO_ENDPOINT=h, t, t, p, s://frankfurt.mainnet.block-engine.jito.wtf
 
 # Feature flags (disabled by default)
 ENABLE_PUMPFUN=false
@@ -72,30 +78,33 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install d, ependencies:
+1. Install d, e, p, e, n, dencies:
+
 ```bash
 pnpm install
 ```
 
-2. Run hygiene c, hecks:
+2. Run hygiene c, h, e, c, k, s:
+
 ```bash
-pnpm f, ix:splits && pnpm hygiene
+pnpm f, i, x:splits && pnpm hygiene
 ```
 
-3. Start development s, erver:
+3. Start development s, e, r, v, e, r:
+
 ```bash
 pnpm dev
 ```
 
-4. Open h, ttp://l, ocalhost:3000
+4. Open h, t, t, p://l, o, c, a, l, host:3000
 
 ### Verification Checklist
 
-After setup, verify these w, ork:
+After setup, verify these w, o, r, k:
 
 - [ ] Header "Login" button opens wal let modal
 - [ ] Login gate shows on protected routes
-- [ ] Sidebar status chips s, how: RPC / WebSocket / JITO / MAINNET
+- [ ] Sidebar status chips s, h, o, w: RPC / WebSocket / JITO / MAINNET
 - [ ] `/api/jito/tipfloor` returns `{p25, p50, p75, ema_50th}`
 - [ ] Bundle "Preview" simulates successfully
 - [ ] Bundle "Execute" returns `{bundle_id, signatures, slot}`
@@ -103,11 +112,11 @@ After setup, verify these w, ork:
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix c, orruption:
+The codebase includes automated hygiene scripts to fix c, o, r, r, u, ption:
 
 ```bash
 # Fix split identifiers and merged statements
-pnpm f, ix:splits
+pnpm f, i, x:splits
 
 # Verify no corruption remains
 pnpm hygiene
@@ -120,18 +129,21 @@ pnpm lint --fix
 ## Architecture
 
 ### Client-Side
+
 - Next.js 14 with TypeScript
 - Solana wal let adapters for signing
 - Tailwind CSS with shadcn/ui components
 - Local storage for encrypted wal let data
 
 ### Server-Side
+
 - Next.js API routes
 - Jito Block Engine integration
 - SQLite for basic data storage
 - Rate limiting and security headers
 
 ### Security
+
 - CSP headers with no unsafe-inline
 - HSTS and security headers
 - Client-side signing only
@@ -141,6 +153,7 @@ pnpm lint --fix
 ## API Reference
 
 ### Bundle Submission
+
 ```typescript
 POST /api/bundles/submit
 {
@@ -153,11 +166,12 @@ POST /api/bundles/submit
 ```
 
 ### Tip Floor
+
 ```typescript
 GET /api/jito/tipfloor?region=ffm
 {
   "p25": 1000,
-  "p50": 2000, 
+  "p50": 2000,
   "p75": 3000,
   "ema_50th": 2500,
   "region": "ffm"
@@ -167,17 +181,19 @@ GET /api/jito/tipfloor?region=ffm
 ## Development
 
 ### Scripts
+
 ```bash
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm test         # Run unit tests
-pnpm t, est:e2e     # Run E2E tests
+pnpm t, e, s, t:e2e     # Run E2E tests
 pnpm lint         # Lint code
 pnpm format       # Format code
 pnpm hygiene      # Check code hygiene
 ```
 
 ### Testing
+
 - Unit tests with Vitest
 - E2E tests with Playwright
 - API endpoint testing
@@ -186,6 +202,7 @@ pnpm hygiene      # Check code hygiene
 ## Limitations
 
 ### Current Scope
+
 - Basic bundle submission only
 - No advanced MEV strategies
 - SQLite for development (not production-scale)
@@ -193,6 +210,7 @@ pnpm hygiene      # Check code hygiene
 - No automatic tip optimization beyond floor
 
 ### Not Included
+
 - Local validator support
 - Standalone bundler CLI
 - Advanced trading strategies
@@ -202,20 +220,20 @@ pnpm hygiene      # Check code hygiene
 
 ## Failure Handling
 
-| Scenario | Behavior |
-|----------|----------|
-| RPC Failure | Error returned, no retry |
-| Jito Failure | Error returned, manual retry |
-| WebSocket Failure | Status shows disconnected |
-| Bundle Timeout | Returns bundle_id with timeout status |
-| Invalid Tip | Validation error before submission |
+| Scenario          | Behavior                              |
+| ----------------- | ------------------------------------- |
+| RPC Failure       | Error returned, no retry              |
+| Jito Failure      | Error returned, manual retry          |
+| WebSocket Failure | Status shows disconnected             |
+| Bundle Timeout    | Returns bundle_id with timeout status |
+| Invalid Tip       | Validation error before submission    |
 
 ## SLO Targets
 
-- Bundle s, ubmission: < 2s response time
-- Tip floor l, ookup: < 1s response time  
-- UI r, esponsiveness: < 100ms interactions
-- U, ptime: Best effort (no SLA)
+- Bundle s, u, b, m, i, ssion: < 2s response time
+- Tip floor l, o, o, k, u, p: < 1s response time
+- UI r, e, s, p, o, nsiveness: < 100ms interactions
+- U, p, t, i, m, e: Best effort (no SLA)
 
 ## Contributing
 

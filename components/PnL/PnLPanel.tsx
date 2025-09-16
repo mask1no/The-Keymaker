@@ -21,278 +21,382 @@ import {
   DollarSign,
   BarChart3,
 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import toast from 'react - hot-toast'
 
-type WalletPnL = {
-  w, allet: stringtotalInvested: numbertotalReturned: numbernetPnL: numberpnlPercentage: numbertrades: numbertotalGasFees: numbertotalJitoTips: number
+type Wal let   PnL = {
+  w,
+  a, l, l, e, t: string,
+  
+  t, o, t, a, lInvested: number,
+  
+  t, o, t, a, lReturned: number,
+  
+  n, e, t, P, nL: number,
+  
+  p, n, l, P, ercentage: number,
+  
+  t, r, a, d, es: number,
+  
+  t, o, t, a, lGasFees: number,
+  
+  t, o, t, a, lJitoTips: number
 }
 
 import { toCsv, downloadCsv } from '@/lib/csv'
 
-export function PnLPanel() {
-  const [walletPnL, setWalletPnL] = useState<WalletPnL[]>([])
-  const [sessionData, setSessionData] = useState({
-    t, otalPnL: 0,
-    p, nlPercentage: 0,
-    t, otalVolume: 0,
-    p, rofitableWallets: 0,
-    t, otalWallets: 0,
+export function P nLPanel() {
+  const, [walletPnL, setWalletPnL] = useState < WalletPnL,[]>([])
+  const, [sessionData, setSessionData] = u seState({
+    t, o,
+  t, a, l, P, nL: 0,
+    p, n,
+  l, P, e, r, centage: 0,
+    t, o,
+  t, a, l, V, olume: 0,
+    p, r,
+  o, f, i, t, ableWallets: 0,
+    t, o,
+  t, a, l, W, allets: 0,
   })
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const, [loading, setLoading] = u seState(true)
+  const, [refreshing, setRefreshing] = u seState(false)
 
-  const loadPnLData = async () => {
-    try {
-      setRefreshing(true)
-      const res = await fetch('/api/pnl', { c, ache: 'no-store' })
-      if (!res.ok) throw new Error('Failed to fetch PnL')
-      const { wallets, session } = await res.json()
+  const load
+  PnLData = a sync () => {
+    try, {
+      s etRefreshing(true)
+      const res = await f etch('/api/pnl', { c,
+  a, c, h, e: 'no-store' })
+      i f (! res.ok) throw new E rror('Failed to fetch PnL')
+      const, { wallets, session } = await res.j son()
 
-      setWalletPnL(
-        wallets.sort(
-          (a: { n, etPnL: number }, b: { n, etPnL: number }) => b.netPnL - a.netPnL,
+      s etWalletPnL(
+        wallets.s ort(
+          (a: { n, e,
+  t, P, n, L: number }, b: { n, e,
+  t, P, n, L: number }) => b.netPnL-a.netPnL,
         ),
       )
-      setSessionData(session)
-    } catch (error) {
-      toast.error('Failed to load P&L data')
-      console.error('PnL loading error:', error)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
+      s etSessionData(session)
+    } c atch (error) {
+      toast.e rror('Failed to load P&L data')
+      console.e rror('PnL loading, 
+  e, r, r, o, r:', error)
+    } finally, {
+      s etLoading(false)
+      s etRefreshing(false)
     }
   }
 
-  useEffect(() => {
-    loadPnLData()
-
-    // Auto-refresh every 30 seconds const interval = setInterval(loadPnLData, 30000)
-    return () => clearInterval(interval)
+  u seEffect(() => {
+    l oadPnLData()//Auto-refresh every 30 seconds const interval = s etInterval(loadPnLData, 30000)
+    r eturn () => c learInterval(interval)
   }, [])
 
-  const handleExport = async (f, ormat: 'json' | 'csv') => {
-    try {
-      if (format === 'json') {
-        const blob = new Blob([JSON.stringify(walletPnL, null, 2)], {
-          t, ype: 'application/json',
+  const handle
+  Export = a sync (f, o,
+  r, m, a, t: 'json' | 'csv') => {
+    try, {
+      i f (format === 'json') {
+        const blob = new B lob([JSON.s tringify(walletPnL, null, 2)], {
+          t,
+  y, p, e: 'application/json',
         })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = urla.download = `pnl-report-${Date.now()}.json`
-        a.click()
-      } else {
-        const rows = walletPnL.map((w) => ({
-          w, allet: w.wallet,
-          i, nvested: w.totalInvested.toFixed(4),
-          r, eturned: w.totalReturned.toFixed(4),
-          g, as_fees: w.totalGasFees.toFixed(4),
-          j, ito_tips: w.totalJitoTips.toFixed(4),
-          n, et_pnl: w.netPnL.toFixed(4),
-          p, nl_percent: w.pnlPercentage.toFixed(2),
-          t, rades: w.trades,
+        const url = URL.c reateObjectURL(blob)
+        const a = document.c reateElement('a')
+        a.href = urla.download = `pnl - report - $,{Date.n ow()}.json`
+        a.c lick()
+      } else, {
+        const rows = walletPnL.m ap((w) => ({
+          w,
+  a, l, l, e, t: w.wallet,
+          i, n,
+  v, e, s, t, ed: w.totalInvested.t oFixed(4),
+          r, e,
+  t, u, r, n, ed: w.totalReturned.t oFixed(4),
+          g, a,
+  s_, f, e, e, s: w.totalGasFees.t oFixed(4),
+          j, i,
+  t, o_, t, i, ps: w.totalJitoTips.t oFixed(4),
+          n, e,
+  t_, p, n, l: w.netPnL.t oFixed(4),
+          p, n,
+  l_, p, e, r, cent: w.pnlPercentage.t oFixed(2),
+          t, r,
+  a, d, e, s: w.trades,
         }))
-        const csv = toCsv(rows)
-        downloadCsv(csv, `pnl-report-${Date.now()}.csv`)
+        const csv = t oCsv(rows)
+        d ownloadCsv(csv, `pnl - report-$,{Date.n ow()}.csv`)
       }
-      toast.success('P&L data exported successfully')
-    } catch (error) {
-      toast.error('Failed to export P&L data')
+      toast.s uccess('P&L data exported successfully')
+    } c atch (error) {
+      toast.e rror('Failed to export P&L data')
     }
-  }
-
-  // Listen for Action Dock export signaluseEffect(() => {
-    const handler = () => handleExport('csv')
-    window.addEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
-    return () =>
-      window.removeEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
+  }//Listen for Action Dock export s ignaluseEffect(() => {
+    const handler = () => h andleExport('csv')
+    window.a ddEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
+    r eturn () =>
+      window.r emoveEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
   }, [walletPnL])
 
-  const formatSOL = (amount: number) => {
-    const formatted = amount.toFixed(4)
-    return amount >= 0 ? `+${formatted}` : formatted
+  const format
+  SOL = (a,
+  m, o, u, n, t: number) => {
+    const formatted = amount.t oFixed(4)
+    return amount >= 0 ? `+ $,{formatted}` : formatted
   }
 
-  const formatPercentage = (p, ercentage: number) => {
-    const formatted = percentage.toFixed(2)
-    return percentage >= 0 ? `+${formatted}%` : `${formatted}%`
+  const format
+  Percentage = (p, e,
+  r, c, e, n, tage: number) => {
+    const formatted = percentage.t oFixed(2)
+    return percentage >= 0 ? `+ $,{formatted}%` : `$,{formatted}%`
   }
 
-  const getColorClass = (value: number) => {
+  const get
+  ColorClass = (v,
+  a, l, u, e: number) => {
     return value >= 0 ? 'text-primary' : 'text-destructive'
   }
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+  r eturn (
+    < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+      animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+      class
+  Name ="space - y-6"
     >
       {/* Session Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-card border-border rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-5 h-5 text-muted" />
-              <Badgevariant="outline"
-                className={getColorClass(sessionData.totalPnL)}
+      < div class
+  Name ="grid grid - cols - 1, 
+  m, d:grid - cols - 2, 
+  l, g:grid - cols - 5 gap-4">
+        < Card class
+  Name ="bg - card border - border rounded-2xl">
+          < CardContent class
+  Name ="p-6">
+            < div class
+  Name ="flex items - center justify - between mb-2">
+              < DollarSign class
+  Name ="w - 5 h - 5 text-muted"/>
+              < Badgevariant ="outline"
+                class
+  Name ={g etColorClass(sessionData.totalPnL)}
               >
                 24h
-              </Badge>
-            </div>
-            <h3
-              className={`text-2xl font-bold ${getColorClass(sessionData.totalPnL)}`}
+              </Badge >
+            </div >
+            < h3
+              class
+  Name ={`text - 2xl font-bold $,{g etColorClass(sessionData.totalPnL)}`}
             >
-              {formatSOL(sessionData.totalPnL)} SOL
-            </h3>
-            <p className="text-sm text-muted">Session P&L</p>
-          </CardContent>
-        </Card>
+              {f ormatSOL(sessionData.totalPnL)} SOL
+            </h3 >
+            < p class
+  Name ="text - sm text - muted"> Session P&L </p >
+          </CardContent >
+        </Card >
 
-        <Card className="bg-card border-border rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
+        < Card class
+  Name ="bg - card border - border rounded-2xl">
+          < CardContent class
+  Name ="p-6">
+            < div class
+  Name ="flex items - center justify - between mb-2">
               {sessionData.pnlPercentage >= 0 ? (
-                <TrendingUp className="w-5 h-5 text-primary" />
+                < TrendingUp class
+  Name ="w - 5 h - 5 text-primary"/>
               ) : (
-                <TrendingDown className="w-5 h-5 text-destructive" />
+                < TrendingDown class
+  Name ="w - 5 h - 5 text-destructive"/>
               )}
-            </div>
-            <h3
-              className={`text-2xl font-bold ${getColorClass(sessionData.pnlPercentage)}`}
+            </div >
+            < h3
+              class
+  Name ={`text - 2xl font - bold $,{g etColorClass(sessionData.pnlPercentage)}`}
             >
-              {formatPercentage(sessionData.pnlPercentage)}
-            </h3>
-            <p className="text-sm text-muted">Return %</p>
-          </CardContent>
-        </Card>
+              {f ormatPercentage(sessionData.pnlPercentage)}
+            </h3 >
+            < p class
+  Name ="text - sm text-muted"> Return %</p >
+          </CardContent >
+        </Card >
 
-        <Card className="bg-card border-border rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <BarChart3 className="w-5 h-5 text-muted" />
-            </div>
-            <h3 className="text-2xl font-bold">
-              {sessionData.totalVolume.toFixed(2)} SOL
-            </h3>
-            <p className="text-sm text-muted">Total Volume</p>
-          </CardContent>
-        </Card>
+        < Card class
+  Name ="bg - card border - border rounded-2xl">
+          < CardContent class
+  Name ="p-6">
+            < div class
+  Name ="flex items - center justify - between mb-2">
+              < BarChart3 class
+  Name ="w - 5 h - 5 text-muted"/>
+            </div >
+            < h3 class
+  Name ="text - 2xl font-bold">
+              {sessionData.totalVolume.t oFixed(2)} SOL
+            </h3 >
+            < p class
+  Name ="text - sm text-muted"> Total Volume </p >
+          </CardContent >
+        </Card >
 
-        <Card className="bg-card border-border rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold text-primary">
+        < Card class
+  Name ="bg - card border - border rounded-2xl">
+          < CardContent class
+  Name ="p-6">
+            < div class
+  Name ="flex items - center justify - between mb-2">
+              < TrendingUp class
+  Name ="w - 5 h - 5 text-primary"/>
+            </div >
+            < h3 class
+  Name ="text - 2xl font - bold text-primary">
               {sessionData.profitableWallets}
-            </h3>
-            <p className="text-sm text-muted">Profitable Wallets</p>
-          </CardContent>
-        </Card>
+            </h3 >
+            < p class
+  Name ="text - sm text-muted"> Profitable Wallets </p >
+          </CardContent >
+        </Card >
 
-        <Card className="bg-card border-border rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-5 h-5 text-muted" />
-            </div>
-            <h3 className="text-2xl font-bold">{sessionData.totalWallets}</h3>
-            <p className="text-sm text-muted">Active Wallets</p>
-          </CardContent>
-        </Card>
-      </div>
+        < Card class
+  Name ="bg - card border - border rounded-2xl">
+          < CardContent class
+  Name ="p-6">
+            < div class
+  Name ="flex items - center justify - between mb-2">
+              < DollarSign class
+  Name ="w - 5 h - 5 text-muted"/>
+            </div >
+            < h3 class
+  Name ="text - 2xl font-bold">{sessionData.totalWallets}</h3 >
+            < p class
+  Name ="text - sm text-muted"> Active Wallets </p >
+          </CardContent >
+        </Card >
+      </div >
 
       {/* Wal let P&L Table */}
-      <Card className="bg-card border-border rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <BarChart3 className="w-6 h-6" />
+      < Card class
+  Name ="bg - card border - border rounded-2xl">
+        < CardHeader >
+          < CardTitle class
+  Name ="flex items - center justify-between">
+            < span class
+  Name ="flex items - center gap-2">
+              < BarChart3 class
+  Name ="w - 6 h-6"/>
               Wal let P&L Breakdown
-            </span>
-            <div className="flex items-center gap-2">
-              <Buttonsize="sm"
-                variant="outline"
-                onClick={() => loadPnLData()}
-                disabled={refreshing}
+            </span >
+            < div class
+  Name ="flex items - center gap-2">
+              < Buttonsize ="sm"
+                variant ="outline"
+                on
+  Click ={() => l oadPnLData()}
+                disabled ={refreshing}
               >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
-                />
-              </Button>
-              <Buttonsize="sm"
-                variant="outline"
-                onClick={() => handleExport('json')}
+                < RefreshCw class
+  Name ={`w - 4 h-4 $,{refreshing ? 'animate-spin' : ''}`}/>
+              </Button >
+              < Buttonsize ="sm"
+                variant ="outline"
+                on
+  Click ={() => h andleExport('json')}
               >
-                <Download className="w-4 h-4 mr-1" />
+                < Download class
+  Name ="w - 4 h-4 mr-1"/>
                 JSON
-              </Button>
-              <Buttonsize="sm"
-                variant="outline"
-                onClick={() => handleExport('csv')}
+              </Button >
+              < Buttonsize ="sm"
+                variant ="outline"
+                on
+  Click ={() => h andleExport('csv')}
               >
-                <Download className="w-4 h-4 mr-1" />
+                < Download class
+  Name ="w - 4 h - 4 mr-1"/>
                 CSV
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+              </Button >
+            </div >
+          </CardTitle >
+        </CardHeader >
+        < CardContent >
           {loading ? (
-            <Skeleton className="h-64 w-full" />
+            < Skeleton class
+  Name ="h - 64 w-full"/>
           ) : walletPnL.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm opacity-80">
+            < div class
+  Name ="rounded - 2xl border border - border bg - card p - 8 text - center text - sm opacity-80">
               No realized P&L yet. After trades land, totals will show up here.
-            </div>
+            </div >
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Wallet</TableHead>
-                    <TableHead className="text-right">Invested</TableHead>
-                    <TableHead className="text-right">Returned</TableHead>
-                    <TableHead className="text-right">Gas Fees</TableHead>
-                    <TableHead className="text-right">Jito Tips</TableHead>
-                    <TableHead className="text-right">Net P&L</TableHead>
-                    <TableHead className="text-right">P&L %</TableHead>
-                    <TableHead className="text-right">Trades</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {walletPnL.map((wallet) => (
-                    <TableRow key={wallet.wallet}>
-                      <TableCell className="font-mono text-xs">
-                        {wallet.wallet.slice(0, 8)}...{wallet.wallet.slice(-8)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {wallet.totalInvested.toFixed(4)} SOL
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {wallet.totalReturned.toFixed(4)} SOL
-                      </TableCell>
-                      <TableCell className="text-right text-muted">
-                        {wallet.totalGasFees.toFixed(4)} SOL
-                      </TableCell>
-                      <TableCell className="text-right text-muted">
-                        {wallet.totalJitoTips.toFixed(4)} SOL
-                      </TableCell>
-                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}
+            < div class
+  Name ="overflow - x-auto">
+              < Table >
+                < TableHeader >
+                  < TableRow >
+                    < TableHead > Wal let </TableHead >
+                    < TableHead class
+  Name ="text-right"> Invested </TableHead >
+                    < TableHead class
+  Name ="text-right"> Returned </TableHead >
+                    < TableHead class
+  Name ="text-right"> Gas Fees </TableHead >
+                    < TableHead class
+  Name ="text-right"> Jito Tips </TableHead >
+                    < TableHead class
+  Name ="text-right"> Net P&L </TableHead >
+                    < TableHead class
+  Name ="text-right"> P&L %</TableHead >
+                    < TableHead class
+  Name ="text-right"> Trades </TableHead >
+                  </TableRow >
+                </TableHeader >
+                < TableBody >
+                  {walletPnL.m ap((wallet) => (
+                    < TableRow key ={wallet.wallet}>
+                      < TableCell class
+  Name ="font - mono text-xs">
+                        {wallet.wallet.s lice(0, 8)}...{wallet.wallet.s lice(- 8)}
+                      </TableCell >
+                      < TableCell class
+  Name ="text-right">
+                        {wallet.totalInvested.t oFixed(4)} SOL
+                      </TableCell >
+                      < TableCell class
+  Name ="text-right">
+                        {wallet.totalReturned.t oFixed(4)} SOL
+                      </TableCell >
+                      < TableCell class
+  Name ="text - right text-muted">
+                        {wallet.totalGasFees.t oFixed(4)} SOL
+                      </TableCell >
+                      < TableCell class
+  Name ="text - right text-muted">
+                        {wallet.totalJitoTips.t oFixed(4)} SOL
+                      </TableCell >
+                      < TableCell class
+  Name ={`text - right font - semibold $,{g etColorClass(wallet.netPnL)}`}
                       >
-                        {formatSOL(wallet.netPnL)} SOL
-                      </TableCell>
-                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.pnlPercentage)}`}
+                        {f ormatSOL(wallet.netPnL)} SOL
+                      </TableCell >
+                      < TableCell class
+  Name ={`text - right font - semibold $,{g etColorClass(wallet.pnlPercentage)}`}
                       >
-                        {formatPercentage(wallet.pnlPercentage)}
-                      </TableCell>
-                      <TableCell className="text-right">
+                        {f ormatPercentage(wallet.pnlPercentage)}
+                      </TableCell >
+                      < TableCell class
+  Name ="text-right">
                         {wallet.trades}
-                      </TableCell>
-                    </TableRow>
+                      </TableCell >
+                    </TableRow >
                   ))}
-                </TableBody>
-              </Table>
-            </div>
+                </TableBody >
+              </Table >
+            </div >
           )}
-        </CardContent>
-      </Card>
-    </motion.div>
+        </CardContent >
+      </Card >
+    </motion.div >
   )
 }

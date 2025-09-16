@@ -25,228 +25,320 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export interface SellCondition {
-  i, d: stringtype: 'price' | 'profit' | 'loss' | 'time' | 'volume'
-  o, perator: 'above' | 'below' | 'equals'
-  value: numberunit?: stringenabled: boolean
+export interface SellCondition, {
+  i,
+  d: string,
+  
+  t, y, p, e: 'price' | 'profit' | 'loss' | 'time' | 'volume',
+  
+  o, p, e, r, ator: 'above' | 'below' | 'equals',
+  
+  v, a, l, u, e: number
+  u, n, i, t?: string,
+  
+  e, n, a, b, led: boolean
 }
 
-interface ConditionBuilderProps {
-  c, onditions: SellCondition[]
-  o, nConditionsChange: (c, onditions: SellCondition[]) => void
+interface ConditionBuilderProps, {
+  c, o,
+  n, d, i, t, ions: SellCondition,[]
+  o, n,
+  C, o, n, d, itionsChange: (c, o,
+  n, d, i, t, ions: SellCondition,[]) => void
 }
 
-const conditionTypes = [
-  { value: 'price', l, abel: 'Price', i, con: DollarSign, u, nit: 'USD' },
-  { value: 'profit', l, abel: 'Take Profit', i, con: TrendingUp, u, nit: '%' },
-  { value: 'loss', l, abel: 'Stop Loss', i, con: TrendingDown, u, nit: '%' },
-  { value: 'time', l, abel: 'Time-based', i, con: Clock, u, nit: 'minutes' },
-  { value: 'volume', l, abel: 'Volume', i, con: Activity, u, nit: 'USD' },
+const condition
+  Types = [
+  { v,
+  a, l, u, e: 'price', l, a,
+  b, e, l: 'Price', i, c,
+  o, n: DollarSign, u,
+  n, i, t: 'USD' },
+  { v,
+  a, l, u, e: 'profit', l, a,
+  b, e, l: 'Take Profit', i, c,
+  o, n: TrendingUp, u,
+  n, i, t: '%' },
+  { v,
+  a, l, u, e: 'loss', l, a,
+  b, e, l: 'Stop Loss', i, c,
+  o, n: TrendingDown, u,
+  n, i, t: '%' },
+  { v,
+  a, l, u, e: 'time', l, a,
+  b, e, l: 'Time-based', i, c,
+  o, n: Clock, u,
+  n, i, t: 'minutes' },
+  { v,
+  a, l, u, e: 'volume', l, a,
+  b, e, l: 'Volume', i, c,
+  o, n: Activity, u,
+  n, i, t: 'USD' },
 ]
 
-export function ConditionBuilder({
+export function C onditionBuilder({
   conditions,
   onConditionsChange,
 }: ConditionBuilderProps) {
-  const addCondition = () => {
-    const n, ewCondition: SellCondition = {
-      i, d: Date.now().toString(),
-      t, ype: 'profit',
-      o, perator: 'above',
-      value: 50,
-      u, nit: '%',
-      e, nabled: true,
+  const add
+  Condition = () => {
+    const n, e,
+  w, C, o, n, dition: Sell
+  Condition = {
+      i,
+  d: Date.n ow().t oString(),
+      t,
+  y, p, e: 'profit',
+      o,
+  p, e, r, a, tor: 'above',
+      v,
+  a, l, u, e: 50,
+      u,
+  n, i, t: '%',
+      e,
+  n, a, b, l, ed: true,
     }
-    onConditionsChange([...conditions, newCondition])
+    o nConditionsChange([...conditions, newCondition])
   }
 
-  const updateCondition = (i, d: string, u, pdates: Partial<SellCondition>) => {
-    onConditionsChange(
-      conditions.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+  const update
+  Condition = (i,
+  d: string, u, p,
+  d, a, t, e, s: Partial < SellCondition >) => {
+    o nConditionsChange(
+      conditions.m ap((c) => (c.id === id ? { ...c, ...updates } : c)),
     )
   }
 
-  const removeCondition = (i, d: string) => {
-    onConditionsChange(conditions.filter((c) => c.id !== id))
+  const remove
+  Condition = (i,
+  d: string) => {
+    o nConditionsChange(conditions.f ilter((c) => c.id !== id))
   }
 
-  const getConditionIcon = (t, ype: string) => {
-    const config = conditionTypes.find((t) => t.value === type)
+  const get
+  ConditionIcon = (t,
+  y, p, e: string) => {
+    const config = conditionTypes.f ind((t) => t.value === type)
     return config?.icon || DollarSign
   }
 
-  const getConditionUnit = (t, ype: string) => {
-    const config = conditionTypes.find((t) => t.value === type)
+  const get
+  ConditionUnit = (t,
+  y, p, e: string) => {
+    const config = conditionTypes.f ind((t) => t.value === type)
     return config?.unit || ''
   }
 
-  return (
-    <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Sell Conditions</span>
-          <Button onClick={addCondition} size="sm" variant="outline">
-            <Plus className="w-4 h-4 mr-1" />
+  r eturn (
+    < Card class
+  Name ="bg - black/40 backdrop - blur - xl border-aqua/20">
+      < CardHeader >
+        < CardTitle class
+  Name ="flex items - center justify-between">
+          < span > Sell Conditions </span >
+          < Button on
+  Click ={addCondition} size ="sm" variant ="outline">
+            < Plus class
+  Name ="w - 4 h - 4 mr-1"/>
             Add Condition
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <AnimatePresence>
+          </Button >
+        </CardTitle >
+      </CardHeader >
+      < CardContent >
+        < AnimatePresence >
           {conditions.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <p>No sell conditions configured</p>
-              <p className="text-sm mt-2">
+            < div class
+  Name ="text - center py - 8 text - gray-400">
+              < p > No sell conditions configured </p >
+              < p class
+  Name ="text - sm mt-2">
                 Add conditions to automate your selling strategy
-              </p>
-            </div>
+              </p >
+            </div >
           ) : (
-            <div className="space-y-4">
-              {conditions.map((condition) => {
-                const Icon = getConditionIcon(condition.type)
-                return (
-                  <motion.divkey={condition.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="border border-gray-700 rounded-lg p-4"
+            < div class
+  Name ="space - y-4">
+              {conditions.m ap((condition) => {
+                const Icon = g etConditionIcon(condition.type)
+                r eturn (
+                  < motion.divkey ={condition.id}
+                    initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+                    animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+                    exit ={{ o,
+  p, a, c, i, ty: 0, y: - 20 }}
+                    class
+  Name ="border border - gray - 700 rounded - lg p-4"
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="mt-1">
-                        <Icon className="w-5 h-5 text-aqua" />
-                      </div>
+                    < div class
+  Name ="flex items - start gap-4">
+                      < div class
+  Name ="mt-1">
+                        < Icon class
+  Name ="w - 5 h - 5 text-aqua"/>
+                      </div >
 
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                          <Label>Condition Type</Label>
-                          <Selectvalue={condition.type}
-                            onValueChange={(value: string) =>
-                              updateCondition(condition.id, {
-                                t, ype: value as
+                      < div class
+  Name ="flex - 1 grid grid - cols - 1, 
+  m, d:grid - cols-4 gap-4">
+                        < div >
+                          < Label > Condition Type </Label >
+                          < Select value ={condition.type}
+                            on
+  ValueChange ={(v,
+  a, l, u, e: string) =>
+                              u pdateCondition(condition.id, {
+                                t,
+  y, p, e: value as
                                   | 'price'
                                   | 'profit'
                                   | 'loss'
                                   | 'time'
                                   | 'volume',
-                                u, nit: getConditionUnit(value),
+                                u,
+  n, i, t: g etConditionUnit(value),
                               })
                             }
                           >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {conditionTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
+                            < SelectTrigger >
+                              < SelectValue/>
+                            </SelectTrigger >
+                            < SelectContent >
+                              {conditionTypes.m ap((type) => (
+                                < SelectItem key ={type.value} value ={type.value}>
                                   {type.label}
-                                </SelectItem>
+                                </SelectItem >
                               ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                            </SelectContent >
+                          </Select >
+                        </div >
 
-                        <div>
-                          <Label>Operator</Label>
-                          <Selectvalue={condition.operator}
-                            onValueChange={(value: string) =>
-                              updateCondition(condition.id, {
-                                o, perator: value as 'above' | 'below' | 'equals',
+                        < div >
+                          < Label > Operator </Label >
+                          < Select value ={condition.operator}
+                            on
+  ValueChange ={(v,
+  a, l, u, e: string) =>
+                              u pdateCondition(condition.id, {
+                                o,
+  p, e, r, a, tor: value as 'above' | 'below' | 'equals',
                               })
                             }
                           >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="above">Above</SelectItem>
-                              <SelectItem value="below">Below</SelectItem>
-                              <SelectItem value="equals">Equals</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                            < SelectTrigger >
+                              < SelectValue/>
+                            </SelectTrigger >
+                            < SelectContent >
+                              < SelectItem value ="above"> Above </SelectItem >
+                              < SelectItem value ="below"> Below </SelectItem >
+                              < SelectItem value ="equals"> Equals </SelectItem >
+                            </SelectContent >
+                          </Select >
+                        </div >
 
-                        <div>
-                          <Label>Value</Label>
-                          <div className="flex items-center gap-2">
-                            <Inputtype="number"
-                              value={condition.value}
-                              onChange={(e) =>
-                                updateCondition(condition.id, {
-                                  value: parseFloat(e.target.value) || 0,
+                        < div >
+                          < Label > Value </Label >
+                          < div class
+  Name ="flex items - center gap-2">
+                            < Input type ="number"
+                              value ={condition.value}
+                              on
+  Change ={(e) =>
+                                u pdateCondition(condition.id, {
+                                  v,
+  a, l, u, e: p arseFloat(e.target.value) || 0,
                                 })
                               }
-                              className="flex-1"
-                            />
+                              class
+  Name ="flex-1"/>
                             {condition.unit && (
-                              <span className="text-sm text-gray-400">
+                              < span class
+  Name ="text - sm text - gray-400">
                                 {condition.unit}
-                              </span>
+                              </span >
                             )}
-                          </div>
-                        </div>
+                          </div >
+                        </div >
 
-                        <div className="flex items-center gap-2">
-                          <Switchchecked={condition.enabled}
-                            onCheckedChange={(checked) =>
-                              updateCondition(condition.id, {
-                                e, nabled: checked,
+                        < div class
+  Name ="flex items - center gap-2">
+                          < Switch checked ={condition.enabled}
+                            on
+  CheckedChange ={(checked) =>
+                              u pdateCondition(condition.id, {
+                                e,
+  n, a, b, l, ed: checked,
                               })
-                            }
-                          />
-                          <Buttonvariant="ghost"
-                            size="sm"
-                            onClick={() => removeCondition(condition.id)}
-                            className="text-red-400 h, over:text-red-300"
+                            }/>
+                          < Buttonvariant ="ghost"
+                            size ="sm"
+                            on
+  Click ={() => r emoveCondition(condition.id)}
+                            class
+  Name ="text - red - 400 h, o,
+  v, e, r:text - red-300"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                            < Trash2 class
+  Name ="w - 4 h-4"/>
+                          </Button >
+                        </div >
+                      </div >
+                    </div >
 
                     {/* Condition Preview */}
-                    <div className="mt-3 text-sm text-gray-400">
+                    < div class
+  Name ="mt - 3 text - sm text - gray-400">
                       {condition.enabled ? (
-                        <span className="flex items-center gap-2">
-                          <Badgevariant="outline"
-                            className="text-green-400 border-green-400"
+                        < span class
+  Name ="flex items - center gap-2">
+                          < Badgevariant ="outline"
+                            class
+  Name ="text - green - 400 border-green-400"
                           >
                             Active
-                          </Badge>
-                          Sell when {condition.type} is {condition.operator}{' '}
-                          {condition.value}
+                          </Badge >
+                          Sell when, {condition.type} is, {condition.operator},{' '},
+                          {condition.value},
                           {condition.unit}
-                        </span>
+                        </span >
                       ) : (
-                        <span className="flex items-center gap-2">
-                          <Badgevariant="outline"
-                            className="text-gray-500 border-gray-500"
+                        < span class
+  Name ="flex items - center gap-2">
+                          < Badgevariant ="outline"
+                            class
+  Name ="text - gray - 500 border - gray-500"
                           >
                             Disabled
-                          </Badge>
-                          <span className="line-through">
-                            Sell when {condition.type} is {condition.operator}{' '}
-                            {condition.value}
+                          </Badge >
+                          < span class
+  Name ="line-through">
+                            Sell when, {condition.type} is, {condition.operator},{' '},
+                            {condition.value},
                             {condition.unit}
-                          </span>
-                        </span>
+                          </span >
+                        </span >
                       )}
-                    </div>
-                  </motion.div>
+                    </div >
+                  </motion.div >
                 )
               })}
-            </div>
+            </div >
           )}
-        </AnimatePresence>
+        </AnimatePresence >
 
         {conditions.length > 0 && (
-          <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p className="text-sm text-blue-300">
-              <strong>L, ogic:</strong> Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met.
-            </p>
-          </div>
+          < div class
+  Name ="mt - 6 p - 4 bg - blue - 500/10 border border - blue - 500/20 rounded-lg">
+            < p class
+  Name ="text - sm text - blue-300">
+              < strong > L, o,
+  g, i, c:</strong > Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met.
+            </p >
+          </div >
         )}
-      </CardContent>
-    </Card>
+      </CardContent >
+    </Card >
   )
 }

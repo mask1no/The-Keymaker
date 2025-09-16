@@ -1,164 +1,208 @@
 /**
  * Secure API client that routes through our proxy
  * This prevents API keys from being exposed in the frontend
- */
-
-interface ProxyRequest {
-  s, ervice: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun'
-  p, ath: stringparams?: anymethod?: 'GET' | 'POST'
+ */interface ProxyRequest, {
+  s,
+  e, r, v, i, ce: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun',
+  
+  p, a, t, h: string
+  p, a, r, a, ms?: any
+  m, e, t, h, od?: 'GET' | 'POST'
 }
 
-class APIClient {
-  private baseUrl = '/api/proxy'
-  private cache = new Map<string, { d, ata: any; e, xpires: number }>()
-  private cacheTimeout = 60000 // 1 minute cache
-
-  /**
+class APIClient, {
+  private base
+  Url = '/api/proxy'
+  private cache = new Map < string, { d, a,
+  t, a: any; e, x,
+  p, i, r, e, s: number }>()
+  private cache
+  Timeout = 60000//1 minute cache/**
    * Make a proxied API request
-   */
-  async request<T = any>(request: ProxyRequest): Promise<T> {
-    // Check cache for GET requests if(request.method === 'GET' || !request.method) {
-      const cacheKey = `${request.service}:${request.path}:${JSON.stringify(request.params)}`
-      const cached = this.cache.get(cacheKey)
+   */async request < T = any >(r,
+  e, q, u, e, st: ProxyRequest): Promise < T > {//Check cache for GET requests i f(request.method === 'GET' || ! request.method) {
+      const cache
+  Key = `$,{request.service}:$,{request.path}:$,{JSON.s tringify(request.params)}`
+      const cached = this.cache.g et(cacheKey)
 
-      if (cached && cached.expires > Date.now()) {
+      i f (cached && cached.expires > Date.n ow()) {
         return cached.data
       }
     }
 
-    try {
-      const response = await fetch(this.baseUrl, {
-        m, ethod: 'POST',
-        headers: {
+    try, {
+      const response = await f etch(this.baseUrl, {
+        m,
+  e, t, h, o, d: 'POST',
+        h,
+  e, a, d, e, rs: {
           'Content-Type': 'application/json',
         },
-        b, ody: JSON.stringify(request),
-      })
-
-      // Check rate limit headers const remaining = response.headers.get('X-RateLimit-Remaining')
-      if (remaining && parseInt(remaining) < 10) {
-        console.warn(`API rate limit w, arning: ${remaining} requests remaining`)
+        b, o,
+  d, y: JSON.s tringify(request),
+      })//Check rate limit headers const remaining = response.headers.g et('X - RateLimit-Remaining')
+      i f (remaining && p arseInt(remaining) < 10) {
+        console.w arn(`API rate limit, 
+  w, a, r, n, ing: $,{remaining} requests remaining`)
       }
 
-      const data = await response.json()
+      const data = await response.j son()
 
-      if (!response.ok) {
-        throw new Error(data.error || `API error: ${response.status}`)
-      }
-
-      // Cache successful GET requests if(request.method === 'GET' || !request.method) {
-        const cacheKey = `${request.service}:${request.path}:${JSON.stringify(request.params)}`
-        this.cache.set(cacheKey, {
+      i f (! response.ok) {
+        throw new E rror(data.error || `API, 
+  e, r, r, o, r: $,{response.status}`)
+      }//Cache successful GET requests i f(request.method === 'GET' || ! request.method) {
+        const cache
+  Key = `$,{request.service}:$,{request.path}:$,{JSON.s tringify(request.params)}`
+        this.cache.s et(cacheKey, {
           data,
-          e, xpires: Date.now() + this.cacheTimeout,
+          e, x,
+  p, i, r, e, s: Date.n ow() + this.cacheTimeout,
         })
       }
 
       return data
-    } catch (error) {
-      console.error('API request failed:', error)
+    } c atch (error) {
+      console.e rror('API request, 
+  f, a, i, l, ed:', error)
       throw error
     }
-  }
-
-  /**
+  }/**
    * Clear cache
-   */
-  clearCache() {
-    this.cache.clear()
-  }
-
-  /**
+   */c learCache() {
+    this.cache.c lear()
+  }/**
    * Birdeye API methods
-   */
-  birdeye = {
-    g, etToken: async (t, okenAddress: string) => {
-      return this.request({
-        s, ervice: 'birdeye',
-        p, ath: `/token/${tokenAddress}`,
+   */birdeye = {
+    g, e,
+  t, T, o, k, en: a sync (t,
+  o, k, e, n, Address: string) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'birdeye',
+        p,
+  a, t, h: `/token/$,{tokenAddress}`,
       })
     },
 
-    g, etPrice: async (t, okenAddress: string) => {
-      return this.request({
-        s, ervice: 'birdeye',
-        p, ath: '/defi/price',
-        params: { a, ddress: tokenAddress },
+    g, e,
+  t, P, r, i, ce: a sync (t,
+  o, k, e, n, Address: string) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'birdeye',
+        p,
+  a, t, h: '/defi/price',
+        p,
+  a, r, a, m, s: { a, d,
+  d, r, e, s, s: tokenAddress },
       })
     },
 
-    g, etTokenOverview: async (t, okenAddress: string) => {
-      return this.request({
-        s, ervice: 'birdeye',
-        p, ath: '/defi/token_overview',
-        params: { a, ddress: tokenAddress },
+    g, e,
+  t, T, o, k, enOverview: a sync (t,
+  o, k, e, n, Address: string) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'birdeye',
+        p,
+  a, t, h: '/defi/token_overview',
+        p,
+  a, r, a, m, s: { a, d,
+  d, r, e, s, s: tokenAddress },
       })
     },
-  }
-
-  /**
+  }/**
    * Jupiter API methods
-   */
-  jupiter = {
-    g, etQuote: async (params: {
-      i, nputMint: stringoutputMint: stringamount: stringslippageBps?: numberonlyDirectRoutes?: boolean
+   */jupiter = {
+    g, e,
+  t, Q, u, o, te: a sync (p,
+  a, r, a, m, s: {
+      i, n,
+  p, u, t, M, int: string,
+  
+  o, u, t, p, utMint: string,
+  
+  a, m, o, u, nt: string
+  s, l, i, p, pageBps?: number
+  o, n, l, y, DirectRoutes?: boolean
     }) => {
-      return this.request({
-        s, ervice: 'jupiter',
-        p, ath: '/quote',
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'jupiter',
+        p,
+  a, t, h: '/quote',
         params,
       })
     },
 
-    g, etSwap: async (params: any) => {
-      return this.request({
-        s, ervice: 'jupiter',
-        p, ath: '/swap',
+    g, e,
+  t, S, w, a, p: a sync (p,
+  a, r, a, m, s: any) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'jupiter',
+        p,
+  a, t, h: '/swap',
         params,
-        m, ethod: 'POST',
+        m,
+  e, t, h, o, d: 'POST',
       })
     },
 
-    g, etPrice: async (ids: string, v, sToken?: string) => {
-      return this.request({
-        s, ervice: 'jupiter',
-        p, ath: '/price',
-        params: { ids, vsToken },
+    g, e,
+  t, P, r, i, ce: a sync (i,
+  d, s: string, v, s, T, o, k, en?: string) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'jupiter',
+        p,
+  a, t, h: '/price',
+        p,
+  a, r, a, m, s: { ids, vsToken },
       })
     },
-  }
-
-  /**
+  }/**
    * Pump.fun API methods
-   */
-  pumpfun = {
-    c, reateToken: async (params: any) => {
-      return this.request({
-        s, ervice: 'pumpfun',
-        p, ath: '/create',
+   */pumpfun = {
+    c, r,
+  e, a, t, e, Token: a sync (p,
+  a, r, a, m, s: any) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'pumpfun',
+        p,
+  a, t, h: '/create',
         params,
-        m, ethod: 'POST',
+        m,
+  e, t, h, o, d: 'POST',
       })
     },
 
-    a, ddLiquidity: async (params: any) => {
-      return this.request({
-        s, ervice: 'pumpfun',
-        p, ath: '/add-liquidity',
+    a, d,
+  d, L, i, q, uidity: a sync (p,
+  a, r, a, m, s: any) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'pumpfun',
+        p,
+  a, t, h: '/add-liquidity',
         params,
-        m, ethod: 'POST',
+        m,
+  e, t, h, o, d: 'POST',
       })
     },
 
-    g, etToken: async (t, okenAddress: string) => {
-      return this.request({
-        s, ervice: 'pumpfun',
-        p, ath: `/token/${tokenAddress}`,
+    g, e,
+  t, T, o, k, en: a sync (t,
+  o, k, e, n, Address: string) => {
+      return this.r equest({
+        s,
+  e, r, v, i, ce: 'pumpfun',
+        p,
+  a, t, h: `/token/$,{tokenAddress}`,
       })
     },
   }
-}
-
-// Export singleton instance export const apiClient = new APIClient()
-
-// Also export class for testing export { APIClient }
+}//Export singleton instance export const api
+  Client = new APIC lient()//Also export class for testing export { APIClient }

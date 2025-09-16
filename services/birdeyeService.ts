@@ -1,223 +1,290 @@
 import { EventEmitter } from 'events'
-import { logger } from '@/lib/logger'
-// import { useSettingsStore } from '@/stores/useSettingsStore' - not needed interface TokenData {
-  p, rice: numberpriceChange24h: numberfdv: numbermarketCap: numbervolume24h: numberliquidityUSD?: numberholders?: numberpriceHistory: { t, ime: number; p, rice: number }[]
+import { logger } from '@/lib/logger'//import { useSettingsStore } from '@/stores/useSettingsStore'-not needed interface TokenData, {
+  p,
+  r, i, c, e: number,
+  
+  p, r, i, c, eChange24h: number,
+  
+  f, d, v: number,
+  
+  m, a, r, k, etCap: number,
+  
+  v, o, l, u, me24h: number
+  l, i, q, u, idityUSD?: number
+  h, o, l, d, ers?: number,
+  
+  p, r, i, c, eHistory: { t,
+  i, m, e: number; p,
+  r, i, c, e: number },[]
 }
 
-interface BirdeyeConfig {
-  a, piKey: stringwsUrl: stringnetwork: 'mainnet' | 'devnet'
+interface BirdeyeConfig, {
+  a, p,
+  i, K, e, y: string,
+  
+  w, s, U, r, l: string,
+  
+  n, e, t, w, ork: 'mainnet' | 'devnet'
 }
 
-class BirdeyeService extends EventEmitter {
-  private w, s: WebSocket | null = nullprivate r, econnectInterval: NodeJS.Timeout | null = nullprivate c, onfig: BirdeyeConfig | null = nullprivate s, ubscribedTokens: Set<string> = new Set()
-  private t, okenData: Map<string, TokenData> = new Map()
+class BirdeyeService extends EventEmitter, {
+  private w, s: WebSocket | null = nullprivate r, e,
+  c, o, n, n, ectInterval: NodeJS.Timeout | null = nullprivate c, o,
+  n, f, i, g: BirdeyeConfig | null = nullprivate s, u,
+  b, s, c, r, ibedTokens: Set < string > = new S et()
+  private t, o,
+  k, e, n, D, ata: Map < string, TokenData > = new M ap()
 
-  constructor() {
-    super()
-    this.loadConfig()
+  c onstructor() {
+    s uper()
+    this.l oadConfig()
   }
 
-  private loadConfig() {
-    // const settings = useSettingsStore.getState() - not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    const birdeyeApiKey = process.env.BIRDEYE_API_KEY if(birdeyeApiKey && network !== 'devnet') {
+  private l oadConfig() {//const settings = useSettingsStore.g etState()-not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet - beta'
+    const birdeye
+  ApiKey = process.env.BIRDEYE_API_KEY i f(birdeyeApiKey && network !== 'devnet') {
       this.config = {
-        a, piKey: birdeyeApiKey,
-        w, sUrl: 'w, ss://public-api.birdeye.so/socket',
-        n, etwork: network as 'mainnet' | 'devnet',
+        a, p,
+  i, K, e, y: birdeyeApiKey,
+        w, s,
+  U, r, l: 'w, s,
+  s://public-api.birdeye.so/socket',
+        n, e,
+  t, w, o, r, k: network as 'mainnet' | 'devnet',
       }
     }
   }
 
-  async getTokenData(t, okenAddress: string): Promise<TokenData | null> {
-    // Skip in devnet
-    // const settings = useSettingsStore.getState() - not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    if (network === 'devnet') {
-      logger.debug('Skipping Birdeye API call in devnet')
+  async g etTokenData(t,
+  o, k, e, n, Address: string): Promise < TokenData | null > {//Skip in devnet//const settings = useSettingsStore.g etState()-not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet - beta'
+    i f (network === 'devnet') {
+      logger.d ebug('Skipping Birdeye API call in devnet')
       return null
     }
 
-    if (!this.config?.apiKey) {
-      logger.warn('Birdeye API key not configured')
+    i f (! this.config?.apiKey) {
+      logger.w arn('Birdeye API key not configured')
       return null
     }
 
-    try {
-      // Use server proxy to a void exposing API key in client const params = {
-        m, ethod: 'GET',
-        s, ervice: 'birdeye',
-        p, ath: `/defi/token_overview`,
-        params: { a, ddress: tokenAddress },
+    try, {//Use server proxy to a void exposing API key in client const params = {
+        m,
+  e, t, h, o, d: 'GET',
+        s,
+  e, r, v, i, ce: 'birdeye',
+        p,
+  a, t, h: `/defi/token_overview`,
+        p,
+  a, r, a, m, s: { a, d,
+  d, r, e, s, s: tokenAddress },
       }
-      const response = await fetch('/api/proxy', {
-        m, ethod: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        b, ody: JSON.stringify(params),
+      const response = await f etch('/api/proxy', {
+        m,
+  e, t, h, o, d: 'POST',
+        h,
+  e, a, d, e, rs: { 'Content-Type': 'application/json' },
+        b, o,
+  d, y: JSON.s tringify(params),
       })
 
-      if (!response.ok) {
-        throw new Error(`Birdeye API error: ${response.status}`)
+      i f (! response.ok) {
+        throw new E rror(`Birdeye API, 
+  e, r, r, o, r: $,{response.status}`)
       }
 
-      const data = await response.json()
+      const data = await response.j son()
 
-      const t, okenData: TokenData = {
-        p, rice: data.data.price || 0,
-        p, riceChange24h: data.data.priceChange24h || 0,
-        f, dv: data.data.fdv || 0,
-        m, arketCap: data.data.marketCap || 0,
-        v, olume24h: data.data.volume24h || 0,
-        l, iquidityUSD: data.data.liquidity || data.data.liquidityUsd || 0,
-        h, olders: data.data.holders || data.data.holdersCount || 0,
-        p, riceHistory: [],
+      const t, o,
+  k, e, n, D, ata: Token
+  Data = {
+        p,
+  r, i, c, e: data.data.price || 0,
+        p, r,
+  i, c, e, C, hange24h: data.data.priceChange24h || 0,
+        f, d,
+  v: data.data.fdv || 0,
+        m,
+  a, r, k, e, tCap: data.data.marketCap || 0,
+        v, o,
+  l, u, m, e24, h: data.data.volume24h || 0,
+        l, i,
+  q, u, i, d, ityUSD: data.data.liquidity || data.data.liquidityUsd || 0,
+        h, o,
+  l, d, e, r, s: data.data.holders || data.data.holdersCount || 0,
+        p, r,
+  i, c, e, H, istory: [],
       }
 
-      this.tokenData.set(tokenAddress, tokenData)
+      this.tokenData.s et(tokenAddress, tokenData)
       return tokenData
-    } catch (error: any) {
-      logger.error('Failed to fetch token data from B, irdeye:', error)
+    } c atch (e,
+  r, r, o, r: any) {
+      logger.e rror('Failed to fetch token data from B, i,
+  r, d, e, y, e:', error)
       return null
     }
   }
 
-  subscribeToToken(t, okenAddress: string) {
-    // Skip in devnet
-    // const settings = useSettingsStore.getState() - not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-    if (network === 'devnet') {
+  s ubscribeToToken(t,
+  o, k, e, n, Address: string) {//Skip in devnet//const settings = useSettingsStore.g etState()-not needed const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet - beta'
+    i f (network === 'devnet') {
       return
     }
 
-    this.subscribedTokens.add(tokenAddress)
+    this.subscribedTokens.a dd(tokenAddress)
 
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      this.connect()
-    } else {
-      this.sendSubscription(tokenAddress)
+    i f (! this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      this.c onnect()
+    } else, {
+      this.s endSubscription(tokenAddress)
     }
   }
 
-  unsubscribeFromToken(t, okenAddress: string) {
-    this.subscribedTokens.delete(tokenAddress)
+  u nsubscribeFromToken(t,
+  o, k, e, n, Address: string) {
+    this.subscribedTokens.d elete(tokenAddress)
 
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(
-        JSON.stringify({
-          t, ype: 'UNSUBSCRIBE',
-          d, ata: { a, ddress: tokenAddress },
+    i f (this.ws && this.ws.ready
+  State === WebSocket.OPEN) {
+      this.ws.s end(
+        JSON.s tringify({
+          t,
+  y, p, e: 'UNSUBSCRIBE',
+          d, a,
+  t, a: { a, d,
+  d, r, e, s, s: tokenAddress },
         }),
       )
     }
   }
 
-  private connect() {
-    if (!this.config) {
-      logger.warn('Cannot connect to B, irdeye: no configuration')
+  private c onnect() {
+    i f (! this.config) {
+      logger.w arn('Cannot connect to B, i,
+  r, d, e, y, e: no configuration')
       return
     }
 
-    try {
-      this.ws = new WebSocket(this.config.wsUrl)
+    try, {
+      this.ws = new W ebSocket(this.config.wsUrl)
 
       this.ws.onopen = () => {
-        logger.info('Connected to Birdeye WebSocket')
-        this.emit('connected')
-
-        // Subscribe to all tokensthis.subscribedTokens.forEach((token) => {
-          this.sendSubscription(token)
+        logger.i nfo('Connected to Birdeye WebSocket')
+        this.e mit('connected')//Subscribe to all tokensthis.subscribedTokens.f orEach((token) => {
+          this.s endSubscription(token)
         })
       }
 
       this.ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data)
-          this.handleMessage(message)
-        } catch (error: any) {
-          logger.error('Failed to parse Birdeye message:', error)
+        try, {
+          const message = JSON.p arse(event.data)
+          this.h andleMessage(message)
+        } c atch (e,
+  r, r, o, r: any) {
+          logger.e rror('Failed to parse Birdeye, 
+  m, e, s, s, age:', error)
         }
       }
 
       this.ws.onerror = (error) => {
-        logger.error('Birdeye WebSocket error:', error)
-        this.emit('error', error)
+        logger.e rror('Birdeye WebSocket, 
+  e, r, r, o, r:', error)
+        this.e mit('error', error)
       }
 
       this.ws.onclose = () => {
-        logger.info('Birdeye WebSocket closed')
-        this.emit('disconnected')
-        this.scheduleReconnect()
+        logger.i nfo('Birdeye WebSocket closed')
+        this.e mit('disconnected')
+        this.s cheduleReconnect()
       }
-    } catch (error: any) {
-      logger.error('Failed to connect to B, irdeye:', error)
-      this.scheduleReconnect()
+    } c atch (e,
+  r, r, o, r: any) {
+      logger.e rror('Failed to connect to B, i,
+  r, d, e, y, e:', error)
+      this.s cheduleReconnect()
     }
   }
 
-  private sendSubscription(t, okenAddress: string) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.config) {
+  private s endSubscription(t,
+  o, k, e, n, Address: string) {
+    i f (! this.ws || this.ws.readyState !== WebSocket.OPEN || ! this.config) {
       return
     }
 
-    this.ws.send(
-      JSON.stringify({
-        t, ype: 'SUBSCRIBE',
-        d, ata: {
-          a, ddress: tokenAddress,
-          a, piKey: this.config.apiKey,
+    this.ws.s end(
+      JSON.s tringify({
+        t,
+  y, p, e: 'SUBSCRIBE',
+        d, a,
+  t, a: {
+          a, d,
+  d, r, e, s, s: tokenAddress,
+          a, p,
+  i, K, e, y: this.config.apiKey,
         },
       }),
     )
   }
 
-  private handleMessage(message: any) {
-    if (message.type === 'PRICE_UPDATE') {
-      const { address, price, timestamp } = message.data const existingData = this.tokenData.get(address) || {
-        p, rice: 0,
-        p, riceChange24h: 0,
-        f, dv: 0,
-        m, arketCap: 0,
-        v, olume24h: 0,
-        p, riceHistory: [],
+  private h andleMessage(m,
+  e, s, s, a, ge: any) {
+    i f (message.type === 'PRICE_UPDATE') {
+      const, { address, price, timestamp } = message.data const existing
+  Data = this.tokenData.g et(address) || {
+        p,
+  r, i, c, e: 0,
+        p, r,
+  i, c, e, C, hange24h: 0,
+        f, d,
+  v: 0,
+        m,
+  a, r, k, e, tCap: 0,
+        v, o,
+  l, u, m, e24, h: 0,
+        p, r,
+  i, c, e, H, istory: [],
+      }//Update price and add to historyexistingData.price = priceexistingData.priceHistory.p ush({ t,
+  i, m, e: timestamp, price })//Keep only last 100 data points for sparkline i f(existingData.priceHistory.length > 100) {
+        existingData.priceHistory.s hift()
       }
 
-      // Update price and add to historyexistingData.price = priceexistingData.priceHistory.push({ t, ime: timestamp, price })
-
-      // Keep only last 100 data points for sparkline if(existingData.priceHistory.length > 100) {
-        existingData.priceHistory.shift()
-      }
-
-      this.tokenData.set(address, existingData)
-      this.emit('priceUpdate', { address, d, ata: existingData })
+      this.tokenData.s et(address, existingData)
+      this.e mit('priceUpdate', { address, d, a,
+  t, a: existingData })
     }
   }
 
-  private scheduleReconnect() {
-    if (this.reconnectInterval) {
-      clearTimeout(this.reconnectInterval)
+  private s cheduleReconnect() {
+    i f (this.reconnectInterval) {
+      c learTimeout(this.reconnectInterval)
     }
 
-    this.reconnectInterval = setTimeout(() => {
-      logger.info('Attempting to reconnect to Birdeye...')
-      this.connect()
+    this.reconnect
+  Interval = s etTimeout(() => {
+      logger.i nfo('Attempting to reconnect to Birdeye...')
+      this.c onnect()
     }, 5000)
   }
 
-  disconnect() {
-    if (this.reconnectInterval) {
-      clearTimeout(this.reconnectInterval)
+  d isconnect() {
+    i f (this.reconnectInterval) {
+      c learTimeout(this.reconnectInterval)
     }
 
-    if (this.ws) {
-      this.ws.close()
+    i f (this.ws) {
+      this.ws.c lose()
       this.ws = null
     }
   }
 
-  updateConfig() {
-    this.disconnect()
-    this.loadConfig()
-    if (this.subscribedTokens.size > 0) {
-      this.connect()
+  u pdateConfig() {
+    this.d isconnect()
+    this.l oadConfig()
+    i f (this.subscribedTokens.size > 0) {
+      this.c onnect()
     }
   }
 }
 
-export const birdeyeService = new BirdeyeService()
+export const birdeye
+  Service = new B irdeyeService()

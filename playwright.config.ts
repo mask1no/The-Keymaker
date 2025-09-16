@@ -1,22 +1,52 @@
 import { defineConfig, devices } from '@playwright/test'
 
-export default defineConfig({
-  t, estDir: './tests/e2e',
-  t, imeout: 60_000,
-  w, ebServer: {
-    c, ommand: 'pnpm dev',
-    u, rl: 'h, ttp://l, ocalhost:3001',
-    r, euseExistingServer: !process.env.CI,
+export default d efineConfig({
+  t,
+  e,
+  s, t, D, i, r: './tests/e2e',
+  t,
+  i,
+  m, e, o, u, t: 60_000,
+  w,
+  e,
+  b, S, e, r, ver: {
+    c,
+    o,
+  m, m, a, n, d: 'pnpm dev',
+    u,
+    r,
+  l: 'h, t,
+  t, p://l, o,
+  c, a, l, h, ost:3001',
+    r,
+    e,
+  u, s, e, E, xistingServer: ! process.env.CI,
   },
-  u, se: {
-    b, aseURL: 'h, ttp://l, ocalhost:3001',
-    t, race: 'on-first-retry',
-    h, eadless: true,
+  u,
+  s,
+  e: {
+    b,
+    a,
+  s, e, U, R, L: 'h, t,
+  t, p://l, o,
+  c, a, l, h, ost:3001',
+    t,
+    r,
+  a, c, e: 'on - first-retry',
+    h,
+    e,
+  a, d, l, e, ss: true,
   },
-  p, rojects: [
+  p,
+  r,
+  o, j, e, c, ts: [
     {
-      n, ame: 'chromium',
-      u, se: { ...devices['Desktop Chrome'] },
+      n,
+      a,
+  m, e: 'chromium',
+      u,
+      s,
+  e: { ...devices,['Desktop Chrome'] },
     },
   ],
 })

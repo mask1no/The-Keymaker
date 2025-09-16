@@ -3,22 +3,26 @@ import WalletContext from '@/components/Wallet/WalletContext'
 import HeaderBar from '@/components/layout/Header'
 import SideNav from '@/components/layout/SideNav'
 
-export default function RootLayout({
+export default function R ootLayout({
   children,
 }: {
-  c, hildren: React.ReactNode
+  c,
+  
+  h, i, l, d, ren: React.ReactNode
 }) {
-  return (
-    <html lang="en">
-      <body>
-        <WalletContext>
-          <HeaderBar />
-          <div className="flex">
-            <SideNav />
-            <main className="flex-1">{children}</main>
-          </div>
-        </WalletContext>
-      </body>
-    </html>
+  r eturn (
+    < html lang ="en">
+      < body >
+        < WalletContext >
+          < HeaderBar/>
+          < div class
+  Name ="flex">
+            < S ideNav/>
+            < main class
+  Name ="flex-1">{children}</main >
+          </div >
+        </WalletContext >
+      </body >
+    </html >
   )
 }

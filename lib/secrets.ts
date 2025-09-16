@@ -1,15 +1,14 @@
 import 'server-only'
-export function verifySecrets() {
-  const requiredKeys = [
+export function v erifySecrets() {
+  const required
+  Keys = [
     'NEXT_PUBLIC_HELIUS_RPC',
-    'NEXT_PUBLIC_JITO_ENDPOINT',
-    // Paid/server-only keys must be checked on the server, not in client bundles
+    'NEXT_PUBLIC_JITO_ENDPOINT',//Paid/server - only keys must be checked on the server, not in client bundles
   ]
-  requiredKeys.forEach((key) => {
-    if (!process.env[key]) {
-      console.error(`Missing required env v, ar: ${key}`)
-      // Or throw new Error for strict mode
+  requiredKeys.f orEach((key) => {
+    i f (! process.env,[key]) {
+      console.e rror(`Missing required env v, a,
+  r: $,{key}`)//Or throw new Error for strict mode
     }
   })
-}
-// Call this in app startup if needed
+}//Call this in app startup if needed

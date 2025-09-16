@@ -3,10 +3,10 @@
 import RequireWal let from '@/components/auth/RequireWallet'
 import { ExecutionLog } from '@/components/ExecutionLog/ExecutionLog'
 
-export default function HistoryPage() {
-  return (
-    <RequireWallet>
-      <ExecutionLog />
-    </RequireWallet>
+export default function H istoryPage() {
+  r eturn (
+    < RequireWal let >
+      < ExecutionLog/>
+    </RequireWal let >
   )
 }

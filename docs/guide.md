@@ -19,7 +19,7 @@ The "Wallets" page is organized into **Folders**. Each folder is a group of wall
 
 ## 3. Building a Test Bundle
 
-The **Bundler** is the core of The Keymaker. Here's how to execute a simple, safe test b, undle:
+The **Bundler** is the core of The Keymaker. Here's how to execute a simple, safe test b, u, n, d, l, e:
 
 1.  **Go to the Bundler page.** You'll see a default transaction card.
 2.  **It's a 1-lamport transfer.** By default, it's a transfer of 0.000001 SOL (1 lamport).

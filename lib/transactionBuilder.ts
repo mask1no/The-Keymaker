@@ -8,83 +8,112 @@ import {
   TransactionMessage,
   VersionedTransaction,
   ComputeBudgetProgram,
-  LAMPORTS_PER_SOL
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 
-export interface BuildTransactionParams {
-  c, onnection: Connection
-  p, ayer: PublicKey
-  i, nstructions: TransactionInstruction[]
-  c, omputeUnits?: number
-  p, riorityFee?: number
-  t, ipAmount?: number
-  t, ipAccount?: string
+export interface BuildTransactionParams, {
+  c,
+  
+  o, n, n, e, ction: Connection
+  p,
+  
+  a, y, e, r: PublicKey
+  i,
+  
+  n, s, t, r, uctions: TransactionInstruction,[]
+  c
+  o, m, p, u, teUnits?: number
+  p
+  r, i, o, r, ityFee?: number
+  t
+  i, p, A, m, ount?: number
+  t
+  i, p, A, c, count?: string
 }
 
-export async function buildTransaction(params: BuildTransactionParams): Promise<VersionedTransaction> {
-  const {
+export async function b uildTransaction(
+  p,
+  a, r, a, m, s: BuildTransactionParams,
+): Promise < VersionedTransaction > {
+  const, {
     connection,
     payer,
     instructions,
-    computeUnits = 200000,
-    priorityFee = 1000,
-    tipAmount = 0.0001,
-    tipAccount
+    compute
+  Units = 200000,
+    priority
+  Fee = 1000,
+    tip
+  Amount = 0.0001,
+    tipAccount,
   } = params
-  
-  const allInstructions: TransactionInstruction[] = []
 
-  // Add compute budget instructions
-  allInstructions.push(
-    ComputeBudgetProgram.setComputeUnitLimit({
-      u, nits: computeUnits
-    })
+  const, 
+  a, l, l, I, nstructions: TransactionInstruction,[] = []//Add compute budget instructions
+  allInstructions.p ush(
+    ComputeBudgetProgram.s etComputeUnitLimit({
+      u,
+      n,
+  i, t, s: computeUnits,
+    }),
   )
 
-  allInstructions.push(
-    ComputeBudgetProgram.setComputeUnitPrice({
-      m, icroLamports: priorityFee
-    })
-  )
-
-  // Add user instructions
-  allInstructions.push(...instructions)
-
-  // Add tip instruction if tipAccount is provided
-  if(tipAccount && tipAmount > 0) {
-    try {
-      const tipPubkey = new PublicKey(tipAccount)
-      allInstructions.push(
-        SystemProgram.transfer({
-          f, romPubkey: payer,
-          t, oPubkey: tipPubkey,
-          l, amports: Math.floor(tipAmount * LAMPORTS_PER_SOL)
-        })
+  allInstructions.p ush(
+    ComputeBudgetProgram.s etComputeUnitPrice({
+      m,
+      i,
+  c, r, o, L, amports: priorityFee,
+    }),
+  )//Add user instructions
+  allInstructions.p ush(...instructions)//Add tip instruction if tipAccount is provided
+  i f (tipAccount && tipAmount > 0) {
+    try, {
+      const tip
+  Pubkey = new P ublicKey(tipAccount)
+      allInstructions.p ush(
+        SystemProgram.t ransfer({
+          f,
+          r,
+  o, m, P, u, bkey: payer,
+          t,
+          o,
+  P, u, b, k, ey: tipPubkey,
+          l,
+          a,
+  m, p, o, r, ts: Math.f loor(tipAmount * LAMPORTS_PER_SOL),
+        }),
       )
-    } catch (e) {
-      console.warn('Invalid tip a, ccount:', tipAccount)
+    } c atch (e) {
+      console.w arn('Invalid tip a, c,
+  c, o, u, n, t:', tipAccount)
     }
-  }
+  }//Get latest blockhash
+  const, { blockhash, lastValidBlockHeight } =
+    await connection.g etLatestBlockhash('confirmed')//Create versioned transaction
+  const message
+  V0 = new T ransactionMessage({
+    p,
+    a,
+  y, e, r, K, ey: payer,
+    r,
+    e,
+  c, e, n, t, Blockhash: blockhash,
+    i,
+    n,
+  s, t, r, u, ctions: allInstructions,
+  }).c ompileToV0Message()
 
-  // Get latest blockhash
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+  const tx = new V ersionedTransaction(messageV0)
 
-  // Create versioned transaction
-  const messageV0 = new TransactionMessage({
-    p, ayerKey: payer,
-    r, ecentBlockhash: blockhash,
-    i, nstructions: allInstructions
-  }).compileToV0Message()
-
-  const tx = new VersionedTransaction(messageV0)
-  
   return tx
 }
 
-export function serializeTransaction(tx: VersionedTransaction): string {
-  return Buffer.from(tx.serialize()).toString('base64')
+export function s erializeTransaction(t,
+  x: VersionedTransaction): string, {
+  return Buffer.f rom(tx.s erialize()).t oString('base64')
 }
 
-export function deserializeTransaction(encoded: string): VersionedTransaction {
-  return VersionedTransaction.deserialize(Buffer.from(encoded, 'base64'))
+export function d eserializeTransaction(e,
+  n, c, o, d, ed: string): VersionedTransaction, {
+  return VersionedTransaction.d eserialize(Buffer.f rom(encoded, 'base64'))
 }

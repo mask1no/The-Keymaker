@@ -7,159 +7,218 @@ import {
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 import { Loader2, Calculator, Info } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
-// import { useSettingsStore } from '@/stores/useSettingsStore' - not needed import { connectionManager } from '@/services/connectionManager'
+import { formatCurrency } from '@/lib/utils'//import { useSettingsStore } from '@/stores/useSettingsStore'-not needed import { connectionManager } from '@/services/connectionManager'
 import { logger } from '@/lib/logger'
 
-interface FeeEstimate {
-  transactionFee: numberjitoTip: numbertotalCost: numbercostInSol: numberperTransaction: {
-    f, ee: numbertip: numbertotal: number
+interface FeeEstimate, {
+  t,
+  r, a, n, s, actionFee: number,
+  
+  j, i, t, o, Tip: number,
+  
+  t, o, t, a, lCost: number,
+  
+  c, o, s, t, InSol: number,
+  
+  p, e, r, T, ransaction: {
+    f, e,
+  e: number,
+  
+  t, i, p: number,
+  
+  t, o, t, a, l: number
   }
 }
 
-interface FeeEstimatorProps {
-  transactionCount: numbertipAmount?: number // in l, amportsonEstimateComplete?: (e, stimate: FeeEstimate) => v, oidclassName?: string
+interface FeeEstimatorProps, {
+  t,
+  r, a, n, s, actionCount: number
+  t, i, p, A, mount?: number//in l, a, m, p, o, rtsonEstimateComplete?: (e, s,
+  t, i, m, a, te: FeeEstimate) => v, o, i, d, c, lassName?: string
 }
 
-export function FeeEstimator({
+export function F eeEstimator({
   transactionCount,
-  tipAmount = 10000,
+  tip
+  Amount = 10000,
   onEstimateComplete,
-  className = '',
+  class
+  Name = '',
 }: FeeEstimatorProps) {
   const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta'
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [estimate, setEstimate] = useState<FeeEstimate | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const, [isCalculating, setIsCalculating] = u seState(false)
+  const, [estimate, setEstimate] = useState < FeeEstimate | null >(null)
+  const, [error, setError] = useState < string | null >(null)
 
-  useEffect(() => {
-    calculateFees()
+  u seEffect(() => {
+    c alculateFees()
   }, [transactionCount, tipAmount, network])
 
-  const calculateFees = async () => {
-    if (transactionCount <= 0) {
-      setEstimate(null)
+  const calculate
+  Fees = a sync () => {
+    i f (transactionCount <= 0) {
+      s etEstimate(null)
       return
     }
 
-    setIsCalculating(true)
-    setError(null)
+    s etIsCalculating(true)
+    s etError(null)
 
-    try {
-      const connection = connectionManager.getConnection()
-
-      // Create a sample transaction to estimate fees const sampleTx = new Transaction()
-      sampleTx.add(
-        SystemProgram.transfer({
-          f, romPubkey: PublicKey.default,
-          t, oPubkey: PublicKey.default,
-          l, amports: 1000000, // 0.001 SOL sample
+    try, {
+      const connection = connectionManager.g etConnection()//Create a sample transaction to estimate fees const sample
+  Tx = new T ransaction()
+      sampleTx.a dd(
+        SystemProgram.t ransfer({
+          f, r,
+  o, m, P, u, bkey: PublicKey.default,
+          t, o,
+  P, u, b, k, ey: PublicKey.default,
+          l, a,
+  m, p, o, r, ts: 1000000,//0.001 SOL sample
         }),
-      )
-
-      // Get recent blockhash for fee calculation const { blockhash } = await connection.getLatestBlockhash('confirmed')
-      sampleTx.recentBlockhash = blockhashsampleTx.feePayer = PublicKey.default
-
-      // Get fee for the message const feePerTx = await connection.getFeeForMessage(
-        sampleTx.compileMessage(),
+      )//Get recent blockhash for fee calculation const, { blockhash } = await connection.g etLatestBlockhash('confirmed')
+      sampleTx.recent
+  Blockhash = blockhashsampleTx.fee
+  Payer = PublicKey.default//Get fee for the message const fee
+  PerTx = await connection.g etFeeForMessage(
+        sampleTx.c ompileMessage(),
         'confirmed',
       )
 
-      if (!feePerTx.value) {
-        throw new Error('Could not estimate transaction fee')
+      i f (! feePerTx.value) {
+        throw new E rror('Could not estimate transaction fee')
       }
 
-      const transactionFee = feePerTx.value * transactionCount const totalJitoTip = tipAmount * transactionCount const totalCost = transactionFee + totalJitoTip const n, ewEstimate: FeeEstimate = {
+      const transaction
+  Fee = feePerTx.value * transactionCount const total
+  JitoTip = tipAmount * transactionCount const total
+  Cost = transactionFee + totalJitoTip const n, e,
+  w, E, s, t, imate: Fee
+  Estimate = {
         transactionFee,
-        j, itoTip: totalJitoTip,
+        j, i,
+  t, o, T, i, p: totalJitoTip,
         totalCost,
-        c, ostInSol: totalCost / LAMPORTS_PER_SOL,
-        p, erTransaction: {
-          f, ee: feePerTx.value,
-          t, ip: tipAmount,
-          t, otal: feePerTx.value + tipAmount,
+        c, o,
+  s, t, I, n, Sol: totalCost/LAMPORTS_PER_SOL,
+        p, e,
+  r, T, r, a, nsaction: {
+          f, e,
+  e: feePerTx.value,
+          t, i,
+  p: tipAmount,
+          t, o,
+  t, a, l: feePerTx.value + tipAmount,
         },
       }
 
-      setEstimate(newEstimate)
+      s etEstimate(newEstimate)
       onEstimateComplete?.(newEstimate)
 
-      logger.info('Fee estimate calculated', {
+      logger.i nfo('Fee estimate calculated', {
         transactionCount,
-        e, stimate: newEstimate,
+        e, s,
+  t, i, m, a, te: newEstimate,
       })
-    } catch (e, rr: any) {
-      logger.error('Failed to calculate f, ees:', err)
-      setError('Failed to estimate fees')
-    } finally {
-      setIsCalculating(false)
+    } c atch (e, r,
+  r: any) {
+      logger.e rror('Failed to calculate f, e,
+  e, s:', err)
+      s etError('Failed to estimate fees')
+    } finally, {
+      s etIsCalculating(false)
     }
   }
 
-  if (transactionCount <= 0) {
+  i f (transactionCount <= 0) {
     return null
   }
 
-  return (
-    <div className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
+  r eturn (
+    < div class
+  Name ={`bg - black/40 backdrop - blur - sm border border - gray - 700 rounded - lg p - 4 $,{className}`}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <Calculator className="w-4 h-4 text-aqua" />
-        <h4 className="text-sm font-semibold">Fee Estimate</h4>
-        {isCalculating && <Loader2 className="w-3 h-3 animate-spin" />}
-      </div>
+      < div class
+  Name ="flex items - center gap - 2 mb-3">
+        < Calculator class
+  Name ="w - 4 h - 4 text-aqua"/>
+        < h4 class
+  Name ="text - sm font-semibold"> Fee Estimate </h4 >
+        {isCalculating && < Loader2 class
+  Name ="w - 3 h - 3 animate-spin"/>}
+      </div >
 
       {error ? (
-        <div className="text-sm text-red-400">{error}</div>
+        < div class
+  Name ="text - sm text - red-400">{error}</div >
       ) : estimate ? (
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-gray-400">Transaction F, ees:</div>
-            <div className="text-right">
-              {formatCurrency(estimate.transactionFee / LAMPORTS_PER_SOL)} SOL
-            </div>
+        < div class
+  Name ="space - y-2">
+          < div class
+  Name ="grid grid - cols - 2 gap - 2 text-sm">
+            < div class
+  Name ="text - gray-400"> Transaction F, e,
+  e, s:</div >
+            < div class
+  Name ="text-right">
+              {f ormatCurrency(estimate.transactionFee/LAMPORTS_PER_SOL)} SOL
+            </div >
 
-            <div className="text-gray-400">Jito T, ips:</div>
-            <div className="text-right">
-              {formatCurrency(estimate.jitoTip / LAMPORTS_PER_SOL)} SOL
-            </div>
+            < div class
+  Name ="text - gray-400"> Jito T, i,
+  p, s:</div >
+            < div class
+  Name ="text-right">
+              {f ormatCurrency(estimate.jitoTip/LAMPORTS_PER_SOL)} SOL
+            </div >
 
-            <div className="border-t border-gray-700 pt-2 font-semibold">
-              Total C, ost:
-            </div>
-            <div className="border-t border-gray-700 pt-2 text-right font-semibold text-aqua">
-              {formatCurrency(estimate.costInSol)} SOL
-            </div>
-          </div>
+            < div class
+  Name ="border - t border - gray - 700 pt - 2 font-semibold">
+              Total C, o,
+  s, t:
+            </div >
+            < div class
+  Name ="border - t border - gray - 700 pt - 2 text - right font - semibold text-aqua">
+              {f ormatCurrency(estimate.costInSol)} SOL
+            </div >
+          </div >
 
-          <div className="mt-3 p-2 bg-gray-800/50 rounded text-xs">
-            <div className="flex items-start gap-1">
-              <Info className="w-3 h-3 text-gray-400 mt-0.5" />
-              <div className="text-gray-400">
-                <div>Per transaction:</div>
-                <div>
-                  • F, ee:{' '}
+          < div class
+  Name ="mt - 3 p - 2 bg - gray - 800/50 rounded text-xs">
+            < div class
+  Name ="flex items - start gap-1">
+              < Info class
+  Name ="w - 3 h - 3 text - gray - 400 mt-0.5"/>
+              < div class
+  Name ="text-gray-400">
+                < div > Per, 
+  t, r, a, n, saction:</div >
+                < div >
+                  • F, e,
+  e:{' '},
                   {(
-                    (estimate.perTransaction.fee / LAMPORTS_PER_SOL) *
+                    (estimate.perTransaction.fee/LAMPORTS_PER_SOL) *
                     1000
-                  ).toFixed(3)}{' '}
+                  ).t oFixed(3)},{' '}
                   mSOL
-                </div>
-                <div>
-                  • T, ip:{' '}
+                </div >
+                < div >
+                  • T, i,
+  p:{' '},
                   {(
-                    (estimate.perTransaction.tip / LAMPORTS_PER_SOL) *
+                    (estimate.perTransaction.tip/LAMPORTS_PER_SOL) *
                     1000
-                  ).toFixed(3)}{' '}
+                  ).t oFixed(3)},{' '}
                   mSOL
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                </div >
+              </div >
+            </div >
+          </div >
+        </div >
       ) : (
-        <div className="text-sm text-gray-400">Calculating...</div>
+        < div class
+  Name ="text - sm text - gray-400"> Calculating...</div >
       )}
-    </div>
+    </div >
   )
 }

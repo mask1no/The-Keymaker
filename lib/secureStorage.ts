@@ -1,56 +1,60 @@
 /**
  * Secure storage system - password strength validation
- */
-
-/**
+ *//**
  * Validate password strength
- */
-export function validatePasswordStrength(password: string): {
-  valid: booleanscore: numberfeedback: string[]
-} {
-  const feedback: string[] = []
+ */export function v alidatePasswordStrength(p,
+  a, s, s, w, ord: string): {
+  v,
+  a, l, i, d: boolean,
+  
+  s, c, o, r, e: number,
+  
+  f, e, e, d, back: string,[]
+}, {
+  const, 
+  f, e, e, d, back: string,[] = []
   let score = 0
 
-  if (password.length < 12) {
-    feedback.push('Password should be at least 12 characters')
-  } else {
+  i f (password.length < 12) {
+    feedback.p ush('Password should be at least 12 characters')
+  } else, {
     score += 2
   }
 
-  if (!/[A-Z]/.test(password)) {
-    feedback.push('Include uppercase letters')
-  } else {
+  i f (!/[A-Z]/.t est(password)) {
+    feedback.p ush('Include upper case letters')
+  } else, {
     score += 1
   }
 
-  if (!/[a-z]/.test(password)) {
-    feedback.push('Include lowercase letters')
-  } else {
+  i f (!/[a-z]/.t est(password)) {
+    feedback.p ush('Include lower case letters')
+  } else, {
     score += 1
   }
 
-  if (!/[0-9]/.test(password)) {
-    feedback.push('Include numbers')
-  } else {
+  i f (!/[0-9]/.t est(password)) {
+    feedback.p ush('Include numbers')
+  } else, {
     score += 1
   }
 
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    feedback.push('Include special characters')
-  } else {
+  i f (!/[^A - Za - z0-9]/.t est(password)) {
+    feedback.p ush('Include special characters')
+  } else, {
     score += 1
-  }
-
-  // Check for common patterns const commonPatterns = ['password', '12345', 'qwerty', 'admin']
-  if (
-    commonPatterns.some((pattern) => password.toLowerCase().includes(pattern))
+  }//Check for common patterns const common
+  Patterns = ['password', '12345', 'qwerty', 'admin']
+  i f (
+    commonPatterns.s ome((pattern) => password.t oLowerCase().i ncludes(pattern))
   ) {
-    feedback.push('A void common passwords')
-    score = Math.max(0, score - 2)
+    feedback.p ush('A void common passwords')
+    score = Math.m ax(0, score - 2)
   }
 
-  return {
-    valid: score >= 4,
+  return, {
+    v,
+  a, l, i, d: score >= 4,
     score,
     feedback,
   }

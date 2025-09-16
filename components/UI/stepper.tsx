@@ -1,52 +1,65 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-interface StepperProps {
-  c, urrentStep: numbersteps: string[]
-  c, lassName?: string
+interface StepperProps, {
+  c,
+  u, r, r, e, ntStep: number,
+  
+  s, t, e, p, s: string,[]
+  c, l, a, s, s, Name?: string
 }
 
-export function Stepper({ currentStep, steps, className }: StepperProps) {
-  return (
-    <div className={cn('flex items-center justify-between', className)}>
-      {steps.map((step, index) => (
-        <div key={index} className="flex items-center">
-          <div className={cn(
-              'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
+export function S tepper({ currentStep, steps, className }: StepperProps) {
+  r eturn (
+    < div class
+  Name ={c n('flex items - center justify-between', className)}>
+      {steps.m ap((step, index) => (
+        < div key ={index} class
+  Name ="flex items-center">
+          < div class
+  Name ={c n(
+              'flex items - center justify - center w - 8 h - 8 rounded - full text - sm font-medium',
               index <= currentStep
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground',
+                ? 'bg - primary text - primary-foreground'
+                : 'bg - muted text - muted-foreground',
             )}
           >
             {index + 1}
-          </div>
+          </div >
           {index < steps.length - 1 && (
-            <div className={cn(
-                'h-0.5 w-12 mx-2',
+            < div class
+  Name ={c n(
+                'h - 0.5 w - 12 mx-2',
                 index < currentStep ? 'bg-primary' : 'bg-muted',
-              )}
-            />
+              )}/>
           )}
-        </div>
+        </div >
       ))}
-    </div>
+    </div >
   )
 }
 
-interface StepProps {
-  t, itle: stringdescription?: stringchildren: React.ReactNode
+interface StepProps, {
+  t,
+  i, t, l, e: string
+  d, e, s, c, ription?: string,
+  
+  c, h, i, l, dren: React.ReactNode
 }
 
-export function Step({ title, description, children }: StepProps) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">{title}</h3>
+export function S tep({ title, description, children }: StepProps) {
+  r eturn (
+    < div class
+  Name ="space - y-4">
+      < div >
+        < h3 class
+  Name ="text - lg font-medium">{title}</h3 >
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          < p class
+  Name ="text - sm text - muted-foreground">{description}</p >
         )}
-      </div>
-      <div>{children}</div>
-    </div>
+      </div >
+      < div >{children}</div >
+    </div >
   )
 }

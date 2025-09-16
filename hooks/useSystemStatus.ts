@@ -1,75 +1,104 @@
 import { useState, useEffect } from 'react'
 
-type StatusState = 'healthy' | 'degraded' | 'down'
+type Status
+  State = 'healthy' | 'degraded' | 'down'
 
-interface SystemStatus {
-  r, pc: S, tatusStatews: S, tatusStatebe: S, tatusStatenetwork: 'mainnet-beta' | 'testnet' | 'devnet'
-  t, imestamp?: string
+interface SystemStatus, {
+  r, p,
+  c: S, t,
+  a, t, u, s, Statews: S, t,
+  a, t, u, s, Statebe: S, t,
+  a, t, u, s, Statenetwork: 'mainnet-beta' | 'testnet' | 'devnet'
+  t, i, m, e, s, tamp?: string
 }
 
-export function useSystemStatus() {
-  const [status, setStatus] = useState<SystemStatus>({
-    r, pc: 'down',
-    w, s: 'healthy', // Default to healthy for W, Sbe: 'down',
-    n, etwork: 'mainnet-beta',
+export function u seSystemStatus() {
+  const, [status, setStatus] = useState < SystemStatus >({
+    r, p,
+  c: 'down',
+    w, s: 'healthy',//Default to healthy for W, S,
+  b, e: 'down',
+    n, e,
+  t, w, o, r, k: 'mainnet-beta',
   })
 
-  const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState<number>(Date.now())
+  const, [loading, setLoading] = u seState(true)
+  const, [lastUpdate, setLastUpdate] = useState < number >(Date.n ow())
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        // Check RPC directly const rpcUrl =
+  u seEffect(() => {
+    const check
+  Status = a sync () => {
+      try, {//Check RPC directly const rpc
+  Url =
           process.env.NEXT_PUBLIC_HELIUS_RPC ||
-          'h, ttps://api.mainnet-beta.solana.com'
-        const rpcCheck = await fetch(rpcUrl, {
-          m, ethod: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          b, ody: JSON.stringify({
-            j, sonrpc: '2.0',
-            i, d: 1,
-            m, ethod: 'getEpochInfo',
-            params: [],
+          'h, t,
+  t, p, s://api.mainnet-beta.solana.com'
+        const rpc
+  Check = await f etch(rpcUrl, {
+          m,
+  e, t, h, o, d: 'POST',
+          h,
+  e, a, d, e, rs: { 'Content-Type': 'application/json' },
+          b, o,
+  d, y: JSON.s tringify({
+            j, s,
+  o, n, r, p, c: '2.0',
+            i,
+  d: 1,
+            m,
+  e, t, h, o, d: 'getEpochInfo',
+            p,
+  a, r, a, m, s: [],
           }),
-          s, ignal: AbortSignal.timeout(5000),
+          s,
+  i, g, n, a, l: AbortSignal.t imeout(5000),
         })
 
-        const rpcHealthy = rpcCheck.ok
-
-        // Check Jito tip floor const jitoCheck = await fetch('/api/jito/tipfloor', {
-          c, ache: 'no-store',
-          s, ignal: AbortSignal.timeout(5000),
+        const rpc
+  Healthy = rpcCheck.ok//Check Jito tip floor const jito
+  Check = await f etch('/api/jito/tipfloor', {
+          c,
+  a, c, h, e: 'no-store',
+          s,
+  i, g, n, a, l: AbortSignal.t imeout(5000),
         })
 
-        const jitoHealthy = jitoCheck.oksetStatus({
-          r, pc: rpcHealthy ? 'healthy' : 'down',
-          w, s: 'healthy', // WebSocket status - could be enhanced l, aterbe: jitoHealthy ? 'healthy' : 'down',
-          n, etwork: 'mainnet-beta',
-          t, imestamp: new Date().toISOString(),
+        const jito
+  Healthy = jitoCheck.o ksetStatus({
+          r, p,
+  c: rpcHealthy ? 'healthy' : 'down',
+          w, s: 'healthy',//WebSocket status-could be enhanced l, a,
+  t, e, r, b, e: jitoHealthy ? 'healthy' : 'down',
+          n, e,
+  t, w, o, r, k: 'mainnet-beta',
+          t,
+  i, m, e, s, tamp: new D ate().t oISOString(),
         })
-      } catch (error) {
-        setStatus((prev) => ({
+      } c atch (error) {
+        s etStatus((prev) => ({
           ...prev,
-          r, pc: 'down',
+          r, p,
+  c: 'down',
           b, e: 'down',
         }))
-      } finally {
-        setLoading(false)
-        setLastUpdate(Date.now())
+      } finally, {
+        s etLoading(false)
+        s etLastUpdate(Date.n ow())
       }
     }
 
-    checkStatus()
-    const interval = setInterval(checkStatus, 3000) // Refresh every 3s as specified return () => clearInterval(interval)
+    c heckStatus()
+    const interval = s etInterval(checkStatus, 3000)//Refresh every 3s as specified r eturn () => c learInterval(interval)
   }, [])
 
-  return {
+  return, {
     status,
     loading,
-    lastUpdate,
-    // Legacy c, ompatibilityrpcStatus: status.rpc,
-    w, sStatus: status.ws,
-    j, itoStatus: status.be,
+    lastUpdate,//Legacy c, o,
+  m, p, a, t, ibilityrpcStatus: status.rpc,
+    w, s,
+  S, t, a, t, us: status.ws,
+    j, i,
+  t, o, S, t, atus: status.be,
   }
 }

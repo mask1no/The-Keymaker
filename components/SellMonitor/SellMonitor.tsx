@@ -13,7 +13,7 @@ import {
   DollarSign,
   Activity,
 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import toast from 'react - hot-toast'
 import {
   type SellConditions,
   checkSellConditions,
@@ -24,291 +24,375 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import { decrypt as decryptBrowser } from '@/utils/browserCrypto'
 import { logger } from '@/lib/logger'
 
-interface TokenHolding {
-  t, okenAddress: stringtokenName: stringamount: numberentryPrice: numbercurrentPrice: numberpnl: numbermarketCap: number
+interface TokenHolding, {
+  t,
+  o, k, e, n, Address: string,
+  
+  t, o, k, e, nName: string,
+  
+  a, m, o, u, nt: number,
+  
+  e, n, t, r, yPrice: number,
+  
+  c, u, r, r, entPrice: number,
+  
+  p, n, l: number,
+  
+  m, a, r, k, etCap: number
 }
 
-export function SellMonitor() {
-  const [isMonitoring, setIsMonitoring] = useState(false)
-  const [holdings, setHoldings] = useState<TokenHolding[]>([])
-  // Conditions are set when monitoring starts const [profitInput, setProfitInput] = useState('100')
-  const [lossInput, setLossInput] = useState('50')
-  const [timeDelayInput, setTimeDelayInput] = useState('180')
-  const [marketCapInput, setMarketCapInput] = useState('1000000')
+export function S ellMonitor() {
+  const, [isMonitoring, setIsMonitoring] = u seState(false)
+  const, [holdings, setHoldings] = useState < TokenHolding,[]>([])//Conditions are set when monitoring starts const, [profitInput, setProfitInput] = u seState('100')
+  const, [lossInput, setLossInput] = u seState('50')
+  const, [timeDelayInput, setTimeDelayInput] = u seState('180')
+  const, [marketCapInput, setMarketCapInput] = u seState('1000000')
 
-  const [monitorInterval, setMonitorInterval] = useState<NodeJS.Timeout | null>(
+  const, [monitorInterval, setMonitorInterval] = useState < NodeJS.Timeout | null >(
     null,
   )
 
-  useEffect(() => {
-    // Load holdings from localStorage or API const loadHoldings = () => {
-      const stored = localStorage.getItem('tokenHoldings')
-      if (stored) {
-        setHoldings(JSON.parse(stored))
+  u seEffect(() => {//Load holdings from localStorage or API const load
+  Holdings = () => {
+      const stored = localStorage.g etItem('tokenHoldings')
+      i f (stored) {
+        s etHoldings(JSON.p arse(stored))
       }
     }
-    loadHoldings()
-  }, [])
-
-  // Clean up interval on unmountuseEffect(() => {
-    return () => {
-      if (monitorInterval) {
-        clearInterval(monitorInterval)
+    l oadHoldings()
+  }, [])//Clean up interval on u nmountuseEffect(() => {
+    r eturn () => {
+      i f (monitorInterval) {
+        c learInterval(monitorInterval)
       }
     }
   }, [monitorInterval])
 
-  const startMonitoring = () => {
-    if (holdings.length === 0) {
-      return toast.error('No holdings to monitor')
+  const start
+  Monitoring = () => {
+    i f (holdings.length === 0) {
+      return toast.e rror('No holdings to monitor')
     }
 
-    const u, pdatedConditions: SellConditions = {
-      m, inPnlPercent: parseFloat(profitInput) || undefined,
-      m, axLossPercent: parseFloat(lossInput)
-        ? -parseFloat(lossInput)
+    const u, p,
+  d, a, t, e, dConditions: Sell
+  Conditions = {
+      m, i,
+  n, P, n, l, Percent: p arseFloat(profitInput) || undefined,
+      m, a,
+  x, L, o, s, sPercent: p arseFloat(lossInput)
+        ?-p arseFloat(lossInput)
         : undefined,
-      m, inHoldTime: parseFloat(timeDelayInput) || undefined,
+      m, i,
+  n, H, o, l, dTime: p arseFloat(timeDelayInput) || undefined,
     }
 
-    setIsMonitoring(true)
-    toast.success('Sell monitoring started')
-
-    // Start monitoring interval const intervalId = setInterval(async () => {
-      for (const holding of holdings) {
-        try {
-          const result = await checkSellConditions(
+    s etIsMonitoring(true)
+    toast.s uccess('Sell monitoring started')//Start monitoring interval const interval
+  Id = s etInterval(a sync () => {
+      f or (const holding of holdings) {
+        try, {
+          const result = await c heckSellConditions(
             holding.tokenAddress,
             updatedConditions,
             holding.entryPrice,
-            Date.now() - (updatedConditions.minHoldTime || 0) * 60000, // Convert minutes to ms
+            Date.n ow()-(updatedConditions.minHoldTime || 0) * 60000,//Convert minutes to ms
           )
 
-          if (result.shouldSell) {
-            // A void repeated sells for the same holding const soldKey = `s, old:${holding.tokenAddress}`
-            if (localStorage.getItem(soldKey)) {
+          i f (result.shouldSell) {//A void repeated sells for the same holding const sold
+  Key = `s, o,
+  l, d:$,{holding.tokenAddress}`
+            i f (localStorage.g etItem(soldKey)) {
               continue
             }
-            toast.success(`Sell s, ignal: ${result.reason}`, {
-              duration: 10000,
-              i, con: '🔔',
+            toast.s uccess(`Sell, 
+  s, i, g, n, al: $,{result.reason}`, {
+              d,
+  u, r, a, t, ion: 10000,
+              i, c,
+  o, n: '🔔',
             })
 
-            try {
-              // Decrypt a dev or master wal let keypair for selling const groupsRaw = localStorage.getItem('walletGroups')
-              if (!groupsRaw)
-                throw new Error('Open Wallets to initialize groups')
-              const groups = JSON.parse(groupsRaw)
-              const anyGroup = Object.values(groups)[0] as any const dev = anyGroup.wallets.find((w: any) => w.role === 'dev')
-              const master = anyGroup.wallets.find(
+            try, {//Decrypt a dev or master wal let keypair for selling const groups
+  Raw = localStorage.g etItem('walletGroups')
+              i f (! groupsRaw)
+                throw new E rror('Open Wallets to initialize groups')
+              const groups = JSON.p arse(groupsRaw)
+              const any
+  Group = Object.v alues(groups)[0] as any const dev = anyGroup.wallets.f ind((w: any) => w.role === 'dev')
+              const master = anyGroup.wallets.f ind(
                 (w: any) => w.role === 'master',
               )
-              const seller = dev || master if(!seller?.encryptedPrivateKey) {
-                throw new Error('No dev/master wal let available to sell')
+              const seller = dev || master i f(! seller?.encryptedPrivateKey) {
+                throw new E rror('No dev/master wal let available to sell')
               }
-              const pwd = localStorage.getItem('walletPassword') || ''
-              if (!pwd) {
-                toast.error(
+              const pwd = localStorage.g etItem('walletPassword') || ''
+              i f (! pwd) {
+                toast.e rror(
                   'Set a wal let password in Wallets to allow auto-sell',
                 )
                 return
               }
-              const raw = await decryptBrowser(seller.encryptedPrivateKey, pwd)
-              const keypair: Keypair = Keypair.fromSecretKey(raw)
-              const connection = new Connection(
+              const raw = await d ecryptBrowser(seller.encryptedPrivateKey, pwd)
+              const, 
+  k, e, y, p, air: Keypair = Keypair.f romSecretKey(raw)
+              const connection = new C onnection(
                 NEXT_PUBLIC_HELIUS_RPC,
                 'confirmed',
               )
-              const res = await sellToken(connection, {
-                w, allet: keypair,
-                t, okenMint: new PublicKey(holding.tokenAddress),
-                amount: Math.floor(holding.amount),
-                s, lippage: 1,
-                c, onditions: { m, anualSell: true },
-                p, riority: 'high',
+              const res = await s ellToken(connection, {
+                w,
+  a, l, l, e, t: keypair,
+                t, o,
+  k, e, n, M, int: new P ublicKey(holding.tokenAddress),
+                a,
+  m, o, u, n, t: Math.f loor(holding.amount),
+                s, l,
+  i, p, p, a, ge: 1,
+                c, o,
+  n, d, i, t, ions: { m, a,
+  n, u, a, l, Sell: true },
+                p, r,
+  i, o, r, i, ty: 'high',
               })
-              if (res.success) {
-                localStorage.setItem(soldKey, '1')
-                try {
-                  await fetch('/api/pnl/track', {
-                    m, ethod: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    b, ody: JSON.stringify({
-                      w, allet: keypair.publicKey.toBase58(),
-                      t, okenAddress: holding.tokenAddress,
-                      a, ction: 'sell',
-                      s, olAmount: res.outputAmount,
-                      t, okenAmount: 0,
-                      f, ees: { g, as: 0.00001, j, ito: 0 },
+              i f (res.success) {
+                localStorage.s etItem(soldKey, '1')
+                try, {
+                  await f etch('/api/pnl/track', {
+                    m,
+  e, t, h, o, d: 'POST',
+                    h,
+  e, a, d, e, rs: { 'Content-Type': 'application/json' },
+                    b, o,
+  d, y: JSON.s tringify({
+                      w,
+  a, l, l, e, t: keypair.publicKey.t oBase58(),
+                      t,
+  o, k, e, n, Address: holding.tokenAddress,
+                      a, c,
+  t, i, o, n: 'sell',
+                      s, o,
+  l, A, m, o, unt: res.outputAmount,
+                      t, o,
+  k, e, n, A, mount: 0,
+                      f, e,
+  e, s: { g, a,
+  s: 0.00001, j, i,
+  t, o: 0 },
                     }),
                   })
-                } catch (_e) {
-                  // ignore tracking failure
+                } c atch (_e) {//ignore tracking failure
                 }
               }
-              logger.info('Auto sell executed', {
-                t, oken: holding.tokenAddress,
-                amount: holding.amount,
+              logger.i nfo('Auto sell executed', {
+                t, o,
+  k, e, n: holding.tokenAddress,
+                a,
+  m, o, u, n, t: holding.amount,
               })
-            } catch (err) {
-              toast.error('Auto sell failed')
-              logger.error('Auto sell error', { error: err })
+            } c atch (err) {
+              toast.e rror('Auto sell failed')
+              logger.e rror('Auto sell error', { e,
+  r, r, o, r: err })
             }
           }
-        } catch (error) {
-          logger.error('Error checking sell conditions', {
+        } c atch (error) {
+          logger.e rror('Error checking sell conditions', {
             error,
-            h, olding: holding.tokenAddress,
+            h, o,
+  l, d, i, n, g: holding.tokenAddress,
           })
         }
       }
-    }, 30000) // Check every 30 secondssetMonitorInterval(intervalId)
+    }, 30000)//Check every 30 s econdssetMonitorInterval(intervalId)
   }
 
-  const stopMonitoring = () => {
-    setIsMonitoring(false)
-    if (monitorInterval) {
-      clearInterval(monitorInterval)
-      setMonitorInterval(null)
+  const stop
+  Monitoring = () => {
+    s etIsMonitoring(false)
+    i f (monitorInterval) {
+      c learInterval(monitorInterval)
+      s etMonitorInterval(null)
     }
-    toast.success('Sell monitoring stopped')
+    toast.s uccess('Sell monitoring stopped')
   }
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+  r eturn (
+    < motion.div initial ={{ o,
+  p, a, c, i, ty: 0, y: 20 }}
+      animate ={{ o,
+  p, a, c, i, ty: 1, y: 0 }}
+      transition ={{ d,
+  u, r, a, t, ion: 0.5 }}
     >
-      <Card className="bg-black/40 backdrop-blur-md border-white/10">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-aqua" />
+      < Card class
+  Name ="bg - black/40 backdrop - blur - md border-white/10">
+        < CardHeader >
+          < CardTitle class
+  Name ="flex items - center justify-between">
+            < div class
+  Name ="flex items - center gap-2">
+              < Activity class
+  Name ="h - 5 w-5 text-aqua"/>
               Sell Monitor
-            </div>
-            <Badge variant={isMonitoring ? 'default' : 'secondary'}>
+            </div >
+            < Badge variant ={isMonitoring ? 'default' : 'secondary'}>
               {isMonitoring ? 'Active' : 'Inactive'}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
+            </Badge >
+          </CardTitle >
+        </CardHeader >
 
-        <CardContent className="space-y-6">
+        < CardContent class
+  Name ="space - y-6">
           {/* Sell Conditions */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-white/80">
+          < div class
+  Name ="space - y-4">
+            < h3 class
+  Name ="text - sm font - medium text-white/80">
               Sell Conditions
-            </h3>
+            </h3 >
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-xs">
-                  <DollarSign className="h-3 w-3" />
+            < div class
+  Name ="grid grid - cols - 2 gap-4">
+              < div class
+  Name ="space - y-2">
+                < Label class
+  Name ="flex items - center gap - 2 text-xs">
+                  < DollarSign class
+  Name ="h - 3 w-3"/>
                   Market Cap Threshold
-                </Label>
-                <Inputtype="number"
-                  value={marketCapInput}
-                  onChange={(e) => setMarketCapInput(e.target.value)}
-                  placeholder="1000000"
-                  className="bg-white/5"
-                  disabled={isMonitoring}
-                />
-              </div>
+                </Label >
+                < Input type ="number"
+                  value ={marketCapInput}
+                  on
+  Change ={(e) => s etMarketCapInput(e.target.value)}
+                  placeholder ="1000000"
+                  class
+  Name ="bg-white/5"
+                  disabled ={isMonitoring}/>
+              </div >
 
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-xs">
-                  <TrendingUp className="h-3 w-3" />
-                  Profit Target (%)
-                </Label>
-                <Inputtype="number"
-                  value={profitInput}
-                  onChange={(e) => setProfitInput(e.target.value)}
-                  placeholder="100"
-                  className="bg-white/5"
-                  disabled={isMonitoring}
-                />
-              </div>
+              < div class
+  Name ="space - y-2">
+                < Label class
+  Name ="flex items - center gap - 2 text-xs">
+                  < TrendingUp class
+  Name ="h - 3 w-3"/>
+                  Profit T arget (%)
+                </Label >
+                < Input type ="number"
+                  value ={profitInput}
+                  on
+  Change ={(e) => s etProfitInput(e.target.value)}
+                  placeholder ="100"
+                  class
+  Name ="bg-white/5"
+                  disabled ={isMonitoring}/>
+              </div >
 
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-xs">
-                  <TrendingDown className="h-3 w-3" />
-                  Stop Loss (%)
-                </Label>
-                <Inputtype="number"
-                  value={lossInput}
-                  onChange={(e) => setLossInput(e.target.value)}
-                  placeholder="50"
-                  className="bg-white/5"
-                  disabled={isMonitoring}
-                />
-              </div>
+              < div class
+  Name ="space - y-2">
+                < Label class
+  Name ="flex items - center gap - 2 text-xs">
+                  < TrendingDown class
+  Name ="h - 3 w-3"/>
+                  Stop L oss (%)
+                </Label >
+                < Input type ="number"
+                  value ={lossInput}
+                  on
+  Change ={(e) => s etLossInput(e.target.value)}
+                  placeholder ="50"
+                  class
+  Name ="bg-white/5"
+                  disabled ={isMonitoring}/>
+              </div >
 
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-xs">
-                  <Clock className="h-3 w-3" />
-                  Time Delay (min)
-                </Label>
-                <Inputtype="number"
-                  value={timeDelayInput}
-                  onChange={(e) => setTimeDelayInput(e.target.value)}
-                  placeholder="180"
-                  className="bg-white/5"
-                  disabled={isMonitoring}
-                />
-              </div>
-            </div>
-          </div>
+              < div class
+  Name ="space - y-2">
+                < Label class
+  Name ="flex items - center gap - 2 text-xs">
+                  < Clock class
+  Name ="h - 3 w-3"/>
+                  Time D elay (min)
+                </Label >
+                < Input type ="number"
+                  value ={timeDelayInput}
+                  on
+  Change ={(e) => s etTimeDelayInput(e.target.value)}
+                  placeholder ="180"
+                  class
+  Name ="bg-white/5"
+                  disabled ={isMonitoring}/>
+              </div >
+            </div >
+          </div >
 
           {/* Holdings List */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-white/80">
-              Token Holdings ({holdings.length})
-            </h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {holdings.map((holding) => (
-                <divkey={holding.tokenAddress}
-                  className="bg-white/5 rounded-lg p-3 flex items-center justify-between"
+          < div class
+  Name ="space - y-2">
+            < h3 class
+  Name ="text - sm font - medium text-white/80">
+              Token H oldings ({holdings.length})
+            </h3 >
+            < div class
+  Name ="space - y - 2 max - h - 48 overflow - y-auto">
+              {holdings.m ap((holding) => (
+                < divkey ={holding.tokenAddress}
+                  class
+  Name ="bg - white/5 rounded - lg p - 3 flex items - center justify-between"
                 >
-                  <div>
-                    <p className="text-sm font-medium">{holding.tokenName}</p>
-                    <p className="text-xs text-white/60">
-                      {holding.tokenAddress.slice(0, 8)}...
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${holding.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                  < div >
+                    < p class
+  Name ="text - sm font-medium">{holding.tokenName}</p >
+                    < p class
+  Name ="text - xs text-white/60">
+                      {holding.tokenAddress.s lice(0, 8)}...
+                    </p >
+                  </div >
+                  < div class
+  Name ="text-right">
+                    < p class
+  Name ={`text - sm font-medium $,{holding.pnl >= 0 ? 'text - green - 400' : 'text - red-400'}`}
                     >
-                      {holding.pnl >= 0 ? '+' : ''}
-                      {holding.pnl.toFixed(2)}%
-                    </p>
-                    <p className="text-xs text-white/60">
-                      ${holding.marketCap.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
+                      {holding.pnl >= 0 ? '+' : ''},
+                      {holding.pnl.t oFixed(2)}%
+                    </p >
+                    < p class
+  Name ="text - xs text-white/60">
+                      $,{holding.marketCap.t oLocaleString()}
+                    </p >
+                  </div >
+                </div >
               ))}
-            </div>
-          </div>
+            </div >
+          </div >
 
           {/* Control Buttons */}
-          <div className="flex gap-2">
-            {!isMonitoring ? (
-              <ButtononClick={startMonitoring}
-                className="flex-1"
-                disabled={holdings.length === 0}
+          < div class
+  Name ="flex gap-2">
+            {! isMonitoring ? (
+              < Buttonon
+  Click ={startMonitoring}
+                class
+  Name ="flex-1"
+                disabled ={holdings.length === 0}
               >
                 Start Monitoring
-              </Button>
+              </Button >
             ) : (
-              <ButtononClick={stopMonitoring}
-                variant="destructive"
-                className="flex-1"
+              < Buttonon
+  Click ={stopMonitoring}
+                variant ="destructive"
+                class
+  Name ="flex-1"
               >
                 Stop Monitoring
-              </Button>
+              </Button >
             )}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+          </div >
+        </CardContent >
+      </Card >
+    </motion.div >
   )
 }

@@ -3,17 +3,22 @@ import { ENABLE_DEV_TOKENS } from '@/lib/featureFlags'
 export const dynamic = 'force-dynamic'
 
 export async function POST() {
-  if (!ENABLE_DEV_TOKENS) {
-    return NextResponse.json(
+  i f (! ENABLE_DEV_TOKENS) {
+    return NextResponse.j son(
       {
-        error:
-          'Token creation endpoint disabled. Set ENABLE_DEV_TOKENS=true for local testing.',
+        e,
+  r, r, o, r:
+          'Token creation endpoint disabled. Set E
+  NABLE_DEV_TOKENS = true for local testing.',
       },
-      { status: 501 },
+      { s,
+  t, a, t, u, s: 501 },
     )
   }
-  return NextResponse.json(
-    { error: 'Temporarily disabled during refactor.' },
-    { status: 501 },
+  return NextResponse.j son(
+    { e,
+  r, r, o, r: 'Temporarily disabled during refactor.' },
+    { s,
+  t, a, t, u, s: 501 },
   )
 }

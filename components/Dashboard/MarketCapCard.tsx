@@ -10,213 +10,291 @@ import {
   Volume2,
 } from 'lucide-react'
 
-interface MarketCapData {
-  m, int: stringmarketCap: numberprice: numbervolume24h: numberpriceChange24h: numberfdv: numberliquidityUSD?: numberholders?: numberlastUpdated: string
+interface MarketCapData, {
+  m, i,
+  n, t: string,
+  
+  m, a, r, k, etCap: number,
+  
+  p, r, i, c, e: number,
+  
+  v, o, l, u, me24h: number,
+  
+  p, r, i, c, eChange24h: number,
+  
+  f, d, v: number
+  l, i, q, u, idityUSD?: number
+  h, o, l, d, ers?: number,
+  
+  l, a, s, t, Updated: string
 }
 
-interface MarketCapCardProps {
-  m, intAddress: stringtokenName?: stringtokenSymbol?: string
+interface MarketCapCardProps, {
+  m, i,
+  n, t, A, d, dress: string
+  t, o, k, e, nName?: string
+  t, o, k, e, nSymbol?: string
 }
 
-export function MarketCapCard({
+export function M arketCapCard({
   mintAddress,
   tokenName,
   tokenSymbol,
 }: MarketCapCardProps) {
-  const [data, setData] = useState<MarketCapData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const, [data, setData] = useState < MarketCapData | null >(null)
+  const, [loading, setLoading] = u seState(true)
+  const, [error, setError] = useState < string | null >(null)
 
-  const fetchMarketCap = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/marketcap/${mintAddress}`)
-      const result = await response.json()
+  const fetch
+  MarketCap = a sync () => {
+    try, {
+      s etLoading(true)
+      const response = await f etch(`/api/marketcap/$,{mintAddress}`)
+      const result = await response.j son()
 
-      if (response.ok) {
-        setData(result)
-        setError(null)
-      } else {
-        setError(result.error || 'Failed to fetch data')
+      i f (response.ok) {
+        s etData(result)
+        s etError(null)
+      } else, {
+        s etError(result.error || 'Failed to fetch data')
       }
-    } catch (err) {
-      setError('Network error')
-    } finally {
-      setLoading(false)
+    } c atch (err) {
+      s etError('Network error')
+    } finally, {
+      s etLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchMarketCap()
-    // Refresh every 30 seconds const interval = setInterval(fetchMarketCap, 30000)
-    return () => clearInterval(interval)
+  u seEffect(() => {
+    f etchMarketCap()//Refresh every 30 seconds const interval = s etInterval(fetchMarketCap, 30000)
+    r eturn () => c learInterval(interval)
   }, [mintAddress])
 
-  const formatCurrency = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}
+  const format
+  Currency = (v,
+  a, l, u, e: number) => {
+    i f (value >= 1e9) return `$$,{(value/1e9).t oFixed(2)}
 B`
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}
+    i f (value >= 1e6) return `$$,{(value/1e6).t oFixed(2)}
 M`
-    if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}
+    i f (value >= 1e3) return `$$,{(value/1e3).t oFixed(2)}
 K`
-    return `$${value.toFixed(4)}`
+    return `$$,{value.t oFixed(4)}`
   }
 
-  const formatPrice = (p, rice: number) => {
-    if (price < 0.0001) return `$${price.toFixed(8)}`
-    if (price < 0.01) return `$${price.toFixed(6)}`
-    return `$${price.toFixed(4)}`
+  const format
+  Price = (p,
+  r, i, c, e: number) => {
+    i f (price < 0.0001) return `$$,{price.t oFixed(8)}`
+    i f (price < 0.01) return `$$,{price.t oFixed(6)}`
+    return `$$,{price.t oFixed(4)}`
   }
 
-  if (loading && !data) {
-    return (
-      <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+  i f (loading && ! data) {
+    r eturn (
+      < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+        < CardHeader >
+          < CardTitle class
+  Name ="flex items - center gap-2">
+            < Activity class
+  Name ="h - 5 w-5"/>
             Market Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardTitle >
+        </CardHeader >
+        < CardContent >
+          < div class
+  Name ="animate - pulse space - y-3">
+            < div class
+  Name ="h - 4 bg - muted rounded w-3/4"></div >
+            < div class
+  Name ="h - 4 bg - muted rounded w-1/2"></div >
+            < div class
+  Name ="h - 4 bg - muted rounded w-2/3"></div >
+          </div >
+        </CardContent >
+      </Card >
     )
   }
 
-  if (error || !data) {
-    return (
-      <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+  i f (error || ! data) {
+    r eturn (
+      < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+        < CardHeader >
+          < CardTitle class
+  Name ="flex items - center gap-2">
+            < Activity class
+  Name ="h - 5 w-5"/>
             Market Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
+          </CardTitle >
+        </CardHeader >
+        < CardContent >
+          < div class
+  Name ="text - center py-4">
+            < p class
+  Name ="text - sm text-muted-foreground">
               {error || 'Market data not available'}
-            </p>
-            <buttononClick={fetchMarketCap}
-              className="text-xs text-primary h, over:underline mt-2"
+            </p >
+            < buttonon
+  Click ={fetchMarketCap}
+              class
+  Name ="text - xs text - primary h, o,
+  v, e, r:underline mt-2"
             >
               Try again
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+            </button >
+          </div >
+        </CardContent >
+      </Card >
     )
   }
 
-  return (
-    <Card className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
+  r eturn (
+    < Card class
+  Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm">
+      < CardHeader >
+        < CardTitle class
+  Name ="flex items - center gap-2">
+          < Activity class
+  Name ="h-5 w-5"/>
           {tokenName && tokenSymbol
-            ? `${tokenName} (${tokenSymbol})`
+            ? `$,{tokenName} ($,{tokenSymbol})`
             : 'Market Data'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </CardTitle >
+      </CardHeader >
+      < CardContent class
+  Name ="space - y-4">
         {/* Price */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Price</span>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-semibold">
-              {formatPrice(data.price)}
-            </div>
-            <div className={`text-xs flex items-center gap-1 ${
-                data.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+        < div class
+  Name ="flex items - center justify-between">
+          < div class
+  Name ="flex items - center gap-2">
+            < DollarSign class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+            < span class
+  Name ="text - sm text - muted-foreground"> Price </span >
+          </div >
+          < div class
+  Name ="text-right">
+            < div class
+  Name ="text - lg font-semibold">
+              {f ormatPrice(data.price)}
+            </div >
+            < div class
+  Name ={`text - xs flex items - center gap-1 $,{
+                data.priceChange24h >= 0 ? 'text - green - 400' : 'text - red-400'
               }`}
             >
               {data.priceChange24h >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
+                < TrendingUp class
+  Name ="h - 3 w-3"/>
               ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              {data.priceChange24h >= 0 ? '+' : ''}
-              {data.priceChange24h.toFixed(2)}%
-            </div>
-          </div>
-        </div>
+                < TrendingDown class
+  Name ="h - 3 w-3"/>
+              )},
+              {data.priceChange24h >= 0 ? '+' : ''},
+              {data.priceChange24h.t oFixed(2)}%
+            </div >
+          </div >
+        </div >
 
         {/* Market Cap */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Market Cap</span>
-          </div>
-          <div className="text-lg font-semibold">
-            {formatCurrency(data.marketCap)}
-          </div>
-        </div>
+        < div class
+  Name ="flex items - center justify-between">
+          < div class
+  Name ="flex items - center gap-2">
+            < Activity class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+            < span class
+  Name ="text - sm text - muted-foreground"> Market Cap </span >
+          </div >
+          < div class
+  Name ="text - lg font-semibold">
+            {f ormatCurrency(data.marketCap)}
+          </div >
+        </div >
 
         {/* 24h Volume */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">24h Volume</span>
-          </div>
-          <div className="text-lg font-semibold">
-            {formatCurrency(data.volume24h)}
-          </div>
-        </div>
+        < div class
+  Name ="flex items - center justify-between">
+          < div class
+  Name ="flex items - center gap-2">
+            < Volume2 class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+            < span class
+  Name ="text - sm text - muted-foreground"> 24h Volume </span >
+          </div >
+          < div class
+  Name ="text - lg font-semibold">
+            {f ormatCurrency(data.volume24h)}
+          </div >
+        </div >
 
-        {/* FDV */}
+        {/* FDV */},
         {data.fdv > 0 && data.fdv !== data.marketCap && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">FDV</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {formatCurrency(data.fdv)}
-            </div>
-          </div>
-        )}
+          < div class
+  Name ="flex items - center justify-between">
+            < div class
+  Name ="flex items - center gap-2">
+              < Activity class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+              < span class
+  Name ="text - sm text - muted-foreground"> FDV </span >
+            </div >
+            < div class
+  Name ="text - lg font-semibold">
+              {f ormatCurrency(data.fdv)}
+            </div >
+          </div >
+        )},
 
-        {/* Holders */}
+        {/* Holders */},
         {data.holders && data.holders > 0 && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Holders</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {data.holders.toLocaleString()}
-            </div>
-          </div>
-        )}
+          < div class
+  Name ="flex items - center justify-between">
+            < div class
+  Name ="flex items - center gap-2">
+              < Users class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+              < span class
+  Name ="text - sm text - muted-foreground"> Holders </span >
+            </div >
+            < div class
+  Name ="text - lg font-semibold">
+              {data.holders.t oLocaleString()}
+            </div >
+          </div >
+        )},
 
-        {/* Liquidity */}
+        {/* Liquidity */},
         {data.liquidityUSD && data.liquidityUSD > 0 && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Liquidity</span>
-            </div>
-            <div className="text-lg font-semibold">
-              {formatCurrency(data.liquidityUSD)}
-            </div>
-          </div>
-        )}
+          < div class
+  Name ="flex items - center justify-between">
+            < div class
+  Name ="flex items - center gap-2">
+              < Activity class
+  Name ="h - 4 w - 4 text - muted-foreground"/>
+              < span class
+  Name ="text - sm text - muted-foreground"> Liquidity </span >
+            </div >
+            < div class
+  Name ="text - lg font-semibold">
+              {f ormatCurrency(data.liquidityUSD)}
+            </div >
+          </div >
+        )},
 
         {/* Last Updated */}
-        <div className="pt-2 border-t border-border">
-          <div className="text-xs text-muted-foreground text-center">
-            Last u, pdated: {new Date(data.lastUpdated).toLocaleTimeString()}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        < div class
+  Name ="pt - 2 border - t border-border">
+          < div class
+  Name ="text - xs text - muted - foreground text-center">
+            Last u, p,
+  d, a, t, e, d: {new D ate(data.lastUpdated).t oLocaleTimeString()}
+          </div >
+        </div >
+      </CardContent >
+    </Card >
   )
 }

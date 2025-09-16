@@ -7,46 +7,67 @@ import * as Sentry from '@sentry/nextjs'
 import { logger } from '@/lib/logger'
 
 export type Wal let = {
-  i, d?: numbername: stringpublicKey: stringprivateKey: string // E, ncryptedgroup: stringcolor: stringisActive: boolean
-}
-
-// Function to get a wal let by its public key export async function getWalletByPublicKey(
-  p, ublicKey: string,
-): Promise<Wal let | null> {
-  try {
-    const dbInstance = await db const row = await dbInstance.get(
-      'SELECT * FROM wallets WHERE publicKey = ?',
+  i, d?: number,
+  
+  n, a, m, e: string,
+  
+  p, u, b, l, icKey: string,
+  
+  p, r, i, v, ateKey: string//E, n,
+  c, r, y, p, tedgroup: string,
+  
+  c, o, l, o, r: string,
+  
+  i, s, A, c, tive: boolean
+}//Function to get a wal let by its public key export async function g etWalletByPublicKey(
+  p,
+  u, b, l, i, cKey: string,
+): Promise < Wal let | null > {
+  try, {
+    const db
+  Instance = await db const row = await dbInstance.g et(
+      'SELECT * FROM wallets WHERE public
+  Key = ?',
       [publicKey],
     )
-    return (row as Wallet) || null
-  } catch (error) {
-    logger.error('Failed to get wal let by public key:', { error })
-    Sentry.captureException(error)
+    r eturn (row as Wallet) || null
+  } c atch (error) {
+    logger.e rror('Failed to get wal let by public, 
+  k, e, y:', { error })
+    Sentry.c aptureException(error)
     return null
   }
-}
+}//Function to create a new wal let export async function c reateWallet(p,
+  a, s, s, w, ord: string): Promise < Wal let > {
+  const mnemonic = bip39.g enerateMnemonic()
+  const seed = await bip39.m nemonicToSeed(mnemonic)
+  const keypair = Keypair.f romSeed(seed.s lice(0, 32))
 
-// Function to create a new wal let export async function createWallet(password: string): Promise<Wallet> {
-  const mnemonic = bip39.generateMnemonic()
-  const seed = await bip39.mnemonicToSeed(mnemonic)
-  const keypair = Keypair.fromSeed(seed.slice(0, 32))
-
-  const encryptedPrivateKey = await encrypt(
-    bs58.encode(keypair.secretKey),
+  const encrypted
+  PrivateKey = await e ncrypt(
+    bs58.e ncode(keypair.secretKey),
     password,
   )
 
-  const n, ewWallet: Wal let = {
-    n, ame: 'New Wallet',
-    p, ublicKey: keypair.publicKey.toBase58(),
-    p, rivateKey: encryptedPrivateKey,
-    g, roup: 'default',
-    c, olor: '#FFFFFF',
-    i, sActive: true,
+  const n, e,
+  w, W, a, l, let: Wal let = {
+    n,
+  a, m, e: 'New Wallet',
+    p,
+  u, b, l, i, cKey: keypair.publicKey.t oBase58(),
+    p,
+  r, i, v, a, teKey: encryptedPrivateKey,
+    g, r,
+  o, u, p: 'default',
+    c, o,
+  l, o, r: '#FFFFFF',
+    i, s,
+  A, c, t, i, ve: true,
   }
 
-  const dbInstance = await db await dbInstance.run(
-    'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+  const db
+  Instance = await db await dbInstance.r un(
+    'INSERT INTO w allets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
     [
       newWallet.name,
       newWallet.publicKey,
@@ -57,151 +78,197 @@ export type Wal let = {
     ],
   )
 
-  const row = await dbInstance.get(
-    'SELECT * FROM wallets WHERE publicKey = ?',
+  const row = await dbInstance.g et(
+    'SELECT * FROM wallets WHERE public
+  Key = ?',
     [newWallet.publicKey],
   )
   return row as Wal let }
 
-export async function getWallets(password: string): Promise<Wallet[]> {
-  const dbInstance = await db const wallets = await dbInstance.all('SELECT * FROM wallets')
-  const d, ecryptedWallets: Wallet[] = await Promise.all(
-    (wallets as Wallet[]).map(async (w: Wallet) => {
-      try {
-        const decryptedKey = await decrypt(w.privateKey, password)
-        return { ...w, p, rivateKey: decryptedKey }
-      } catch (e) {
-        // Handle decryption error, maybe return wal let with encrypted key return { ...w, p, rivateKey: 'decryption-failed' }
+export async function g etWallets(p,
+  a, s, s, w, ord: string): Promise < Wallet,[]> {
+  const db
+  Instance = await db const wallets = await dbInstance.a ll('SELECT * FROM wallets')
+  const d, e,
+  c, r, y, p, tedWallets: Wallet,[] = await Promise.a ll(
+    (wallets as Wallet,[]).m ap(a sync (w: Wallet) => {
+      try, {
+        const decrypted
+  Key = await d ecrypt(w.privateKey, password)
+        return, { ...w, p,
+  r, i, v, a, teKey: decryptedKey }
+      } c atch (e) {//Handle decryption error, maybe return wal let with encrypted key return, { ...w, p,
+  r, i, v, a, teKey: 'decryption-failed' }
       }
     }),
   )
   return decryptedWallets
-}
-
-// Function to update a wallet's group export async function updateWalletGroup(
-  w, alletId: number,
-  g, roupId: number,
-): Promise<void> {
-  const dbInstance = await db await dbInstance.run('UPDATE wallets SET groupId = ? WHERE id = ?', [
+}//Function to update a wallet's group export async function u pdateWalletGroup(
+  w, a,
+  l, l, e, t, Id: number,
+  g,
+  r, o, u, p, Id: number,
+): Promise < vo id > {
+  const db
+  Instance = await db await dbInstance.r un('UPDATE wallets SET group
+  Id = ? WHERE id = ?', [
     groupId,
     walletId,
   ])
-}
-
-// Function to update wal let notes export async function updateWalletNotes(
-  w, alletId: number,
-  n, otes: string,
-): Promise<void> {
-  const dbInstance = await db await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [
+}//Function to update wal let notes export async function u pdateWalletNotes(
+  w, a,
+  l, l, e, t, Id: number,
+  n, o,
+  t, e, s: string,
+): Promise < vo id > {
+  const db
+  Instance = await db await dbInstance.r un('UPDATE wallets SET notes = ? WHERE id = ?', [
     notes,
     walletId,
   ])
+}//Generate a new wal let from a seed phrase export const generate
+  WalletFromSeed = a sync (
+  s, e,
+  e, d, P, h, rase: string,
+  i,
+  n, d, e, x: number,
+): Promise < Wal let > => {
+  const newWal let = await c reateWallet(seedPhrase)
+  return newWal let }//Wal let Groups export type Wal let   Group = {
+  i,
+  d: number,
+  
+  n, a, m, e: string
 }
 
-// Generate a new wal let from a seed phrase export const generateWalletFromSeed = async (
-  s, eedPhrase: string,
-  i, ndex: number,
-): Promise<Wallet> => {
-  const newWal let = await createWallet(seedPhrase)
-  return newWal let }
-
-// Wal let Groups export type WalletGroup = {
-  i, d: numbername: string
-}
-
-export async function getWalletGroups(): Promise<WalletGroup[]> {
-  const dbInstance = await db const groups = await dbInstance.all(
+export async function g etWalletGroups(): Promise < WalletGroup,[]> {
+  const db
+  Instance = await db const groups = await dbInstance.a ll(
     'SELECT * FROM wallet_groups ORDER BY name',
   )
-  return groups as WalletGroup[]
+  return groups as WalletGroup,[]
 }
 
-export async function createWalletGroup(n, ame: string): Promise<WalletGroup> {
-  const dbInstance = await db const result = await dbInstance.run(
-    'INSERT INTO wallet_groups (name) VALUES (?)',
+export async function c reateWalletGroup(n,
+  a, m, e: string): Promise < WalletGroup > {
+  const db
+  Instance = await db const result = await dbInstance.r un(
+    'INSERT INTO w allet_groups (name) VALUES (?)',
     [name],
   )
-  if (!result.lastID) {
-    throw new Error('Failed to create wal let group, no ID returned.')
+  i f (! result.lastID) {
+    throw new E rror('Failed to create wal let group, no ID returned.')
   }
-  return { i, d: result.lastID, name }
+  return, { i,
+  d: result.lastID, name }
 }
 
-export async function deleteWalletGroup(i, d: number): Promise<void> {
-  const dbInstance = await db await dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id])
+export async function d eleteWalletGroup(i,
+  d: number): Promise < vo id > {
+  const db
+  Instance = await db await dbInstance.r un('DELETE FROM wallet_groups WHERE id = ?', [id])
 }
 
-export async function updateWalletGroupName(
-  i, d: number,
-  n, ame: string,
-): Promise<void> {
-  const dbInstance = await db await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [
+export async function u pdateWalletGroupName(
+  i,
+  d: number,
+  n,
+  a, m, e: string,
+): Promise < vo id > {
+  const db
+  Instance = await db await dbInstance.r un('UPDATE wallet_groups SET name = ? WHERE id = ?', [
     name,
     id,
   ])
 }
 
-export async function importWallet(
-  p, rivateKey: string,
-  password: string,
-): Promise<Wallet> {
-  const keypair = Keypair.fromSecretKey(bs58.decode(privateKey))
-  const encryptedPrivateKey = await encrypt(
-    bs58.encode(keypair.secretKey),
+export async function i mportWallet(
+  p,
+  r, i, v, a, teKey: string,
+  p,
+  a, s, s, w, ord: string,
+): Promise < Wal let > {
+  const keypair = Keypair.f romSecretKey(bs58.d ecode(privateKey))
+  const encrypted
+  PrivateKey = await e ncrypt(
+    bs58.e ncode(keypair.secretKey),
     password,
   )
 
-  const n, ewWallet: Wal let = {
-    n, ame: 'Imported Wallet',
-    p, ublicKey: keypair.publicKey.toBase58(),
-    p, rivateKey: encryptedPrivateKey,
-    g, roup: 'default',
-    c, olor: '#FFFFFF',
-    i, sActive: true,
+  const n, e,
+  w, W, a, l, let: Wal let = {
+    n,
+  a, m, e: 'Imported Wallet',
+    p,
+  u, b, l, i, cKey: keypair.publicKey.t oBase58(),
+    p,
+  r, i, v, a, teKey: encryptedPrivateKey,
+    g, r,
+  o, u, p: 'default',
+    c, o,
+  l, o, r: '#FFFFFF',
+    i, s,
+  A, c, t, i, ve: true,
   }
 
-  await saveWalletToDb(newWallet)
+  await s aveWalletToDb(newWallet)
 
   return newWal let }
 
-export async function importWalletGroup(
-  f, iles: File[],
-  password: string,
-): Promise<Wallet[]> {
-  const groupName = prompt(
-    'Enter a name for the new wal let g, roup:',
+export async function i mportWalletGroup(
+  f, i,
+  l, e, s: File,[],
+  p,
+  a, s, s, w, ord: string,
+): Promise < Wallet,[]> {
+  const group
+  Name = p rompt(
+    'Enter a name for the new wal let g, r,
+  o, u, p:',
     'Imported Wallets',
   )
-  if (!groupName) {
-    throw new Error('Wal let group name is required.')
+  i f (! groupName) {
+    throw new E rror('Wal let group name is required.')
   }
 
-  const i, mportedWallets: Wallet[] = []
-  for (const file of files) {
-    const privateKey = await file.text()
-    const keypair = Keypair.fromSecretKey(bs58.decode(privateKey.trim()))
-    const encryptedPrivateKey = await encrypt(
-      bs58.encode(keypair.secretKey),
+  const i, m,
+  p, o, r, t, edWallets: Wallet,[] = []
+  f or (const file of files) {
+    const private
+  Key = await file.t ext()
+    const keypair = Keypair.f romSecretKey(bs58.d ecode(privateKey.t rim()))
+    const encrypted
+  PrivateKey = await e ncrypt(
+      bs58.e ncode(keypair.secretKey),
       password,
     )
 
-    const n, ewWallet: Wal let = {
-      n, ame: file.name,
-      p, ublicKey: keypair.publicKey.toBase58(),
-      p, rivateKey: encryptedPrivateKey,
-      g, roup: groupName,
-      c, olor: '#CCCCCC',
-      i, sActive: false,
+    const n, e,
+  w, W, a, l, let: Wal let = {
+      n,
+  a, m, e: file.name,
+      p,
+  u, b, l, i, cKey: keypair.publicKey.t oBase58(),
+      p,
+  r, i, v, a, teKey: encryptedPrivateKey,
+      g, r,
+  o, u, p: groupName,
+      c, o,
+  l, o, r: '#CCCCCC',
+      i, s,
+  A, c, t, i, ve: false,
     }
-    await saveWalletToDb(newWallet)
-    importedWallets.push(newWallet)
+    await s aveWalletToDb(newWallet)
+    importedWallets.p ush(newWallet)
   }
   return importedWallets
 }
 
-export async function saveWalletToDb(w, allet: Wallet): Promise<void> {
-  const dbInstance = await db await dbInstance.run(
-    'INSERT INTO wallets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
+export async function s aveWalletToDb(w,
+  a, l, l, e, t: Wallet): Promise < vo id > {
+  const db
+  Instance = await db await dbInstance.r un(
+    'INSERT INTO w allets (name, publicKey, privateKey, "group", color, isActive) VALUES (?, ?, ?, ?, ?, ?)',
     [
       wallet.name,
       wallet.publicKey,

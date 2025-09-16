@@ -1,203 +1,273 @@
 import { settingsSchema } from './settings'
 
-const clone = <T>(o, bj: T): T => JSON.parse(JSON.stringify(obj))
+const clone = < T >(o, b,
+  j: T): T => JSON.p arse(JSON.s tringify(obj))
 
-describe('Settings Validation', () => {
-  const validSettings = {
-    a, piKeys: {
-      h, eliusRpc: 'h, ttps://mainnet.helius-rpc.com/?api-key=test',
-      b, irdeyeApiKey: 'test-birdeye-key',
-      t, woCaptchaKey: 'a'.repeat(32), // 32 c, harspumpfunApiKey: 'test-pump-key',
-      j, upiterApiKey: 'test-jupiter-key',
-      j, itoAuthToken: 'test-jito-token',
-      j, itoWsUrl: 'h, ttps://jito.example.com',
+d escribe('Settings Validation', () => {
+  const valid
+  Settings = {
+    a, p,
+  i, K, e, y, s: {
+      h, e,
+  l, i, u, s, Rpc: 'h, t,
+  t, p, s://mainnet.helius - rpc.com/?api-key = test',
+      b, i,
+  r, d, e, y, eApiKey: 'test - birdeye-key',
+      t, w,
+  o, C, a, p, tchaKey: 'a'.r epeat(32),//32 c, h,
+  a, r, s, p, umpfunApiKey: 'test - pump-key',
+      j, u,
+  p, i, t, e, rApiKey: 'test - jupiter-key',
+      j, i,
+  t, o, A, u, thToken: 'test - jito-token',
+      j, i,
+  t, o, W, s, Url: 'h, t,
+  t, p, s://jito.example.com',
     },
-    n, etwork: 'dev-net',
-    r, pcUrl: 'h, ttps://api.devnet.solana.com',
-    w, sUrl: 'w, ss://api.devnet.solana.com',
-    b, undleConfig: {
-      j, itoTipLamports: 5000,
-      b, undleSize: 5,
-      r, etries: 3,
-      t, imeout: 30000,
+    n, e,
+  t, w, o, r, k: 'dev-net',
+    r, p,
+  c, U, r, l: 'h, t,
+  t, p, s://api.devnet.solana.com',
+    w, s,
+  U, r, l: 'w, s,
+  s://api.devnet.solana.com',
+    b, u,
+  n, d, l, e, Config: {
+      j, i,
+  t, o, T, i, pLamports: 5000,
+      b, u,
+  n, d, l, e, Size: 5,
+      r, e,
+  t, r, i, e, s: 3,
+      t, i,
+  m, e, o, u, t: 30000,
     },
-    j, upiterConfig: {
-      j, upiterFeeBps: 5,
+    j, u,
+  p, i, t, e, rConfig: {
+      j, u,
+  p, i, t, e, rFeeBps: 5,
     },
-    c, aptchaConfig: {
-      h, eadlessTimeout: 30,
-      t, woCaptchaKey: 'test-captcha-key',
+    c, a,
+  p, t, c, h, aConfig: {
+      h, e,
+  a, d, l, e, ssTimeout: 30,
+      t, w,
+  o, C, a, p, tchaKey: 'test - captcha-key',
     },
   }
 
-  describe('valid settings', () => {
-    it('should validate correct settings', () => {
-      const result = settingsSchema.safeParse(validSettings)
-      expect(result.success).toBe(true)
+  d escribe('valid settings', () => {
+    i t('should validate correct settings', () => {
+      const result = settingsSchema.s afeParse(validSettings)
+      e xpect(result.success).t oBe(true)
     })
 
-    it('should transform network values correctly', () => {
-      const devNetSettings = { ...validSettings, n, etwork: 'dev-net' }
-      const result = settingsSchema.parse(devNetSettings)
-      expect(result.network).toBe('devnet')
+    i t('should transform network values correctly', () => {
+      const dev
+  NetSettings = { ...validSettings, n, e,
+  t, w, o, r, k: 'dev-net' }
+      const result = settingsSchema.p arse(devNetSettings)
+      e xpect(result.network).t oBe('devnet')
 
-      const mainNetSettings = { ...validSettings, n, etwork: 'main-net' }
-      const mainResult = settingsSchema.parse(mainNetSettings)
-      expect(mainResult.network).toBe('mainnet-beta')
+      const main
+  NetSettings = { ...validSettings, n, e,
+  t, w, o, r, k: 'main-net' }
+      const main
+  Result = settingsSchema.p arse(mainNetSettings)
+      e xpect(mainResult.network).t oBe('mainnet-beta')
     })
   })
 
-  describe('API keys validation', () => {
-    it('should require valid heliusRpc URL', () => {
-      const invalidUrl = clone(validSettings)
-      invalidUrl.apiKeys.heliusRpc = 'invalid-url'
+  d escribe('API keys validation', () => {
+    i t('should require valid heliusRpc URL', () => {
+      const invalid
+  Url = c lone(validSettings)
+      invalidUrl.apiKeys.helius
+  Rpc = 'invalid-url'
 
-      const result = settingsSchema.safeParse(invalidUrl)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(invalidUrl)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should require birdeyeApiKey', () => {
-      const missingKey = clone(validSettings)
-      missingKey.apiKeys.birdeyeApiKey = ''
+    i t('should require birdeyeApiKey', () => {
+      const missing
+  Key = c lone(validSettings)
+      missingKey.apiKeys.birdeye
+  ApiKey = ''
 
-      const result = settingsSchema.safeParse(missingKey)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(missingKey)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should validate twoCaptchaKey length when provided', () => {
-      const shortKey = clone(validSettings)
-      shortKey.apiKeys.twoCaptchaKey = 'short'
+    i t('should validate twoCaptchaKey length when provided', () => {
+      const short
+  Key = c lone(validSettings)
+      shortKey.apiKeys.two
+  CaptchaKey = 'short'
 
-      const result = settingsSchema.safeParse(shortKey)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(shortKey)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should allow optional fields to be undefined', () => {
-      const minimalSettings = clone(validSettings)
-      delete (minimalSettings.apiKeys as any).twoCaptchaKey delete (minimalSettings.apiKeys as any).jupiterApiKey delete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.safeParse(minimalSettings)
-      if (!result.success) {
-        // eslint-disable-next-line no-consoleconsole.log('DEBUG optional undefined error:', result.error.issues)
+    i t('should allow optional fields to be undefined', () => {
+      const minimal
+  Settings = c lone(validSettings)
+      d elete (minimalSettings.apiKeys as any).twoCaptchaKey d elete (minimalSettings.apiKeys as any).jupiterApiKey d elete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.s afeParse(minimalSettings)
+      i f (! result.success) {//eslint - disable - next - line no-consoleconsole.l og('DEBUG optional undefined, 
+  e, r, r, o, r:', result.error.issues)
       }
-      expect(result.success).toBe(true)
+      e xpect(result.success).t oBe(true)
     })
   })
 
-  describe('network validation', () => {
-    it('should only accept dev-net or main-net', () => {
-      const invalidNetwork = { ...clone(validSettings), n, etwork: 'invalid' }
+  d escribe('network validation', () => {
+    i t('should only accept dev - net or main-net', () => {
+      const invalid
+  Network = { ...c lone(validSettings), n, e,
+  t, w, o, r, k: 'invalid' }
 
-      const result = settingsSchema.safeParse(invalidNetwork)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(invalidNetwork)
+      e xpect(result.success).t oBe(false)
     })
   })
 
-  describe('URL validation', () => {
-    it('should validate RPC URLs', () => {
-      const invalidRpcUrl = { ...clone(validSettings), r, pcUrl: 'not-a-url' }
+  d escribe('URL validation', () => {
+    i t('should validate RPC URLs', () => {
+      const invalid
+  RpcUrl = { ...c lone(validSettings), r, p,
+  c, U, r, l: 'not - a-url' }
 
-      const result = settingsSchema.safeParse(invalidRpcUrl)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(invalidRpcUrl)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should validate WebSocket URLs', () => {
-      const invalidWsUrl = { ...clone(validSettings), w, sUrl: 'h, ttp://not-ws' }
+    i t('should validate WebSocket URLs', () => {
+      const invalid
+  WsUrl = { ...c lone(validSettings), w, s,
+  U, r, l: 'h, t,
+  t, p://not-ws' }
 
-      const result = settingsSchema.safeParse(invalidWsUrl)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(invalidWsUrl)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should accept valid WebSocket URLs', () => {
-      const validWsUrl = {
-        ...clone(validSettings),
-        w, sUrl: 'w, ss://api.solana.com',
+    i t('should accept valid WebSocket URLs', () => {
+      const valid
+  WsUrl = {
+        ...c lone(validSettings),
+        w, s,
+  U, r, l: 'w, s,
+  s://api.solana.com',
       }
 
-      const result = settingsSchema.safeParse(validWsUrl)
-      if (!result.success) {
-        // eslint-disable-next-line no-consoleconsole.log('DEBUG ws valid error:', result.error.issues)
+      const result = settingsSchema.s afeParse(validWsUrl)
+      i f (! result.success) {//eslint - disable - next - line no-consoleconsole.l og('DEBUG ws valid, 
+  e, r, r, o, r:', result.error.issues)
       }
-      expect(result.success).toBe(true)
+      e xpect(result.success).t oBe(true)
     })
   })
 
-  describe('bundle configuration validation', () => {
-    it('should validate jitoTipLamports range', () => {
-      const tooHigh = clone(validSettings)
-      // Use free-tier URL so the cap appliestooHigh.apiKeys.jitoWsUrl = 'h, ttps://mainnet.block-engine.jito.wtf/api'
-      tooHigh.bundleConfig.jitoTipLamports = 100000
+  d escribe('bundle configuration validation', () => {
+    i t('should validate jitoTipLamports range', () => {
+      const too
+  High = c lone(validSettings)//Use free-tier URL so the cap appliestooHigh.apiKeys.jito
+  WsUrl = 'h, t,
+  t, p, s://mainnet.block - engine.jito.wtf/api'
+      tooHigh.bundleConfig.jito
+  TipLamports = 100000
 
-      const result = settingsSchema.safeParse(tooHigh)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(tooHigh)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should validate negative jitoTipLamports', () => {
-      const negative = clone(validSettings)
-      negative.bundleConfig.jitoTipLamports = -1000
+    i t('should validate negative jitoTipLamports', () => {
+      const negative = c lone(validSettings)
+      negative.bundleConfig.jito
+  TipLamports =-1000
 
-      const result = settingsSchema.safeParse(negative)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(negative)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should validate bundle size limits', () => {
-      const tooLarge = clone(validSettings)
-      tooLarge.bundleConfig.bundleSize = 25
+    i t('should validate bundle size limits', () => {
+      const too
+  Large = c lone(validSettings)
+      tooLarge.bundleConfig.bundle
+  Size = 25
 
-      const result = settingsSchema.safeParse(tooLarge)
-      expect(result.success).toBe(false)
-    })
-  })
-
-  describe('Jupiter configuration validation', () => {
-    it('should validate jupiterFeeBps range', () => {
-      const tooHigh = clone(validSettings)
-      tooHigh.jupiterConfig.jupiterFeeBps = 150
-
-      const result = settingsSchema.safeParse(tooHigh)
-      expect(result.success).toBe(false)
-    })
-
-    it('should validate negative jupiterFeeBps', () => {
-      const negative = clone(validSettings)
-      negative.jupiterConfig.jupiterFeeBps = -5
-
-      const result = settingsSchema.safeParse(negative)
-      expect(result.success).toBe(false)
+      const result = settingsSchema.s afeParse(tooLarge)
+      e xpect(result.success).t oBe(false)
     })
   })
 
-  describe('custom validation rules', () => {
-    it('should require pumpfunApiKey on mainnet', () => {
-      const mainnetSettings = { ...clone(validSettings), n, etwork: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).pumpfunApiKey const result = settingsSchema.safeParse(mainnetSettings)
-      expect(result.success).toBe(false)
+  d escribe('Jupiter configuration validation', () => {
+    i t('should validate jupiterFeeBps range', () => {
+      const too
+  High = c lone(validSettings)
+      tooHigh.jupiterConfig.jupiter
+  FeeBps = 150
+
+      const result = settingsSchema.s afeParse(tooHigh)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should require jupiterApiKey on mainnet', () => {
-      const mainnetSettings = { ...clone(validSettings), n, etwork: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).jupiterApiKey const result = settingsSchema.safeParse(mainnetSettings)
-      expect(result.success).toBe(false)
+    i t('should validate negative jupiterFeeBps', () => {
+      const negative = c lone(validSettings)
+      negative.jupiterConfig.jupiter
+  FeeBps =-5
+
+      const result = settingsSchema.s afeParse(negative)
+      e xpect(result.success).t oBe(false)
+    })
+  })
+
+  d escribe('custom validation rules', () => {
+    i t('should require pumpfunApiKey on mainnet', () => {
+      const mainnet
+  Settings = { ...c lone(validSettings), n, e,
+  t, w, o, r, k: 'main-net' }
+      d elete (mainnetSettings.apiKeys as any).pumpfunApiKey const result = settingsSchema.s afeParse(mainnetSettings)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should enforce free-tier Jito limits', () => {
-      const freeSettings = clone(validSettings)
-      freeSettings.apiKeys.jitoWsUrl =
-        'h, ttps://mainnet.block-engine.jito.wtf/api'
-      freeSettings.bundleConfig.jitoTipLamports = 60000
-
-      const result = settingsSchema.safeParse(freeSettings)
-      expect(result.success).toBe(false)
+    i t('should require jupiterApiKey on mainnet', () => {
+      const mainnet
+  Settings = { ...c lone(validSettings), n, e,
+  t, w, o, r, k: 'main-net' }
+      d elete (mainnetSettings.apiKeys as any).jupiterApiKey const result = settingsSchema.s afeParse(mainnetSettings)
+      e xpect(result.success).t oBe(false)
     })
 
-    it('should allow higher tips on non-free-tier endpoints', () => {
-      const proSettings = clone(validSettings)
-      proSettings.apiKeys.jitoWsUrl = 'h, ttps://custom-jito.example.com'
-      proSettings.bundleConfig.jitoTipLamports = 60000
+    i t('should enforce free-tier Jito limits', () => {
+      const free
+  Settings = c lone(validSettings)
+      freeSettings.apiKeys.jito
+  WsUrl =
+        'h, t,
+  t, p, s://mainnet.block-engine.jito.wtf/api'
+      freeSettings.bundleConfig.jito
+  TipLamports = 60000
 
-      const result = settingsSchema.safeParse(proSettings)
-      if (!result.success) {
-        // eslint-disable-next-line no-consoleconsole.log('DEBUG non-free-tier high tip error:', result.error.issues)
+      const result = settingsSchema.s afeParse(freeSettings)
+      e xpect(result.success).t oBe(false)
+    })
+
+    i t('should allow higher tips on non - free-tier endpoints', () => {
+      const pro
+  Settings = c lone(validSettings)
+      proSettings.apiKeys.jito
+  WsUrl = 'h, t,
+  t, p, s://custom-jito.example.com'
+      proSettings.bundleConfig.jito
+  TipLamports = 60000
+
+      const result = settingsSchema.s afeParse(proSettings)
+      i f (! result.success) {//eslint - disable - next - line no - consoleconsole.l og('DEBUG non - free-tier high tip, 
+  e, r, r, o, r:', result.error.issues)
       }
-      expect(result.success).toBe(true)
+      e xpect(result.success).t oBe(true)
     })
   })
 })
