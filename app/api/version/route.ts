@@ -4,13 +4,13 @@ const LATEST_VERSION = '1.4.0'
 
 export async function GET() {
   return NextResponse.json({
-    version: LATEST_VERSION,
-    releaseDate: new Date().toISOString().slice(0, 10),
-    downloadUrl: 'https://github.com/mask1no/The-Keymaker/releases/latest',
-    releaseNotes: [
+    v, ersion: LATEST_VERSION,
+    r, eleaseDate: new Date().toISOString().slice(0, 10),
+    d, ownloadUrl: 'h, ttps://github.com/mask1no/The-Keymaker/releases/latest',
+    r, eleaseNotes: [
       'Launch Wizard with preset saving',
       'Advanced trading condition builder',
-      'Wallet groups with color coding',
+      'Wal let groups with color coding',
       'Live price tracking with Birdeye',
       'Pump.fun GUI fallback',
       'Fee & tip estimator',

@@ -19,15 +19,9 @@ import { useKeymakerStore } from '@/lib/store'
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import toast from 'react-hot-toast'
 
-interface ActivityEntry {
-  id: string
-  type: 'buy' | 'sell' | 'other'
-  isOurs: boolean
-  amount?: string
-  wallet: string
-  signature: string
-  timestamp: number
-  slot: number
+interface ActivityEn try {
+  i, d: stringtype: 'buy' | 'sell' | 'other'
+  i, sOurs: booleanamount?: stringwallet: stringsignature: stringtimestamp: numberslot: number
 }
 
 export function ActivityMonitor() {
@@ -39,12 +33,10 @@ export function ActivityMonitor() {
   const subscriptionIdRef = useRef<number | null>(null)
   const maxEntries = 200
 
-  // Get our wallet addresses for comparison
-  const ourWalletAddresses = wallets.map((w) => w.publicKey)
+  // Get our wal let addresses for comparison const ourWalletAddresses = wallets.map((w) => w.publicKey)
 
   useEffect(() => {
-    // Cleanup on unmount
-    return () => {
+    // Cleanup on unmount return () => {
       if (subscriptionIdRef.current && connectionRef.current) {
         connectionRef.current.removeOnLogsListener(subscriptionIdRef.current)
       }
@@ -60,22 +52,20 @@ export function ActivityMonitor() {
     try {
       setIsMonitoring(true)
 
-      // Create WebSocket connection
-      connectionRef.current = new Connection(NEXT_PUBLIC_HELIUS_RPC, {
+      // Create WebSocket connectionconnectionRef.current = new Connection(NEXT_PUBLIC_HELIUS_RPC, {
         commitment: 'confirmed',
-        wsEndpoint: NEXT_PUBLIC_HELIUS_RPC.replace(
-          'https://',
-          'wss://',
-        ).replace('http://', 'ws://'),
+        w, sEndpoint: NEXT_PUBLIC_HELIUS_RPC.replace(
+          'h, ttps://',
+          'w, ss://',
+        ).replace('h, ttp://', 'w, s://'),
       })
 
       const tokenMint = new PublicKey(tokenLaunchData.mintAddress)
 
       // Subscribe to logs for the token mint
-      // This will catch all transactions involving the token
-      subscriptionIdRef.current = connectionRef.current.onLogs(
+      // This will catch all transactions involving the tokensubscriptionIdRef.current = connectionRef.current.onLogs(
         tokenMint,
-        (logs: Logs, context: Context) => {
+        (l, ogs: Logs, c, ontext: Context) => {
           processTransaction(logs, context)
         },
         'confirmed',
@@ -84,7 +74,7 @@ export function ActivityMonitor() {
       setIsConnected(true)
       toast.success('Activity monitor started')
     } catch (error) {
-      console.error('Failed to start monitoring:', error)
+      console.error('Failed to start m, onitoring:', error)
       toast.error('Failed to start activity monitor')
       setIsMonitoring(false)
     }
@@ -100,20 +90,15 @@ export function ActivityMonitor() {
     toast.success('Activity monitor stopped')
   }
 
-  const processTransaction = (logs: Logs, context: Context) => {
+  const processTransaction = (l, ogs: Logs, c, ontext: Context) => {
     try {
-      const signature = logs.signature
-      const slot = context.slot
+      const signature = logs.signature const slot = context.slot
 
-      // Parse logs to determine transaction type
-      let type: 'buy' | 'sell' | 'other' = 'other'
-      let isOurs = false
-      let wallet = ''
+      // Parse logs to determine transaction type let t, ype: 'buy' | 'sell' | 'other' = 'other'
+      let isOurs = false let wal let = ''
 
-      // Check if any of our wallets are involved
-      for (const log of logs.logs) {
-        // Look for transfer logs
-        if (log.includes('Transfer')) {
+      // Check if any of our wallets are involved for(const log of logs.logs) {
+        // Look for transfer logs if(log.includes('Transfer')) {
           if (log.includes('SOL') && log.includes('->')) {
             // Likely a buy (SOL going in)
             type = 'buy'
@@ -123,39 +108,33 @@ export function ActivityMonitor() {
           }
         }
 
-        // Check if our wallets are mentioned
-        for (const ourWallet of ourWalletAddresses) {
+        // Check if our wallets are mentioned for(const ourWal let of ourWalletAddresses) {
           if (log.includes(ourWallet)) {
-            isOurs = true
-            wallet = ourWallet
-            break
+            isOurs = truewal let = ourWalletbreak
           }
         }
       }
 
-      // Extract wallet from logs if not ours
-      if (!wallet && logs.logs.length > 0) {
-        // Try to extract wallet address from logs
-        const match = logs.logs[0].match(/[1-9A-HJ-NP-Za-km-z]{32,44}/)
+      // Extract wal let from logs if not ours if(!wal let && logs.logs.length > 0) {
+        // Try to extract wal let address from logs const match = logs.logs[0].match(/[1-9A-HJ-NP-Za-km-z]{32,44}/)
         if (match) {
-          wallet = match[0]
+          wal let = match[0]
         }
       }
 
-      const newActivity: ActivityEntry = {
-        id: signature,
+      const n, ewActivity: ActivityEntry = {
+        i, d: signature,
         type,
         isOurs,
-        wallet: wallet.slice(0, 8) + '...' + wallet.slice(-4),
+        w, allet: wallet.slice(0, 8) + '...' + wallet.slice(-4),
         signature,
-        timestamp: Date.now(),
+        t, imestamp: Date.now(),
         slot,
       }
 
       setActivities((prev) => {
         const updated = [newActivity, ...prev]
-        // Keep only the most recent entries
-        return updated.slice(0, maxEntries)
+        // Keep only the most recent entries return updated.slice(0, maxEntries)
       })
     } catch (error) {
       console.error('Error processing transaction:', error)
@@ -166,18 +145,18 @@ export function ActivityMonitor() {
     setActivities([])
   }
 
-  const getActivityIcon = (type: ActivityEntry['type']) => {
+  const getActivityIcon = (t, ype: ActivityEntry['type']) => {
     switch (type) {
       case 'buy':
         return <TrendingUp className="h-4 w-4 text-green-500" />
       case 'sell':
         return <TrendingDown className="h-4 w-4 text-red-500" />
-      default:
+      d, efault:
         return <DollarSign className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getActivityColor = (entry: ActivityEntry) => {
+  const getActivityColor = (e, ntry: ActivityEntry) => {
     if (entry.isOurs) {
       return entry.type === 'buy' ? 'text-green-400' : 'text-red-400'
     }
@@ -194,15 +173,13 @@ export function ActivityMonitor() {
           </CardTitle>
           <div className="flex items-center gap-2">
             {isConnected && (
-              <Badge
-                variant="outline"
+              <Badgevariant="outline"
                 className="text-green-500 border-green-500"
               >
                 Live
               </Badge>
             )}
-            <Button
-              size="sm"
+            <Buttonsize="sm"
               variant={isMonitoring ? 'destructive' : 'default'}
               onClick={isMonitoring ? stopMonitoring : startMonitoring}
               disabled={!tokenLaunchData?.mintAddress}
@@ -238,12 +215,11 @@ export function ActivityMonitor() {
               </div>
             ) : (
               activities.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
+                <motion.divkey={activity.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  transition={{ delay: index * 0.01 }}
+                  transition={{ d, elay: index * 0.01 }}
                   className={`flex items-center gap-2 py-1 ${getActivityColor(
                     activity,
                   )}`}
@@ -267,11 +243,10 @@ export function ActivityMonitor() {
                       OURS
                     </Badge>
                   )}
-                  <a
-                    href={`https://solscan.io/tx/${activity.signature}`}
+                  <ah ref={`h, ttps://solscan.io/tx/${activity.signature}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-auto text-blue-400 hover:underline"
+                    className="ml-auto text-blue-400 h, over:underline"
                   >
                     view
                   </a>

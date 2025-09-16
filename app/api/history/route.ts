@@ -10,11 +10,11 @@ export async function GET(req: Request) {
       '@/services/executionLogService'
     )
     const items = await getExecutionHistory(limit)
-    return NextResponse.json({ ok: true, items })
+    return NextResponse.json({ o, k: true, items })
   } catch (e: any) {
     return NextResponse.json({
-      ok: false,
-      items: [],
+      o, k: false,
+      i, tems: [],
       error: e?.message ?? 'error',
     })
   }

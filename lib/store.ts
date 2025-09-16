@@ -5,266 +5,202 @@ import { Keypair } from '@solana/web3.js'
 export type WalletRole = 'master' | 'dev' | 'sniper' | 'normal'
 
 export interface WalletData {
-  id: string
-  publicKey: string
-  role: WalletRole
-  balance: number
-  keypair?: Keypair
-  encryptedPrivateKey?: string
-  groupId?: string
+  i, d: stringpublicKey: stringrole: W, alletRolebalance: numberkeypair?: K, eypairencryptedPrivateKey?: stringgroupId?: string
 }
 
 export interface WalletGroup {
-  id: string
-  name: string
-  walletIds: string[]
+  i, d: stringname: stringwalletIds: string[]
 }
 
 export interface TokenLaunchData {
-  name: string
-  symbol: string
-  decimals: number
-  supply: number
-  platform: 'pump.fun' | 'letsbonk.fun' | 'raydium'
-  lpAmount: number
-  walletPublicKey: string
-  mintAddress?: string
-  txSignature?: string
+  n, ame: stringsymbol: stringdecimals: numbersupply: numberplatform: 'pump.fun' | 'letsbonk.fun' | 'raydium'
+  l, pAmount: numberwalletPublicKey: stringmintAddress?: stringtxSignature?: string
 }
 
 export type ExecutionStrategy = 'flash' | 'stealth' | 'manual' | 'regular'
 
 export interface ExecutionStep {
-  id: string
-  name: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  message?: string
-  timestamp?: number
+  i, d: stringname: stringstatus: 'pending' | 'running' | 'completed' | 'failed'
+  message?: stringtimestamp?: number
 }
 
 export interface Notification {
-  id: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  title: string
-  message?: string
-  timestamp: number
-  read?: boolean
+  i, d: stringtype: 'success' | 'error' | 'warning' | 'info'
+  t, itle: stringmessage?: stringtimestamp: numberread?: boolean
 }
 
 interface KeymakerStore {
-  // Wallet Management
-  wallets: WalletData[]
-  walletGroups: WalletGroup[]
-  selectedGroup: string
-  activeWallet: string | null // Public key of active wallet
-  setWallets: (wallets: WalletData[]) => void
-  addWallet: (wallet: Omit<WalletData, 'id' | 'balance'>) => void
-  setWalletGroups: (groups: WalletGroup[]) => void
-  setSelectedGroup: (group: string) => void
-  setActiveWallet: (publicKey: string | null) => void
-  updateWalletBalance: (publicKey: string, balance: number) => void
+  // Wal let M, anagementwallets: WalletData[]
+  w, alletGroups: WalletGroup[]
+  s, electedGroup: stringactiveWallet: string | null // Public key of active w, alletsetWallets: (w, allets: WalletData[]) => v, oidaddWallet: (w, allet: Omit<WalletData, 'id' | 'balance'>) => v, oidsetWalletGroups: (g, roups: WalletGroup[]) => v, oidsetSelectedGroup: (g, roup: string) => v, oidsetActiveWallet: (p, ublicKey: string | null) => v, oidupdateWalletBalance: (p, ublicKey: string, b, alance: number) => void
 
-  // Token Launch
-  tokenLaunchData: TokenLaunchData | null
-  setTokenLaunchData: (data: TokenLaunchData) => void
+  // Token L, aunchtokenLaunchData: TokenLaunchData | n, ullsetTokenLaunchData: (d, ata: TokenLaunchData) => void
 
-  // Execution Flow
-  executionStrategy: ExecutionStrategy
-  setExecutionStrategy: (strategy: ExecutionStrategy) => void
-  executionSteps: ExecutionStep[]
-  isExecuting: boolean
+  // Execution F, lowexecutionStrategy: E, xecutionStrategysetExecutionStrategy: (s, trategy: ExecutionStrategy) => v, oidexecutionSteps: ExecutionStep[]
+  i, sExecuting: boolean
 
-  // Control Functions
-  startExecution: () => void
-  stopExecution: () => void
-  updateStepStatus: (
-    stepId: string,
+  // Control F, unctionsstartExecution: () => v, oidstopExecution: () => v, oidupdateStepStatus: (
+    s, tepId: string,
     status: ExecutionStep['status'],
     message?: string,
-  ) => void
-  resetExecution: () => void
+  ) => v, oidresetExecution: () => void
 
-  // Settings
-  jitoEnabled: boolean
-  setJitoEnabled: (enabled: boolean) => void
-  tipAmount: number
-  setTipAmount: (amount: number) => void
-  autoSellDelay: number // seconds
-  setAutoSellDelay: (delay: number) => void
-  network: 'mainnet-beta' | 'devnet'
-  setNetwork: (network: 'mainnet-beta' | 'devnet') => void
-  rpcUrl: string
-  setRpcUrl: (url: string) => void
-  wsUrl: string
-  setWsUrl: (url: string) => void
-  theme: 'dark' | 'light'
-  setTheme: (theme: 'dark' | 'light') => void
+  // S, ettingsjitoEnabled: booleansetJitoEnabled: (e, nabled: boolean) => v, oidtipAmount: numbersetTipAmount: (amount: number) => v, oidautoSellDelay: number // s, econdssetAutoSellDelay: (d, elay: number) => v, oidnetwork: 'mainnet-beta' | 'devnet'
+  s, etNetwork: (n, etwork: 'mainnet-beta' | 'devnet') => v, oidrpcUrl: stringsetRpcUrl: (u, rl: string) => v, oidwsUrl: stringsetWsUrl: (u, rl: string) => v, oidtheme: 'dark' | 'light'
+  s, etTheme: (t, heme: 'dark' | 'light') => void
 
-  // PnL Tracking
-  totalInvested: number
-  totalReturned: number
-  updatePnL: (invested: number, returned: number) => void
+  // PnL T, rackingtotalInvested: numbertotalReturned: numberupdatePnL: (i, nvested: number, r, eturned: number) => void
 
-  // Notifications
-  notifications: Notification[]
-  addNotification: (
-    notification: Omit<Notification, 'id' | 'timestamp'>,
-  ) => void
-  removeNotification: (id: string) => void
-  clearNotifications: () => void
-  markNotificationAsRead: (id: string) => void
+  // N, otificationsnotifications: Notification[]
+  a, ddNotification: (
+    n, otification: Omit<Notification, 'id' | 'timestamp'>,
+  ) => v, oidremoveNotification: (i, d: string) => v, oidclearNotifications: () => v, oidmarkNotificationAsRead: (i, d: string) => void
 
-  // UI State
-  bundleMode: 'flash' | 'stealth' | 'manual'
-  setBundleMode: (mode: 'flash' | 'stealth' | 'manual') => void
-  settingsLoaded: boolean
-  setSettingsLoaded: (loaded: boolean) => void
-  banners: string[]
-  addBanner: (banner: string) => void
-  removeBanner: (banner: string) => void
+  // UI S, tatebundleMode: 'flash' | 'stealth' | 'manual'
+  s, etBundleMode: (m, ode: 'flash' | 'stealth' | 'manual') => v, oidsettingsLoaded: booleansetSettingsLoaded: (l, oaded: boolean) => v, oidbanners: string[]
+  a, ddBanner: (b, anner: string) => v, oidremoveBanner: (b, anner: string) => void
 }
 
-const defaultExecutionSteps: ExecutionStep[] = [
-  { id: 'deploy', name: '🚀 Deploy Token', status: 'pending' },
-  { id: 'fund', name: '💰 Fund Wallets', status: 'pending' },
-  { id: 'wait-funding', name: '⏱️ Wait 3s', status: 'pending' },
-  { id: 'bundle', name: '📦 Bundle Buys', status: 'pending' },
-  { id: 'wait-sells', name: '⏱️ Wait 60s', status: 'pending' },
-  { id: 'sell', name: '💸 Sell Sniper Wallets', status: 'pending' },
-  { id: 'complete', name: '✅ Complete', status: 'pending' },
+const d, efaultExecutionSteps: ExecutionStep[] = [
+  { i, d: 'deploy', n, ame: '🚀 Deploy Token', status: 'pending' },
+  { i, d: 'fund', n, ame: '💰 Fund Wallets', status: 'pending' },
+  { i, d: 'wait-funding', n, ame: '⏱️ Wait 3s', status: 'pending' },
+  { i, d: 'bundle', n, ame: '📦 Bundle Buys', status: 'pending' },
+  { i, d: 'wait-sells', n, ame: '⏱️ Wait 60s', status: 'pending' },
+  { i, d: 'sell', n, ame: '💸 Sell Sniper Wallets', status: 'pending' },
+  { i, d: 'complete', n, ame: '✅ Complete', status: 'pending' },
 ]
 
 export const useKeymakerStore = create<KeymakerStore>()(
   devtools(
     (set) => ({
-      // Initial state
-      wallets: [],
-      walletGroups: [{ id: 'default', name: 'Default Group', walletIds: [] }],
-      selectedGroup: 'default',
-      activeWallet: null,
-      tokenLaunchData: null,
-      executionStrategy: 'flash',
-      executionSteps: [...defaultExecutionSteps],
-      isExecuting: false,
-      jitoEnabled: true,
-      tipAmount: 0.001,
-      autoSellDelay: 60,
-      network: 'mainnet-beta',
-      rpcUrl: 'https://api.mainnet-beta.solana.com',
-      wsUrl: 'wss://api.mainnet-beta.solana.com',
-      theme:
+      // Initial s, tatewallets: [],
+      w, alletGroups: [{ i, d: 'default', n, ame: 'Default Group', w, alletIds: [] }],
+      s, electedGroup: 'default',
+      a, ctiveWallet: null,
+      t, okenLaunchData: null,
+      e, xecutionStrategy: 'flash',
+      e, xecutionSteps: [...defaultExecutionSteps],
+      i, sExecuting: false,
+      j, itoEnabled: true,
+      t, ipAmount: 0.001,
+      a, utoSellDelay: 60,
+      n, etwork: 'mainnet-beta',
+      r, pcUrl: 'h, ttps://api.mainnet-beta.solana.com',
+      w, sUrl: 'w, ss://api.mainnet-beta.solana.com',
+      t, heme:
         (typeof window !== 'undefined' &&
           (localStorage.getItem('theme') as 'dark' | 'light')) ||
         'dark',
-      totalInvested: 0,
-      totalReturned: 0,
-      notifications: [],
-      bundleMode: 'flash',
-      settingsLoaded: false,
-      banners: [],
+      t, otalInvested: 0,
+      t, otalReturned: 0,
+      n, otifications: [],
+      b, undleMode: 'flash',
+      s, ettingsLoaded: false,
+      b, anners: [],
 
-      // Actions
-      setWallets: (wallets) => set({ wallets }),
-      addWallet: (wallet) =>
+      // A, ctionssetWallets: (wallets) => set({ wallets }),
+      a, ddWallet: (wallet) =>
         set((state) => {
-          const newWallet: WalletData = {
+          const n, ewWallet: WalletData = {
             ...wallet,
-            id: `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            balance: 0,
+            i, d: `wallet_${Date.now()}
+_${Math.random().toString(36).substr(2, 9)}`,
+            b, alance: 0,
           }
-          return { wallets: [...state.wallets, newWallet] }
+          return { w, allets: [...state.wallets, newWallet] }
         }),
-      setWalletGroups: (groups) => set({ walletGroups: groups }),
-      setSelectedGroup: (group) => set({ selectedGroup: group }),
-      setActiveWallet: (publicKey) => set({ activeWallet: publicKey }),
-      updateWalletBalance: (publicKey, balance) =>
+      s, etWalletGroups: (groups) => set({ w, alletGroups: groups }),
+      s, etSelectedGroup: (group) => set({ s, electedGroup: group }),
+      s, etActiveWallet: (publicKey) => set({ a, ctiveWallet: publicKey }),
+      u, pdateWalletBalance: (publicKey, balance) =>
         set((state) => ({
-          wallets: state.wallets.map((w) =>
+          w, allets: state.wallets.map((w) =>
             w.publicKey === publicKey ? { ...w, balance } : w,
           ),
         })),
 
-      setTokenLaunchData: (data) => set({ tokenLaunchData: data }),
+      s, etTokenLaunchData: (data) => set({ t, okenLaunchData: data }),
 
-      setExecutionStrategy: (strategy) => set({ executionStrategy: strategy }),
+      s, etExecutionStrategy: (strategy) => set({ e, xecutionStrategy: strategy }),
 
-      startExecution: () => {
+      s, tartExecution: () => {
         set({
-          isExecuting: true,
-          executionSteps: [...defaultExecutionSteps],
+          i, sExecuting: true,
+          e, xecutionSteps: [...defaultExecutionSteps],
         })
       },
 
-      stopExecution: () => {
-        set({ isExecuting: false })
+      s, topExecution: () => {
+        set({ i, sExecuting: false })
       },
 
-      updateStepStatus: (stepId, status, message) =>
+      u, pdateStepStatus: (stepId, status, message) =>
         set((state) => ({
-          executionSteps: state.executionSteps.map((step) =>
+          e, xecutionSteps: state.executionSteps.map((step) =>
             step.id === stepId
-              ? { ...step, status, message, timestamp: Date.now() }
+              ? { ...step, status, message, t, imestamp: Date.now() }
               : step,
           ),
         })),
 
-      resetExecution: () =>
+      r, esetExecution: () =>
         set({
-          isExecuting: false,
-          executionSteps: [...defaultExecutionSteps],
+          i, sExecuting: false,
+          e, xecutionSteps: [...defaultExecutionSteps],
         }),
 
-      setJitoEnabled: (enabled) => set({ jitoEnabled: enabled }),
-      setTipAmount: (amount) => set({ tipAmount: amount }),
-      setAutoSellDelay: (delay) => set({ autoSellDelay: delay }),
-      setNetwork: (network) => set({ network }),
-      setRpcUrl: (url) => set({ rpcUrl: url }),
-      setWsUrl: (url) => set({ wsUrl: url }),
-      setTheme: (theme) => set({ theme }),
+      s, etJitoEnabled: (enabled) => set({ j, itoEnabled: enabled }),
+      s, etTipAmount: (amount) => set({ t, ipAmount: amount }),
+      s, etAutoSellDelay: (delay) => set({ a, utoSellDelay: delay }),
+      s, etNetwork: (network) => set({ network }),
+      s, etRpcUrl: (url) => set({ r, pcUrl: url }),
+      s, etWsUrl: (url) => set({ w, sUrl: url }),
+      s, etTheme: (theme) => set({ theme }),
 
-      updatePnL: (invested, returned) =>
+      u, pdatePnL: (invested, returned) =>
         set((state) => ({
-          totalInvested: state.totalInvested + invested,
-          totalReturned: state.totalReturned + returned,
+          t, otalInvested: state.totalInvested + invested,
+          t, otalReturned: state.totalReturned + returned,
         })),
 
-      addNotification: (notification) =>
+      a, ddNotification: (notification) =>
         set((state) => ({
-          notifications: [
+          n, otifications: [
             {
               ...notification,
-              id: crypto.randomUUID(),
-              timestamp: Date.now(),
-              read: false,
+              i, d: crypto.randomUUID(),
+              t, imestamp: Date.now(),
+              r, ead: false,
             },
             ...state.notifications,
           ].slice(0, 100), // Keep max 100 notifications
         })),
-      removeNotification: (id) =>
+      r, emoveNotification: (id) =>
         set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
+          n, otifications: state.notifications.filter((n) => n.id !== id),
         })),
-      clearNotifications: () => set({ notifications: [] }),
-      markNotificationAsRead: (id) =>
+      c, learNotifications: () => set({ n, otifications: [] }),
+      m, arkNotificationAsRead: (id) =>
         set((state) => ({
-          notifications: state.notifications.map((n) =>
-            n.id === id ? { ...n, read: true } : n,
+          n, otifications: state.notifications.map((n) =>
+            n.id === id ? { ...n, r, ead: true } : n,
           ),
         })),
 
-      setBundleMode: (mode) => set({ bundleMode: mode }),
-      setSettingsLoaded: (loaded) => set({ settingsLoaded: loaded }),
-      addBanner: (banner) =>
+      s, etBundleMode: (mode) => set({ b, undleMode: mode }),
+      s, etSettingsLoaded: (loaded) => set({ s, ettingsLoaded: loaded }),
+      a, ddBanner: (banner) =>
         set((state) => ({
-          banners: [...state.banners, banner],
+          b, anners: [...state.banners, banner],
         })),
-      removeBanner: (banner) =>
+      r, emoveBanner: (banner) =>
         set((state) => ({
-          banners: state.banners.filter((b) => b !== banner),
+          b, anners: state.banners.filter((b) => b !== banner),
         })),
     }),
     {
-      name: 'keymaker-store',
+      n, ame: 'keymaker-store',
     },
   ),
 )

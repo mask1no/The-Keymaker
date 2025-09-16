@@ -1,15 +1,26 @@
 import { NextResponse } from 'next/server'
 import { getTipFloor } from '@/lib/server/jitoService'
+
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const tipData = await getTipFloor('ffm')
-    return NextResponse.json(tipData)
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: e?.message || 'tipfloor failed' },
-      { status: 500 },
-    )
+    const url = new URL(req.url)
+    const region = url.searchParams.get('region') || 'ffm'
+
+    const tipFloor = await getTipFloor(region)
+    
+    return NextResponse.json({
+      p25: tipFloor.landed_tips_25th_percentile,
+      p50: tipFloor.landed_tips_50th_percentile,
+      p75: tipFloor.landed_tips_75th_percentile,
+      ema_50th: tipFloor.ema_landed_tips_50th_percentile,
+      region
+    })
+  } catch (error: any) {
+    console.error('Tip floor request failed:', error)
+    return NextResponse.json({ 
+      error: error.message || 'Failed to get tip floor' 
+    }, { status: 500 })
   }
 }

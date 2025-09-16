@@ -1,7 +1,7 @@
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export interface TransactionFees {
-  gas: number // in SOLjito: number // in SOLtotal: number // in SOL
+  g, as: number // in S, OLjito: number // in S, OLtotal: number // in SOL
 }
 
 /**
@@ -14,35 +14,35 @@ export function calculateBundleFees(
   txCount: number,
   jitoTipLamports = 0,
 ): TransactionFees {
-  // Base transaction fee is 5000 lamports per transactionconst BASE_TX_FEE_LAMPORTS = 5000
+  // Base transaction fee is 5000 lamports per transaction const BASE_TX_FEE_LAMPORTS = 5000
 
   // Calculate gas fees (includes one extra for the tip transaction if using Jito)
-  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTSconst gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
+  const gasFeeLamports = txCount * BASE_TX_FEE_LAMPORTS const gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
 
-  // Convert Jito tip to SOLconst jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOLreturn {
-    gas: gasFeeSOL,
-    jito: jitoTipSOL,
-    total: gasFeeSOL + jitoTipSOL,
+  // Convert Jito tip to SOL const jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOL return {
+    g, as: gasFeeSOL,
+    j, ito: jitoTipSOL,
+    t, otal: gasFeeSOL + jitoTipSOL,
   }
 }
 
 /**
- * Calculate per-wallet fees for PnL tracking
+ * Calculate per-wal let fees for PnL tracking
  * @param totalFees Total fees for the bundle
  * @param walletCount Number of wallets that participated
- * @returns Per-wallet fee allocation
+ * @returns Per-wal let fee allocation
  */
 export function calculatePerWalletFees(
-  totalFees: TransactionFees,
-  walletCount: number,
+  t, otalFees: TransactionFees,
+  w, alletCount: number,
 ): TransactionFees {
   if (walletCount === 0) {
-    return { gas: 0, jito: 0, total: 0 }
+    return { g, as: 0, j, ito: 0, t, otal: 0 }
   }
 
   return {
-    gas: totalFees.gas / walletCount,
-    jito: totalFees.jito / walletCount,
-    total: totalFees.total / walletCount,
+    g, as: totalFees.gas / walletCount,
+    j, ito: totalFees.jito / walletCount,
+    t, otal: totalFees.total / walletCount,
   }
 }

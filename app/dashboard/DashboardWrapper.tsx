@@ -26,8 +26,7 @@ const DashboardWrapper = () => {
           </Suspense>
         </motion.div>
 
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        <motion.div whileHover={{ y: -5, scale: 1.02 }}
           className="lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
@@ -35,8 +34,7 @@ const DashboardWrapper = () => {
           </Suspense>
         </motion.div>
 
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        <motion.div whileHover={{ y: -5, scale: 1.02 }}
           className="md:col-span-1 lg:col-span-2 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
@@ -44,8 +42,7 @@ const DashboardWrapper = () => {
           </Suspense>
         </motion.div>
 
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        <motion.div whileHover={{ y: -5, scale: 1.02 }}
           className="md:col-span-1 lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>
@@ -53,8 +50,7 @@ const DashboardWrapper = () => {
           </Suspense>
         </motion.div>
 
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        <motion.div whileHover={{ y: -5, scale: 1.02 }}
           className="md:col-span-1 lg:col-span-1 bento-card"
         >
           <Suspense fallback={<Skeleton className="h-full w-full" />}>

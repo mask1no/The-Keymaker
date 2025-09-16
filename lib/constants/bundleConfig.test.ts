@@ -30,7 +30,7 @@ describe('Bundle Configuration', () => {
     })
 
     it('should return default limit when env var not set', () => {
-      delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMITconst result = getBundleTxLimit()
+      delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT const result = getBundleTxLimit()
       expect(result).toBe(BUNDLE_CONFIG.DEFAULT_TX_LIMIT)
     })
 

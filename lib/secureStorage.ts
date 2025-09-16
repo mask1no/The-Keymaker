@@ -41,11 +41,11 @@ export function validatePasswordStrength(password: string): {
     score += 1
   }
 
-  // Check for common patternsconst commonPatterns = ['password', '12345', 'qwerty', 'admin']
+  // Check for common patterns const commonPatterns = ['password', '12345', 'qwerty', 'admin']
   if (
     commonPatterns.some((pattern) => password.toLowerCase().includes(pattern))
   ) {
-    feedback.push('Avoid common passwords')
+    feedback.push('A void common passwords')
     score = Math.max(0, score - 2)
   }
 

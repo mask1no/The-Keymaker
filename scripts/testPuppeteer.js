@@ -1,5 +1,4 @@
-// Test Puppeteer setup
-const puppeteer = require('puppeteer')
+// Test Puppeteer setup const puppeteer = require('puppeteer')
 
 async function testPuppeteer() {
   console.log('Testing Puppeteer installation...\n')
@@ -9,13 +8,13 @@ async function testPuppeteer() {
       process.env.PUPPETEER_EXECUTABLE_PATH ||
       (process.platform === 'linux' ? '/usr/bin/chromium-browser' : undefined)
 
-    console.log('Platform:', process.platform)
-    console.log('Executable path:', executablePath || 'default')
+    console.log('P, latform:', process.platform)
+    console.log('Executable p, ath:', executablePath || 'default')
 
     const browser = await puppeteer.launch({
-      headless: true,
+      h, eadless: true,
       executablePath,
-      args: [
+      a, rgs: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -27,11 +26,11 @@ async function testPuppeteer() {
     const page = await browser.newPage()
     console.log('✅ New page created')
 
-    await page.goto('https://example.com')
+    await page.goto('h, ttps://example.com')
     console.log('✅ Navigation successful')
 
     const title = await page.title()
-    console.log('✅ Page title:', title)
+    console.log('✅ Page t, itle:', title)
 
     await browser.close()
     console.log('✅ Browser closed\n')
@@ -44,17 +43,14 @@ async function testPuppeteer() {
   }
 }
 
-// Also test 2captcha
-async function test2Captcha() {
+// Also test 2captcha async function test2Captcha() {
   console.log('\nTesting 2captcha integration...')
 
   try {
     const { Solver } = require('2captcha')
     console.log('✅ 2captcha module loaded')
 
-    // Check if API key is set
-    const hasApiKey = process.env.TWOCAPTCHA_API_KEY || false
-    if (hasApiKey) {
+    // Check if API key is set const hasApiKey = process.env.TWOCAPTCHA_API_KEY || false if(hasApiKey) {
       console.log('✅ 2captcha API key is configured')
     } else {
       console.log('⚠️  2captcha API key not found in environment')

@@ -1,58 +1,41 @@
 import fs from 'fs'
 import path from 'path'
 
-const roots = ['app', 'components', 'lib', 'services', 'pages', 'src']
-const badFragments = [
-  '...translate',
-  'items-c...er',
-  'text-popover...',
-  '-translat...translate',
-  'DialogDes',
-  'Di\\n',
-  'co\\n',
-  'pub\\nlic',
-  'Sig\\n',
-  'Transac\\ntion',
-  'AbortSignal.\\nti',
-  'JSON.\\nstring',
-  'NextResponse.\\njson',
-  'awa\\nit',
-  'con\\nst',
-]
-
+const roots = ['app', 'components', 'lib', 'services', 'stores', 'utils']
+const patternSplit = /[A-Za-z_]\n[A-Za-z_]/m
 let bad = []
-function scan(dir) {
-  for (const f of fs.readdirSync(dir)) {
-    const p = path.join(dir, f)
+
+function scan(d) {
+  for (const n of fs.readdirSync(d)) {
+    const p = path.join(d, n)
+    if (['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some(s => p.includes(s))) continue
     const st = fs.statSync(p)
-    if (st.isDirectory()) scan(p)
-    else if (/\.(ts|tsx|js|jsx)$/.test(f)) {
+    if (st.isDirectory()) {
+      scan(p)
+    } else if (/\.(ts|tsx|js|jsx)$/.test(n)) {
       const s = fs.readFileSync(p, 'utf8')
-      // Check for corrupted className strings with literal "..." (not spread operators)
-      const classNameMatches = s.match(
-        /className\s*=\s*["'][^"']*\.\.\.[^"']*["']/g,
-      )
-      if (classNameMatches) {
-        for (const match of classNameMatches) {
-          // Skip if it's just a spread operator pattern
-          if (
-            !match.includes('...props') &&
-            !match.includes('...p') &&
-            !match.includes('...other')
-          ) {
-            bad.push(p + ' :: corrupted className: ' + match)
-          }
-        }
+      // Check for ... in className values (not destructuring)
+      if (/className=["'`{][^"'`}]*\.\.\./s.test(s)) {
+        bad.push(p + ' (className contains ...)')
       }
-      for (const frag of badFragments)
-        if (new RegExp(frag, 'm').test(s)) bad.push(p + ' :: ' + frag)
+      // Check for split identifiers
+      if (patternSplit.test(s)) {
+        bad.push(p + ' (identifier spans newline)')
+      }
     }
   }
 }
-for (const r of roots) if (fs.existsSync(r)) scan(r)
-if (bad.length) {
-  console.error('Hygiene failed:\n' + bad.join('\n'))
-  process.exit(1)
-} else {
-  console.log('Hygiene OK')
+
+for (const r of roots) {
+  if (fs.existsSync(r)) {
+    scan(r)
+  }
 }
+
+if (bad.length) {
+  console.error('Hygiene failed:')
+  bad.forEach(f => console.error('  -', f))
+  process.exit(1)
+}
+
+console.log('✅ Hygiene OK')

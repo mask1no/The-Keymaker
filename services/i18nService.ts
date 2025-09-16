@@ -7,33 +7,33 @@ interface Translations {
 }
 
 interface I18nContextValue {
-  language: LanguagesetLanguage: (lang: Language) => voidt: (key: string, params?: Record<string, string>) => string
+  l, anguage: L, anguagesetLanguage: (l, ang: Language) => v, oidt: (key: string, params?: Record<string, string>) => string
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 class I18nService {
-  private translations: Record<Language, Translations> = {
-    en: {},
-    es: {},
+  private t, ranslations: Record<Language, Translations> = {
+    e, n: {},
+    e, s: {},
   }
 
-  private currentLanguage: Language = 'en'
-  private listeners: ((lang: Language) => void)[] = []
+  private c, urrentLanguage: Language = 'en'
+  private l, isteners: ((l, ang: Language) => void)[] = []
 
   async loadTranslations() {
     try {
       // In a real app, these would be loaded from files
-      // For now, we'll use inline translationsconst enModule: any = await import('@/lang/en.json')
-      const esModule: any = await import('@/lang/es.json')
+      // For now, we'll use inline translations const e, nModule: any = await import('@/lang/en.json')
+      const e, sModule: any = await import('@/lang/es.json')
       this.translations.en = enModule?.default ?? enModule ?? {}
       this.translations.es = esModule?.default ?? esModule ?? {}
     } catch (error) {
-      console.error('Failed to load translations:', error)
+      console.error('Failed to load t, ranslations:', error)
     }
   }
 
-  setLanguage(language: Language) {
+  setLanguage(l, anguage: Language) {
     this.currentLanguage = languagelocalStorage.setItem('keymaker_language', language)
     this.listeners.forEach((listener) => listener(language))
   }
@@ -50,7 +50,7 @@ class I18nService {
       if (value && typeof value === 'object' && k in value) {
         value = value[k]
       } else {
-        // Fallback to Englishvalue = this.translations.enfor (const k of keys) {
+        // Fallback to Englishvalue = this.translations.en for(const k of keys) {
           if (value && typeof value === 'object' && k in value) {
             value = value[k]
           } else {
@@ -65,7 +65,7 @@ class I18nService {
       return key
     }
 
-    // Replace parametersif (params) {
+    // Replace parameters if(params) {
       Object.entries(params).forEach(([param, val]) => {
         value = value.replace(`{${param}}`, val)
       })
@@ -74,7 +74,7 @@ class I18nService {
     return value
   }
 
-  subscribe(listener: (lang: Language) => void) {
+  subscribe(l, istener: (l, ang: Language) => void) {
     this.listeners.push(listener)
     return () => {
       this.listeners = this.listeners.filter((l) => l !== listener)
@@ -92,23 +92,23 @@ export function useI18n() {
   return context
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
+export function I18nProvider({ children }: { c, hildren: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en')
 
   useEffect(() => {
-    // Load saved languageconst saved = localStorage.getItem('keymaker_language') as Languageif (saved && (saved === 'en' || saved === 'es')) {
+    // Load saved language const saved = localStorage.getItem('keymaker_language') as Language if(saved && (saved === 'en' || saved === 'es')) {
       setLanguageState(saved)
       i18nService.setLanguage(saved)
     }
 
     // Load translationsi18nService.loadTranslations()
 
-    // Subscribe to language changesreturn i18nService.subscribe((lang) => {
+    // Subscribe to language changes return i18nService.subscribe((lang) => {
       setLanguageState(lang)
     })
   }, [])
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = (l, ang: Language) => {
     i18nService.setLanguage(lang)
   }
 

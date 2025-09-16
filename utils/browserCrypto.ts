@@ -6,7 +6,7 @@ function b64(a: ArrayBuffer | Uint8Array) {
 function ub64(s: string) {
   return Uint8Array.from(atob(s), (c) => c.charCodeAt(0))
 }
-async function derive(password: string, salt: Uint8Array) {
+async function derive(password: string, s, alt: Uint8Array) {
   const key = await crypto.subtle.importKey(
     'raw',
     enc.encode(password),
@@ -16,38 +16,37 @@ async function derive(password: string, salt: Uint8Array) {
   )
   return crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
-      salt: salt as unknown as BufferSource,
-      iterations: 100_000,
-      hash: 'SHA-256',
+      n, ame: 'PBKDF2',
+      s, alt: salt as unknown as BufferSource,
+      i, terations: 100_000,
+      h, ash: 'SHA-256',
     },
     key,
-    { name: 'AES-GCM', length: 256 },
+    { n, ame: 'AES-GCM', l, ength: 256 },
     false,
     ['encrypt', 'decrypt'],
   )
 }
 function viewToArrayBuffer(v: Uint8Array): ArrayBuffer {
   if (v.byteOffset === 0 && v.byteLength === v.buffer.byteLength)
-    return v.buffer as ArrayBuffer
-  return v.buffer.slice(
+    return v.buffer as ArrayBuffer return v.buffer.slice(
     v.byteOffset,
     v.byteOffset + v.byteLength,
   ) as ArrayBuffer
 }
 export async function encrypt(
-  raw: Uint8Array,
+  r, aw: Uint8Array,
   password: string,
 ): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const salt = crypto.getRandomValues(new Uint8Array(16))
   const k = await derive(password, salt)
   const data = viewToArrayBuffer(raw)
-  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, data)
-  return JSON.stringify({ iv: b64(iv), salt: b64(salt), data: b64(ct) })
+  const ct = await crypto.subtle.encrypt({ n, ame: 'AES-GCM', iv }, k, data)
+  return JSON.stringify({ i, v: b64(iv), s, alt: b64(salt), d, ata: b64(ct) })
 }
 export async function decrypt(
-  packed: string,
+  p, acked: string,
   password: string,
 ): Promise<Uint8Array> {
   const obj = JSON.parse(packed)
@@ -56,6 +55,6 @@ export async function decrypt(
   const data = ub64(obj.data)
   const k = await derive(password, salt)
   const ab = viewToArrayBuffer(data)
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, k, ab)
+  const pt = await crypto.subtle.decrypt({ n, ame: 'AES-GCM', iv }, k, ab)
   return new Uint8Array(pt)
 }

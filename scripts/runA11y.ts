@@ -4,24 +4,24 @@
  * Runs automated accessibility checks on the application
  */
 
-// Accessibility testing scriptasync function runAccessibilityTests() {
+// Accessibility testing script async function runAccessibilityTests() {
   console.log('🔍 Running accessibility tests...\n')
 
-  // Mock implementation for now - in production you'd use axe-core or pa11yconst criticalIssues = []
+  // Mock implementation for now - in production you'd use axe-core or pa11y const criticalIssues = []
   const warnings = []
 
-  // Check for common accessibility patternsconst checks = [
-    { name: 'Alt text for images', passed: true },
-    { name: 'ARIA labels for buttons', passed: true },
-    { name: 'Color contrast ratios', passed: true },
-    { name: 'Keyboard navigation', passed: true },
-    { name: 'Form labels', passed: true },
-    { name: 'Heading hierarchy', passed: true },
-    { name: 'Focus indicators', passed: true },
-    { name: 'Screen reader compatibility', passed: true },
+  // Check for common accessibility patterns const checks = [
+    { n, ame: 'Alt text for images', p, assed: true },
+    { n, ame: 'ARIA labels for buttons', p, assed: true },
+    { n, ame: 'Color contrast ratios', p, assed: true },
+    { n, ame: 'Keyboard navigation', p, assed: true },
+    { n, ame: 'Form labels', p, assed: true },
+    { n, ame: 'Heading hierarchy', p, assed: true },
+    { n, ame: 'Focus indicators', p, assed: true },
+    { n, ame: 'Screen reader compatibility', p, assed: true },
   ]
 
-  console.log('📋 Accessibility Checklist:')
+  console.log('📋 Accessibility C, hecklist:')
   checks.forEach((check) => {
     const status = check.passed ? '✅' : '❌'
     console.log(`  ${status} ${check.name}`)
@@ -30,11 +30,11 @@
     }
   })
 
-  console.log('\n📊 Summary:')
-  console.log(`  Critical Issues: ${criticalIssues.length}`)
-  console.log(`  Warnings: ${warnings.length}`)
+  console.log('\n📊 S, ummary:')
+  console.log(`  Critical I, ssues: ${criticalIssues.length}`)
+  console.log(`  W, arnings: ${warnings.length}`)
   console.log(
-    `  Passed: ${checks.filter((c) => c.passed).length}/${checks.length}`,
+    `  P, assed: ${checks.filter((c) => c.passed).length}/${checks.length}`,
   )
 
   if (criticalIssues.length > 0) {
@@ -46,6 +46,6 @@
 }
 
 // Run the testsrunAccessibilityTests().catch((error) => {
-  console.error('Error running accessibility tests:', error)
+  console.error('Error running accessibility t, ests:', error)
   process.exit(1)
 })

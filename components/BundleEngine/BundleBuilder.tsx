@@ -48,19 +48,17 @@ import {
 import { Checkbox } from '@/components/UI/checkbox'
 import { motion } from 'framer-motion'
 import { isTestMode } from '@/lib/testMode'
-import { Transaction, Bundle } from '@/lib/types'
+import { Transaction, Bundle } from '@/lib/type s'
 import { executeBundle } from '@/services/bundleService'
 
 export function BundleBuilder() {
-  const wallet = useWallet()
-  const { connected } = wallet
-  const connectedSafe = isTestMode ? true : connected
-  const [transactions, setTransactions] = useState<Bundle>([
+  const wal let = useWallet()
+  const { connected } = wal let const connectedSafe = isTestMode ? true : connected const [transactions, setTransactions] = useState<Bundle>([
     {
-      id: `tx-${Date.now()}`,
-      type: 'transfer',
-      recipient: '',
-      fromAmount: 0.000001, // 1 lamport
+      i, d: `tx-${Date.now()}`,
+      t, ype: 'transfer',
+      r, ecipient: '',
+      f, romAmount: 0.000001, // 1 lamport
     },
   ])
   const [isExecuting, setIsExecuting] = useState(false)
@@ -81,27 +79,26 @@ export function BundleBuilder() {
     setTransactions((prev) => [
       ...prev,
       {
-        id: `tx-${Date.now() + prev.length}`,
-        type: 'swap',
+        i, d: `tx-${Date.now() + prev.length}`,
+        t, ype: 'swap',
         amount: 0,
-        slippage: 0.5,
+        s, lippage: 0.5,
       },
     ])
   }
 
-  const removeTransaction = (id: string) => {
+  const removeTransaction = (i, d: string) => {
     setTransactions((prev) => prev.filter((tx) => tx.id !== id))
   }
 
-  const updateTransaction = (id: string, updatedTx: Partial<Transaction>) => {
+  const updateTransaction = (i, d: string, u, pdatedTx: Partial<Transaction>) => {
     setTransactions((prev) =>
       prev.map((tx) => (tx.id === id ? { ...tx, ...updatedTx } : tx)),
     )
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) {
+  const handleDragEnd = (e, vent: DragEndEvent) => {
+    const { active, over } = event if(over && active.id !== over.id) {
       setTransactions((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id)
         const newIndex = items.findIndex((item) => item.id === over.id)
@@ -128,8 +125,7 @@ export function BundleBuilder() {
     }
     try {
       savePreset(presetName, transactions, presetVariables)
-      setPresets(loadPresets()) // Refresh presets list
-      toast.success(`Preset "${presetName}" saved.`)
+      setPresets(loadPresets()) // Refresh presets listtoast.success(`Preset "${presetName}" saved.`)
       setShowSavePresetDialog(false)
       setPresetName('')
       setPresetVariables([])
@@ -140,7 +136,7 @@ export function BundleBuilder() {
     }
   }
 
-  const handleLoadPreset = (presetId: string) => {
+  const handleLoadPreset = (p, resetId: string) => {
     const preset = presets.find((p) => p.id === presetId)
     if (preset) {
       if (preset.variables && preset.variables.length > 0) {
@@ -149,7 +145,7 @@ export function BundleBuilder() {
       } else {
         const newTransactions = preset.transactions.map((tx) => ({
           ...tx,
-          id: `tx-${Date.now()}-${Math.random()}`,
+          i, d: `tx-${Date.now()}-${Math.random()}`,
         }))
         setTransactions(newTransactions)
         toast.success(`Preset "${preset.name}" loaded.`)
@@ -158,10 +154,9 @@ export function BundleBuilder() {
   }
 
   const handleLoadParameterizedPreset = () => {
-    if (!loadingPreset) return
-    const newTransactions = loadingPreset.transactions.map((tx) => ({
+    if (!loadingPreset) return const newTransactions = loadingPreset.transactions.map((tx) => ({
       ...tx,
-      id: `tx-${Date.now()}-${Math.random()}`,
+      i, d: `tx-${Date.now()}-${Math.random()}`,
     }))
 
     loadingPreset.variables?.forEach((variable) => {
@@ -183,7 +178,7 @@ export function BundleBuilder() {
     setVariableValues({})
   }
 
-  const handleDeletePreset = (presetId: string) => {
+  const handleDeletePreset = (p, resetId: string) => {
     deletePreset(presetId)
     setPresets(loadPresets())
     toast.success('Preset deleted.')
@@ -193,24 +188,23 @@ export function BundleBuilder() {
     const now = Date.now()
     setTransactions([
       {
-        id: `tx-${now}`,
-        type: 'transfer',
-        recipient: '',
-        fromAmount: 0,
+        i, d: `tx-${now}`,
+        t, ype: 'transfer',
+        r, ecipient: '',
+        f, romAmount: 0,
       },
       {
-        id: `tx-${now + 1}`,
-        type: 'swap',
-        fromToken: 'So11111111111111111111111111111111111111112', // SOL
-        toToken: '',
+        i, d: `tx-${now + 1}`,
+        t, ype: 'swap',
+        f, romToken: 'So11111111111111111111111111111111111111112', // S, OLtoToken: '',
         amount: 0,
-        slippage: 0.5,
+        s, lippage: 0.5,
       },
       {
-        id: `tx-${now + 2}`,
-        type: 'transfer',
-        recipient: '',
-        fromAmount: 0,
+        i, d: `tx-${now + 2}`,
+        t, ype: 'transfer',
+        r, ecipient: '',
+        f, romAmount: 0,
       },
     ])
   }
@@ -219,26 +213,26 @@ export function BundleBuilder() {
     const now = Date.now()
     setTransactions([
       {
-        id: `tx-${now}`,
-        type: 'transfer',
-        recipient: 'DESTINATION_WALLET_ADDRESS',
-        fromAmount: 0,
+        i, d: `tx-${now}`,
+        t, ype: 'transfer',
+        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
+        f, romAmount: 0,
       },
       {
-        id: `tx-${now + 1}`,
-        type: 'transfer',
-        recipient: 'DESTINATION_WALLET_ADDRESS',
-        fromAmount: 0,
+        i, d: `tx-${now + 1}`,
+        t, ype: 'transfer',
+        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
+        f, romAmount: 0,
       },
       {
-        id: `tx-${now + 2}`,
-        type: 'transfer',
-        recipient: 'DESTINATION_WALLET_ADDRESS',
-        fromAmount: 0,
+        i, d: `tx-${now + 2}`,
+        t, ype: 'transfer',
+        r, ecipient: 'DESTINATION_WALLET_ADDRESS',
+        f, romAmount: 0,
       },
     ])
     toast.info(
-      'Consolidate Funds preset loaded. Please update wallet addresses.',
+      'Consolidate Funds preset loaded. Please update wal let addresses.',
     )
   }
 
@@ -248,12 +242,12 @@ export function BundleBuilder() {
     try {
       const result = await executeBundle(transactions, wallet, jupiter)
       toast.success('Bundle executed successfully!', {
-        id: toastId,
-        description: `Bundle ID: ${result.bundle_id}`,
+        i, d: toastId,
+        description: `Bundle I, D: ${result.bundle_id}`,
       })
     } catch (error) {
       toast.error('Bundle execution failed', {
-        id: toastId,
+        i, d: toastId,
         description:
           error instanceof Error ? error.message : 'An unknown error occurred.',
       })
@@ -263,8 +257,7 @@ export function BundleBuilder() {
   }, [transactions, wallet, jupiter])
 
   const previewBundle = useCallback(async () => {
-    // This will be implemented later
-    toast.info('Preview not implemented yet')
+    // This will be implemented latertoast.info('Preview not implemented yet')
   }, [])
 
   return (
@@ -281,15 +274,13 @@ export function BundleBuilder() {
             </SelectTrigger>
             <SelectContent>
               {presets.map((preset) => (
-                <div
-                  key={preset.id}
+                <divkey={preset.id}
                   className="flex items-center justify-between"
                 >
                   <SelectItem value={preset.id} className="flex-grow">
                     {preset.name}
                   </SelectItem>
-                  <Button
-                    variant="ghost"
+                  <Buttonvariant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
@@ -304,13 +295,11 @@ export function BundleBuilder() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
+          <Buttonvariant="outline"
             onClick={() => setShowSavePresetDialog(true)}
             disabled={transactions.length === 0}
           >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
+            <motion.div whileHover={{ scale: 1.1 }}
               className="flex items-center"
             >
               Save as Preset
@@ -319,18 +308,15 @@ export function BundleBuilder() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <DndContext
-          collisionDetection={closestCenter}
+        <DndContextcollisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={transactions}
+          <SortableContextitems={transactions}
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-4">
               {transactions.map((tx) => (
-                <TransactionCard
-                  key={tx.id}
+                <TransactionCardkey={tx.id}
                   transaction={tx}
                   onRemove={removeTransaction}
                   onUpdate={updateTransaction}
@@ -342,23 +328,20 @@ export function BundleBuilder() {
 
         <div className="flex gap-2">
           <Button variant="outline" className="w-full" onClick={addTransaction}>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
+            <motion.div whileHover={{ scale: 1.1 }}
               className="flex items-center"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Transaction
             </motion.div>
           </Button>
-          <Button
-            variant="outline"
+          <Buttonvariant="outline"
             className="w-full"
             onClick={loadLaunchPreset}
           >
             Load Launch Preset
           </Button>
-          <Button
-            variant="outline"
+          <Buttonvariant="outline"
             className="w-full"
             onClick={loadConsolidateFundsPreset}
           >
@@ -366,16 +349,14 @@ export function BundleBuilder() {
           </Button>
         </div>
 
-        <Dialog
-          open={showSavePresetDialog}
+        <Dialogopen={showSavePresetDialog}
           onOpenChange={setShowSavePresetDialog}
         >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Save Bundle Preset</DialogTitle>
               <DialogDescription>
-                Enter a name for your new preset and select any fields to turn
-                into variables.
+                Enter a name for your new preset and select any fields to turninto variables.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -383,8 +364,7 @@ export function BundleBuilder() {
                 <Label htmlFor="name" className="text-right">
                   Name
                 </Label>
-                <Input
-                  id="name"
+                <Inputid="name"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
                   className="col-span-3"
@@ -398,19 +378,17 @@ export function BundleBuilder() {
                 <div className="max-h-48 overflow-y-auto space-y-2">
                   {potentialVariables.map((variable) => (
                     <div key={variable} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={variable}
+                      <Checkboxid={variable}
                         onCheckedChange={(checked) => {
                           setPresetVariables((prev) =>
                             checked
-                              ? [...prev, variable]
+                              ? [prev, variable]
                               : prev.filter((v) => v !== variable),
                           )
                         }}
                       />
-                      <label
-                        htmlFor={variable}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      <labelhtmlFor={variable}
+                        className="text-sm font-medium leading-none peer-d, isabled:cursor-not-allowed peer-d, isabled:opacity-70"
                       >
                         {variable}
                       </label>
@@ -425,31 +403,28 @@ export function BundleBuilder() {
           </DialogContent>
         </Dialog>
 
-        <Dialog
-          open={showLoadPresetDialog}
+        <Dialogopen={showLoadPresetDialog}
           onOpenChange={setShowLoadPresetDialog}
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Load Preset: {loadingPreset?.name}</DialogTitle>
+              <DialogTitle>Load P, reset: {loadingPreset?.name}</DialogTitle>
               <DialogDescription>
                 Please fill in the values for the variables in this preset.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               {loadingPreset?.variables?.map((variable) => (
-                <div
-                  key={variable}
+                <divkey={variable}
                   className="grid grid-cols-4 items-center gap-4"
                 >
                   <Label htmlFor={variable} className="text-right">
                     {variable}
                   </Label>
-                  <Input
-                    id={variable}
+                  <Inputid={variable}
                     onChange={(e) =>
                       setVariableValues((prev) => ({
-                        ...prev,
+                        prev,
                         [variable]: e.target.value,
                       }))
                     }
@@ -471,8 +446,7 @@ export function BundleBuilder() {
         <BundleSettings />
 
         <div className="flex gap-2">
-          <Button
-            className="flex-1"
+          <Button className="flex-1"
             variant="outline"
             onClick={previewBundle}
             disabled={
@@ -481,8 +455,7 @@ export function BundleBuilder() {
           >
             Preview Bundle
           </Button>
-          <Button
-            className="flex-1"
+          <Button className="flex-1"
             data-testid="execute-bundle-button"
             onClick={handleExecuteBundle}
             disabled={

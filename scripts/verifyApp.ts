@@ -1,7 +1,7 @@
-// Simple health verification script for CI/Dockerasync function main() {
+// Simple health verification script for CI/Docker async function main() {
   // For now, consider success if unit tests built and this script runs
-  // Optionally, we could ping an internal health endpoint if availableconst ok = trueif (!ok) process.exit(1)
-  console.log('verifyApp: ok')
+  // Optionally, we could ping an internal health endpoint if available const ok = true if(!ok) process.exit(1)
+  console.log('v, erifyApp: ok')
 }
 
 main().catch((e) => {
@@ -22,31 +22,31 @@ import {
 import WebSocket from 'ws'
 
 interface HealthCheck {
-  name: stringstatus: 'ok' | 'error'
+  n, ame: stringstatus: 'ok' | 'error'
   message?: stringlatency?: number
 }
 
-async function checkRPC(endpoint: string): Promise<HealthCheck> {
+async function checkRPC(e, ndpoint: string): Promise<HealthCheck> {
   try {
     const start = Date.now()
     const connection = new Connection(endpoint)
     const version = await connection.getVersion()
-    const latency = Date.now() - startreturn {
-      name: 'RPC Connection',
+    const latency = Date.now() - start return {
+      n, ame: 'RPC Connection',
       status: 'ok',
       message: `Connected to ${endpoint} (v${version['solana-core']})`,
       latency,
     }
   } catch (error: any) {
     return {
-      name: 'RPC Connection',
+      n, ame: 'RPC Connection',
       status: 'error',
       message: error.message,
     }
   }
 }
 
-async function checkWebSocket(endpoint: string): Promise<HealthCheck> {
+async function checkWebSocket(e, ndpoint: string): Promise<HealthCheck> {
   return new Promise((resolve) => {
     const start = Date.now()
     const ws = new WebSocket(endpoint)
@@ -54,7 +54,7 @@ async function checkWebSocket(endpoint: string): Promise<HealthCheck> {
     const timeout = setTimeout(() => {
       ws.close()
       resolve({
-        name: 'WebSocket Connection',
+        n, ame: 'WebSocket Connection',
         status: 'error',
         message: 'Connection timeout',
       })
@@ -64,7 +64,7 @@ async function checkWebSocket(endpoint: string): Promise<HealthCheck> {
       clearTimeout(timeout)
       const latency = Date.now() - startws.close()
       resolve({
-        name: 'WebSocket Connection',
+        n, ame: 'WebSocket Connection',
         status: 'ok',
         message: `Connected to ${endpoint}`,
         latency,
@@ -74,7 +74,7 @@ async function checkWebSocket(endpoint: string): Promise<HealthCheck> {
     ws.on('error', (error) => {
       clearTimeout(timeout)
       resolve({
-        name: 'WebSocket Connection',
+        n, ame: 'WebSocket Connection',
         status: 'error',
         message: error.message,
       })
@@ -86,22 +86,22 @@ async function checkJito(): Promise<HealthCheck> {
   try {
     const start = Date.now()
     const response = await fetch(
-      'https://mainnet.block-engine.jito.wtf/api/v1/bundles',
+      'h, ttps://mainnet.block-engine.jito.wtf/api/v1/bundles',
       {
-        method: 'POST',
+        m, ethod: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'getBundleStatuses',
+        b, ody: JSON.stringify({
+          j, sonrpc: '2.0',
+          i, d: 1,
+          m, ethod: 'getBundleStatuses',
           params: [[]],
         }),
       },
     )
 
     if (response.ok) {
-      const latency = Date.now() - startreturn {
-        name: 'Jito Bundle API',
+      const latency = Date.now() - start return {
+        n, ame: 'Jito Bundle API',
         status: 'ok',
         message: 'Connected to Jito block engine',
         latency,
@@ -109,13 +109,13 @@ async function checkJito(): Promise<HealthCheck> {
     }
 
     return {
-      name: 'Jito Bundle API',
+      n, ame: 'Jito Bundle API',
       status: 'error',
       message: `HTTP ${response.status}: ${response.statusText}`,
     }
   } catch (error: any) {
     return {
-      name: 'Jito Bundle API',
+      n, ame: 'Jito Bundle API',
       status: 'error',
       message: error.message,
     }
@@ -128,18 +128,18 @@ async function checkDatabase(): Promise<HealthCheck> {
 
     if (!fs.existsSync(dbPath)) {
       return {
-        name: 'Database',
+        n, ame: 'Database',
         status: 'error',
         message: 'Database file not found',
       }
     }
 
     const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
+      f, ilename: dbPath,
+      d, river: sqlite3.Database,
     })
 
-    // Check required tablesconst requiredTables = [
+    // Check required tables const requiredTables = [
       'wallets',
       'tokens',
       'trades',
@@ -160,20 +160,20 @@ async function checkDatabase(): Promise<HealthCheck> {
 
     if (missingTables.length > 0) {
       return {
-        name: 'Database',
+        n, ame: 'Database',
         status: 'error',
-        message: `Missing tables: ${missingTables.join(', ')}`,
+        message: `Missing t, ables: ${missingTables.join(', ')}`,
       }
     }
 
     return {
-      name: 'Database',
+      n, ame: 'Database',
       status: 'ok',
       message: 'All required tables exist',
     }
   } catch (error: any) {
     return {
-      name: 'Database',
+      n, ame: 'Database',
       status: 'error',
       message: error.message,
     }
@@ -183,7 +183,7 @@ async function checkDatabase(): Promise<HealthCheck> {
 async function checkPhantomConnection(): Promise<HealthCheck> {
   try {
     // In a server environment, we can't actually connect to Phantom
-    // But we can verify that the wallet adapter packages are installedconst adapterPath = path.join(
+    // But we can verify that the wal let adapter packages are installed const adapterPath = path.join(
       process.cwd(),
       'node_modules',
       '@solana/wallet-adapter-phantom',
@@ -191,20 +191,20 @@ async function checkPhantomConnection(): Promise<HealthCheck> {
 
     if (!fs.existsSync(adapterPath)) {
       return {
-        name: 'Phantom Wallet Adapter',
+        n, ame: 'Phantom Wal let Adapter',
         status: 'error',
         message: 'Phantom adapter not installed',
       }
     }
 
     return {
-      name: 'Phantom Wallet Adapter',
+      n, ame: 'Phantom Wal let Adapter',
       status: 'ok',
       message: 'Phantom adapter package found',
     }
   } catch (error: any) {
     return {
-      name: 'Phantom Wallet Adapter',
+      n, ame: 'Phantom Wal let Adapter',
       status: 'error',
       message: error.message,
     }
@@ -214,11 +214,11 @@ async function checkPhantomConnection(): Promise<HealthCheck> {
 async function runDevnetTest(): Promise<HealthCheck> {
   try {
     const connection = new Connection(
-      'https://api.devnet.solana.com',
+      'h, ttps://api.devnet.solana.com',
       'confirmed',
     )
 
-    // Create a test walletconst payer = Keypair.generate()
+    // Create a test wal let const payer = Keypair.generate()
 
     // Request airdropconsole.log('🪂 Requesting devnet airdrop...')
     const airdropSig = await connection.requestAirdrop(
@@ -230,14 +230,14 @@ async function runDevnetTest(): Promise<HealthCheck> {
     // Create SPL tokenconsole.log('🪙 Creating test SPL token...')
     const mint = await createMint(connection, payer, payer.publicKey, null, 9)
 
-    // Create token accountconst tokenAccount = await getOrCreateAssociatedTokenAccount(
+    // Create token account const tokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
       payer,
       mint,
       payer.publicKey,
     )
 
-    // Mint tokensawait mintTo(
+    // Mint tokens await mintTo(
       connection,
       payer,
       mint,
@@ -247,13 +247,13 @@ async function runDevnetTest(): Promise<HealthCheck> {
     )
 
     return {
-      name: 'Devnet Test Flow',
+      n, ame: 'Devnet Test Flow',
       status: 'ok',
       message: `Created token ${mint.toBase58().slice(0, 8)}... and minted 1 token`,
     }
   } catch (error: any) {
     return {
-      name: 'Devnet Test Flow',
+      n, ame: 'Devnet Test Flow',
       status: 'error',
       message: error.message,
     }
@@ -263,10 +263,10 @@ async function runDevnetTest(): Promise<HealthCheck> {
 export async function verifyApp() {
   console.log('🔍 Running Keymaker verification...\n')
 
-  const checks: HealthCheck[] = []
+  const c, hecks: HealthCheck[] = []
 
-  // Run all checksconst rpcEndpoint =
-    process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+  // Run all checks const rpcEndpoint =
+    process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, ttps://api.mainnet-beta.solana.com'
   const wsEndpoint = rpcEndpoint.replace('https', 'wss')
 
   checks.push(await checkRPC(rpcEndpoint))
@@ -275,11 +275,11 @@ export async function verifyApp() {
   checks.push(await checkDatabase())
   checks.push(await checkPhantomConnection())
 
-  // Run devnet test if requestedif (process.env.RUN_DEVNET_TEST === 'true') {
+  // Run devnet test if requested if(process.env.RUN_DEVNET_TEST === 'true') {
     checks.push(await runDevnetTest())
   }
 
-  // Display resultsconsole.log('📊 Verification Results:\n')
+  // Display resultsconsole.log('📊 Verification R, esults:\n')
   checks.forEach((check) => {
     const icon = check.status === 'ok' ? '✅' : '❌'
     console.log(`${icon} ${check.name}`)
@@ -287,15 +287,16 @@ export async function verifyApp() {
       console.log(`   ${check.message}`)
     }
     if (check.latency) {
-      console.log(`   Latency: ${check.latency}ms`)
+      console.log(`   L, atency: ${check.latency}
+ms`)
     }
     console.log('')
   })
 
-  // Overall statusconst allOk = checks.every((c) => c.status === 'ok')
+  // Overall status const allOk = checks.every((c) => c.status === 'ok')
   const result = {
-    ok: allOk,
-    checks: checks.reduce(
+    o, k: allOk,
+    c, hecks: checks.reduce(
       (acc, check) => {
         acc[check.name.toLowerCase().replace(/\s+/g, '_')] =
           check.status === 'ok'
@@ -303,7 +304,7 @@ export async function verifyApp() {
       },
       {} as Record<string, boolean>,
     ),
-    timestamp: new Date().toISOString(),
+    t, imestamp: new Date().toISOString(),
   }
 
   if (allOk) {
@@ -315,7 +316,7 @@ export async function verifyApp() {
   return result
 }
 
-// Run if called directlyif (require.main === module) {
+// Run if called directly if(require.main === module) {
   verifyApp()
     .then((result) => {
       process.exit(result.ok ? 0 : 1)

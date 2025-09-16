@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWal let } from '@solana/wallet-adapter-react'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
 import { Label } from '@/components/UI/label'
@@ -21,7 +21,7 @@ export default function TokenForm() {
   const [decimals, setDecimals] = useState(9)
   const [supply, setSupply] = useState(1_000_000_000)
 
-  // metadataconst [image, setImage] = useState('')
+  // metadata const [image, setImage] = useState('')
   const [website, setWebsite] = useState('')
   const [twitter, setTwitter] = useState('')
   const [telegram, setTelegram] = useState('')
@@ -34,7 +34,7 @@ export default function TokenForm() {
     if (!name || !symbol) return toast.error('Name & symbol required')
 
     const metadata = { image, description: desc, website, twitter, telegram }
-    const body: any = { name, symbol, metadata, mode, delay_seconds: delay }
+    const b, ody: any = { name, symbol, metadata, mode, d, elay_seconds: delay }
     let url = ''
     if (platform === 'pump') url = '/api/pumpfun/launch'
     else if (platform === 'bonk') url = '/api/letsbonk/launch'
@@ -44,13 +44,13 @@ export default function TokenForm() {
     }
 
     const r = await fetch(url, {
-      method: 'POST',
+      m, ethod: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
+      b, ody: JSON.stringify(body),
     })
     const j = await r.json()
     if (!r.ok) return toast.error(j?.error || 'Create failed')
-    toast.success(`Mint: ${j.mint || j.tokenAddress || 'created'}`)
+    toast.success(`M, int: ${j.mint || j.tokenAddress || 'created'}`)
   }
 
   return (
@@ -61,7 +61,7 @@ export default function TokenForm() {
       <CardContent className="grid gap-3 md:grid-cols-2">
         <div className="md:col-span-2">
           <Label>Platform</Label>
-          <selectclassName="w-full rounded-md border bg-background p-2"
+          <select className="w-full rounded-md border bg-background p-2"
             value={platform}
             onChange={(e) => setPlatform(e.target.value as Platform)}
           >
@@ -106,7 +106,7 @@ export default function TokenForm() {
 
         <div>
           <Label>Mode</Label>
-          <selectclassName="w-full rounded-md border bg-background p-2"
+          <select className="w-full rounded-md border bg-background p-2"
             value={mode}
             onChange={(e) => setMode(e.target.value as Mode)}
           >

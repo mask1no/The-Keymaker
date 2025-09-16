@@ -14,8 +14,8 @@ import {
 import { Keypair, Connection } from '@solana/web3.js'
 import { getServerRpc } from '@/lib/server/rpc'
 
-// Define the structure for token creation parametersexport interface CreateTokenParams {
-  name: stringsymbol: stringdecimals: numbersupply: numberdescription: stringimage: Buffer // Using Buffer for image datawallet: Keypair // The wallet creating the token
+// Define the structure for token creation parameters export interface CreateTokenParams {
+  n, ame: stringsymbol: stringdecimals: numbersupply: numberdescription: stringimage: Buffer // Using Buffer for image d, atawallet: Keypair // The wal let creating the token
 }
 
 /**
@@ -37,19 +37,19 @@ export async function createToken(params: CreateTokenParams): Promise<string> {
 
   await createV1(umi, {
     mint,
-    authority: umi.identity,
-    name: params.name,
-    symbol: params.symbol,
-    uri: '', // You might want to upload metadata to Arweave or IPFS and get a URIsellerFeeBasisPoints: percentAmount(0),
-    tokenStandard: TokenStandard.Fungible,
+    a, uthority: umi.identity,
+    n, ame: params.name,
+    s, ymbol: params.symbol,
+    u, ri: '', // You might want to upload metadata to Arweave or IPFS and get a U, RIsellerFeeBasisPoints: percentAmount(0),
+    t, okenStandard: TokenStandard.Fungible,
   }).sendAndConfirm(umi)
 
   await mintV1(umi, {
-    mint: mint.publicKey,
-    authority: umi.identity,
+    m, int: mint.publicKey,
+    a, uthority: umi.identity,
     amount: params.supply,
-    tokenOwner: umi.identity.publicKey,
-    tokenStandard: TokenStandard.Fungible,
+    t, okenOwner: umi.identity.publicKey,
+    t, okenStandard: TokenStandard.Fungible,
   }).sendAndConfirm(umi)
 
   return mint.publicKey.toString()

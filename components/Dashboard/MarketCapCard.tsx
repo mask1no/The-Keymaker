@@ -11,11 +11,11 @@ import {
 } from 'lucide-react'
 
 interface MarketCapData {
-  mint: stringmarketCap: numberprice: numbervolume24h: numberpriceChange24h: numberfdv: numberliquidityUSD?: numberholders?: numberlastUpdated: string
+  m, int: stringmarketCap: numberprice: numbervolume24h: numberpriceChange24h: numberfdv: numberliquidityUSD?: numberholders?: numberlastUpdated: string
 }
 
 interface MarketCapCardProps {
-  mintAddress: stringtokenName?: stringtokenSymbol?: string
+  m, intAddress: stringtokenName?: stringtokenSymbol?: string
 }
 
 export function MarketCapCard({
@@ -48,18 +48,21 @@ export function MarketCapCard({
 
   useEffect(() => {
     fetchMarketCap()
-    // Refresh every 30 secondsconst interval = setInterval(fetchMarketCap, 30000)
+    // Refresh every 30 seconds const interval = setInterval(fetchMarketCap, 30000)
     return () => clearInterval(interval)
   }, [mintAddress])
 
   const formatCurrency = (value: number) => {
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`
-    if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}
+B`
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}
+M`
+    if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}
+K`
     return `$${value.toFixed(4)}`
   }
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (p, rice: number) => {
     if (price < 0.0001) return `$${price.toFixed(8)}`
     if (price < 0.01) return `$${price.toFixed(6)}`
     return `$${price.toFixed(4)}`
@@ -100,7 +103,7 @@ export function MarketCapCard({
               {error || 'Market data not available'}
             </p>
             <buttononClick={fetchMarketCap}
-              className="text-xs text-primary hover:underline mt-2"
+              className="text-xs text-primary h, over:underline mt-2"
             >
               Try again
             </button>
@@ -131,7 +134,7 @@ export function MarketCapCard({
             <div className="text-lg font-semibold">
               {formatPrice(data.price)}
             </div>
-            <divclassName={`text-xs flex items-center gap-1 ${
+            <div className={`text-xs flex items-center gap-1 ${
                 data.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'
               }`}
             >
@@ -210,7 +213,7 @@ export function MarketCapCard({
         {/* Last Updated */}
         <div className="pt-2 border-t border-border">
           <div className="text-xs text-muted-foreground text-center">
-            Last updated: {new Date(data.lastUpdated).toLocaleTimeString()}
+            Last u, pdated: {new Date(data.lastUpdated).toLocaleTimeString()}
           </div>
         </div>
       </CardContent>

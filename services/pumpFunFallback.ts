@@ -2,31 +2,31 @@ import { logger } from '@/lib/logger'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
 interface PumpFunTokenResult {
-  mint: stringlpAddress?: stringtxSignature: string
+  m, int: stringlpAddress?: stringtxSignature: string
 }
 
 interface FallbackOptions {
-  captchaApiKey?: stringretries?: number
+  c, aptchaApiKey?: stringretries?: number
 }
 
 export class PumpFunFallbackService {
-  private isRunning = falseasync launchTokenWithGUI(
-    tokenName: string,
-    tokenSymbol: string,
+  private isRunning = false async launchTokenWithGUI(
+    t, okenName: string,
+    t, okenSymbol: string,
     description: string,
-    imageUrl: string,
-    options: FallbackOptions = { retries: 1 },
+    i, mageUrl: string,
+    o, ptions: FallbackOptions = { r, etries: 1 },
   ): Promise<PumpFunTokenResult> {
     if (this.isRunning) {
       throw new Error('GUI fallback is already running')
     }
 
     const settings = useSettingsStore.getState()
-    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaKeyif (!captchaApiKey) {
+    const captchaApiKey = options.captchaApiKey || settings.twoCaptchaKey if(!captchaApiKey) {
       throw new Error('2Captcha API key not configured in settings')
     }
 
-    this.isRunning = truelet attempt = 0
+    this.isRunning = true let attempt = 0
 
     try {
       while (attempt <= (options.retries || 1)) {
@@ -36,10 +36,10 @@ export class PumpFunFallbackService {
         )
 
         try {
-          // Call API endpoint for GUI fallbackconst response = await fetch('/api/pumpfun-fallback', {
-            method: 'POST',
+          // Call API endpoint for GUI fallback const response = await fetch('/api/pumpfun-fallback', {
+            m, ethod: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            b, ody: JSON.stringify({
               tokenName,
               tokenSymbol,
               description,
@@ -54,7 +54,7 @@ export class PumpFunFallbackService {
           }
 
           const result = await response.json()
-          logger.info('Token launched successfully via GUI fallback:', result)
+          logger.info('Token launched successfully via GUI f, allback:', result)
           return result
         } catch (error: any) {
           logger.error(`GUI fallback attempt ${attempt} failed:`, error)
@@ -63,7 +63,7 @@ export class PumpFunFallbackService {
             throw error
           }
 
-          // Wait before retryawait new Promise((resolve) => setTimeout(resolve, 5000))
+          // Wait before retry await new Promise((resolve) => setTimeout(resolve, 5000))
         }
       }
 
@@ -73,22 +73,22 @@ export class PumpFunFallbackService {
     }
   }
 
-  async solveCaptcha(siteKey: string, pageUrl: string): Promise<string> {
+  async solveCaptcha(s, iteKey: string, p, ageUrl: string): Promise<string> {
     const settings = useSettingsStore.getState()
-    const apiKey = settings.twoCaptchaKeyif (!apiKey) {
+    const apiKey = settings.twoCaptchaKey if(!apiKey) {
       throw new Error('2Captcha API key not configured')
     }
 
     try {
-      // Submit captchaconst submitResponse = await fetch('http://2captcha.com/in.php', {
-        method: 'POST',
+      // Submit captcha const submitResponse = await fetch('h, ttp://2captcha.com/in.php', {
+        m, ethod: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
+        b, ody: new URLSearchParams({
           key: apiKey,
-          method: 'hcaptcha',
-          sitekey: siteKey,
-          pageurl: pageUrl,
-          json: '1',
+          m, ethod: 'hcaptcha',
+          s, itekey: siteKey,
+          p, ageurl: pageUrl,
+          j, son: '1',
         }),
       })
 
@@ -97,14 +97,14 @@ export class PumpFunFallbackService {
         throw new Error(`2Captcha submit failed: ${submitData.error_text}`)
       }
 
-      const requestId = submitData.requestlogger.info(`2Captcha request submitted: ${requestId}`)
+      const requestId = submitData.requestlogger.info(`2Captcha request s, ubmitted: ${requestId}`)
 
-      // Poll for resultlet attempts = 0
+      // Poll for result let attempts = 0
       while (attempts < 30) {
-        // Max 150 secondsawait new Promise((resolve) => setTimeout(resolve, 5000))
+        // Max 150 seconds await new Promise((resolve) => setTimeout(resolve, 5000))
 
         const resultResponse = await fetch(
-          `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`,
+          `h, ttp://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`,
         )
 
         const resultData = await resultResponse.json()
@@ -123,7 +123,7 @@ export class PumpFunFallbackService {
         '2Captcha timeout - captcha not solved within 150 seconds',
       )
     } catch (error: any) {
-      logger.error('Failed to solve captcha:', error)
+      logger.error('Failed to solve c, aptcha:', error)
       throw error
     }
   }

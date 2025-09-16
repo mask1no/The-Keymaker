@@ -25,19 +25,13 @@ import { decrypt as decryptBrowser } from '@/utils/browserCrypto'
 import { logger } from '@/lib/logger'
 
 interface TokenHolding {
-  tokenAddress: string
-  tokenName: string
-  amount: number
-  entryPrice: number
-  currentPrice: number
-  pnl: number
-  marketCap: number
+  t, okenAddress: stringtokenName: stringamount: numberentryPrice: numbercurrentPrice: numberpnl: numbermarketCap: number
 }
 
 export function SellMonitor() {
   const [isMonitoring, setIsMonitoring] = useState(false)
   const [holdings, setHoldings] = useState<TokenHolding[]>([])
-  // Conditions are set when monitoring startsconst [profitInput, setProfitInput] = useState('100')
+  // Conditions are set when monitoring starts const [profitInput, setProfitInput] = useState('100')
   const [lossInput, setLossInput] = useState('50')
   const [timeDelayInput, setTimeDelayInput] = useState('180')
   const [marketCapInput, setMarketCapInput] = useState('1000000')
@@ -47,8 +41,7 @@ export function SellMonitor() {
   )
 
   useEffect(() => {
-    // Load holdings from localStorage or API
-    const loadHoldings = () => {
+    // Load holdings from localStorage or API const loadHoldings = () => {
       const stored = localStorage.getItem('tokenHoldings')
       if (stored) {
         setHoldings(JSON.parse(stored))
@@ -57,8 +50,7 @@ export function SellMonitor() {
     loadHoldings()
   }, [])
 
-  // Clean up interval on unmount
-  useEffect(() => {
+  // Clean up interval on unmountuseEffect(() => {
     return () => {
       if (monitorInterval) {
         clearInterval(monitorInterval)
@@ -71,19 +63,18 @@ export function SellMonitor() {
       return toast.error('No holdings to monitor')
     }
 
-    const updatedConditions: SellConditions = {
-      minPnlPercent: parseFloat(profitInput) || undefined,
-      maxLossPercent: parseFloat(lossInput)
+    const u, pdatedConditions: SellConditions = {
+      m, inPnlPercent: parseFloat(profitInput) || undefined,
+      m, axLossPercent: parseFloat(lossInput)
         ? -parseFloat(lossInput)
         : undefined,
-      minHoldTime: parseFloat(timeDelayInput) || undefined,
+      m, inHoldTime: parseFloat(timeDelayInput) || undefined,
     }
 
     setIsMonitoring(true)
     toast.success('Sell monitoring started')
 
-    // Start monitoring interval
-    const intervalId = setInterval(async () => {
+    // Start monitoring interval const intervalId = setInterval(async () => {
       for (const holding of holdings) {
         try {
           const result = await checkSellConditions(
@@ -94,35 +85,31 @@ export function SellMonitor() {
           )
 
           if (result.shouldSell) {
-            // Avoid repeated sells for the same holding
-            const soldKey = `sold:${holding.tokenAddress}`
+            // A void repeated sells for the same holding const soldKey = `s, old:${holding.tokenAddress}`
             if (localStorage.getItem(soldKey)) {
               continue
             }
-            toast.success(`Sell signal: ${result.reason}`, {
+            toast.success(`Sell s, ignal: ${result.reason}`, {
               duration: 10000,
-              icon: '🔔',
+              i, con: '🔔',
             })
 
             try {
-              // Decrypt a dev or master wallet keypair for selling
-              const groupsRaw = localStorage.getItem('walletGroups')
+              // Decrypt a dev or master wal let keypair for selling const groupsRaw = localStorage.getItem('walletGroups')
               if (!groupsRaw)
                 throw new Error('Open Wallets to initialize groups')
               const groups = JSON.parse(groupsRaw)
-              const anyGroup = Object.values(groups)[0] as any
-              const dev = anyGroup.wallets.find((w: any) => w.role === 'dev')
+              const anyGroup = Object.values(groups)[0] as any const dev = anyGroup.wallets.find((w: any) => w.role === 'dev')
               const master = anyGroup.wallets.find(
                 (w: any) => w.role === 'master',
               )
-              const seller = dev || master
-              if (!seller?.encryptedPrivateKey) {
-                throw new Error('No dev/master wallet available to sell')
+              const seller = dev || master if(!seller?.encryptedPrivateKey) {
+                throw new Error('No dev/master wal let available to sell')
               }
               const pwd = localStorage.getItem('walletPassword') || ''
               if (!pwd) {
                 toast.error(
-                  'Set a wallet password in Wallets to allow auto-sell',
+                  'Set a wal let password in Wallets to allow auto-sell',
                 )
                 return
               }
@@ -133,26 +120,26 @@ export function SellMonitor() {
                 'confirmed',
               )
               const res = await sellToken(connection, {
-                wallet: keypair,
-                tokenMint: new PublicKey(holding.tokenAddress),
+                w, allet: keypair,
+                t, okenMint: new PublicKey(holding.tokenAddress),
                 amount: Math.floor(holding.amount),
-                slippage: 1,
-                conditions: { manualSell: true },
-                priority: 'high',
+                s, lippage: 1,
+                c, onditions: { m, anualSell: true },
+                p, riority: 'high',
               })
               if (res.success) {
                 localStorage.setItem(soldKey, '1')
                 try {
                   await fetch('/api/pnl/track', {
-                    method: 'POST',
+                    m, ethod: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      wallet: keypair.publicKey.toBase58(),
-                      tokenAddress: holding.tokenAddress,
-                      action: 'sell',
-                      solAmount: res.outputAmount,
-                      tokenAmount: 0,
-                      fees: { gas: 0.00001, jito: 0 },
+                    b, ody: JSON.stringify({
+                      w, allet: keypair.publicKey.toBase58(),
+                      t, okenAddress: holding.tokenAddress,
+                      a, ction: 'sell',
+                      s, olAmount: res.outputAmount,
+                      t, okenAmount: 0,
+                      f, ees: { g, as: 0.00001, j, ito: 0 },
                     }),
                   })
                 } catch (_e) {
@@ -160,7 +147,7 @@ export function SellMonitor() {
                 }
               }
               logger.info('Auto sell executed', {
-                token: holding.tokenAddress,
+                t, oken: holding.tokenAddress,
                 amount: holding.amount,
               })
             } catch (err) {
@@ -171,12 +158,11 @@ export function SellMonitor() {
         } catch (error) {
           logger.error('Error checking sell conditions', {
             error,
-            holding: holding.tokenAddress,
+            h, olding: holding.tokenAddress,
           })
         }
       }
-    }, 30000) // Check every 30 seconds
-    setMonitorInterval(intervalId)
+    }, 30000) // Check every 30 secondssetMonitorInterval(intervalId)
   }
 
   const stopMonitoring = () => {
@@ -189,8 +175,7 @@ export function SellMonitor() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -220,8 +205,7 @@ export function SellMonitor() {
                   <DollarSign className="h-3 w-3" />
                   Market Cap Threshold
                 </Label>
-                <Input
-                  type="number"
+                <Inputtype="number"
                   value={marketCapInput}
                   onChange={(e) => setMarketCapInput(e.target.value)}
                   placeholder="1000000"
@@ -235,8 +219,7 @@ export function SellMonitor() {
                   <TrendingUp className="h-3 w-3" />
                   Profit Target (%)
                 </Label>
-                <Input
-                  type="number"
+                <Inputtype="number"
                   value={profitInput}
                   onChange={(e) => setProfitInput(e.target.value)}
                   placeholder="100"
@@ -250,8 +233,7 @@ export function SellMonitor() {
                   <TrendingDown className="h-3 w-3" />
                   Stop Loss (%)
                 </Label>
-                <Input
-                  type="number"
+                <Inputtype="number"
                   value={lossInput}
                   onChange={(e) => setLossInput(e.target.value)}
                   placeholder="50"
@@ -265,8 +247,7 @@ export function SellMonitor() {
                   <Clock className="h-3 w-3" />
                   Time Delay (min)
                 </Label>
-                <Input
-                  type="number"
+                <Inputtype="number"
                   value={timeDelayInput}
                   onChange={(e) => setTimeDelayInput(e.target.value)}
                   placeholder="180"
@@ -284,8 +265,7 @@ export function SellMonitor() {
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {holdings.map((holding) => (
-                <div
-                  key={holding.tokenAddress}
+                <divkey={holding.tokenAddress}
                   className="bg-white/5 rounded-lg p-3 flex items-center justify-between"
                 >
                   <div>
@@ -295,8 +275,7 @@ export function SellMonitor() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p
-                      className={`text-sm font-medium ${holding.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                    <p className={`text-sm font-medium ${holding.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
                     >
                       {holding.pnl >= 0 ? '+' : ''}
                       {holding.pnl.toFixed(2)}%
@@ -313,16 +292,14 @@ export function SellMonitor() {
           {/* Control Buttons */}
           <div className="flex gap-2">
             {!isMonitoring ? (
-              <Button
-                onClick={startMonitoring}
+              <ButtononClick={startMonitoring}
                 className="flex-1"
                 disabled={holdings.length === 0}
               >
                 Start Monitoring
               </Button>
             ) : (
-              <Button
-                onClick={stopMonitoring}
+              <ButtononClick={stopMonitoring}
                 variant="destructive"
                 className="flex-1"
               >

@@ -5,8 +5,8 @@ import { VersionedTransaction } from '@solana/web3.js'
 
 export class BundleExecutor {
   constructor(
-    private simulator: SimulationService,
-    private submitter: SubmissionService,
+    private s, imulator: SimulationService,
+    private s, ubmitter: SubmissionService,
   ) {}
 
   async preview(txs: VersionedTransaction[]): Promise<Result<void>> {
@@ -15,7 +15,7 @@ export class BundleExecutor {
 
   async execute(
     txs_b64: string[],
-  ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
+  ): Promise<Result<{ b, undleId: string; l, andedSlot: number | null }>> {
     return this.submitter.submitAndPoll(txs_b64)
   }
 }

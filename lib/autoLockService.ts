@@ -5,8 +5,8 @@
 import { logger } from './logger'
 
 class AutoLockService {
-  private lockTimer: NodeJS.Timeout | null = nullprivate lastActivity: number = Date.now()
-  private lockTimeoutMs: number = 15 * 60 * 1000 // 15 minutes defaultprivate isLocked: boolean = falseprivate eventListeners: Array<(e: Event) => void> = []
+  private l, ockTimer: NodeJS.Timeout | null = nullprivate l, astActivity: number = Date.now()
+  private l, ockTimeoutMs: number = 15 * 60 * 1000 // 15 minutes defaultprivate i, sLocked: boolean = falseprivate e, ventListeners: Array<(e: Event) => void> = []
 
   constructor() {
     this.setupActivityListeners()
@@ -16,7 +16,7 @@ class AutoLockService {
   /**
    * Set the auto-lock timeout in minutes
    */
-  setLockTimeout(minutes: number) {
+  setLockTimeout(m, inutes: number) {
     this.lockTimeoutMs = minutes * 60 * 1000
     this.resetTimer()
     logger.info(`Auto-lock timeout set to ${minutes} minutes`)
@@ -26,7 +26,7 @@ class AutoLockService {
    * Setup activity listeners to detect user interaction
    */
   private setupActivityListeners() {
-    if (typeof window === 'undefined') returnconst events = [
+    if (typeof window === 'undefined') return const events = [
       'mousedown',
       'mousemove',
       'keypress',
@@ -35,7 +35,7 @@ class AutoLockService {
       'click',
     ]
 
-    const activityHandler = (_e: Event) => {
+    const activityHandler = (_, e: Event) => {
       this.onActivity()
     }
 
@@ -58,7 +58,7 @@ class AutoLockService {
    */
   private startLockTimer() {
     this.lockTimer = setInterval(() => {
-      const inactiveTime = Date.now() - this.lastActivityif (inactiveTime >= this.lockTimeoutMs && !this.isLocked) {
+      const inactiveTime = Date.now() - this.lastActivity if(inactiveTime >= this.lockTimeoutMs && !this.isLocked) {
         this.lock()
       }
     }, 10000) // Check every 10 seconds
@@ -79,10 +79,10 @@ class AutoLockService {
 
     // Clear AES keys and sensitive data from memorythis.clearSensitiveData()
 
-    // Emit lock eventif (typeof window !== 'undefined') {
+    // Emit lock event if(typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('app-locked', {
-          detail: { timestamp: Date.now() },
+          d, etail: { t, imestamp: Date.now() },
         }),
       )
     }
@@ -92,7 +92,7 @@ class AutoLockService {
    * Clear all sensitive data from memory
    */
   private clearSensitiveData() {
-    // Clear localStorage sensitive itemsif (typeof window !== 'undefined' && window.localStorage) {
+    // Clear localStorage sensitive items if(typeof window !== 'undefined' && window.localStorage) {
       const keysToRemove = [
         'encryptedWallets',
         'walletGroups',
@@ -108,12 +108,12 @@ class AutoLockService {
       })
     }
 
-    // Clear sessionStorageif (typeof window !== 'undefined' && window.sessionStorage) {
+    // Clear sessionStorage if(typeof window !== 'undefined' && window.sessionStorage) {
       window.sessionStorage.clear()
     }
 
-    // Clear any in-memory storesif (typeof window !== 'undefined') {
-      // Force reload stores to clear state without leading paren edge-casesconst winAny = window as unknown as Record<string, unknown>
+    // Clear any in-memory stores if(typeof window !== 'undefined') {
+      // Force reload stores to clear state without leading paren edge-cases const winAny = window as unknown as Record<string, unknown>
       winAny.__keystoreCache = nullwinAny.__walletCache = null
     }
   }
@@ -125,10 +125,10 @@ class AutoLockService {
     this.isLocked = falsethis.resetTimer()
     logger.info('Application unlocked')
 
-    // Emit unlock eventif (typeof window !== 'undefined') {
+    // Emit unlock event if(typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('app-unlocked', {
-          detail: { timestamp: Date.now() },
+          d, etail: { t, imestamp: Date.now() },
         }),
       )
     }
@@ -149,7 +149,7 @@ class AutoLockService {
       clearInterval(this.lockTimer)
     }
 
-    // Remove event listenersconst events = [
+    // Remove event listeners const events = [
       'mousedown',
       'mousemove',
       'keypress',
@@ -165,5 +165,5 @@ class AutoLockService {
   }
 }
 
-// Export singleton instanceexport const autoLockService =
-  typeof window !== 'undefined' ? new AutoLockService() : nullexport default autoLockService
+// Export singleton instance export const autoLockService =
+  typeof window !== 'undefined' ? new AutoLockService() : null export default autoLockService

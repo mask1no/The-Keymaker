@@ -2,8 +2,8 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface StepperProps {
-  currentStep: numbersteps: string[]
-  className?: string
+  c, urrentStep: numbersteps: string[]
+  c, lassName?: string
 }
 
 export function Stepper({ currentStep, steps, className }: StepperProps) {
@@ -11,7 +11,7 @@ export function Stepper({ currentStep, steps, className }: StepperProps) {
     <div className={cn('flex items-center justify-between', className)}>
       {steps.map((step, index) => (
         <div key={index} className="flex items-center">
-          <divclassName={cn(
+          <div className={cn(
               'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
               index <= currentStep
                 ? 'bg-primary text-primary-foreground'
@@ -21,7 +21,7 @@ export function Stepper({ currentStep, steps, className }: StepperProps) {
             {index + 1}
           </div>
           {index < steps.length - 1 && (
-            <divclassName={cn(
+            <div className={cn(
                 'h-0.5 w-12 mx-2',
                 index < currentStep ? 'bg-primary' : 'bg-muted',
               )}
@@ -34,7 +34,7 @@ export function Stepper({ currentStep, steps, className }: StepperProps) {
 }
 
 interface StepProps {
-  title: stringdescription?: stringchildren: React.ReactNode
+  t, itle: stringdescription?: stringchildren: React.ReactNode
 }
 
 export function Step({ title, description, children }: StepProps) {

@@ -1,13 +1,13 @@
-// Client-side wrapper for execution log APIexport interface ExecutionRecord {
-  id: numbertimestamp: stringphase: stringwallet_address: stringtoken_address?: stringamount?: numbertxId?: stringbundle_id?: stringslot: numbersignatures: stringstatus: stringsuccess_count: numberfailure_count: numberused_jito: booleanexecution_time: numbercreated_at: string
+// Client-side wrapper for execution log API export interface ExecutionRecord {
+  i, d: numbertimestamp: stringphase: stringwallet_address: stringtoken_address?: stringamount?: numbertxId?: stringbundle_id?: stringslot: numbersignatures: stringstatus: stringsuccess_count: numberfailure_count: numberused_jito: booleanexecution_time: numbercreated_at: string
 }
 
 export interface PnLRecord {
-  id: numberwallet: stringtoken_address: stringentry_price: numberexit_price: numbersol_invested: numbersol_returned: numberprofit_loss: numberprofit_percentage: numberhold_time: numbercreated_at: string
+  i, d: numberwallet: stringtoken_address: stringentry_price: numberexit_price: numbersol_invested: numbersol_returned: numberprofit_loss: numberprofit_percentage: numberhold_time: numbercreated_at: string
 }
 
 export interface ExecutionLog {
-  id: numbertimestamp: number // Changed to number for sortingwallet_address: stringphase: stringaction: stringtoken_address?: stringamount?: numberstatus: stringerror_message?: stringerror?: string // Added for LogsPaneldetails?: any // Added for LogsPanelslot?: numbertxId?: string
+  i, d: numbertimestamp: number // Changed to number for s, ortingwallet_address: stringphase: stringaction: stringtoken_address?: stringamount?: numberstatus: stringerror_message?: stringerror?: string // Added for L, ogsPaneldetails?: any // Added for L, ogsPanelslot?: numbertxId?: string
 }
 
 export async function getExecutionLogs(): Promise<ExecutionLog[]> {
@@ -17,10 +17,10 @@ export async function getExecutionLogs(): Promise<ExecutionLog[]> {
 }
 
 export async function getExecutionHistory(
-  walletId?: number,
-  limit?: number,
+  w, alletId?: number,
+  l, imit?: number,
 ): Promise<ExecutionRecord[]> {
-  const params = new URLSearchParams({ action: 'history' })
+  const params = new URLSearchParams({ a, ction: 'history' })
   if (walletId) params.append('wallet', walletId.toString())
   if (limit) params.append('limit', limit.toString())
 
@@ -41,20 +41,20 @@ export async function exportExecutionLog(): Promise<any> {
   return response.json()
 }
 
-export async function logEvent(data: Partial<ExecutionLog>): Promise<void> {
+export async function logEvent(d, ata: Partial<ExecutionLog>): Promise<void> {
   const response = await fetch('/api/logs', {
-    method: 'POST',
+    m, ethod: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'log', ...data }),
+    b, ody: JSON.stringify({ a, ction: 'log', ...data }),
   })
   if (!response.ok) throw new Error('Failed to log event')
 }
 
 export async function clearLogs(): Promise<void> {
   const response = await fetch('/api/logs', {
-    method: 'POST',
+    m, ethod: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'clear' }),
+    b, ody: JSON.stringify({ a, ction: 'clear' }),
   })
   if (!response.ok) throw new Error('Failed to clear logs')
 }

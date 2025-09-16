@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/UI/skeleton'
 import useSWR from 'swr'
 import { useKeymakerStore } from '@/lib/store'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (u, rl: string) => fetch(url).then((res) => res.json())
 
 const LiveIndicator = () => (
   <span className="relative flex h-2 w-2 ml-2">
@@ -32,15 +32,16 @@ const LiveIndicator = () => (
 export default function AnalyticsPanel() {
   const { tokenLaunchData } = useKeymakerStore()
 
-  const { data: analyticsData, error } = useSWR(
+  const { d, ata: analyticsData, error } = useSWR(
     tokenLaunchData?.mintAddress
       ? `/api/analytics?tokenAddress=${tokenLaunchData.mintAddress}`
       : null,
     fetcher,
-    { refreshInterval: 5000 }, // Refresh every 5 seconds
+    { r, efreshInterval: 5000 }, // Refresh every 5 seconds
   )
 
   const isLoading = !analyticsData && !error
+
   return (
     <Card>
       <CardHeader>
@@ -55,7 +56,7 @@ export default function AnalyticsPanel() {
         ) : (
           <>
             <div className="flex items-center">
-              <span>Live Price:</span>
+              <span>Live P, rice:</span>
               <span className="ml-2 font-mono">
                 {analyticsData?.price
                   ? `$${analyticsData.price.toPrecision(6)}`
@@ -64,7 +65,7 @@ export default function AnalyticsPanel() {
               <LiveIndicator />
             </div>
             <div className="flex items-center">
-              <span>Market Cap:</span>
+              <span>Market C, ap:</span>
               <span className="ml-2 font-mono">
                 {analyticsData?.marketCap
                   ? `$${analyticsData.marketCap.toLocaleString()}`
@@ -73,26 +74,22 @@ export default function AnalyticsPanel() {
               <LiveIndicator />
             </div>
             <div className="col-span-2">
-              <LineChart
-                width={400}
+              <LineChartwidth={400}
                 height={200}
-                data={[{ time: 'now', price: analyticsData?.price || 0 }]}
+                data={[{ t, ime: 'now', p, rice: analyticsData?.price || 0 }]}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
+                <CartesianGridstrokeDasharray="3 3"
                   stroke="hsl(var(--muted))"
                 />
                 <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    borderColor: 'hsl(var(--border))',
+                <TooltipcontentStyle={{
+                    b, ackgroundColor: 'hsl(var(--card))',
+                    b, orderColor: 'hsl(var(--border))',
                   }}
                 />
                 <Legend />
-                <Line
-                  type="monotone"
+                <Linetype="monotone"
                   dataKey="price"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}

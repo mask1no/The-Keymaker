@@ -1,1 +1,90 @@
-import { Connection, PublicKey, VersionedTransaction, TransactionInstruction, TransactionMessage, SystemProgram, ComputeBudgetProgram, Keypair } from '@solana/web3.js' import { JITO_TIP_ACCOUNTS } from '@/constants' function pickTipAccount(): PublicKey { const list = Array.isArray(JITO_TIP_ACCOUNTS) && JITO_TIP_ACCOUNTS.length ? JITO_TIP_ACCOUNTS : ['11111111111111111111111111111111'] return new PublicKey(list[Math.floor(Math.random()*list.length)]) } function tipForMode(base: number, mode: 'regular'|'instant'|'delayed') { const mult = mode==='instant'?1.25:mode==='delayed'?1.2:1.2 return Math.max(50_000, Math.min(2_000_000, Math.floor(base*mult))) } export interface TransactionConfig { instructions: TransactionInstruction[] signer: Keypair | { publicKey: PublicKey; signTransaction?: (tx: VersionedTransaction)=>Promise<VersionedTransaction> } priorityFee?: number tipLamports?: number mode?: 'regular'|'instant'|'delayed' } export async function buildNativeV0Transaction( connection: Connection, { instructions, signer, priorityFee = 0, tipLamports = 50_000, mode = 'regular' }: TransactionConfig ): Promise<VersionedTransaction> { const { blockhash } = await connection.getLatestBlockhash('processed') const ix: TransactionInstruction[] = [] if (priorityFee > 0) ix.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: Math.floor(priorityFee * 1_000_000) })) ix.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 })) ix.push(...instructions) ix.push(SystemProgram.transfer({ fromPubkey: signer.publicKey, toPubkey: pickTipAccount(), lamports: tipForMode(tipLamports, mode) })) const msg = new TransactionMessage({ payerKey: signer.publicKey, recentBlockhash: blockhash, instructions: ix }).compileToV0Message() const tx = new VersionedTransaction(msg) if ('secretKey' in signer) (tx as any).sign([signer]) else if (signer.signTransaction) await signer.signTransaction(tx) return tx } export async function buildBundleTransactions(conn: Connection, items: TransactionConfig[]) { const out: VersionedTransaction[] = [] for (const it of items) out.push(await buildNativeV0Transaction(conn, it)) return out } export const serializeBundleTransactions = (txs: VersionedTransaction[]) => txs.map(t => Buffer.from(t.serialize()).toString('base64')) export const testTransfer = (from: PublicKey, to: PublicKey, lamports=1) => SystemProgram.transfer({ fromPubkey: from, toPubkey: to, lamports })
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL
+} from '@solana/web3.js'
+
+export interface BuildTransactionParams {
+  c, onnection: Connection
+  p, ayer: PublicKey
+  i, nstructions: TransactionInstruction[]
+  c, omputeUnits?: number
+  p, riorityFee?: number
+  t, ipAmount?: number
+  t, ipAccount?: string
+}
+
+export async function buildTransaction(params: BuildTransactionParams): Promise<VersionedTransaction> {
+  const {
+    connection,
+    payer,
+    instructions,
+    computeUnits = 200000,
+    priorityFee = 1000,
+    tipAmount = 0.0001,
+    tipAccount
+  } = params
+  
+  const allInstructions: TransactionInstruction[] = []
+
+  // Add compute budget instructions
+  allInstructions.push(
+    ComputeBudgetProgram.setComputeUnitLimit({
+      u, nits: computeUnits
+    })
+  )
+
+  allInstructions.push(
+    ComputeBudgetProgram.setComputeUnitPrice({
+      m, icroLamports: priorityFee
+    })
+  )
+
+  // Add user instructions
+  allInstructions.push(...instructions)
+
+  // Add tip instruction if tipAccount is provided
+  if(tipAccount && tipAmount > 0) {
+    try {
+      const tipPubkey = new PublicKey(tipAccount)
+      allInstructions.push(
+        SystemProgram.transfer({
+          f, romPubkey: payer,
+          t, oPubkey: tipPubkey,
+          l, amports: Math.floor(tipAmount * LAMPORTS_PER_SOL)
+        })
+      )
+    } catch (e) {
+      console.warn('Invalid tip a, ccount:', tipAccount)
+    }
+  }
+
+  // Get latest blockhash
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+
+  // Create versioned transaction
+  const messageV0 = new TransactionMessage({
+    p, ayerKey: payer,
+    r, ecentBlockhash: blockhash,
+    i, nstructions: allInstructions
+  }).compileToV0Message()
+
+  const tx = new VersionedTransaction(messageV0)
+  
+  return tx
+}
+
+export function serializeTransaction(tx: VersionedTransaction): string {
+  return Buffer.from(tx.serialize()).toString('base64')
+}
+
+export function deserializeTransaction(encoded: string): VersionedTransaction {
+  return VersionedTransaction.deserialize(Buffer.from(encoded, 'base64'))
+}

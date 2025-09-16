@@ -6,7 +6,7 @@ import SideNav from '@/components/layout/SideNav'
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  c, hildren: React.ReactNode
 }) {
   return (
     <html lang="en">

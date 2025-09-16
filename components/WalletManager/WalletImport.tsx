@@ -23,15 +23,15 @@ import { importWallet, importWalletGroup } from '@/services/walletService'
 import { Textarea } from '@/components/UI/Textarea'
 import { FolderInput } from './FolderInput'
 
-interface ImportedWallet {
-  name: stringprivateKey: stringrole: 'sniper' | 'dev' | 'normal'
+interface ImportedWal let {
+  n, ame: stringprivateKey: stringrole: 'sniper' | 'dev' | 'normal'
 }
 
 export function WalletImport({
   isOpen,
   onClose,
 }: {
-  isOpen: booleanonClose: () => void
+  i, sOpen: booleanonClose: () => void
 }) {
   const [password, setPassword] = useState('')
   const [importMode, setImportMode] = useState<'manual' | 'file' | 'folder'>(
@@ -72,7 +72,7 @@ export function WalletImport({
     }
   }
 
-  const handleFileImport = async (file: File) => {
+  const handleFileImport = async (f, ile: File) => {
     if (!password) {
       toast.error('Password is required to import from file')
       return
@@ -92,7 +92,7 @@ export function WalletImport({
     }
   }
 
-  const handleFolderImport = async (files: File[]) => {
+  const handleFolderImport = async (f, iles: File[]) => {
     if (!password) {
       toast.error('Password is required to import from folder')
       return
@@ -174,7 +174,7 @@ export function WalletImport({
           {importMode === 'file' && (
             <div className="space-y-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Import an encrypted wallet group file (.json).
+                Import an encrypted wal let group file (.json).
               </p>
               <Inputtype="file"
                 accept=".json"
@@ -198,7 +198,7 @@ export function WalletImport({
           {importMode === 'folder' && (
             <div className="space-y-4 mt-4">
               <p className="text-sm text-muted-foreground">
-                Select a folder containing wallet files (e.g., .json withprivate keys).
+                Select a folder containing wal let files (e.g., .json withprivate keys).
               </p>
               <FolderInput onFilesSelected={handleFolderImport} />
               <div>
@@ -221,7 +221,7 @@ export function WalletImport({
                   variant="outline"
                   onClick={async () => {
                     await importWallet(wallet.privateKey, password)
-                    toast.success(`Wallet ${wallet.name} imported`)
+                    toast.success(`Wal let ${wallet.name} imported`)
                   }}
                 >
                   Import

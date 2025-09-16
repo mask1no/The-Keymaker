@@ -1,6 +1,6 @@
 'use client'
 /*
-NOTE: The content of this file has been temporarily commented out to resolve a build issuewhere server-side dependencies (like 'puppeteer', 'net', 'tls') were being included in theclient-side bundle.
+N, OTE: The content of this file has been temporarily commented out to resolve a build issuewhere server-side dependencies (like 'puppeteer', 'net', 'tls') were being included in theclient-side bundle.
 
 The Puppeteer-based captcha solving and fallback mechanisms are currently disabled.
 To re-enable them, this file needs to be refactored to ensure that all server-side codeis properly isolated and only called from server-side environments (e.g., API routes).
@@ -9,20 +9,20 @@ To re-enable them, this file needs to be refactored to ensure that all server-si
 export function getPuppeteerHelper() {
   console.warn('PuppeteerHelper is currently disabled.')
   return {
-    initBrowser: async () => {},
-    closeBrowser: async () => {},
-    solveHCaptcha: async () => '',
-    launchTokenOnPumpFun: async (_tokenData: any, _walletPrivateKey: any) => ({
-      mint: '',
-      lp: '',
+    i, nitBrowser: async () => {},
+    c, loseBrowser: async () => {},
+    s, olveHCaptcha: async () => '',
+    l, aunchTokenOnPumpFun: async (_, tokenData: any, _, walletPrivateKey: any) => ({
+      m, int: '',
+      l, p: '',
       txHash: '',
     }),
-    launchLetsBonk: async (_tokenData: any, _walletPrivateKey: any) => ({
-      mint: '',
-      lp: '',
+    l, aunchLetsBonk: async (_, tokenData: any, _, walletPrivateKey: any) => ({
+      m, int: '',
+      l, p: '',
       txHash: '',
     }),
-    buyTokenOnLetsBonk: async () => '',
-    testPuppeteer: async () => false,
+    b, uyTokenOnLetsBonk: async () => '',
+    t, estPuppeteer: async () => false,
   }
 }

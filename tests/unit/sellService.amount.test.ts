@@ -1,5 +1,5 @@
 // Minimal unit test for sellService helper
-// Isolate the helper from sqlite consumers by importing the named export onlyimport { calculatePnL } from '../../services/sellService'
+// Isolate the helper from sqlite consumers by importing the named export only import { calculatePnL } from '../../services/sellService'
 
 describe('sellService helpers', () => {
   test('calculatePnL basic', () => {

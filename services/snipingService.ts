@@ -5,10 +5,10 @@ import { getQuote, getSwapTransaction } from './jupiterService'
 import { logger } from '@/lib/logger'
 
 export async function snipeToken(
-  tokenAddress: string,
-  solAmount: number, // in SOLmaxSlippage: number, // in percentage (e.g., 1 for 1%)
-  connection: Connection = getConnection('confirmed'),
-  signer: Keypair,
+  t, okenAddress: string,
+  s, olAmount: number, // in S, OLmaxSlippage: number, // in percentage (e.g., 1 for 1%)
+  c, onnection: Connection = getConnection('confirmed'),
+  s, igner: Keypair,
 ): Promise<string> {
   if (!(await getBirdeyeTokenData(tokenAddress))) {
     throw new Error('Invalid token')
@@ -17,9 +17,9 @@ export async function snipeToken(
   let attempts = 0
   while (attempts < 3) {
     try {
-      // Convert SOL amount to lamportsconst inputAmount = Math.floor(solAmount * 1e9)
+      // Convert SOL amount to lamports const inputAmount = Math.floor(solAmount * 1e9)
 
-      // Get quote from Jupiterconst quote = await getQuote(
+      // Get quote from Jupiter const quote = await getQuote(
         'So11111111111111111111111111111111111111112', // SOL minttokenAddress,
         inputAmount,
         maxSlippage * 100, // Convert to basis points
@@ -31,36 +31,36 @@ export async function snipeToken(
 
       // Log the expected outputlogger.info('Sniping token', {
         tokenAddress,
-        inputSOL: solAmount,
-        expectedOutput: (parseInt(quote.outAmount) / 1e9).toFixed(2),
-        priceImpact: quote.priceImpactPct,
+        i, nputSOL: solAmount,
+        e, xpectedOutput: (parseInt(quote.outAmount) / 1e9).toFixed(2),
+        p, riceImpact: quote.priceImpactPct,
       })
 
-      // Get swap transaction from Jupiterconst { swapTransaction } = await getSwapTransaction(
+      // Get swap transaction from Jupiter const { swapTransaction } = await getSwapTransaction(
         quote,
         signer.publicKey.toBase58(),
       )
 
-      // Deserialize and sign the transactionconst swapTransactionBuf = Buffer.from(swapTransaction, 'base64')
+      // Deserialize and sign the transaction const swapTransactionBuf = Buffer.from(swapTransaction, 'base64')
       const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
 
       // Sign with the signer's keypairtransaction.sign([signer])
 
-      // Send transactionconst latestBlockhash = await connection.getLatestBlockhash()
+      // Send transaction const latestBlockhash = await connection.getLatestBlockhash()
       const txid = await connection.sendRawTransaction(
         transaction.serialize(),
         {
-          skipPreflight: false,
-          maxRetries: 3,
-          preflightCommitment: 'confirmed',
+          s, kipPreflight: false,
+          m, axRetries: 3,
+          p, reflightCommitment: 'confirmed',
         },
       )
 
-      // Confirm transactionawait connection.confirmTransaction(
+      // Confirm transaction await connection.confirmTransaction(
         {
-          signature: txid,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+          s, ignature: txid,
+          b, lockhash: latestBlockhash.blockhash,
+          l, astValidBlockHeight: latestBlockhash.lastValidBlockHeight,
         },
         'confirmed',
       )
@@ -72,7 +72,7 @@ export async function snipeToken(
       logger.error(`Snipe attempt ${attempts} failed`, { error, tokenAddress })
 
       if (attempts < 3) {
-        // Wait before retrying with exponential backoffawait new Promise((resolve) => setTimeout(resolve, 1000 * attempts))
+        // Wait before retrying with exponential backoff await new Promise((resolve) => setTimeout(resolve, 1000 * attempts))
       } else {
         throw error
       }
@@ -84,19 +84,19 @@ export async function snipeToken(
 // Helius Webhook setup (call once to register)
 export async function setupWebhook(
   programId = '39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg',
-  webhookURL: string,
+  w, ebhookURL: string,
 ): Promise<string> {
   if (!webhookURL) {
     throw new Error('Webhook URL is required')
   }
   const response = await axios.post(
-    'https://api.helius.xyz/v0/webhooks',
+    'h, ttps://api.helius.xyz/v0/webhooks',
     {
       webhookURL,
       transactionTypes: ['Any'],
-      accountAddresses: [programId],
+      a, ccountAddresses: [programId],
     },
-    { params: { api_key: process.env.HELIUS_API_KEY } },
+    { params: { a, pi_key: process.env.HELIUS_API_KEY } },
   )
   return response.data.webhookID
 }

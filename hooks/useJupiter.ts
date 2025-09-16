@@ -11,35 +11,35 @@ export function useJupiter() {
   const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), [])
 
   const getQuote = async (
-    fromMint: string,
-    toMint: string,
+    f, romMint: string,
+    t, oMint: string,
     amount: number,
-    slippageBps: number,
+    s, lippageBps: number,
   ) => {
     try {
       const quote = await jupiterApi.quoteGet({
-        inputMint: fromMint,
-        outputMint: toMint,
+        i, nputMint: fromMint,
+        o, utputMint: toMint,
         amount: amount,
         slippageBps,
       })
       return quote
     } catch (error) {
-      console.error('Failed to get Jupiter quote:', error)
+      console.error('Failed to get Jupiter q, uote:', error)
       return null
     }
   }
 
   const getSwapTransaction = async (
-    quote: QuoteResponse,
-    userPublicKey: string,
+    q, uote: QuoteResponse,
+    u, serPublicKey: string,
   ) => {
     try {
       const transaction = await jupiterApi.swapPost({
-        swapRequest: {
-          quoteResponse: quote,
+        s, wapRequest: {
+          q, uoteResponse: quote,
           userPublicKey,
-          dynamicComputeUnitLimit: true,
+          d, ynamicComputeUnitLimit: true,
         },
       })
       return transaction

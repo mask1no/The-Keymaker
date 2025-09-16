@@ -7,23 +7,20 @@ const TAG_LENGTH = 16
 const ALGORITHM = 'aes-256-gcm'
 
 export interface EncryptedData {
-  encrypted: string
-  salt: string
-  iv: string
-  tag: string
+  e, ncrypted: stringsalt: stringiv: stringtag: string
 }
 
 /**
  * Derives a key from password using PBKDF2
  */
-function deriveKey(password: string, salt: Buffer): Buffer {
+function deriveKey(password: string, s, alt: Buffer): Buffer {
   return crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256')
 }
 
 /**
  * Encrypts text using AES-256-GCM with a password
  */
-export function encryptAES256(text: string, password: string): string {
+export function encryptAES256(t, ext: string, password: string): string {
   const salt = crypto.randomBytes(SALT_LENGTH)
   const iv = crypto.randomBytes(IV_LENGTH)
   const key = deriveKey(password, salt)
@@ -34,8 +31,7 @@ export function encryptAES256(text: string, password: string): string {
 
   const tag = cipher.getAuthTag()
 
-  // Combine salt, iv, tag, and encrypted data
-  const combined = Buffer.concat([salt, iv, tag, encrypted])
+  // Combine salt, iv, tag, and encrypted data const combined = Buffer.concat([salt, iv, tag, encrypted])
 
   return combined.toString('base64')
 }
@@ -43,11 +39,10 @@ export function encryptAES256(text: string, password: string): string {
 /**
  * Decrypts text encrypted with encryptAES256
  */
-export function decryptAES256(encryptedData: string, password: string): string {
+export function decryptAES256(e, ncryptedData: string, password: string): string {
   const combined = Buffer.from(encryptedData, 'base64')
 
-  // Extract components
-  const salt = combined.slice(0, SALT_LENGTH)
+  // Extract components const salt = combined.slice(0, SALT_LENGTH)
   const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH)
   const tag = combined.slice(
     SALT_LENGTH + IV_LENGTH,
@@ -73,12 +68,11 @@ export function decryptAES256(encryptedData: string, password: string): string {
 }
 
 export async function decryptAES256ToKeypair(
-  encryptedBase64: string,
+  e, ncryptedBase64: string,
   password: string,
 ): Promise<Keypair> {
   const decrypted = decryptAES256(encryptedBase64, password)
-  // decrypted is base58 or JSON array string; try both
-  try {
+  // decrypted is base58 or JSON array string; try both try {
     if (decrypted.startsWith('[')) {
       const arr = JSON.parse(decrypted)
       return Keypair.fromSecretKey(new Uint8Array(arr))
@@ -86,16 +80,14 @@ export async function decryptAES256ToKeypair(
   } catch (err) {
     // fall back to base58 path
   }
-  // Assume base58 string
-  const bs58 = (await import('bs58')).default
-  const secret = bs58.decode(decrypted)
+  // Assume base58 string const bs58 = (await import('bs58')).default const secret = bs58.decode(decrypted)
   return Keypair.fromSecretKey(secret)
 }
 
 /**
  * Validates if a string is properly encrypted
  */
-export function isValidEncryptedData(data: string): boolean {
+export function isValidEncryptedData(d, ata: string): boolean {
   try {
     const decoded = Buffer.from(data, 'base64')
     return decoded.length >= SALT_LENGTH + IV_LENGTH + TAG_LENGTH

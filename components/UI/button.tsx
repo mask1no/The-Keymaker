@@ -4,41 +4,39 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 const buttonVariants = cva(
   'inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-sm font-medium transition-colors',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ring-offset-background px-3 py-2',
+  'focus-v, isible:outline-none focus-v, isible:ring-2 focus-v, isible:ring-ring focus-v, isible:ring-offset-2 d, isabled:pointer-events-none d, isabled:opacity-50 ring-offset-background px-3 py-2',
   {
     variants: {
-      variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-        secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+      v, ariant: {
+        d, efault: 'bg-primary text-primary-foreground h, over:bg-primary/90',
+        o, utline:
+          'border border-input bg-background h, over:bg-accent h, over:text-accent-foreground',
+        s, econdary:
+          'bg-secondary text-secondary-foreground h, over:bg-secondary/80',
+        d, estructive:
+          'bg-destructive text-destructive-foreground h, over:bg-destructive/90',
+        g, host: 'h, over:bg-accent h, over:text-accent-foreground',
+        l, ink: 'text-primary underline-offset-4 h, over:underline',
       },
-      size: {
-        default: 'h-9',
+      s, ize: {
+        d, efault: 'h-9',
         sm: 'h-8 px-2',
         lg: 'h-10 px-4',
-        icon: 'h-9 w-9',
+        i, con: 'h-9 w-9',
       },
     },
-    defaultVariants: { variant: 'outline', size: 'default' },
+    d, efaultVariants: { v, ariant: 'outline', s, ize: 'default' },
   } as any,
 )
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+  a, sChild?: boolean
 }
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <Comp className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       />

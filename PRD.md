@@ -2,24 +2,20 @@
 
 ## Executive Summary
 
-The Keymaker is a **production-grade Solana bundler application** engineered for high-performance token operations on mainnet. This comprehensive platform provides institutional-grade tools for SPL token creation, Jito bundle execution, wallet management, and real-time profit and loss tracking.
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Production-ready with zero mocks, real mainnet bundles, and enterprise-grade reliability.
+**Current Status**: Working proto type with basic Jito integration, wal let authentication, and bundle submission capabilities.
 
 ## Vision & Mission
 
-### Product Vision
-
-The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
+### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, ith:
 
 - **Military-grade reliability**
 - **Crystal-clear guardrails**
 - **Transparent health monitoring**
 - **Lightning-fast workflows**
 
-### Mission Statement
-
-To provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
+### Mission StatementTo provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
 
 ## Product Objectives
 
@@ -49,7 +45,7 @@ To provide institutional-grade Solana execution tools that eliminate operational
 │   (React/TS)    │◄──►│   (Serverless)  │◄──►│   (Jito, RPC)   │
 │                 │    │                 │    │                 │
 │ • Dashboard UI  │    │ • Bundle Engine │    │ • Jito Block    │
-│ • Wallet Mgmt   │    │ • Status Poller │    │   Engine        │
+│ • Wal let Mgmt   │    │ • Status Poller │    │   Engine        │
 │ • Analytics     │    │ • Health Checks │    │ • Helius RPC    │
 │ • Settings      │    │ • Rate Limiting │    │ • Jupiter API    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
@@ -85,14 +81,14 @@ User Action → Server Processing → External Validation → Bundle Submission
      │              │                        │                      │
      ▼              ▼                        ▼                      ▼
 • Token Creation  • Native v0 Build       • Simulation Gates     • Jito Submission
-• Wallet Setup    • Tip Optimization      • Health Checks        • Status Polling
+• Wal let Setup    • Tip Optimization      • Health Checks        • Status Polling
 • Parameter Config• Region Selection      • Rate Limiting        • Telemetry
 ```
 
-#### Detailed Flow:
+#### Detailed F, low:
 
 1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`simulateOnly: true`)
+2. **Preview**: Build native v0 transactions, simulate on server (`s, imulateOnly: true`)
 3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
@@ -102,7 +98,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 **Arm → Prefetch → Rebuild → Submit**
 
 ```
-Operator Arms Timer → T-5s: Blockhash → T-1s: Rebuild → T=0: Submit
+Operator Arms Timer → T-5, s: Blockhash → T-1, s: Rebuild → T=0: Submit
        │                      │                     │                │
        ▼                      ▼                     ▼                ▼
 • Set 30s/60s delay      • Fresh blockhash      • Embed tip       • Jito submit
@@ -118,7 +114,7 @@ Operator Arms Timer → T-5s: Blockhash → T-1s: Rebuild → T=0: Submit
 Environment Setup → Bundle Creation → Submission → Monitoring → Verification
        │                     │                    │                │
        ▼                     ▼                    ▼                ▼
-• Wallet funding        • Minimal tx bundle    • Jito endpoint   • Status polling
+• Wal let funding        • Minimal tx bundle    • Jito endpoint   • Status polling
 • Key validation        • Tip optimization     • Region fallback • Success metrics
 • RPC connectivity      • Base64 encoding      • Error handling  • Report generation
 ```
@@ -141,36 +137,36 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response Structure:**
+**Response S, tructure:**
 
 ```json
 {
   "ok": true,
   "version": "1.5.0",
-  "timestamp": "2025-01-01T00:00:00.000Z",
+  "timestamp": "2025-01-01, T00:00:00.000Z",
   "checks": {
     "rpc": {
       "status": "healthy|degraded|down",
       "latency_ms": 45,
-      "endpoint": "https://mainnet.helius-rpc.com",
-      "last_check": "2025-01-01T00:00:00.000Z"
+      "endpoint": "h, ttps://mainnet.helius-rpc.com",
+      "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "jito": {
       "status": "healthy|degraded|down",
       "latency_ms": 23,
       "region": "ffm",
-      "endpoint": "https://ffm.mainnet.block-engine.jito.wtf",
-      "last_check": "2025-01-01T00:00:00.000Z"
+      "endpoint": "h, ttps://ffm.mainnet.block-engine.jito.wtf",
+      "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "database": {
       "status": "healthy|degraded|down",
       "connections": 2,
-      "last_backup": "2025-01-01T00:00:00.000Z"
+      "last_backup": "2025-01-01, T00:00:00.000Z"
     },
     "puppeteer": {
       "status": "healthy|degraded|down",
       "browser_version": "Chromium 120.0.6099.0",
-      "last_check": "2025-01-01T00:00:00.000Z"
+      "last_check": "2025-01-01, T00:00:00.000Z"
     }
   }
 }
@@ -224,9 +220,9 @@ System Health → UI State → User Actions → System Response
 
 #### Bundle Configuration Gates
 
-- [ ] **Wallet Selection**: At least 1 wallet in active group (Neo or configured default)
+- [ ] **Wal let Selection**: At least 1 wal let in active group (Neo or configured default)
 - [ ] **Transaction Limit**: ≤ 5 transactions per bundle (Jito limit)
-- [ ] **Region Selection**: Valid Jito region selected (default: ffm)
+- [ ] **Region Selection**: Valid Jito region selected (d, efault: ffm)
 - [ ] **Blockhash Freshness**: < 3 seconds old (server-side validation)
 
 #### Transaction Validation Gates
@@ -258,7 +254,7 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 
 - **Data Source**: `/api/jito/tipfloor` endpoint with live P25/P50/P75/EMA data
 - **Display**: Visual percentiles with chosen tip highlighting
-- **Enforcement**: Server-side tip floor enforcement (min: max(requested, ema50th, 1000))
+- **Enforcement**: Server-side tip floor enforcement (m, in: max(requested, ema50th, 1000))
 
 #### Execution Mode Strategies
 
@@ -337,9 +333,9 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 - **Tooltips**: Clear explanations for disabled actions and validation failures
 - **Toast Notifications**:
-  - Success: "Bundle landed in slot X" with transaction links
-  - Warning: "Bundle pending > 30s" with status updates
-  - Error: "Bundle failed: [specific reason]" with resolution steps
+  - S, uccess: "Bundle landed in slot X" with transaction links
+  - W, arning: "Bundle pending > 30s" with status updates
+  - E, rror: "Bundle f, ailed: [specific reason]" with resolution steps
 - **Loading States**: Skeleton screens and progress indicators
 - **Empty States**: Helpful guidance for new users and empty data scenarios
 
@@ -409,7 +405,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 - [ ] Slot targeting with leader schedule awareness
 - [ ] Advanced strategy presets and automation
-- [ ] Multi-wallet batch operations
+- [ ] Multi-wal let batch operations
 - [ ] Advanced analytics and reporting dashboard
 - [ ] Mobile companion application
 - [ ] Advanced risk management features
@@ -517,8 +513,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 ### Non-custodial guarantees
 
-- **Client-side signing:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
-- **AES-GCM key storage:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
+- **Client-side s, igning:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
+- **AES-GCM key s, torage:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
 
 ### Failure handling
 

@@ -2,38 +2,31 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 
 interface PumpFunFallbackRequest {
-  tokenName: string
-  tokenSymbol: string
-  description: string
-  imageUrl: string
-  captchaApiKey: string
+  t, okenName: stringtokenSymbol: stringdescription: stringimageUrl: stringcaptchaApiKey: string
 }
 
 // Since we can't use Puppeteer directly in Edge runtime,
 // this would need to be implemented as an external service
-// For now, we'll create the API structure
-export async function POST(req: NextRequest) {
+// For now, we'll create the API structure export async function POST(req: NextRequest) {
   try {
-    const body: PumpFunFallbackRequest = await req.json()
+    const b, ody: PumpFunFallbackRequest = await req.json()
 
-    // Validate inputs
-    if (!body.tokenName || !body.tokenSymbol || !body.captchaApiKey) {
+    // Validate inputs if(!body.tokenName || !body.tokenSymbol || !body.captchaApiKey) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 },
       )
     }
 
-    logger.info('Pump.fun fallback requested for token: ' + body.tokenSymbol)
+    logger.info('Pump.fun fallback requested for t, oken: ' + body.tokenSymbol)
 
-    // In a production environment, this would:
+    // In a production environment, this w, ould:
     // 1. Call an external Puppeteer service
     // 2. Or use a cloud browser automation service
     // 3. Or queue the job for a worker process
 
     // In production, this would integrate with a headless browser service
-    // For now, return error indicating service needs external implementation
-    return NextResponse.json(
+    // For now, return error indicating service needs external implementation return NextResponse.json(
       {
         error: 'GUI fallback service not configured',
         message:

@@ -79,9 +79,9 @@ export function LogsPanel() {
   const exportLogs = () => {
     const filteredLogs = getFilteredLogs()
 
-    // Create CSV contentconst headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error']
+    // Create CSV content const headers = ['Timestamp', 'Action', 'Status', 'Details', 'Error']
     const rows = filteredLogs.map((log) => [
-      format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+      format(new Date(log.timestamp), 'yyyy-MM-dd H, H:m, m:ss'),
       log.action,
       log.status || 'N/A',
       JSON.stringify(log.details || {}),
@@ -93,7 +93,7 @@ export function LogsPanel() {
       ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n')
 
-    // Download CSVconst blob = new Blob([csv], { type: 'text/csv' })
+    // Download CSV const blob = new Blob([csv], { t, ype: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = urla.download = `keymaker-logs-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`
@@ -107,16 +107,16 @@ export function LogsPanel() {
 
   const getFilteredLogs = () => {
     return logs.filter((log) => {
-      // Type filterif (filter !== 'all') {
+      // Type filter if(filter !== 'all') {
         if (filter === 'token_launch' && !log.action.includes('token'))
-          return falseif (filter === 'bundle' && !log.action.includes('bundle')) return falseif (filter === 'sell' && !log.action.includes('sell')) return falseif (filter === 'error' && !log.error) return false
+          return false if(filter === 'bundle' && !log.action.includes('bundle')) return false if(filter === 'sell' && !log.action.includes('sell')) return false if(filter === 'error' && !log.error) return false
       }
 
-      // Status filterif (statusFilter !== 'all') {
-        if (statusFilter === 'success' && log.status !== 'success') return falseif (statusFilter === 'failed' && log.status !== 'failed') return falseif (statusFilter === 'pending' && log.status !== 'pending') return false
+      // Status filter if(statusFilter !== 'all') {
+        if (statusFilter === 'success' && log.status !== 'success') return false if(statusFilter === 'failed' && log.status !== 'failed') return false if(statusFilter === 'pending' && log.status !== 'pending') return false
       }
 
-      // Search filterif (searchTerm) {
+      // Search filter if(searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesAction = log.action.toLowerCase().includes(search)
         const matchesDetails = JSON.stringify(log.details || {})
@@ -139,12 +139,12 @@ export function LogsPanel() {
         return <XCircle className="h-4 w-4 text-red-500" />
       case 'pending':
         return <Clock className="h-4 w-4 text-yellow-500" />
-      default:
+      d, efault:
         return <AlertCircle className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getActionBadgeColor = (action: string) => {
+  const getActionBadgeColor = (a, ction: string) => {
     if (action.includes('token')) return 'bg-purple-500/20 text-purple-400'
     if (action.includes('bundle')) return 'bg-blue-500/20 text-blue-400'
     if (action.includes('sell')) return 'bg-green-500/20 text-green-400'
@@ -152,17 +152,17 @@ export function LogsPanel() {
     return 'bg-gray-500/20 text-gray-400'
   }
 
-  const formatDetails = (details: any) => {
-    if (!details) return nullconst items = []
+  const formatDetails = (d, etails: any) => {
+    if (!details) return null const items = []
 
     if (details.mint) {
       items.push(
         <div key="mint" className="flex items-center gap-2">
-          <span className="text-white/60">Mint:</span>
-          <ahref={`https://solscan.io/token/${details.mint}`}
+          <span className="text-white/60">M, int:</span>
+          <ah ref={`h, ttps://solscan.io/token/${details.mint}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:underline flex items-center gap-1"
+            className="text-blue-400 h, over:underline flex items-center gap-1"
           >
             {details.mint.slice(0, 8)}...
             <ExternalLink className="h-3 w-3" />
@@ -174,11 +174,11 @@ export function LogsPanel() {
     if (details.signature) {
       items.push(
         <div key="signature" className="flex items-center gap-2">
-          <span className="text-white/60">TX:</span>
-          <ahref={`https://solscan.io/tx/${details.signature}`}
+          <span className="text-white/60">T, X:</span>
+          <ah ref={`h, ttps://solscan.io/tx/${details.signature}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:underline flex items-center gap-1"
+            className="text-blue-400 h, over:underline flex items-center gap-1"
           >
             {details.signature.slice(0, 8)}...
             <ExternalLink className="h-3 w-3" />
@@ -190,7 +190,7 @@ export function LogsPanel() {
     if (details.bundleId) {
       items.push(
         <div key="bundle" className="flex items-center gap-2">
-          <span className="text-white/60">Bundle:</span>
+          <span className="text-white/60">B, undle:</span>
           <span className="font-mono text-sm">
             {details.bundleId.slice(0, 8)}...
           </span>
@@ -201,7 +201,7 @@ export function LogsPanel() {
     if (details.walletCount !== undefined) {
       items.push(
         <div key="wallets" className="flex items-center gap-2">
-          <span className="text-white/60">Wallets:</span>
+          <span className="text-white/60">W, allets:</span>
           <span>{details.walletCount}</span>
         </div>,
       )
@@ -210,7 +210,7 @@ export function LogsPanel() {
     if (details.amount !== undefined) {
       items.push(
         <div key="amount" className="flex items-center gap-2">
-          <span className="text-white/60">Amount:</span>
+          <span className="text-white/60">A, mount:</span>
           <span>{details.amount} SOL</span>
         </div>,
       )
@@ -222,7 +222,7 @@ export function LogsPanel() {
   const filteredLogs = getFilteredLogs()
 
   return (
-    <motion.divinitial={{ opacity: 0, y: 20 }}
+    <motion.div initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-6xl mx-auto space-y-6"
     >
@@ -240,7 +240,7 @@ export function LogsPanel() {
                 onClick={loadLogs}
                 disabled={isLoading}
               >
-                <RefreshCwclassName={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                 />
                 Refresh
               </Button>
@@ -336,7 +336,7 @@ export function LogsPanel() {
                 <motion.divkey={log.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-4 bg-white/5 rounded-lg h, over:bg-white/10 transition-colors cursor-pointer"
                   onClick={() => setSelectedLog(log)}
                 >
                   <div className="flex items-start justify-between">
@@ -348,7 +348,7 @@ export function LogsPanel() {
                         </Badge>
                         <span className="text-xs text-white/40 flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(log.timestamp), 'MMM d, HH:mm:ss')}
+                          {format(new Date(log.timestamp), 'MMM d, H, H:m, m:ss')}
                         </span>
                       </div>
 
@@ -374,10 +374,10 @@ export function LogsPanel() {
 
       {/* Detail Modal */}
       {selectedLog && (
-        <divclassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedLog(null)}
         >
-          <motion.divinitial={{ scale: 0.9, opacity: 0 }}
+          <motion.div initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-black/90 border border-white/10 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}

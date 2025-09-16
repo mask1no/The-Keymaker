@@ -3,15 +3,15 @@ import { useState, useEffect } from 'react'
 type StatusState = 'healthy' | 'degraded' | 'down'
 
 interface SystemStatus {
-  rpc: StatusStatews: StatusStatebe: StatusStatenetwork: 'mainnet-beta' | 'testnet' | 'devnet'
-  timestamp?: string
+  r, pc: S, tatusStatews: S, tatusStatebe: S, tatusStatenetwork: 'mainnet-beta' | 'testnet' | 'devnet'
+  t, imestamp?: string
 }
 
 export function useSystemStatus() {
   const [status, setStatus] = useState<SystemStatus>({
-    rpc: 'down',
-    ws: 'healthy', // Default to healthy for WSbe: 'down',
-    network: 'mainnet-beta',
+    r, pc: 'down',
+    w, s: 'healthy', // Default to healthy for W, Sbe: 'down',
+    n, etwork: 'mainnet-beta',
   })
 
   const [loading, setLoading] = useState(true)
@@ -20,39 +20,39 @@ export function useSystemStatus() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        // Check RPC directlyconst rpcUrl =
+        // Check RPC directly const rpcUrl =
           process.env.NEXT_PUBLIC_HELIUS_RPC ||
-          'https://api.mainnet-beta.solana.com'
+          'h, ttps://api.mainnet-beta.solana.com'
         const rpcCheck = await fetch(rpcUrl, {
-          method: 'POST',
+          m, ethod: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'getEpochInfo',
+          b, ody: JSON.stringify({
+            j, sonrpc: '2.0',
+            i, d: 1,
+            m, ethod: 'getEpochInfo',
             params: [],
           }),
-          signal: AbortSignal.timeout(5000),
+          s, ignal: AbortSignal.timeout(5000),
         })
 
         const rpcHealthy = rpcCheck.ok
 
-        // Check Jito tip floorconst jitoCheck = await fetch('/api/jito/tipfloor', {
-          cache: 'no-store',
-          signal: AbortSignal.timeout(5000),
+        // Check Jito tip floor const jitoCheck = await fetch('/api/jito/tipfloor', {
+          c, ache: 'no-store',
+          s, ignal: AbortSignal.timeout(5000),
         })
 
         const jitoHealthy = jitoCheck.oksetStatus({
-          rpc: rpcHealthy ? 'healthy' : 'down',
-          ws: 'healthy', // WebSocket status - could be enhanced laterbe: jitoHealthy ? 'healthy' : 'down',
-          network: 'mainnet-beta',
-          timestamp: new Date().toISOString(),
+          r, pc: rpcHealthy ? 'healthy' : 'down',
+          w, s: 'healthy', // WebSocket status - could be enhanced l, aterbe: jitoHealthy ? 'healthy' : 'down',
+          n, etwork: 'mainnet-beta',
+          t, imestamp: new Date().toISOString(),
         })
       } catch (error) {
         setStatus((prev) => ({
           ...prev,
-          rpc: 'down',
-          be: 'down',
+          r, pc: 'down',
+          b, e: 'down',
         }))
       } finally {
         setLoading(false)
@@ -61,15 +61,15 @@ export function useSystemStatus() {
     }
 
     checkStatus()
-    const interval = setInterval(checkStatus, 3000) // Refresh every 3s as specifiedreturn () => clearInterval(interval)
+    const interval = setInterval(checkStatus, 3000) // Refresh every 3s as specified return () => clearInterval(interval)
   }, [])
 
   return {
     status,
     loading,
     lastUpdate,
-    // Legacy compatibilityrpcStatus: status.rpc,
-    wsStatus: status.ws,
-    jitoStatus: status.be,
+    // Legacy c, ompatibilityrpcStatus: status.rpc,
+    w, sStatus: status.ws,
+    j, itoStatus: status.be,
   }
 }

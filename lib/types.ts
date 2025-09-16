@@ -1,52 +1,52 @@
 export interface Trade {
-  id: stringtokenAddress: stringamount: numberprice: numbertimestamp: stringwallet: stringtype: 'buy' | 'sell'
-  signature?: string
+  i, d: stringtokenAddress: stringamount: numberprice: numbertimestamp: stringwallet: stringtype: 'buy' | 'sell'
+  s, ignature?: string
 }
 
 export interface PriceData {
-  sol: numbereth: numberbtc: numbercake: number
+  s, ol: numbereth: numberbtc: numbercake: number
 }
 
 export interface QuoteResponse {
-  inputMint: stringinAmount: stringoutputMint: stringoutAmount: stringotherAmountThreshold: stringswapMode: stringslippageBps: numberplatformFee: nullpriceImpactPct: stringroutePlan: RoutePlanStep[]
-  contextSlot?: numbertimeTaken?: number
+  i, nputMint: stringinAmount: stringoutputMint: stringoutAmount: stringotherAmountThreshold: stringswapMode: stringslippageBps: numberplatformFee: n, ullpriceImpactPct: stringroutePlan: RoutePlanStep[]
+  c, ontextSlot?: numbertimeTaken?: number
 }
 
 interface RoutePlanStep {
-  swapInfo: {
-    ammKey: stringlabel?: stringinputMint: stringoutputMint: stringinAmount: stringoutAmount: stringfeeAmount: stringfeeMint: string
+  s, wapInfo: {
+    a, mmKey: stringlabel?: stringinputMint: stringoutputMint: stringinAmount: stringoutAmount: stringfeeAmount: stringfeeMint: string
   }
-  percent: number
+  p, ercent: number
 }
 
 export interface SwapResponse {
-  swapTransaction: stringlastValidBlockHeight: numberprioritizationFeeLamports?: number
+  s, wapTransaction: stringlastValidBlockHeight: numberprioritizationFeeLamports?: number
 }
 
-export interface Wallet {
-  id: stringname: stringpublicKey: stringprivateKey: string // Encryptedgroup: stringcolor: string
+export interface Wal let {
+  i, d: stringname: stringpublicKey: stringprivateKey: string // E, ncryptedgroup: stringcolor: string
 }
 
 export interface ExecutionLog {
-  id: numberbundleId?: stringslot: numbersignatures: string[]
+  i, d: numberbundleId?: stringslot: numbersignatures: string[]
   status: 'success' | 'partial' | 'failed'
   successCount: numberfailureCount: numberusedJito: booleanexecutionTime: numbertimestamp: string
 }
 
 export interface TokenLaunch {
-  id: numbertokenAddress: stringname: stringsymbol: stringplatform: stringtimestamp: string
+  i, d: numbertokenAddress: stringname: stringsymbol: stringplatform: stringtimestamp: string
 }
 
 export interface PnlRecord {
-  id: numbertokenAddress: stringamount: numbertype: 'buy' | 'sell'
-  timestamp: string
+  i, d: numbertokenAddress: stringamount: numbertype: 'buy' | 'sell'
+  t, imestamp: string
 }
 
 export type Transaction = {
-  id: stringtype: 'swap' | 'transfer'
-  // Swap specificfromToken?: stringtoToken?: stringamount?: numberslippage?: number
-  // Transfer specificrecipient?: string
-  // CommonfromAmount?: number
+  i, d: stringtype: 'swap' | 'transfer'
+  // Swap s, pecificfromToken?: stringtoToken?: stringamount?: numberslippage?: number
+  // Transfer s, pecificrecipient?: string
+  // C, ommonfromAmount?: number
 }
 
 export type Bundle = Transaction[]

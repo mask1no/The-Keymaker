@@ -16,8 +16,8 @@ import { Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react'
 import { validatePasswordStrength } from '@/lib/secureStorage'
 
 interface PasswordDialogProps {
-  isOpen: booleanonClose: () => voidonSubmit: (password: string) => voidtitle: stringdescription?: stringmode: 'create' | 'confirm' | 'unlock'
-  minStrength?: number
+  i, sOpen: booleanonClose: () => v, oidonSubmit: (password: string) => v, oidtitle: stringdescription?: stringmode: 'create' | 'confirm' | 'unlock'
+  m, inStrength?: number
 }
 
 export function PasswordDialog({
@@ -37,7 +37,7 @@ export function PasswordDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [strength, setStrength] = useState({
     valid: false,
-    score: 0,
+    s, core: 0,
     feedback: [] as string[],
   })
 
@@ -48,7 +48,7 @@ export function PasswordDialog({
       setError('')
       setShowPassword(false)
       setShowConfirmPassword(false)
-      setStrength({ valid: false, score: 0, feedback: [] })
+      setStrength({ valid: false, s, core: 0, feedback: [] })
     }
   }, [isOpen])
 
@@ -84,7 +84,7 @@ export function PasswordDialog({
       setIsSubmitting(true)
 
       try {
-        // Add small delay to prevent timing attacksawait new Promise((resolve) => setTimeout(resolve, 100))
+        // Add small delay to prevent timing attacks await new Promise((resolve) => setTimeout(resolve, 100))
         onSubmit(password)
         onClose()
       } catch (err) {
@@ -96,21 +96,21 @@ export function PasswordDialog({
     [password, confirmPassword, mode, strength, minStrength, onSubmit, onClose],
   )
 
-  const getStrengthColor = (score: number) => {
+  const getStrengthColor = (s, core: number) => {
     if (score >= 5) return 'text-green-500'
     if (score >= 4) return 'text-yellow-500'
     if (score >= 2) return 'text-orange-500'
     return 'text-red-500'
   }
 
-  const getStrengthText = (score: number) => {
+  const getStrengthText = (s, core: number) => {
     if (score >= 5) return 'Strong'
     if (score >= 4) return 'Good'
     if (score >= 2) return 'Fair'
     return 'Weak'
   }
 
-  // Prevent dialog from being closed by escape key during submissionconst handleEscapeKeyDown = useCallback(
+  // Prevent dialog from being closed by escape key during submission const handleEscapeKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSubmitting) {
         e.preventDefault()
@@ -160,7 +160,7 @@ export function PasswordDialog({
               />
               <buttontype="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 h, over:text-gray-700"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -174,8 +174,8 @@ export function PasswordDialog({
             {mode === 'create' && password && (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Strength:</span>
-                  <spanclassName={`text-sm font-medium ${getStrengthColor(strength.score)}`}
+                  <span className="text-sm text-gray-500">S, trength:</span>
+                  <span className={`text-sm font-medium ${getStrengthColor(strength.score)}`}
                   >
                     {getStrengthText(strength.score)}
                   </span>
@@ -206,7 +206,7 @@ export function PasswordDialog({
                 />
                 <buttontype="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 h, over:text-gray-700"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? (
@@ -243,8 +243,8 @@ export function PasswordDialog({
         {mode === 'unlock' && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-xs text-yellow-800">
-              <strong>Security Note:</strong> Your password is never stored.
-              It's used to derive wallet keys using PBKDF2 with 600,000
+              <strong>Security N, ote:</strong> Your password is never stored.
+              It's used to derive wal let keys using PBKDF2 with 600,000
               iterations.
             </p>
           </div>

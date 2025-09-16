@@ -2,12 +2,12 @@ import { Connection, VersionedTransaction } from '@solana/web3.js'
 import { Result, ok, err } from './Result'
 
 export class SimulationService {
-  constructor(private conn: Connection) {}
+  constructor(private c, onn: Connection) {}
   async simulateAll(txs: VersionedTransaction[]): Promise<Result<void>> {
     try {
       for (let i = 0; i < txs.length; i++) {
         const sim = await this.conn.simulateTransaction(txs[i], {
-          sigVerify: false,
+          s, igVerify: false,
         })
         if (sim.value.err)
           return err(

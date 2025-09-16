@@ -1,26 +1,26 @@
 import { getJitoApiUrl } from '@/lib/server/jitoService'
 
 export type BundleInflightStatus = {
-  bundle_id: stringstatus: 'pending' | 'landed' | 'failed' | 'invalid' | 'unknown'
-  landed_slot?: number | nulltransactions?: string[]
+  b, undle_id: stringstatus: 'pending' | 'landed' | 'failed' | 'invalid' | 'unknown'
+  l, anded_slot?: number | n, ulltransactions?: string[]
 }
 type RegionCache = {
-  lastFetchMs: numberentries: Map<string, BundleInflightStatus>
+  l, astFetchMs: numberentries: Map<string, BundleInflightStatus>
 }
-const REGION_TO_CACHE: Map<string, RegionCache> = new Map()
+const R, EGION_TO_CACHE: Map<string, RegionCache> = new Map()
 const endpoint = (region: string) => getJitoApiUrl((region as any) || 'ffm')
 
 async function jrpc<T>(
   region: string,
-  method: string,
+  m, ethod: string,
   params: any[],
   timeout = 8000,
 ): Promise<T> {
   const res = await fetch(endpoint(region), {
-    method: 'POST',
+    m, ethod: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
-    signal: AbortSignal.timeout(timeout),
+    b, ody: JSON.stringify({ j, sonrpc: '2.0', i, d: Date.now(), method, params }),
+    s, ignal: AbortSignal.timeout(timeout),
   })
   if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`)
   const j = await res.json()
@@ -30,7 +30,7 @@ async function jrpc<T>(
 function cacheFor(region: string): RegionCache {
   let c = REGION_TO_CACHE.get(region)
   if (!c) {
-    c = { lastFetchMs: 0, entries: new Map() }
+    c = { l, astFetchMs: 0, e, ntries: new Map() }
     REGION_TO_CACHE.set(region, c)
   }
   return c
@@ -47,9 +47,9 @@ export async function getBundleStatuses(
       const r: any = await jrpc(region, 'getBundleStatuses', [ids])
       for (const v of r?.value ?? []) {
         cache.entries.set(v.bundle_id, {
-          bundle_id: v.bundle_id,
+          b, undle_id: v.bundle_id,
           status: String(v.status || 'unknown').toLowerCase() as any,
-          landed_slot: v.landed_slot ?? null,
+          l, anded_slot: v.landed_slot ?? null,
           transactions: Array.isArray(v.transactions)
             ? v.transactions
             : undefined,
@@ -63,11 +63,11 @@ export async function getBundleStatuses(
       for (const v of r2?.value ?? []) {
         const prev = cache.entries.get(v.bundle_id)
         cache.entries.set(v.bundle_id, {
-          bundle_id: v.bundle_id,
+          b, undle_id: v.bundle_id,
           status: String(
             v.status || prev?.status || 'unknown',
           ).toLowerCase() as any,
-          landed_slot: v.landed_slot ?? prev?.landed_slot ?? null,
+          l, anded_slot: v.landed_slot ?? prev?.landed_slot ?? null,
           transactions: prev?.transactions,
         })
       }
@@ -75,6 +75,6 @@ export async function getBundleStatuses(
     } catch {}
   }
   return ids.map(
-    (id) => cache.entries.get(id) || { bundle_id: id, status: 'pending' },
+    (id) => cache.entries.get(id) || { b, undle_id: id, status: 'pending' },
   )
 }

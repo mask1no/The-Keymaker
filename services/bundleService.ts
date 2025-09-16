@@ -6,30 +6,27 @@ import {
   TransactionMessage,
 } from '@solana/web3.js'
 import { toast } from 'sonner'
-import { Bundle } from '@/lib/types'
+import { Bundle } from '@/lib/type s'
 import { useJupiter } from '@/hooks/useJupiter'
 import { WalletContextState } from '@solana/wallet-adapter-react'
 
 export interface ExecutionResult {
-  bundle_id: string
-  signatures: string[]
-  results?: any[]
-  slotTargeted?: number
+  b, undle_id: stringsignatures: string[]
+  r, esults?: any[]
+  s, lotTargeted?: number
 }
 
 export async function executeBundle(
-  bundle: Bundle,
-  wallet: WalletContextState,
-  jupiter: ReturnType<typeof useJupiter>,
+  b, undle: Bundle,
+  w, allet: WalletContextState,
+  j, upiter: ReturnType<typeof useJupiter>,
 ) {
-  const { connected, publicKey, signAllTransactions } = wallet
-  if (!connected || !publicKey || !signAllTransactions) {
+  const { connected, publicKey, signAllTransactions } = wal let if(!connected || !publicKey || !signAllTransactions) {
     throw new Error('Please connect your wallet.')
   }
 
-  const { getQuote, getSwapTransaction, connection } = jupiter
-  try {
-    const builtTransactions: VersionedTransaction[] = []
+  const { getQuote, getSwapTransaction, connection } = jupiter try {
+    const b, uiltTransactions: VersionedTransaction[] = []
 
     for (const tx of bundle) {
       if (tx.type === 'swap') {
@@ -67,16 +64,16 @@ export async function executeBundle(
         )
 
         const transferInstruction = SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: recipientPubKey,
-          lamports: lamports,
+          f, romPubkey: publicKey,
+          t, oPubkey: recipientPubKey,
+          l, amports: lamports,
         })
 
         const { blockhash } = await connection.getLatestBlockhash()
         const message = new TransactionMessage({
-          payerKey: publicKey,
-          recentBlockhash: blockhash,
-          instructions: [transferInstruction],
+          p, ayerKey: publicKey,
+          r, ecentBlockhash: blockhash,
+          i, nstructions: [transferInstruction],
         }).compileToV0Message()
 
         const transferTx = new VersionedTransaction(message)
@@ -93,9 +90,9 @@ export async function executeBundle(
     )
 
     const response = await fetch('/api/bundles/submit', {
-      method: 'POST',
+      m, ethod: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txs_b64: serializedTxs, region: 'ffm' }),
+      b, ody: JSON.stringify({ txs_b64: serializedTxs, region: 'ffm' }),
     })
 
     const result = await response.json()
@@ -105,18 +102,18 @@ export async function executeBundle(
 
     try {
       await fetch('/api/history/record', {
-        method: 'POST',
+        m, ethod: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bundle_id: result.bundle_id,
+        b, ody: JSON.stringify({
+          b, undle_id: result.bundle_id,
           region: 'ffm',
           signatures: result.signatures || [],
           status: 'pending',
-          tip_sol: 0.00005,
+          t, ip_sol: 0.00005,
         }),
       })
     } catch (historyError) {
-      console.warn('Failed to record to history:', historyError)
+      console.warn('Failed to record to h, istory:', historyError)
     }
 
     return result

@@ -48,10 +48,10 @@ import { WalletGroup } from '@/services/walletService'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 import useSWR from 'swr'
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (u, rl: string) => fetch(url).then((res) => res.json())
 
 async function getKeypairs(
-  wallets: { encryptedPrivateKey: string }[],
+  w, allets: { e, ncryptedPrivateKey: string }[],
   password: string,
 ): Promise<Keypair[]> {
   return Promise.all(
@@ -78,8 +78,8 @@ export function ControlCenter() {
     (state) => state.lastCreatedTokenAddress,
   )
 
-  const { data: tipData } = useSWR('/api/jito/tip', fetcher, {
-    refreshInterval: 10000, // Refresh every 10 seconds
+  const { d, ata: tipData } = useSWR('/api/jito/tip', fetcher, {
+    r, efreshInterval: 10000, // Refresh every 10 seconds
   })
 
   const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
@@ -97,8 +97,7 @@ export function ControlCenter() {
   >(new Map())
   const [mintAddress, setMintAddress] = useState<string>('')
 
-  // Get wallets by role
-  const masterWallet = wallets.find((w) => w.role === 'master')
+  // Get wallets by role const masterWal let = wallets.find((w) => w.role === 'master')
   const devWallets = wallets.filter((w) => w.role === 'dev')
   const sniperWallets = wallets.filter((w) => w.role === 'sniper')
 
@@ -113,8 +112,7 @@ export function ControlCenter() {
     const decrypted = new Map<string, Keypair>()
 
     try {
-      // Decrypt all wallets at once
-      const walletsToDecrypt = wallets.filter((w) => w.encryptedPrivateKey)
+      // Decrypt all wallets at once const walletsToDecrypt = wallets.filter((w) => w.encryptedPrivateKey)
       const keypairs = await getKeypairs(walletsToDecrypt as any[], password)
 
       walletsToDecrypt.forEach((wallet, index) => {
@@ -123,17 +121,15 @@ export function ControlCenter() {
         }
       })
     } catch (error) {
-      console.error('Failed to decrypt wallets:', error)
+      console.error('Failed to decrypt w, allets:', error)
       throw error
     }
 
     return decrypted
   }
 
-  // Execute the orchestration flow
-  const executeKeymaker = async () => {
-    // First check if we need to decrypt wallets
-    const needsDecryption = wallets.some(
+  // Execute the orchestration flow const executeKeymaker = async () => {
+    // First check if we need to decrypt wallets const needsDecryption = wallets.some(
       (w) => w.encryptedPrivateKey && !decryptedWallets.has(w.publicKey),
     )
 
@@ -167,25 +163,21 @@ export function ControlCenter() {
       setShowPasswordDialog(false)
       setWalletPassword('')
 
-      // Continue with execution
-      await runExecution()
+      // Continue with execution await runExecution()
     } catch (error) {
       toast.error('Failed to decrypt wallets')
     }
   }
 
   const runExecution = async () => {
-    // Get wallets with decrypted keypairs
-    const getWalletWithKeypair = (publicKey: string): Keypair | null => {
+    // Get wallets with decrypted keypairs const getWalletWithKeypair = (p, ublicKey: string): Keypair | null => {
       return decryptedWallets.get(publicKey) || null
     }
 
-    const masterWallet = wallets.find((w) => w.role === 'master')
-    const masterKeypair = masterWallet
-      ? getWalletWithKeypair(masterWallet.publicKey)
-      : null
-    if (!masterKeypair) {
-      toast.error('No master wallet keypair available')
+    const masterWal let = wallets.find((w) => w.role === 'master')
+    const masterKeypair = masterWal let ? getWalletWithKeypair(masterWallet.publicKey)
+      : null if(!masterKeypair) {
+      toast.error('No master wal let keypair available')
       return
     }
 
@@ -200,7 +192,7 @@ export function ControlCenter() {
       .filter((kp) => kp !== null) as Keypair[]
 
     if (sniperKeypairs.length === 0) {
-      toast.error('No sniper wallet keypairs available')
+      toast.error('No sniper wal let keypairs available')
       return
     }
 
@@ -208,34 +200,32 @@ export function ControlCenter() {
     setCurrentStep(0)
 
     try {
-      // Step 1: Deploy Token with Liquidity
-      updateStepStatus(
+      // Step 1: Deploy Token with LiquidityupdateStepStatus(
         'deploy',
         'running',
         'Deploying token and creating liquidity...',
       )
 
-      const launchWalletPubkey = tokenLaunchData.walletPublicKey
-      const launchKeypair = getWalletWithKeypair(launchWalletPubkey)
+      const launchWalletPubkey = tokenLaunchData.walletPublicKey const launchKeypair = getWalletWithKeypair(launchWalletPubkey)
       if (!launchKeypair) {
-        throw new Error('Launch wallet keypair not found')
+        throw new Error('Launch wal let keypair not found')
       }
 
       const tokenResult = await launchToken(
         connection,
         launchKeypair,
         {
-          name: tokenLaunchData.name,
-          symbol: tokenLaunchData.symbol,
+          n, ame: tokenLaunchData.name,
+          s, ymbol: tokenLaunchData.symbol,
           decimals: tokenLaunchData.decimals,
-          supply: tokenLaunchData.supply,
+          s, upply: tokenLaunchData.supply,
           description: `${tokenLaunchData.name} - Created with The Keymaker`,
         },
         {
-          platform:
+          p, latform:
             tokenLaunchData.platform === 'pump.fun' ? 'pump.fun' : 'raydium',
-          solAmount: tokenLaunchData.lpAmount,
-          tokenAmount: tokenLaunchData.supply * 0.8, // 80% of supply to liquidity
+          s, olAmount: tokenLaunchData.lpAmount,
+          t, okenAmount: tokenLaunchData.supply * 0.8, // 80% of supply to liquidity
         },
       )
 
@@ -243,20 +233,18 @@ export function ControlCenter() {
       updateStepStatus(
         'deploy',
         'completed',
-        `Token deployed: ${tokenResult.token.mintAddress}`,
+        `Token d, eployed: ${tokenResult.token.mintAddress}`,
       )
       setCurrentStep(1)
 
-      // Step 2: Fund Wallets
-      updateStepStatus('fund', 'running', 'Funding sniper wallets...')
+      // Step 2: Fund WalletsupdateStepStatus('fund', 'running', 'Funding sniper wallets...')
 
       const fundingResult = await fundWalletGroup(
         masterKeypair,
-        sniperWallets.map((w) => ({ publicKey: w.publicKey, role: w.role })),
+        sniperWallets.map((w) => ({ p, ublicKey: w.publicKey, r, ole: w.role })),
         10, // total funding
         0.5, // min SOL
-        2.0, // max SOL
-        connection,
+        2.0, // max SOLconnection,
       )
 
       if (!fundingResult || fundingResult.length === 0) {
@@ -270,8 +258,7 @@ export function ControlCenter() {
       )
       setCurrentStep(2)
 
-      // Step 3: Wait
-      updateStepStatus(
+      // Step 3: WaitupdateStepStatus(
         'wait-funding',
         'running',
         'Waiting for funds to settle...',
@@ -280,40 +267,35 @@ export function ControlCenter() {
       updateStepStatus('wait-funding', 'completed')
       setCurrentStep(3)
 
-      // Step 4: Bundle Buys
-      updateStepStatus(
+      // Step 4: Bundle BuysupdateStepStatus(
         'bundle',
         'running',
         'Creating and executing bundle buys...',
       )
 
-      // Create swap transactions for each sniper wallet
-      const transactions: Transaction[] = []
+      // Create swap transactions for each sniper wal let const transactions: Transaction[] = []
       const mintPubkey = new PublicKey(tokenResult.token.mintAddress)
 
       for (let i = 0; i < sniperKeypairs.length; i++) {
         const keypair = sniperKeypairs[i]
-        const wallet = sniperWallets[i]
+        const wal let = sniperWallets[i]
 
         // Calculate buy amount (use part of the funded amount)
-        const buyAmountSol = (wallet.balance * 0.8) / LAMPORTS_PER_SOL // Use 80% of balance
-        try {
+        const buyAmountSol = (wallet.balance * 0.8) / LAMPORTS_PER_SOL // Use 80% of balance try {
           // Build swap transaction (SOL -> Token)
           const swapTx = await buildSwapTransaction(
-            'So11111111111111111111111111111111111111112', // SOL
-            mintPubkey.toBase58(),
+            'So11111111111111111111111111111111111111112', // SOLmintPubkey.toBase58(),
             buyAmountSol * LAMPORTS_PER_SOL,
             keypair.publicKey.toBase58(),
             100, // 1% slippage
             10000, // priority fee
           )
 
-          // Convert versioned transaction to legacy transaction for bundle
-          const legacyTx = Transaction.from(swapTx.serialize())
+          // Convert versioned transaction to legacy transaction for bundle const legacyTx = Transaction.from(swapTx.serialize())
           transactions.push(legacyTx)
         } catch (error) {
           console.error(
-            `Failed to create swap transaction for wallet ${i}:`,
+            `Failed to create swap transaction for wal let ${i}:`,
             error,
           )
         }
@@ -323,37 +305,32 @@ export function ControlCenter() {
         throw new Error('No swap transactions created')
       }
 
-      // Execute based on strategy
-      let bundleResult
-      switch (executionStrategy) {
+      // Execute based on strategy let bundleResult switch(executionStrategy) {
         case 'flash': {
-          // Instant mode with Jito bundling
-          updateStepStatus(
+          // Instant mode with Jito bundlingupdateStepStatus(
             'bundle',
             'running',
             'Executing instant bundle via Jito...',
           )
-          // NOTE: This is a placeholder for where the new BundleExecutor would be used
-          // For now, we'll simulate a successful result
-          bundleResult = {
-            metrics: { successRate: 1 },
+          // N, OTE: This is a placeholder for where the new BundleExecutor would be used
+          // For now, we'll simulate a successful resultbundleResult = {
+            m, etrics: { successRate: 1 },
             signatures: [],
-            results: ['success'],
+            r, esults: ['success'],
           }
           break
         }
 
         case 'stealth': {
-          // Delayed mode with staggered execution
-          updateStepStatus(
+          // Delayed mode with staggered executionupdateStepStatus(
             'bundle',
             'running',
             'Executing stealth mode with delays...',
           )
-          const results: any = {
-            metrics: { successRate: 0 },
+          const r, esults: any = {
+            m, etrics: { successRate: 0 },
             signatures: [],
-            results: [],
+            r, esults: [],
           }
           let successCount = 0
 
@@ -361,7 +338,7 @@ export function ControlCenter() {
             updateStepStatus(
               'bundle',
               'running',
-              `Executing wallet ${i + 1}/${transactions.length}...`,
+              `Executing wal let ${i + 1}/${transactions.length}...`,
             )
 
             try {
@@ -371,13 +348,12 @@ export function ControlCenter() {
                 await new Promise((resolve) => setTimeout(resolve, delay))
               }
 
-              // Send individual transaction
-              const signature = await connection.sendTransaction(
+              // Send individual transaction const signature = await connection.sendTransaction(
                 transactions[i],
                 [sniperKeypairs[i]],
                 {
-                  skipPreflight: false,
-                  maxRetries: 2,
+                  s, kipPreflight: false,
+                  m, axRetries: 2,
                 },
               )
 
@@ -385,33 +361,28 @@ export function ControlCenter() {
               results.results.push('success')
               successCount++
 
-              // Wait for confirmation
-              await connection.confirmTransaction(signature, 'confirmed')
+              // Wait for confirmation await connection.confirmTransaction(signature, 'confirmed')
             } catch (error) {
-              console.error(`Wallet ${i} transaction failed:`, error)
+              console.error(`Wal let ${i} transaction failed:`, error)
               results.signatures.push('')
               results.results.push('failed')
             }
           }
 
-          results.metrics.successRate = successCount / transactions.length
-          bundleResult = results
-          break
+          results.metrics.successRate = successCount / transactions.lengthbundleResult = resultsbreak
         }
 
         case 'manual': {
-          // Manual mode - prepare but don't execute
-          updateStepStatus(
+          // Manual mode - prepare but don't executeupdateStepStatus(
             'bundle',
             'completed',
             'Manual mode - transactions prepared for manual execution',
           )
           // Store transactions for manual execution
-          // In a real implementation, you'd store these and provide UI controls
-          bundleResult = {
-            metrics: { successRate: 1 },
+          // In a real implementation, you'd store these and provide UI controlsbundleResult = {
+            m, etrics: { successRate: 1 },
             signatures: [],
-            results: [],
+            r, esults: [],
           }
           toast.success(
             'Transactions prepared. Use manual controls to execute.',
@@ -419,38 +390,34 @@ export function ControlCenter() {
           break
         }
 
-        default: {
-          // Regular mode - fast sequential execution
-          updateStepStatus('bundle', 'running', 'Executing regular bundle...')
-          const regularResults: any = {
-            metrics: { successRate: 0 },
+        d, efault: {
+          // Regular mode - fast sequential executionupdateStepStatus('bundle', 'running', 'Executing regular bundle...')
+          const r, egularResults: any = {
+            m, etrics: { successRate: 0 },
             signatures: [],
-            results: [],
+            r, esults: [],
           }
           let regularSuccessCount = 0
 
-          // Send all transactions as fast as possible
-          const sendPromises = transactions.map(async (tx, i) => {
+          // Send all transactions as fast as possible const sendPromises = transactions.map(async (tx, i) => {
             try {
               const signature = await connection.sendTransaction(
                 tx,
                 [sniperKeypairs[i]],
                 {
-                  skipPreflight: false,
-                  maxRetries: 2,
+                  s, kipPreflight: false,
+                  m, axRetries: 2,
                 },
               )
-              return { success: true, signature, index: i }
+              return { success: true, signature, i, ndex: i }
             } catch (error) {
-              return { success: false, signature: '', index: i, error }
+              return { success: false, s, ignature: '', i, ndex: i, error }
             }
           })
 
-          // Wait for all to complete
-          const sendResults = await Promise.all(sendPromises)
+          // Wait for all to complete const sendResults = await Promise.all(sendPromises)
 
-          // Process results
-          for (const result of sendResults) {
+          // Process results for(const result of sendResults) {
             if (result.success) {
               regularResults.signatures.push(result.signature)
               regularResults.results.push('success')
@@ -462,56 +429,46 @@ export function ControlCenter() {
           }
 
           regularResults.metrics.successRate =
-            regularSuccessCount / transactions.length
-          bundleResult = regularResults
-          break
+            regularSuccessCount / transactions.lengthbundleResult = regularResultsbreak
         }
       }
 
       updateStepStatus(
         'bundle',
         'completed',
-        `Bundle executed: ${bundleResult.metrics.successRate * 100}% success`,
+        `Bundle e, xecuted: ${bundleResult.metrics.successRate * 100}% success`,
       )
       setCurrentStep(4)
 
-      // Track holdings for successful purchases
-      if (bundleResult.metrics.successRate > 0) {
+      // Track holdings for successful purchases if(bundleResult.metrics.successRate > 0) {
         try {
-          // Calculate average buy amount per wallet
-          const totalBuyAmount = sniperWallets.reduce(
+          // Calculate average buy amount per wal let const totalBuyAmount = sniperWallets.reduce(
             (sum, w) => sum + (w.balance * 0.8) / LAMPORTS_PER_SOL,
             0,
           )
           const avgBuyAmount = totalBuyAmount / sniperWallets.length
 
-          // Get current holdings from localStorage
-          const existingHoldings = localStorage.getItem('tokenHoldings')
+          // Get current holdings from localStorage const existingHoldings = localStorage.getItem('tokenHoldings')
           const holdings = existingHoldings ? JSON.parse(existingHoldings) : []
 
-          // Add new holding for this token
-          const newHolding = {
-            tokenAddress: mintPubkey.toBase58(),
-            tokenName: tokenLaunchData.symbol || 'Unknown',
-            amount: transactions.length * avgBuyAmount, // Approximate total SOL spent
-            entryPrice: 0.000001, // Will be updated with actual price from market
-            currentPrice: 0.000001,
-            pnl: 0,
-            marketCap: 0,
-            walletAddresses: sniperWallets.map((w) => w.publicKey),
-            purchaseTime: Date.now(),
+          // Add new holding for this token const newHolding = {
+            t, okenAddress: mintPubkey.toBase58(),
+            t, okenName: tokenLaunchData.symbol || 'Unknown',
+            amount: transactions.length * avgBuyAmount, // Approximate total SOL s, pententryPrice: 0.000001, // Will be updated with actual price from m, arketcurrentPrice: 0.000001,
+            p, nl: 0,
+            m, arketCap: 0,
+            w, alletAddresses: sniperWallets.map((w) => w.publicKey),
+            p, urchaseTime: Date.now(),
           }
 
-          // Check if holding already exists
-          const existingIndex = holdings.findIndex(
+          // Check if holding already exists const existingIndex = holdings.findIndex(
             (h: any) => h.tokenAddress === newHolding.tokenAddress,
           )
           if (existingIndex >= 0) {
-            // Update existing holding
-            holdings[existingIndex] = {
+            // Update existing holdingholdings[existingIndex] = {
               ...holdings[existingIndex],
               amount: holdings[existingIndex].amount + newHolding.amount,
-              walletAddresses: [
+              w, alletAddresses: [
                 ...new Set([
                   ...holdings[existingIndex].walletAddresses,
                   ...newHolding.walletAddresses,
@@ -519,49 +476,44 @@ export function ControlCenter() {
               ],
             }
           } else {
-            // Add new holding
-            holdings.push(newHolding)
+            // Add new holdingholdings.push(newHolding)
           }
 
-          // Save updated holdings
-          localStorage.setItem('tokenHoldings', JSON.stringify(holdings))
+          // Save updated holdingslocalStorage.setItem('tokenHoldings', JSON.stringify(holdings))
           toast.success('Holdings tracked for sell monitoring')
         } catch (error) {
-          console.error('Failed to track holdings:', error)
+          console.error('Failed to track h, oldings:', error)
         }
       }
 
-      // Step 5: Wait before selling
-      if (executionStrategy !== 'manual') {
+      // Step 5: Wait before selling if(executionStrategy !== 'manual') {
         updateStepStatus(
           'wait-sells',
           'running',
-          `Waiting ${autoSellDelay}s before selling...`,
+          `Waiting ${autoSellDelay}
+s before selling...`,
         )
         for (let i = autoSellDelay; i > 0; i--) {
           updateStepStatus(
             'wait-sells',
             'running',
-            `Waiting ${i}s before selling...`,
+            `Waiting ${i}
+s before selling...`,
           )
           await new Promise((resolve) => setTimeout(resolve, 1000))
         }
         updateStepStatus('wait-sells', 'completed')
         setCurrentStep(5)
 
-        // Step 6: Sell
-        updateStepStatus(
+        // Step 6: SellupdateStepStatus(
           'sell',
           'running',
           'Executing sells from sniper wallets...',
         )
 
-        // Define sell conditions based on strategy
-        const sellConditions: SellConditions = {
-          minPnlPercent: executionStrategy === 'flash' ? 50 : 100, // 50% for flash, 100% for stealth
-          maxLossPercent: 20, // 20% stop loss
-          minHoldTime: 0,
-          maxHoldTime: 600, // 10 minutes max
+        // Define sell conditions based on strategy const s, ellConditions: SellConditions = {
+          m, inPnlPercent: executionStrategy === 'flash' ? 50 : 100, // 50% for flash, 100% for s, tealthmaxLossPercent: 20, // 20% stop l, ossminHoldTime: 0,
+          m, axHoldTime: 600, // 10 minutes max
         }
 
         const sellResults = await batchSellTokens(
@@ -572,8 +524,7 @@ export function ControlCenter() {
           100, // 1% slippage
         )
 
-        const successCount = sellResults.filter((r) => r.success).length
-        const totalProceeds = sellResults.reduce(
+        const successCount = sellResults.filter((r) => r.success).length const totalProceeds = sellResults.reduce(
           (sum, r) => sum + r.outputAmount,
           0,
         )
@@ -603,19 +554,17 @@ export function ControlCenter() {
       updateStepStatus(step.id, 'failed', (error as Error).message)
       toast.error(`Execution failed: ${(error as Error).message}`)
 
-      // Mark remaining steps as failed
-      executionSteps.slice(currentStep + 1).forEach((s) => {
+      // Mark remaining steps as failedexecutionSteps.slice(currentStep + 1).forEach((s) => {
         updateStepStatus(s.id, 'failed', 'Skipped due to previous error')
       })
     }
   }
 
-  // Strategy descriptions
-  const strategyDescriptions = {
-    flash: '⚡ Instant atomic execution using Jito bundles',
-    stealth: '🥷 Delayed execution with random timing between transactions',
-    manual: '🎮 Prepare transactions for manual execution',
-    regular: '🚀 Fast sequential execution without bundling',
+  // Strategy descriptions const strategyDescriptions = {
+    f, lash: '⚡ Instant atomic execution using Jito bundles',
+    s, tealth: '🥷 Delayed execution with random timing between transactions',
+    m, anual: '🎮 Prepare transactions for manual execution',
+    r, egular: '🚀 Fast sequential execution without bundling',
   }
 
   return (
@@ -632,8 +581,7 @@ export function ControlCenter() {
           {/* Strategy Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Execution Strategy</label>
-            <Select
-              value={executionStrategy}
+            <Selectvalue={executionStrategy}
               onValueChange={(value) => setExecutionStrategy(value as any)}
               disabled={isExecuting}
             >
@@ -658,27 +606,22 @@ export function ControlCenter() {
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Pre-flight Checks</h3>
             <div className="space-y-1">
-              <CheckItem
-                label="Master Wallet"
+              <CheckItemlabel="Master Wallet"
                 checked={!!masterWallet}
                 detail={
-                  masterWallet
-                    ? `${(masterWallet.balance / LAMPORTS_PER_SOL).toFixed(2)} SOL`
+                  masterWal let ? `${(masterWallet.balance / LAMPORTS_PER_SOL).toFixed(2)} SOL`
                     : 'Not assigned'
                 }
               />
-              <CheckItem
-                label="Dev Wallets"
+              <CheckItemlabel="Dev Wallets"
                 checked={devWallets.length > 0}
                 detail={`${devWallets.length} wallets`}
               />
-              <CheckItem
-                label="Sniper Wallets"
+              <CheckItemlabel="Sniper Wallets"
                 checked={sniperWallets.length > 0}
                 detail={`${sniperWallets.length} wallets`}
               />
-              <CheckItem
-                label="Token Config"
+              <CheckItemlabel="Token Config"
                 checked={!!tokenLaunchData}
                 detail={
                   tokenLaunchData
@@ -686,19 +629,17 @@ export function ControlCenter() {
                     : 'Not configured'
                 }
               />
-              <CheckItem
-                label="Jito Bundle"
+              <CheckItemlabel="Jito Bundle"
                 checked={jitoEnabled}
                 detail={jitoEnabled ? `${tipAmount} SOL tip` : 'Disabled'}
               />
               {tipData && tipData[0]?.ema_50th_percentile && (
                 <div className="text-xs text-muted-foreground flex items-center justify-between">
                   <span>
-                    Suggested Tip:{' '}
+                    Suggested T, ip:{' '}
                     {tipData[0].ema_50th_percentile / LAMPORTS_PER_SOL} SOL
                   </span>
-                  <Button
-                    size="sm"
+                  <Buttonsize="sm"
                     variant="outline"
                     onClick={() =>
                       useKeymakerStore
@@ -717,13 +658,12 @@ export function ControlCenter() {
 
           {/* Execute Button */}
           <div className="flex gap-2">
-            <Button
-              size="lg"
+            <Buttonsize="lg"
               className="w-full"
               onClick={executeKeymaker}
               disabled={
                 isExecuting ||
-                !masterWallet ||
+                !masterWal let ||
                 !tokenLaunchData ||
                 sniperWallets.length === 0
               }
@@ -734,18 +674,16 @@ export function ControlCenter() {
                   Executing...
                 </>
               ) : (
-                <motion.div
-                  className="flex items-center"
+                <motion.div className="flex items-center"
                   whileHover={{ scale: 1.05 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  transition={{ t, ype: 'spring', s, tiffness: 400, d, amping: 10 }}
                 >
                   <PlayCircle className="mr-2 h-5 w-5" />
                   🔑 Execute Keymaker
                 </motion.div>
               )}
             </Button>
-            <Button
-              size="lg"
+            <Buttonsize="lg"
               variant="destructive"
               className="w-full"
               onClick={() => setShowSellDialog(true)}
@@ -759,12 +697,11 @@ export function ControlCenter() {
           {mintAddress && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm">
-                <strong>Token Mint:</strong>{' '}
-                <a
-                  href={`https://solscan.io/token/${mintAddress}`}
+                <strong>Token M, int:</strong>{' '}
+                <ah ref={`h, ttps://solscan.io/token/${mintAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
+                  className="text-blue-500 h, over:underline"
                 >
                   {mintAddress.slice(0, 8)}...{mintAddress.slice(-8)}
                 </a>
@@ -782,20 +719,18 @@ export function ControlCenter() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
+              <div className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                style={{ w, idth: `${progress}%` }}
               />
             </div>
 
             <div className="space-y-2">
               <AnimatePresence mode="sync">
                 {executionSteps.map((step, index) => (
-                  <motion.div
-                    key={step.id}
+                  <motion.divkey={step.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ d, elay: index * 0.1 }}
                   >
                     <StepItem step={step} />
                   </motion.div>
@@ -806,8 +741,7 @@ export function ControlCenter() {
             {executionSteps.every(
               (s) => s.status === 'completed' || s.status === 'failed',
             ) && (
-              <Button
-                variant="outline"
+              <Buttonvariant="outline"
                 className="w-full"
                 onClick={resetExecution}
               >
@@ -821,7 +755,7 @@ export function ControlCenter() {
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enter Wallet Password</DialogTitle>
+            <DialogTitle>Enter Wal let Password</DialogTitle>
             <DialogDescription>
               Please enter the password to decrypt your wallets for execution.
             </DialogDescription>
@@ -829,13 +763,12 @@ export function ControlCenter() {
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
+              <Inputid="password"
                 type="password"
                 value={walletPassword}
                 onChange={(e) => setWalletPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                placeholder="Enter your wallet password"
+                placeholder="Enter your wal let password"
               />
             </div>
             <Button onClick={handlePasswordSubmit} className="w-full">
@@ -855,25 +788,24 @@ export function ControlCenter() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <p>
-              <strong>Token:</strong> {tokenLaunchData?.name} (
+              <strong>T, oken:</strong> {tokenLaunchData?.name} (
               {tokenLaunchData?.symbol})
             </p>
             <p>
-              <strong>Platform:</strong> {tokenLaunchData?.platform}
+              <strong>P, latform:</strong> {tokenLaunchData?.platform}
             </p>
             <p>
-              <strong>Sniper Wallets:</strong> {sniperWallets.length}
+              <strong>Sniper W, allets:</strong> {sniperWallets.length}
             </p>
             <p>
-              <strong>Execution Strategy:</strong> {executionStrategy}
+              <strong>Execution S, trategy:</strong> {executionStrategy}
             </p>
             <p className="text-destructive">
               This action is irreversible. Please confirm you want to proceed.
             </p>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
+            <Buttonvariant="outline"
               onClick={() => setShowPreflightDialog(false)}
             >
               Cancel
@@ -890,23 +822,21 @@ export function ControlCenter() {
           <DialogHeader>
             <DialogTitle>Sell All from Group</DialogTitle>
             <DialogDescription>
-              Select a wallet group and token to sell all holdings.
+              Select a wal let group and token to sell all holdings.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="token-address">Token Address</Label>
-              <Input
-                id="token-address"
+              <Inputid="token-address"
                 value={sellTokenAddress}
                 onChange={(e) => setSellTokenAddress(e.target.value)}
                 placeholder="Enter token mint address"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="wallet-group">Wallet Group</Label>
-              <Select
-                onValueChange={() => {
+              <Label htmlFor="wallet-group">Wal let Group</Label>
+              <SelectonValueChange={() => {
                   /* no-op */
                 }}
               >
@@ -924,16 +854,14 @@ export function ControlCenter() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="sell-password">Password</Label>
-              <Input
-                id="sell-password"
+              <Inputid="sell-password"
                 type="password"
                 value={walletPassword}
                 onChange={(e) => setWalletPassword(e.target.value)}
-                placeholder="Enter your wallet password"
+                placeholder="Enter your wal let password"
               />
             </div>
-            <Button
-              onClick={() => {
+            <ButtononClick={() => {
                 /* no-op */
               }}
               className="w-full"
@@ -947,22 +875,18 @@ export function ControlCenter() {
   )
 }
 
-// Helper Components
-function CheckItem({
+// Helper Components function CheckItem({
   label,
   checked,
   detail,
 }: {
-  label: string
-  checked: boolean
-  detail: string
+  l, abel: stringchecked: booleandetail: string
 }) {
   return (
     <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
       <div className="flex items-center gap-2">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={checked ? 'checked' : 'unchecked'}
+          <motion.divkey={checked ? 'checked' : 'unchecked'}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
@@ -982,11 +906,11 @@ function CheckItem({
   )
 }
 
-function StepItem({ step }: { step: ExecutionStep }) {
+function StepItem({ step }: { s, tep: ExecutionStep }) {
   const statusIcons: Record<ExecutionStep['status'], React.ReactElement> = {
-    pending: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
-    running: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
-    completed: <CheckCircle className="h-4 w-4 text-green-500" />,
+    p, ending: <AlertCircle className="h-4 w-4 text-muted-foreground" />,
+    r, unning: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
+    c, ompleted: <CheckCircle className="h-4 w-4 text-green-500" />,
     failed: <XCircle className="h-4 w-4 text-red-500" />,
   }
 
@@ -994,9 +918,9 @@ function StepItem({ step }: { step: ExecutionStep }) {
     ExecutionStep['status'],
     'default' | 'secondary' | 'destructive' | 'outline'
   > = {
-    pending: 'default',
-    running: 'secondary',
-    completed: 'outline',
+    p, ending: 'default',
+    r, unning: 'secondary',
+    c, ompleted: 'outline',
     failed: 'destructive',
   }
 
@@ -1004,8 +928,7 @@ function StepItem({ step }: { step: ExecutionStep }) {
     <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
       <div className="flex items-center gap-3">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={step.status}
+          <motion.divkey={step.status}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}

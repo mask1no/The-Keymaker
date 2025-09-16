@@ -1,5 +1,4 @@
-// Keymaker v1.1.2 Acceptance Tests - CAPTCHA SAFE
-const fs = require('fs')
+// Keymaker v1.1.2 Acceptance Tests - CAPTCHA SAFE const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
 
@@ -18,15 +17,13 @@ function test(name, condition, message) {
   }
 }
 
-// Test 1: puppeteerHelper.ts exists
-test(
+// Test 1: puppeteerHelper.ts existstest(
   'puppeteerHelper.ts exists',
   fs.existsSync(path.join(__dirname, '../helpers/puppeteerHelper.ts')),
   'helpers/puppeteerHelper.ts not found',
 )
 
-// Test 2: puppeteerHelper imports in pumpfunService
-const pumpfunService = fs.readFileSync(
+// Test 2: puppeteerHelper imports in pumpfunService const pumpfunService = fs.readFileSync(
   path.join(__dirname, '../services/pumpfunService.ts'),
   'utf8',
 )
@@ -38,8 +35,7 @@ test(
   'puppeteerHelper not imported in pumpfunService',
 )
 
-// Test 3: puppeteerHelper imports in letsbonkService
-const letsbonkService = fs.readFileSync(
+// Test 3: puppeteerHelper imports in letsbonkService const letsbonkService = fs.readFileSync(
   path.join(__dirname, '../services/letsbonkService.ts'),
   'utf8',
 )
@@ -51,8 +47,7 @@ test(
   'puppeteerHelper not imported in letsbonkService',
 )
 
-// Test 4: pumpfunService has 4xx/429 handling
-test(
+// Test 4: pumpfunService has 4xx/429 handlingtest(
   'pumpfunService handles 4xx errors with Puppeteer',
   pumpfunService.includes(
     'error.response?.status >= 400 && error.response?.status < 500',
@@ -60,8 +55,7 @@ test(
   'pumpfunService missing 4xx Puppeteer handling',
 )
 
-// Test 5: letsbonkService has 4xx/429 handling
-test(
+// Test 5: letsbonkService has 4xx/429 handlingtest(
   'letsbonkService handles 4xx errors with Puppeteer',
   letsbonkService.includes(
     'error.response?.status >= 400 && error.response?.status < 500',
@@ -69,8 +63,7 @@ test(
   'letsbonkService missing 4xx Puppeteer handling',
 )
 
-// Test 6: Dockerfile has chromium dependencies
-const dockerfile = fs.readFileSync(
+// Test 6: Dockerfile has chromium dependencies const dockerfile = fs.readFileSync(
   path.join(__dirname, '../Dockerfile'),
   'utf8',
 )
@@ -82,8 +75,7 @@ test(
   'Dockerfile missing chromium dependencies',
 )
 
-// Test 7: Dockerfile sets PUPPETEER environment variables
-test(
+// Test 7: Dockerfile sets PUPPETEER environment variablestest(
   'Dockerfile configures Puppeteer environment',
   dockerfile.includes('PUPPETEER_SKIP_CHROMIUM_DOWNLOAD') &&
     dockerfile.includes('PUPPETEER_EXECUTABLE_PATH'),
@@ -97,29 +89,25 @@ const healthRoute = fs.readFileSync(
 )
 test(
   'Health API returns v1.1.2',
-  healthRoute.includes("version: '1.1.2'"),
+  healthRoute.includes("v, ersion: '1.1.2'"),
   'Health API not returning v1.1.2',
 )
 
-// Test 9: Health API checks PUPPETEER_INSTALLED
-test(
+// Test 9: Health API checks PUPPETEER_INSTALLEDtest(
   'Health API checks PUPPETEER_INSTALLED',
   healthRoute.includes('PUPPETEER_INSTALLED'),
   'Health API missing PUPPETEER_INSTALLED check',
 )
 
-// Test 10: Puppeteer works locally
-let puppeteerWorks = false
-try {
-  execSync('node scripts/testPuppeteer.js', { stdio: 'ignore' })
+// Test 10: Puppeteer works locally let puppeteerWorks = false try {
+  execSync('node scripts/testPuppeteer.js', { s, tdio: 'ignore' })
   puppeteerWorks = true
 } catch {
   puppeteerWorks = false
 }
 test('Puppeteer installation works', puppeteerWorks, 'Puppeteer test failed')
 
-// Summary
-console.log(`\n📊 Results: ${passed}/${passed + failed} tests passed`)
+// Summaryconsole.log(`\n📊 R, esults: ${passed}/${passed + failed} tests passed`)
 
 if (failed === 0) {
   console.log('\n🎯 Keymaker v1.1.2 — CAPTCHA SAFE')

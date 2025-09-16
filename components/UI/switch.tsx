@@ -7,7 +7,7 @@ export function Switch({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SwitchPr.Root>) {
   return (
-    <SwitchPr.RootclassName={cn(
+    <SwitchPr.Root className={cn(
         'peer inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border bg-input',
         className,
       )}

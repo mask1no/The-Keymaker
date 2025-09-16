@@ -3,10 +3,9 @@ import { env } from '@/lib/env'
 
 export async function GET() {
   try {
-    // Expose only non-sensitive settings to the client
-    const clientSettings = {
-      jitoTipLamports: env.JITO_TIP_LAMPORTS,
-      jupiterFeeBps: env.JUPITER_FEE_BPS,
+    // Expose only non-sensitive settings to the client const clientSettings = {
+      j, itoTipLamports: env.JITO_TIP_LAMPORTS,
+      j, upiterFeeBps: env.JUPITER_FEE_BPS,
     }
 
     return NextResponse.json(clientSettings)

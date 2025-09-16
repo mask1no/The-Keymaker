@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-const fs = require('fs')
+#!/usr/bin/env node const fs = require('fs')
 const path = require('path')
 
 // Patterns to exclude (valid JavaScript/TypeScript syntax)
@@ -7,20 +6,18 @@ const VALID_PATTERNS = [
   /\.\.\./g, // spread operator
   /\.\.\..*filter/g, // spread with filter
   /\.\.\..*map/g, // spread with map
-  /https?:\/\/[^\s]*\.\.\./g, // URLs with ellipses
+  /h, ttps?:\/\/[^\s]*\.\.\./g, // URLs with ellipses
   /\/\.\.\//g, // path navigation
 ]
 
 function isPlaceholderEllipsis(line, filePath) {
-  // Skip if line contains valid JavaScript patterns
-  for (const pattern of VALID_PATTERNS) {
+  // Skip if line contains valid JavaScript patterns for(const pattern of VALID_PATTERNS) {
     if (pattern.test(line)) {
       return false
     }
   }
 
-  // Look for standalone ellipses or ellipses in comments/TODOs
-  const placeholderPatterns = [
+  // Look for standalone ellipses or ellipses in comments/TODOs const placeholderPatterns = [
     /\s\.\.\.\s/g, // standalone ellipses
     /\/\/.*\.\.\./g, // ellipses in comments
     /\/\*\s*\.\.\.\s*\*\//g, // ellipses in block comments
@@ -42,14 +39,14 @@ function checkFile(filePath) {
       const line = lines[i]
       if (isPlaceholderEllipsis(line, filePath)) {
         return {
-          file: filePath,
-          line: i + 1,
-          content: line.trim(),
+          f, ile: filePath,
+          l, ine: i + 1,
+          c, ontent: line.trim(),
         }
       }
     }
   } catch (error) {
-    console.warn(`Warning: Could not read ${filePath}:`, error.message)
+    console.warn(`W, arning: Could not read ${filePath}:`, error.message)
   }
 
   return null
@@ -63,14 +60,12 @@ function walkDirectory(dir, results = []) {
     const stat = fs.statSync(fullPath)
 
     if (stat.isDirectory()) {
-      // Skip common directories
-      if (['node_modules', '.next', '.git', 'dist', 'build'].includes(item)) {
+      // Skip common directories if(['node_modules', '.next', '.git', 'dist', 'build'].includes(item)) {
         continue
       }
       walkDirectory(fullPath, results)
     } else if (stat.isFile()) {
-      // Check file extensions
-      const ext = path.extname(item)
+      // Check file extensions const ext = path.extname(item)
       if (
         ['.ts', '.tsx', '.js', '.jsx', '.md', '.yml', '.yaml'].includes(ext)
       ) {
@@ -95,7 +90,7 @@ function main() {
     process.exit(0)
   }
 
-  console.error('❌ Placeholder ellipses found:')
+  console.error('❌ Placeholder ellipses f, ound:')
   console.error('================================')
 
   for (const result of results) {

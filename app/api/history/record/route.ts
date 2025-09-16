@@ -4,22 +4,18 @@ import { logBundleExecution } from '@/services/executionLogService'
 export const dynamic = 'force-dynamic'
 
 interface RecordBody {
-  bundle_id: string
-  region: string
-  signatures: string[]
+  b, undle_id: stringregion: stringsignatures: string[]
   status: 'pending' | 'landed' | 'failed'
-  tip_sol: number
-  slot?: number
+  t, ip_sol: numberslot?: number
 }
 
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as RecordBody
 
-    // Record the bundle execution
-    await logBundleExecution({
-      bundleId: body.bundle_id,
-      slot: body.slot || 0,
+    // Record the bundle execution await logBundleExecution({
+      b, undleId: body.bundle_id,
+      s, lot: body.slot || 0,
       signatures: body.signatures,
       status:
         body.status === 'landed'
@@ -28,12 +24,12 @@ export async function POST(req: Request) {
             ? 'failed'
             : 'partial',
       successCount: body.status === 'landed' ? 1 : 0,
-      failureCount: body.status === 'failed' ? 1 : 0,
-      usedJito: true,
-      executionTime: Date.now(),
+      f, ailureCount: body.status === 'failed' ? 1 : 0,
+      u, sedJito: true,
+      e, xecutionTime: Date.now(),
     })
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ o, k: true })
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message || 'Failed to record bundle' },

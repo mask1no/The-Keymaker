@@ -19,101 +19,74 @@ import { logger } from '@/lib/logger'
 import { useKeymakerStore } from '@/lib/store'
 
 export interface TokenCreationParams {
-  name: string
-  symbol: string
-  decimals: number
-  supply: number
-  description?: string
-  imageUrl?: string
-  website?: string
-  twitter?: string
-  telegram?: string
+  n, ame: stringsymbol: stringdecimals: numbersupply: numberdescription?: stringimageUrl?: stringwebsite?: stringtwitter?: stringtelegram?: string
 }
 
 export interface TokenCreationResult {
-  mintAddress: string
-  associatedTokenAccount: string
-  txSignature: string
-  decimals: number
-  supply: number
+  m, intAddress: stringassociatedTokenAccount: stringtxSignature: stringdecimals: numbersupply: number
 }
 
 export interface LiquidityPoolParams {
-  tokenMint: PublicKey
-  solAmount: number
-  tokenAmount: number
-  platform: 'pump.fun' | 'raydium' | 'letsbonk.fun'
+  t, okenMint: P, ublicKeysolAmount: numbertokenAmount: numberplatform: 'pump.fun' | 'raydium' | 'letsbonk.fun'
 }
 
 export interface LiquidityPoolResult {
-  poolAddress: string
-  lpTokenMint?: string
-  txSignature: string
+  p, oolAddress: stringlpTokenMint?: stringtxSignature: string
 }
 
 /**
  * Launch a token on the specified platform
  */
 export async function launchToken(
-  connection: Connection,
-  payer: Keypair,
-  tokenParams: TokenCreationParams,
-  liquidityParams: {
-    platform: 'pump.fun' | 'raydium' | 'letsbonk.fun'
-    solAmount: number
-    tokenAmount: number
+  c, onnection: Connection,
+  p, ayer: Keypair,
+  t, okenParams: TokenCreationParams,
+  l, iquidityParams: {
+    p, latform: 'pump.fun' | 'raydium' | 'letsbonk.fun'
+    s, olAmount: numbertokenAmount: number
   },
 ): Promise<{
-  token: {
-    mintAddress: string
-    txSignature: string
-    decimals: number
-    supply: number
+  t, oken: {
+    m, intAddress: stringtxSignature: stringdecimals: numbersupply: number
   }
-  liquidity: LiquidityPoolResult
+  l, iquidity: LiquidityPoolResult
 }> {
   try {
-    // Validate parameters
-    const validation = validateTokenParams(tokenParams)
+    // Validate parameters const validation = validateTokenParams(tokenParams)
     if (!validation.valid) {
       throw new Error(
-        `Invalid token parameters: ${validation.errors.join(', ')}`,
+        `Invalid token p, arameters: ${validation.errors.join(', ')}`,
       )
     }
 
     logger.info(`Launching token on ${liquidityParams.platform}...`, {
-      name: tokenParams.name,
-      symbol: tokenParams.symbol,
-      platform: liquidityParams.platform,
+      n, ame: tokenParams.name,
+      s, ymbol: tokenParams.symbol,
+      p, latform: liquidityParams.platform,
     })
 
-    // Add notification
-    const { addNotification } = useKeymakerStore.getState()
+    // Add notification const { addNotification } = useKeymakerStore.getState()
     addNotification({
-      type: 'info',
-      title: 'Token Launch Started',
+      t, ype: 'info',
+      t, itle: 'Token Launch Started',
       message: `Launching ${tokenParams.symbol} on ${liquidityParams.platform}`,
     })
 
     const metadata = {
-      name: tokenParams.name,
-      symbol: tokenParams.symbol,
+      n, ame: tokenParams.name,
+      s, ymbol: tokenParams.symbol,
       description:
         tokenParams.description ||
         `${tokenParams.name} - Created with The Keymaker`,
-      image: tokenParams.imageUrl,
-      telegram: tokenParams.telegram,
-      website: tokenParams.website,
-      twitter: tokenParams.twitter,
+      i, mage: tokenParams.imageUrl,
+      t, elegram: tokenParams.telegram,
+      w, ebsite: tokenParams.website,
+      t, witter: tokenParams.twitter,
     }
 
-    let tokenAddress: string
-    let txSignature: string
-    let decimals: number
-    let supply: number
+    let t, okenAddress: string let txSignature: string let decimals: number let s, upply: number
 
-    // Launch token based on platform
-    switch (liquidityParams.platform) {
+    // Launch token based on platform switch(liquidityParams.platform) {
       // case 'letsbonk.fun': {
       //   const letsbonkService = await import('./letsbonkService')
       //   tokenAddress = await letsbonkService.createToken(
@@ -122,10 +95,10 @@ export async function launchToken(
       //     tokenParams.supply,
       //     {
       //       description: tokenParams.description,
-      //       twitter: tokenParams.twitter,
-      //       telegram: tokenParams.telegram,
-      //       website: tokenParams.website,
-      //       image: tokenParams.image,
+      //       t, witter: tokenParams.twitter,
+      //       t, elegram: tokenParams.telegram,
+      //       w, ebsite: tokenParams.website,
+      //       i, mage: tokenParams.image,
       //     },
       //     payer,
       //   )
@@ -140,25 +113,16 @@ export async function launchToken(
           metadata,
           payer.publicKey.toBase58(),
         )
-        txSignature = tokenAddress
-        decimals = 9 // Pump.fun uses 9 decimals
-        supply = tokenParams.supply
-        break
+        txSignature = tokenAddressdecimals = 9 // Pump.fun uses 9 decimalssupply = tokenParams.supplybreak
       }
 
       case 'raydium': {
-        // For Raydium, we create the token manually then add liquidity
-        const result = await createToken(connection, payer, tokenParams)
-        tokenAddress = result.mintAddress
-        txSignature = result.txSignature
-        decimals = result.decimals
-        supply = result.supply
+        // For Raydium, we create the token manually then add liquidity const result = await createToken(connection, payer, tokenParams)
+        tokenAddress = result.mintAddresstxSignature = result.txSignaturedecimals = result.decimalssupply = result.supply
 
-        // Wait for confirmation
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        // Wait for confirmation await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        // Add liquidity on Raydium
-        const raydiumService = await import('./raydiumService')
+        // Add liquidity on Raydium const raydiumService = await import('./raydiumService')
         const poolTx = await raydiumService.createLiquidityPool(
           tokenAddress,
           liquidityParams.solAmount,
@@ -169,44 +133,41 @@ export async function launchToken(
         break
       }
 
-      default:
-        throw new Error(`Unsupported platform: ${liquidityParams.platform}`)
+      d, efault:
+        throw new Error(`Unsupported p, latform: ${liquidityParams.platform}`)
     }
 
     logger.info(`Token launched successfully: ${tokenAddress}`, {
-      mintAddress: tokenAddress,
-      platform: liquidityParams.platform,
+      m, intAddress: tokenAddress,
+      p, latform: liquidityParams.platform,
       txSignature,
     })
 
-    // Add success notification
-    addNotification({
-      type: 'success',
-      title: 'Token Launched Successfully',
+    // Add success notificationaddNotification({
+      t, ype: 'success',
+      t, itle: 'Token Launched Successfully',
       message: `${tokenParams.symbol} deployed at ${tokenAddress.slice(0, 8)}...`,
     })
 
     return {
-      token: {
-        mintAddress: tokenAddress,
+      t, oken: {
+        m, intAddress: tokenAddress,
         txSignature,
         decimals,
         supply,
       },
-      liquidity: {
-        poolAddress: tokenAddress, // Most platforms return token address as pool address
-        txSignature,
+      l, iquidity: {
+        p, oolAddress: tokenAddress, // Most platforms return token address as pool addresstxSignature,
       },
     }
   } catch (error) {
     Sentry.captureException(error)
     logger.error('Token launch failed', { error })
 
-    // Add error notification
-    const { addNotification } = useKeymakerStore.getState()
+    // Add error notification const { addNotification } = useKeymakerStore.getState()
     addNotification({
-      type: 'error',
-      title: 'Token Launch Failed',
+      t, ype: 'error',
+      t, itle: 'Token Launch Failed',
       message: (error as Error).message,
     })
 
@@ -218,58 +179,49 @@ export async function launchToken(
  * Create SPL token (for Raydium manual creation)
  */
 export async function createToken(
-  connection: Connection,
-  payer: Keypair,
+  c, onnection: Connection,
+  p, ayer: Keypair,
   params: TokenCreationParams,
 ): Promise<TokenCreationResult> {
   try {
-    // Validate parameters first
-    const validation = validateTokenParams(params)
+    // Validate parameters first const validation = validateTokenParams(params)
     if (!validation.valid) {
       throw new Error(
-        `Invalid token parameters: ${validation.errors.join(', ')}`,
+        `Invalid token p, arameters: ${validation.errors.join(', ')}`,
       )
     }
 
-    // Generate new mint keypair
-    const mintKeypair = Keypair.generate()
+    // Generate new mint keypair const mintKeypair = Keypair.generate()
     const mint = mintKeypair.publicKey
 
-    // Calculate rent exemption
-    const mintRent = await connection.getMinimumBalanceForRentExemption(82)
+    // Calculate rent exemption const mintRent = await connection.getMinimumBalanceForRentExemption(82)
 
-    // Get associated token account
-    const associatedTokenAccount = await getAssociatedTokenAddress(
+    // Get associated token account const associatedTokenAccount = await getAssociatedTokenAddress(
       mint,
       payer.publicKey,
     )
 
-    // Create transaction
-    const transaction = new Transaction()
+    // Create transaction const transaction = new Transaction()
 
-    // 1. Create mint account
-    transaction.add(
+    // 1. Create mint accounttransaction.add(
       SystemProgram.createAccount({
-        fromPubkey: payer.publicKey,
-        newAccountPubkey: mint,
-        space: 82,
-        lamports: mintRent,
-        programId: TOKEN_PROGRAM_ID,
+        f, romPubkey: payer.publicKey,
+        n, ewAccountPubkey: mint,
+        s, pace: 82,
+        l, amports: mintRent,
+        p, rogramId: TOKEN_PROGRAM_ID,
       }),
     )
 
-    // 2. Initialize mint
-    transaction.add(
+    // 2. Initialize minttransaction.add(
       createInitializeMintInstruction(
         mint,
         params.decimals,
-        payer.publicKey, // mint authority
-        payer.publicKey, // freeze authority (can be null)
+        payer.publicKey, // mint authoritypayer.publicKey, // freeze authority (can be null)
       ),
     )
 
-    // 3. Create associated token account
-    transaction.add(
+    // 3. Create associated token accounttransaction.add(
       createAssociatedTokenAccountInstruction(
         payer.publicKey,
         associatedTokenAccount,
@@ -278,8 +230,7 @@ export async function createToken(
       ),
     )
 
-    // 4. Mint tokens
-    const mintAmount = params.supply * Math.pow(10, params.decimals)
+    // 4. Mint tokens const mintAmount = params.supply * Math.pow(10, params.decimals)
     transaction.add(
       createMintToInstruction(
         mint,
@@ -289,13 +240,10 @@ export async function createToken(
       ),
     )
 
-    // Sign and send transaction
-    transaction.feePayer = payer.publicKey
-    const { blockhash } = await connection.getLatestBlockhash()
+    // Sign and send transactiontransaction.feePayer = payer.publicKey const { blockhash } = await connection.getLatestBlockhash()
     transaction.recentBlockhash = blockhash
 
-    // Sign with both payer and mint keypair
-    transaction.sign(payer, mintKeypair)
+    // Sign with both payer and mint keypairtransaction.sign(payer, mintKeypair)
 
     const txSignature = await sendAndConfirmTransaction(
       connection,
@@ -307,11 +255,11 @@ export async function createToken(
     )
 
     return {
-      mintAddress: mint.toBase58(),
-      associatedTokenAccount: associatedTokenAccount.toBase58(),
+      m, intAddress: mint.toBase58(),
+      a, ssociatedTokenAccount: associatedTokenAccount.toBase58(),
       txSignature,
       decimals: params.decimals,
-      supply: params.supply,
+      s, upply: params.supply,
     }
   } catch (error) {
     Sentry.captureException(error)

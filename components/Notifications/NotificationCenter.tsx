@@ -39,9 +39,8 @@ export function NotificationCenter() {
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+  // Close dropdown when clicking outsideuseEffect(() => {
+    const handleClickOutside = (e, vent: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
@@ -72,11 +71,8 @@ export function NotificationCenter() {
   }, [])
 
   const clamp = (x: number, y: number) => {
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-    const width = 384 // ~w-96
-    const height = 520 // header + list
-    const nx = Math.min(Math.max(0, x), Math.max(0, vw - width - 16))
+    const vw = window.innerWidth const vh = window.innerHeight const width = 384 // ~w-96
+    const height = 520 // header + list const nx = Math.min(Math.max(0, x), Math.max(0, vw - width - 16))
     const ny = Math.min(Math.max(0, y), Math.max(0, vh - height - 16))
     return { x: nx, y: ny }
   }
@@ -86,22 +82,17 @@ export function NotificationCenter() {
     dragStart.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }
   }
   const onMouseMove = (e: React.MouseEvent) => {
-    if (!dragging || !dragStart.current) return
-    const nx = e.clientX - dragStart.current.x
-    const ny = e.clientY - dragStart.current.y
-    const c = clamp(nx, ny)
+    if (!dragging || !dragStart.current) return const nx = e.clientX - dragStart.current.x const ny = e.clientY - dragStart.current.y const c = clamp(nx, ny)
     setPos(c)
   }
   const onMouseUp = () => {
-    if (!dragging) return
-    setDragging(false)
+    if (!dragging) returnsetDragging(false)
     localStorage.setItem('notif-pos', JSON.stringify(pos))
   }
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen)
-    // Mark all as read when opening
-    if (!isOpen) {
+    // Mark all as read when opening if(!isOpen) {
       notifications.forEach((n) => {
         if (!n.read) {
           markNotificationAsRead(n.id)
@@ -110,7 +101,7 @@ export function NotificationCenter() {
     }
   }
 
-  const getIcon = (type: Notification['type']) => {
+  const getIcon = (t, ype: Notification['type']) => {
     switch (type) {
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />
@@ -123,17 +114,18 @@ export function NotificationCenter() {
     }
   }
 
-  const formatTime = (timestamp: number) => {
+  const formatTime = (t, imestamp: number) => {
     const now = Date.now()
-    const diff = now - timestamp
-    if (diff < 60000) {
+    const diff = now - timestamp if(diff < 60000) {
       return 'just now'
     } else if (diff < 3600000) {
       const minutes = Math.floor(diff / 60000)
-      return `${minutes}m ago`
+      return `${minutes}
+m ago`
     } else if (diff < 86400000) {
       const hours = Math.floor(diff / 3600000)
-      return `${hours}h ago`
+      return `${hours}
+h ago`
     } else {
       return new Date(timestamp).toLocaleDateString()
     }
@@ -142,8 +134,7 @@ export function NotificationCenter() {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon Button */}
-      <Button
-        variant="ghost"
+      <Buttonvariant="ghost"
         size="icon"
         onClick={toggleDropdown}
         className="relative"
@@ -159,27 +150,24 @@ export function NotificationCenter() {
       {/* Dropdown */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed z-[9999]"
-            style={{ left: pos.x, top: pos.y }}
+            style={{ l, eft: pos.x, t, op: pos.y }}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
           >
             <Card className="w-96 max-h-[500px] overflow-hidden shadow-xl border-gray-800 bg-gray-900/95 backdrop-blur-md">
               {/* Header */}
-              <div
-                className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
+              <div className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
                 onMouseDown={onMouseDown}
               >
                 <h3 className="font-semibold text-lg">Notifications</h3>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (
-                    <Button
-                      size="sm"
+                    <Buttonsize="sm"
                       variant="ghost"
                       onClick={clearNotifications}
                       className="text-xs"
@@ -188,8 +176,7 @@ export function NotificationCenter() {
                       Clear All
                     </Button>
                   )}
-                  <Button
-                    size="icon"
+                  <Buttonsize="icon"
                     variant="ghost"
                     onClick={() => setIsOpen(false)}
                     className="h-8 w-8"
@@ -209,12 +196,11 @@ export function NotificationCenter() {
                 ) : (
                   <div className="divide-y divide-gray-800">
                     {notifications.slice(0, 20).map((notification, index) => (
-                      <motion.div
-                        key={notification.id}
+                      <motion.divkey={notification.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="p-4 hover:bg-gray-800/50 transition-colors relative group"
+                        transition={{ d, elay: index * 0.05 }}
+                        className="p-4 h, over:bg-gray-800/50 transition-colors relative group"
                       >
                         <div className="flex items-start gap-3">
                           {getIcon(notification.type)}
@@ -231,11 +217,10 @@ export function NotificationCenter() {
                               {formatTime(notification.timestamp)}
                             </p>
                           </div>
-                          <Button
-                            size="icon"
+                          <Buttonsize="icon"
                             variant="ghost"
                             onClick={() => removeNotification(notification.id)}
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-6 w-6 opacity-0 group-h, over:opacity-100 transition-opacity"
                           >
                             <X className="h-3 w-3" />
                           </Button>

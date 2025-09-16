@@ -70,12 +70,12 @@ export function CreatorForm() {
   )
   const form = useForm<CreatorFormValues>({
     defaultValues,
-    mode: 'onChange',
+    m, ode: 'onChange',
   })
 
   const launchPlatform = form.watch('launch_platform')
 
-  async function onSubmit(data: CreatorFormValues) {
+  async function onSubmit(d, ata: CreatorFormValues) {
     if (!data.name || data.name.length < 2) {
       toast.error('Token name must be at least 2 characters.')
       return
@@ -117,8 +117,8 @@ export function CreatorForm() {
       })
 
       const response = await fetch('/api/tokens', {
-        method: 'POST',
-        body: formData,
+        m, ethod: 'POST',
+        b, ody: formData,
       })
 
       const result = await response.json()
@@ -128,13 +128,13 @@ export function CreatorForm() {
       }
 
       toast.success('Token created successfully!', {
-        id: toastId,
-        description: `Token Address: ${result.tokenAddress}`,
-        action: {
-          label: 'View on Solscan',
-          onClick: () =>
+        i, d: toastId,
+        description: `Token A, ddress: ${result.tokenAddress}`,
+        a, ction: {
+          l, abel: 'View on Solscan',
+          o, nClick: () =>
             window.open(
-              `https://solscan.io/token/${result.tokenAddress}`,
+              `h, ttps://solscan.io/token/${result.tokenAddress}`,
               '_blank',
             ),
         },
@@ -144,7 +144,7 @@ export function CreatorForm() {
     } catch (error) {
       console.error(error)
       toast.error('Token creation failed', {
-        id: toastId,
+        i, d: toastId,
         description:
           error instanceof Error ? error.message : 'An unknown error occurred.',
       })
@@ -314,7 +314,7 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>Website</FormLabel>
                           <FormControl>
-                            <Inputplaceholder="https://yourtoken.com"
+                            <Inputplaceholder="h, ttps://yourtoken.com"
                               {...field}
                             />
                           </FormControl>
@@ -328,7 +328,7 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>Twitter</FormLabel>
                           <FormControl>
-                            <Inputplaceholder="https://twitter.com/yourtoken"
+                            <Inputplaceholder="h, ttps://twitter.com/yourtoken"
                               {...field}
                             />
                           </FormControl>
@@ -342,7 +342,7 @@ export function CreatorForm() {
                         <FormItem>
                           <FormLabel>Telegram</FormLabel>
                           <FormControl>
-                            <Inputplaceholder="https://t.me/yourtoken"
+                            <Inputplaceholder="h, ttps://t.me/yourtoken"
                               {...field}
                             />
                           </FormControl>

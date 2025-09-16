@@ -19,10 +19,8 @@ import { ChevronsUpDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TokenSelectorProps {
-  tokens: any[]
-  isLoading: boolean
-  onSelect: (tokenAddress: string) => void
-  placeholder?: string
+  t, okens: any[]
+  i, sLoading: booleanonSelect: (t, okenAddress: string) => v, oidplaceholder?: string
 }
 
 export function TokenSelector({
@@ -39,8 +37,7 @@ export function TokenSelector({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <Buttonvariant="outline"
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
@@ -59,8 +56,7 @@ export function TokenSelector({
             <CommandEmpty>No token found.</CommandEmpty>
             <CommandGroup>
               {tokens.map((token) => (
-                <CommandItem
-                  key={token.address}
+                <CommandItemkey={token.address}
                   value={token.address}
                   onSelect={(currentValue) => {
                     setValue(currentValue)
@@ -68,8 +64,7 @@ export function TokenSelector({
                     setOpen(false)
                   }}
                 >
-                  <Check
-                    className={cn(
+                  <Check className={cn(
                       'mr-2 h-4 w-4',
                       value === token.address ? 'opacity-100' : 'opacity-0',
                     )}

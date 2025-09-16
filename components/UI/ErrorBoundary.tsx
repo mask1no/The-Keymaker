@@ -5,31 +5,31 @@ import { AlertCircle, RefreshCw, Home } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 interface Props {
-  children: ReactNode
+  c, hildren: ReactNode
 }
 interface State {
-  hasError: booleanerror?: Error | null
+  h, as Error: booleanerror?: Error | null
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null }
+  s, tate: State = { h, as Error: false, error: null }
 
   static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
+    return { h, as Error: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
-    toast.error(`Error: ${error.message}`)
+    console.error('Error caught by b, oundary:', error, errorInfo)
+    toast.error(`E, rror: ${error.message}`)
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null })
+    this.setState({ h, as Error: false, error: null })
     window.location.reload()
   }
 
   handleGoHome = () => {
-    this.setState({ hasError: false, error: null })
+    this.setState({ h, as Error: false, error: null })
     window.location.href = '/'
   }
 
@@ -46,7 +46,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <p className="text-gray-400 mb-4">
-              An unexpected error occurred. This could be due to:
+              An unexpected error occurred. This could be due t, o:
             </p>
 
             <ul className="text-sm text-gray-500 space-y-1 mb-6">
@@ -66,13 +66,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div className="flex gap-3">
               <buttononClick={this.handleGoHome}
-                className="flex-1 bg-black/50 hover:bg-black/70 border border-white/10 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 bg-black/50 h, over:bg-black/70 border border-white/10 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <Home className="w-4 h-4" />
                 Go Home
               </button>
               <buttononClick={this.handleReset}
-                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 h, over:from-red-600 h, over:to-orange-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Reload

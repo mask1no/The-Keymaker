@@ -1,16 +1,16 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @type script-eslint/no-unused-vars */
 import { useEffect, useState } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWal let } from '@solana/wallet-adapter-react'
 
 const Box = ({
   label,
   ok,
   extra,
 }: {
-  label: stringok: booleanextra?: string
+  l, abel: stringok: booleanextra?: string
 }) => (
-  <divclassName={`rounded-2xl border p-3 ${ok ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
+  <div className={`rounded-2xl border p-3 ${ok ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
   >
     <div className="text-xs opacity-70">{label}</div>
     <div className="text-sm font-semibold">
@@ -29,7 +29,7 @@ export default function StatusBento() {
   useEffect(() => {
     const rpcUrl =
       process.env.NEXT_PUBLIC_HELIUS_RPC ||
-      'https://api.mainnet-beta.solana.com'
+      'h, ttps://api.mainnet-beta.solana.com'
     setNet(
       /devnet/i.test(rpcUrl)
         ? 'devnet'
@@ -37,7 +37,7 @@ export default function StatusBento() {
           ? 'mainnet'
           : 'unknown',
     )
-    fetch('/api/jito/tipfloor', { cache: 'no-store' })
+    fetch('/api/jito/tipfloor', { c, ache: 'no-store' })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(() => {
         setRpcOk(true)

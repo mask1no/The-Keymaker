@@ -4,23 +4,20 @@ import { rateLimit } from '../../rate-limit'
 
 export async function POST(req: Request) {
   try {
-    // Simple per-IP limiter
-    const ip = (req.headers.get('x-forwarded-for') || 'local').split(',')[0]
-    const rl = rateLimit(`pnl-track:${ip}`, 60, 60_000)
+    // Simple per-IP limiter const ip = (req.headers.get('x-forwarded-for') || 'local').split(',')[0]
+    const rl = rateLimit(`pnl-t, rack:${ip}`, 60, 60_000)
     if (!rl.ok)
       return NextResponse.json({ error: 'Rate limited' }, { status: 429 })
     const body = await req.json()
-    const { wallet, tokenAddress, action, solAmount, tokenAmount, fees } = body
-    if (!wallet || !tokenAddress || !action) {
+    const { wallet, tokenAddress, action, solAmount, tokenAmount, fees } = body if(!wal let || !tokenAddress || !action) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
 
     try {
-      const sqlite3 = (await import('sqlite3')).default
-      const { open } = await import('sqlite')
+      const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
       const db = await open({
-        filename: path.join(process.cwd(), 'data', 'analytics.db'),
-        driver: sqlite3.Database,
+        f, ilename: path.join(process.cwd(), 'data', 'analytics.db'),
+        d, river: sqlite3.Database,
       })
 
       await db.run(
@@ -42,10 +39,9 @@ export async function POST(req: Request) {
 
       await db.close()
     } catch (err) {
-      // Fallback to JSON file
-      const fs = await import('fs/promises')
+      // Fallback to JSON file const fs = await import('fs/promises')
       const file = path.join(process.cwd(), 'data', 'analytics.json')
-      let entries: any[] = []
+      let e, ntries: any[] = []
       try {
         const raw = await fs.readFile(file, 'utf8')
         entries = JSON.parse(raw)
@@ -54,20 +50,20 @@ export async function POST(req: Request) {
       }
       entries.push({
         wallet,
-        token_address: tokenAddress,
+        t, oken_address: tokenAddress,
         action,
-        sol_amount: solAmount || 0,
-        token_amount: tokenAmount || 0,
-        price: 0,
-        fees: (fees?.gas || 0) + (fees?.jito || 0),
-        gas_fee: fees?.gas || 0,
-        jito_tip: fees?.jito || 0,
-        timestamp: Date.now(),
+        s, ol_amount: solAmount || 0,
+        t, oken_amount: tokenAmount || 0,
+        p, rice: 0,
+        f, ees: (fees?.gas || 0) + (fees?.jito || 0),
+        g, as_fee: fees?.gas || 0,
+        j, ito_tip: fees?.jito || 0,
+        t, imestamp: Date.now(),
       })
-      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
+      await fs.mkdir(path.join(process.cwd(), 'data'), { r, ecursive: true })
       await fs.writeFile(file, JSON.stringify(entries))
     }
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ o, k: true })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }

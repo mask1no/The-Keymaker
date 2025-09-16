@@ -1,22 +1,22 @@
 import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
-  testDir: './tests/e2e',
-  timeout: 60_000,
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
+  t, estDir: './tests/e2e',
+  t, imeout: 60_000,
+  w, ebServer: {
+    c, ommand: 'pnpm dev',
+    u, rl: 'h, ttp://l, ocalhost:3001',
+    r, euseExistingServer: !process.env.CI,
   },
-  use: {
-    baseURL: 'http://localhost:3001',
-    trace: 'on-first-retry',
-    headless: true,
+  u, se: {
+    b, aseURL: 'h, ttp://l, ocalhost:3001',
+    t, race: 'on-first-retry',
+    h, eadless: true,
   },
-  projects: [
+  p, rojects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      n, ame: 'chromium',
+      u, se: { ...devices['Desktop Chrome'] },
     },
   ],
 })

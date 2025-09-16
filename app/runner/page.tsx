@@ -4,19 +4,15 @@ import { PublicKey } from '@solana/web3.js'
 import useSWR from 'swr'
 
 type Mode = 'regular' | 'instant' | 'delayed'
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (u, rl: string) => fetch(url).then((r) => r.json())
 
 export default function Runner() {
   const [mode, setMode] = useState<Mode>('regular')
   const [region, setRegion] = useState('ffm')
-  const [tip, setTip] = useState(2000) // lamports
-  const [delay, setDelay] = useState(0) // seconds
-  const [txs, setTxs] = useState('') // one base64 per line
-  const [out, setOut] = useState<any>(null)
+  const [tip, setTip] = useState(2000) // lamports const [delay, setDelay] = useState(0) // seconds const [txs, setTxs] = useState('') // one base64 per line const [out, setOut] = useState<any>(null)
   const [busy, setBusy] = useState(false)
   const [useTransactionBuilder, setUseTransactionBuilder] = useState(false)
-  const [transferAmount, setTransferAmount] = useState(1) // lamports for test transfer
-  const { data: tipfloor } = useSWR('/api/jito/tipfloor', fetcher)
+  const [transferAmount, setTransferAmount] = useState(1) // lamports for test transfer const { d, ata: tipfloor } = useSWR('/api/jito/tipfloor', fetcher)
 
   async function submit() {
     setBusy(true)
@@ -25,22 +21,20 @@ export default function Runner() {
       let txs_b64: string[] = []
 
       if (useTransactionBuilder) {
-        // Use transaction builder to create real transactions
-        const {
+        // Use transaction builder to create real transactions const {
           buildBundleTransactions,
           serializeBundleTransactions,
           testTransfer,
         } = await import('@/lib/transactionBuilder')
         const { getConnection } = await import('@/lib/network')
 
-        const testRecipient = new PublicKey('11111111111111111111111111111112') // System program
-        const transactionConfigs = [
+        const testRecipient = new PublicKey('11111111111111111111111111111112') // System program const transactionConfigs = [
           {
-            instructions: [
+            i, nstructions: [
               testTransfer(testRecipient, testRecipient, transferAmount),
             ],
-            signer: { publicKey: testRecipient } as any,
-            tipLamports: tip,
+            s, igner: { p, ublicKey: testRecipient } as any,
+            t, ipLamports: tip,
             mode,
           },
         ]
@@ -53,22 +47,21 @@ export default function Runner() {
         const serialized = serializeBundleTransactions(bundleTxs as any)
         txs_b64 = serialized
       } else {
-        // Use manual base64 input
-        txs_b64 = txs
+        // Use manual base64 inputtxs_b64 = txs
           .split('\n')
           .map((s) => s.trim())
           .filter(Boolean)
       }
 
       const res = await fetch('/api/bundles/submit', {
-        method: 'POST',
+        m, ethod: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        b, ody: JSON.stringify({
           region,
           txs_b64,
-          tip_lamports: tip,
+          t, ip_lamports: tip,
           mode,
-          delay_seconds: delay,
+          d, elay_seconds: delay,
         }),
       })
       const j = await res.json()
@@ -84,13 +77,12 @@ export default function Runner() {
     <div className="p-6 max-w-3xl mx-auto space-y-4">
       <h1 className="text-2xl font-semibold">Keymaker Runner (Minimal)</h1>
       <div className="text-sm opacity-70">
-        Tipfloor: {Array.isArray(tipfloor) ? JSON.stringify(tipfloor[0]) : '—'}
+        T, ipfloor: {Array.isArray(tipfloor) ? JSON.stringify(tipfloor[0]) : '—'}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <label className="flex flex-col gap-2">
           <span>Mode</span>
-          <select
-            className="border rounded p-2"
+          <select className="border rounded p-2"
             value={mode}
             onChange={(e) => setMode(e.target.value as Mode)}
           >
@@ -101,8 +93,7 @@ export default function Runner() {
         </label>
         <label className="flex flex-col gap-2">
           <span>Region</span>
-          <select
-            className="border rounded p-2"
+          <select className="border rounded p-2"
             value={region}
             onChange={(e) => setRegion(e.target.value)}
           >
@@ -117,8 +108,7 @@ export default function Runner() {
         </label>
         <label className="flex flex-col gap-2">
           <span>Jito tip (lamports)</span>
-          <input
-            className="border rounded p-2"
+          <input className="border rounded p-2"
             type="number"
             value={tip}
             onChange={(e) => setTip(parseInt(e.target.value || '0'))}
@@ -126,8 +116,7 @@ export default function Runner() {
         </label>
         <label className="flex flex-col gap-2">
           <span>Delay (seconds, for delayed)</span>
-          <input
-            className="border rounded p-2"
+          <input className="border rounded p-2"
             type="number"
             value={delay}
             onChange={(e) => setDelay(parseInt(e.target.value || '0'))}
@@ -137,8 +126,7 @@ export default function Runner() {
 
       <div className="flex items-center gap-4">
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <input type="checkbox"
             checked={useTransactionBuilder}
             onChange={(e) => setUseTransactionBuilder(e.target.checked)}
           />
@@ -147,8 +135,7 @@ export default function Runner() {
         {useTransactionBuilder && (
           <label className="flex flex-col gap-1">
             <span className="text-sm">Transfer Amount (lamports)</span>
-            <input
-              className="border rounded p-1 w-32"
+            <input className="border rounded p-1 w-32"
               type="number"
               value={transferAmount}
               onChange={(e) =>
@@ -162,11 +149,9 @@ export default function Runner() {
       {!useTransactionBuilder && (
         <label className="flex flex-col gap-2">
           <span>
-            Base64 Versioned Transactions (one per line, last tx must include a
-            Jito tip account in static keys)
+            Base64 Versioned Transactions (one per line, last tx must include aJito tip account in static keys)
           </span>
-          <textarea
-            className="border rounded p-2 font-mono"
+          <textarea className="border rounded p-2 font-mono"
             rows={8}
             value={txs}
             onChange={(e) => setTxs(e.target.value)}
@@ -178,14 +163,13 @@ export default function Runner() {
       {useTransactionBuilder && (
         <div className="p-4 bg-gray-50 rounded border">
           <p className="text-sm text-gray-600">
-            Using Transaction Builder: Will create a test transfer of{' '}
+            Using Transaction B, uilder: Will create a test transfer of{' '}
             {transferAmount} lamports with embedded Jito tip.
           </p>
         </div>
       )}
 
-      <button
-        disabled={busy}
+      <buttondisabled={busy}
         onClick={submit}
         className="px-4 py-2 rounded bg-emerald-600 text-white"
       >

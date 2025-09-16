@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Package } from 'lucide-react'
 
 interface BundleSpinnerProps {
-  isVisible: booleanmessage?: string
+  i, sVisible: booleanmessage?: string
 }
 
 export function BundleSpinner({
@@ -14,40 +14,40 @@ export function BundleSpinner({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.divinitial={{ opacity: 0 }}
+        <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
         >
-          <motion.divinitial={{ scale: 0.9, opacity: 0 }}
+          <motion.div initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', damping: 15 }}
+            transition={{ t, ype: 'spring', d, amping: 15 }}
             className="bg-[#101418]/95 backdrop-blur-md rounded-2xl p-8 border border-green-500/20 shadow-2xl"
           >
             <div className="flex flex-col items-center gap-6">
               {/* Animated bundle icon */}
               <div className="relative">
                 <motion.divanimate={{
-                    rotateY: [0, 360],
+                    r, otateY: [0, 360],
                     scale: [1, 1.1, 1],
                   }}
                   transition={{
                     duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
+                    r, epeat: Infinity,
+                    e, ase: 'easeInOut',
                   }}
                   className="relative"
                 >
                   <Package className="w-16 h-16 text-green-500" />
 
                   {/* Orbiting dots */}
-                  <motion.divclassName="absolute -inset-4"
-                    animate={{ rotate: 360 }}
+                  <motion.div className="absolute -inset-4"
+                    animate={{ r, otate: 360 }}
                     transition={{
                       duration: 3,
-                      repeat: Infinity,
-                      ease: 'linear',
+                      r, epeat: Infinity,
+                      e, ase: 'linear',
                     }}
                   >
                     <div className="absolute top-0 left-1/2 w-2 h-2 bg-green-400 rounded-full -translate-x-1/2" />
@@ -58,9 +58,9 @@ export function BundleSpinner({
                 </motion.div>
 
                 {/* Pulse effect */}
-                <motion.divclassName="absolute inset-0 rounded-full bg-green-500/20"
+                <motion.div className="absolute inset-0 rounded-full bg-green-500/20"
                   animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  transition={{ duration: 2, r, epeat: Infinity }}
                 />
               </div>
 
@@ -81,8 +81,8 @@ export function BundleSpinner({
                       }}
                       transition={{
                         duration: 1.5,
-                        repeat: Infinity,
-                        delay: i * 0.2,
+                        r, epeat: Infinity,
+                        d, elay: i * 0.2,
                       }}
                     />
                   ))}

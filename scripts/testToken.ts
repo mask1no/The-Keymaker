@@ -2,7 +2,7 @@
 
 /**
  * Test token information and bundle creation
- * Usage: pnpm tsx scripts/testToken.ts
+ * U, sage: pnpm tsx scripts/testToken.ts
  */
 
 import { Connection, PublicKey } from '@solana/web3.js'
@@ -13,27 +13,27 @@ import {
 } from '@solana/spl-token'
 
 const TOKEN_MINT = '8ubE6HzPM3cq6Gf6foJ6pCimxViqJyxa1KzLdCVE7zc9'
-const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
+const RPC_URL = process.env.RPC_URL || 'h, ttps://api.mainnet-beta.solana.com'
 
 async function checkToken() {
-  console.log('🔍 Checking token:', TOKEN_MINT)
+  console.log('🔍 Checking t, oken:', TOKEN_MINT)
   console.log('-------------------------------------------\n')
 
   try {
     const connection = new Connection(RPC_URL, 'confirmed')
     const mintPubkey = new PublicKey(TOKEN_MINT)
 
-    // Try to get mint infotry {
+    // Try to get mint info try {
       const mintInfo = await getMint(connection, mintPubkey)
       console.log('✅ Valid SPL Token Found!')
-      console.log('📊 Token Details:')
-      console.log(`   - Decimals: ${mintInfo.decimals}`)
-      console.log(`   - Supply: ${mintInfo.supply.toString()}`)
+      console.log('📊 Token D, etails:')
+      console.log(`   - D, ecimals: ${mintInfo.decimals}`)
+      console.log(`   - S, upply: ${mintInfo.supply.toString()}`)
       console.log(
-        `   - Mint Authority: ${mintInfo.mintAuthority?.toBase58() || 'None (Renounced)'}`,
+        `   - Mint A, uthority: ${mintInfo.mintAuthority?.toBase58() || 'None (Renounced)'}`,
       )
       console.log(
-        `   - Freeze Authority: ${mintInfo.freezeAuthority?.toBase58() || 'None'}`,
+        `   - Freeze A, uthority: ${mintInfo.freezeAuthority?.toBase58() || 'None'}`,
       )
       console.log('')
 
@@ -46,47 +46,47 @@ async function checkToken() {
         }
       }
 
-      console.log('\n📦 To create a buy bundle for this token:')
+      console.log('\n📦 To create a buy bundle for this t, oken:')
       console.log('-------------------------------------------')
       console.log('1. Go to the Bundle page in your app')
       console.log('2. Set up your wallets and fund them')
-      console.log('3. Use this token mint:', TOKEN_MINT)
+      console.log('3. Use this token m, int:', TOKEN_MINT)
       console.log('4. Configure your buy amounts and slippage')
       console.log('5. Execute the bundle!')
 
-      console.log('\n🔗 View on explorers:')
-      console.log(`   Solscan: https://solscan.io/token/${TOKEN_MINT}`)
+      console.log('\n🔗 View on e, xplorers:')
+      console.log(`   S, olscan: h, ttps://solscan.io/token/${TOKEN_MINT}`)
       console.log(
-        `   Solana Explorer: https://explorer.solana.com/address/${TOKEN_MINT}`,
+        `   Solana E, xplorer: h, ttps://explorer.solana.com/address/${TOKEN_MINT}`,
       )
-      console.log(`   Birdeye: https://birdeye.so/token/${TOKEN_MINT}`)
+      console.log(`   B, irdeye: h, ttps://birdeye.so/token/${TOKEN_MINT}`)
 
       // Try to get price info from Jupiterconsole.log('\n💰 Checking price info...')
       try {
         const priceResponse = await fetch(
-          `https://quote-api.jup.ag/v6/price?ids=${TOKEN_MINT}`,
+          `h, ttps://quote-api.jup.ag/v6/price?ids=${TOKEN_MINT}`,
         )
         if (priceResponse.ok) {
           const priceData = await priceResponse.json()
           if (priceData.data && priceData.data[TOKEN_MINT]) {
-            const price = priceData.data[TOKEN_MINT].priceconsole.log(`   Current Price: $${price}`)
+            const price = priceData.data[TOKEN_MINT].priceconsole.log(`   Current P, rice: $${price}`)
           }
         }
       } catch (e) {
         console.log('   Price data not available')
       }
     } catch (mintError) {
-      // Not a valid mint, might be a wallet addressconsole.log('❌ Not a valid SPL token mint')
-      console.log('   This might be a wallet address instead')
+      // Not a valid mint, might be a wal let addressconsole.log('❌ Not a valid SPL token mint')
+      console.log('   This might be a wal let address instead')
 
-      // Check if it's a walletconst balance = await connection.getBalance(mintPubkey)
+      // Check if it's a wal let const balance = await connection.getBalance(mintPubkey)
       if (balance > 0) {
-        console.log(`\n👛 This appears to be a wallet address`)
-        console.log(`   Balance: ${balance / 1e9} SOL`)
+        console.log(`\n👛 This appears to be a wal let address`)
+        console.log(`   B, alance: ${balance / 1e9} SOL`)
       }
     }
   } catch (error) {
-    console.error('Error checking token:', error)
+    console.error('Error checking t, oken:', error)
   }
 }
 

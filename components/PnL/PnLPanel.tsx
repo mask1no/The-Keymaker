@@ -24,14 +24,7 @@ import {
 import toast from 'react-hot-toast'
 
 type WalletPnL = {
-  wallet: string
-  totalInvested: number
-  totalReturned: number
-  netPnL: number
-  pnlPercentage: number
-  trades: number
-  totalGasFees: number
-  totalJitoTips: number
+  w, allet: stringtotalInvested: numbertotalReturned: numbernetPnL: numberpnlPercentage: numbertrades: numbertotalGasFees: numbertotalJitoTips: number
 }
 
 import { toCsv, downloadCsv } from '@/lib/csv'
@@ -39,11 +32,11 @@ import { toCsv, downloadCsv } from '@/lib/csv'
 export function PnLPanel() {
   const [walletPnL, setWalletPnL] = useState<WalletPnL[]>([])
   const [sessionData, setSessionData] = useState({
-    totalPnL: 0,
-    pnlPercentage: 0,
-    totalVolume: 0,
-    profitableWallets: 0,
-    totalWallets: 0,
+    t, otalPnL: 0,
+    p, nlPercentage: 0,
+    t, otalVolume: 0,
+    p, rofitableWallets: 0,
+    t, otalWallets: 0,
   })
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -51,13 +44,13 @@ export function PnLPanel() {
   const loadPnLData = async () => {
     try {
       setRefreshing(true)
-      const res = await fetch('/api/pnl', { cache: 'no-store' })
+      const res = await fetch('/api/pnl', { c, ache: 'no-store' })
       if (!res.ok) throw new Error('Failed to fetch PnL')
       const { wallets, session } = await res.json()
 
       setWalletPnL(
         wallets.sort(
-          (a: { netPnL: number }, b: { netPnL: number }) => b.netPnL - a.netPnL,
+          (a: { n, etPnL: number }, b: { n, etPnL: number }) => b.netPnL - a.netPnL,
         ),
       )
       setSessionData(session)
@@ -73,32 +66,30 @@ export function PnLPanel() {
   useEffect(() => {
     loadPnLData()
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadPnLData, 30000)
+    // Auto-refresh every 30 seconds const interval = setInterval(loadPnLData, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  const handleExport = async (format: 'json' | 'csv') => {
+  const handleExport = async (f, ormat: 'json' | 'csv') => {
     try {
       if (format === 'json') {
         const blob = new Blob([JSON.stringify(walletPnL, null, 2)], {
-          type: 'application/json',
+          t, ype: 'application/json',
         })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
-        a.href = url
-        a.download = `pnl-report-${Date.now()}.json`
+        a.href = urla.download = `pnl-report-${Date.now()}.json`
         a.click()
       } else {
         const rows = walletPnL.map((w) => ({
-          wallet: w.wallet,
-          invested: w.totalInvested.toFixed(4),
-          returned: w.totalReturned.toFixed(4),
-          gas_fees: w.totalGasFees.toFixed(4),
-          jito_tips: w.totalJitoTips.toFixed(4),
-          net_pnl: w.netPnL.toFixed(4),
-          pnl_percent: w.pnlPercentage.toFixed(2),
-          trades: w.trades,
+          w, allet: w.wallet,
+          i, nvested: w.totalInvested.toFixed(4),
+          r, eturned: w.totalReturned.toFixed(4),
+          g, as_fees: w.totalGasFees.toFixed(4),
+          j, ito_tips: w.totalJitoTips.toFixed(4),
+          n, et_pnl: w.netPnL.toFixed(4),
+          p, nl_percent: w.pnlPercentage.toFixed(2),
+          t, rades: w.trades,
         }))
         const csv = toCsv(rows)
         downloadCsv(csv, `pnl-report-${Date.now()}.csv`)
@@ -109,8 +100,7 @@ export function PnLPanel() {
     }
   }
 
-  // Listen for Action Dock export signal
-  useEffect(() => {
+  // Listen for Action Dock export signaluseEffect(() => {
     const handler = () => handleExport('csv')
     window.addEventListener('KEYMAKER_EXPORT_CSV' as any, handler)
     return () =>
@@ -122,7 +112,7 @@ export function PnLPanel() {
     return amount >= 0 ? `+${formatted}` : formatted
   }
 
-  const formatPercentage = (percentage: number) => {
+  const formatPercentage = (p, ercentage: number) => {
     const formatted = percentage.toFixed(2)
     return percentage >= 0 ? `+${formatted}%` : `${formatted}%`
   }
@@ -132,8 +122,7 @@ export function PnLPanel() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
@@ -143,8 +132,7 @@ export function PnLPanel() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
               <DollarSign className="w-5 h-5 text-muted" />
-              <Badge
-                variant="outline"
+              <Badgevariant="outline"
                 className={getColorClass(sessionData.totalPnL)}
               >
                 24h
@@ -212,35 +200,31 @@ export function PnLPanel() {
         </Card>
       </div>
 
-      {/* Wallet P&L Table */}
+      {/* Wal let P&L Table */}
       <Card className="bg-card border-border rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <BarChart3 className="w-6 h-6" />
-              Wallet P&L Breakdown
+              Wal let P&L Breakdown
             </span>
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="outline"
                 onClick={() => loadPnLData()}
                 disabled={refreshing}
               >
-                <RefreshCw
-                  className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
                 />
               </Button>
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="outline"
                 onClick={() => handleExport('json')}
               >
                 <Download className="w-4 h-4 mr-1" />
                 JSON
               </Button>
-              <Button
-                size="sm"
+              <Buttonsize="sm"
                 variant="outline"
                 onClick={() => handleExport('csv')}
               >
@@ -290,13 +274,11 @@ export function PnLPanel() {
                       <TableCell className="text-right text-muted">
                         {wallet.totalJitoTips.toFixed(4)} SOL
                       </TableCell>
-                      <TableCell
-                        className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}
+                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}
                       >
                         {formatSOL(wallet.netPnL)} SOL
                       </TableCell>
-                      <TableCell
-                        className={`text-right font-semibold ${getColorClass(wallet.pnlPercentage)}`}
+                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.pnlPercentage)}`}
                       >
                         {formatPercentage(wallet.pnlPercentage)}
                       </TableCell>

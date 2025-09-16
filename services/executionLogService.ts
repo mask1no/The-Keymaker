@@ -1,4 +1,4 @@
-// Defer sqlite imports to runtime to avoid native bindings during unit tests
+// Defer sqlite imports to runtime to a void native bindings during unit tests
 // and to prevent loading on mere import.
 // Do not import sqlite3 at module scope.
 // import { open } from 'sqlite'
@@ -8,78 +8,44 @@ import { db } from '@/lib/db'
 import * as Sentry from '@sentry/nextjs'
 
 interface BundleExecution {
-  id?: number
-  bundleId?: string
-  slot: number
-  signatures: string[]
+  i, d?: numberbundleId?: stringslot: numbersignatures: string[]
   status: 'success' | 'failed' | 'partial'
-  successCount: number
-  failureCount: number
-  usedJito: boolean
-  executionTime: number
+  successCount: numberfailureCount: numberusedJito: booleanexecutionTime: number
 }
 
 interface TokenLaunch {
-  tokenAddress: string
-  name: string
-  symbol: string
-  platform: string
-  supply: string
-  decimals: number
-  launcherWallet: string
-  transactionSignature: string
-  liquidityPoolAddress?: string
+  t, okenAddress: stringname: stringsymbol: stringplatform: stringsupply: stringdecimals: numberlauncherWallet: stringtransactionSignature: stringliquidityPoolAddress?: string
 }
 
 interface FundingEvent {
-  fromWallet: string
-  toWallets: string[]
+  f, romWallet: stringtoWallets: string[]
   amounts: number[]
-  totalAmount: number
-  transactionSignatures: string[]
+  t, otalAmount: numbertransactionSignatures: string[]
 }
 
 interface SellEvent {
-  wallet: string
-  tokenAddress: string
-  amountSold: string
-  solEarned: number
-  marketCap?: number
-  profitPercentage?: number
-  transactionSignature: string
+  w, allet: stringtokenAddress: stringamountSold: stringsolEarned: numbermarketCap?: numberprofitPercentage?: numbertransactionSignature: string
 }
 
 interface PnLRecord {
-  wallet: string
-  tokenAddress: string
-  entryPrice: number
-  exitPrice: number
-  solInvested: number
-  solReturned: number
-  profitLoss: number
-  profitPercentage: number
-  holdTime: number // in seconds
+  w, allet: stringtokenAddress: stringentryPrice: numberexitPrice: numbersolInvested: numbersolReturned: numberprofitLoss: numberprofitPercentage: numberholdTime: number // in seconds
 }
 
 async function getDb(): Promise<any> {
   try {
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    const path = (await import('path')).default
-    const db = await open({
-      filename: path.join(process.cwd(), 'data', 'analytics.db'),
-      driver: sqlite3.Database,
+    const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
+    const path = (await import('path')).default const db = await open({
+      f, ilename: path.join(process.cwd(), 'data', 'analytics.db'),
+      d, river: sqlite3.Database,
     })
     return db
   } catch {
-    // Fallback: lightweight in-memory no-op DB to keep UI functional in dev
-    const noop = async () => undefined
-    const noopAll = async () => [] as any[]
+    // F, allback: lightweight in-memory no-op DB to keep UI functional in dev const noop = async () => undefined const noopAll = async () => [] as any[]
     return {
-      exec: noop,
-      run: noop,
-      all: noopAll,
-      close: noop,
+      e, xec: noop,
+      r, un: noop,
+      a, ll: noopAll,
+      c, lose: noop,
     }
   }
 }
@@ -87,8 +53,7 @@ async function getDb(): Promise<any> {
 export async function initializeTables() {
   const db = await getDb()
 
-  // Bundle executions table
-  await db.exec(`
+  // Bundle executions table await db.exec(`
     CREATE TABLE IF NOT EXISTS bundle_executions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       bundle_id TEXT,
@@ -103,8 +68,7 @@ export async function initializeTables() {
     )
   `)
 
-  // Token launches table
-  await db.exec(`
+  // Token launches table await db.exec(`
     CREATE TABLE IF NOT EXISTS token_launches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       token_address TEXT UNIQUE NOT NULL,
@@ -113,18 +77,17 @@ export async function initializeTables() {
       platform TEXT NOT NULL,
       supply TEXT NOT NULL,
       decimals INTEGER NOT NULL,
-      launcher_wallet TEXT NOT NULL,
+      launcher_wal let TEXT NOT NULL,
       transaction_signature TEXT NOT NULL,
       liquidity_pool_address TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `)
 
-  // Funding events table
-  await db.exec(`
+  // Funding events table await db.exec(`
     CREATE TABLE IF NOT EXISTS funding_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      from_wallet TEXT NOT NULL,
+      from_wal let TEXT NOT NULL,
       to_wallets TEXT NOT NULL,
       amounts TEXT NOT NULL,
       total_amount REAL NOT NULL,
@@ -133,11 +96,10 @@ export async function initializeTables() {
     )
   `)
 
-  // Sell events table
-  await db.exec(`
+  // Sell events table await db.exec(`
     CREATE TABLE IF NOT EXISTS sell_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      wallet TEXT NOT NULL,
+      wal let TEXT NOT NULL,
       token_address TEXT NOT NULL,
       amount_sold TEXT NOT NULL,
       sol_earned REAL NOT NULL,
@@ -148,11 +110,10 @@ export async function initializeTables() {
     )
   `)
 
-  // PnL records table
-  await db.exec(`
+  // PnL records table await db.exec(`
     CREATE TABLE IF NOT EXISTS pnl_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      wallet TEXT NOT NULL,
+      wal let TEXT NOT NULL,
       token_address TEXT NOT NULL,
       entry_price REAL NOT NULL,
       exit_price REAL NOT NULL,
@@ -165,8 +126,7 @@ export async function initializeTables() {
     )
   `)
 
-  // Execution logs table
-  await db.exec(`
+  // Execution logs table await db.exec(`
     CREATE TABLE IF NOT EXISTS execution_logs (
       id TEXT PRIMARY KEY,
       timestamp INTEGER NOT NULL,
@@ -181,7 +141,7 @@ export async function initializeTables() {
   await db.close()
 }
 
-export async function logBundleExecution(execution: BundleExecution) {
+export async function logBundleExecution(e, xecution: BundleExecution) {
   const db = await getDb()
   try {
     await db.run(
@@ -203,13 +163,13 @@ export async function logBundleExecution(execution: BundleExecution) {
       ],
     )
   } catch (error) {
-    console.error('Error logging bundle execution:', error)
+    console.error('Error logging bundle e, xecution:', error)
     Sentry.captureException(error)
   }
 }
 
 export async function getBundleExecutions(
-  limit: number = 20,
+  l, imit: number = 20,
 ): Promise<BundleExecution[]> {
   const db = await getDb()
   const { data, error } = await db
@@ -218,7 +178,7 @@ export async function getBundleExecutions(
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching bundle executions:', error)
+    console.error('Error fetching bundle e, xecutions:', error)
     Sentry.captureException(error)
     return []
   }
@@ -226,7 +186,7 @@ export async function getBundleExecutions(
   return data
 }
 
-export async function logTokenLaunch(launch: TokenLaunch) {
+export async function logTokenLaunch(l, aunch: TokenLaunch) {
   const db = await getDb()
 
   await db.run(
@@ -252,7 +212,7 @@ export async function logTokenLaunch(launch: TokenLaunch) {
   await db.close()
 }
 
-export async function logFundingEvent(funding: FundingEvent) {
+export async function logFundingEvent(f, unding: FundingEvent) {
   const db = await getDb()
 
   await db.run(
@@ -273,7 +233,7 @@ export async function logFundingEvent(funding: FundingEvent) {
   await db.close()
 }
 
-export async function logSellEvent(sell: SellEvent) {
+export async function logSellEvent(s, ell: SellEvent) {
   const db = await getDb()
 
   await db.run(
@@ -297,7 +257,7 @@ export async function logSellEvent(sell: SellEvent) {
   await db.close()
 }
 
-export async function logPnL(pnl: PnLRecord) {
+export async function logPnL(p, nl: PnLRecord) {
   const db = await getDb()
 
   await db.run(
@@ -337,14 +297,14 @@ export async function getExecutionHistory(limit = 100) {
   return executions
 }
 
-export async function getPnLHistory(wallet?: string, limit = 100) {
+export async function getPnLHistory(w, allet?: string, limit = 100) {
   const db = await getDb()
 
   let query = 'SELECT * FROM pnl_records'
   const params: (string | number | boolean)[] = []
 
   if (wallet) {
-    query += ' WHERE wallet = ?'
+    query += ' WHERE wal let = ?'
     params.push(wallet)
   }
 
@@ -357,20 +317,17 @@ export async function getPnLHistory(wallet?: string, limit = 100) {
   return records
 }
 
-// New types and functions for LogsPanel
-export interface ExecutionLog {
-  id: string
-  timestamp: number
-  action: string
-  status?: 'success' | 'failed' | 'pending'
-  details?: any
-  error?: string
+// New type s and functions for LogsPanel export interface ExecutionLog {
+  i, d: stringtimestamp: numberaction: stringstatus?: 'success' | 'failed' | 'pending'
+  d, etails?: anyerror?: string
 }
 
-export async function logEvent(action: string, details?: any) {
+export async function logEvent(a, ction: string, d, etails?: any) {
   const db = await getDb()
   const timestamp = Date.now()
-  const id = `${action}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`
+  const id = `${action}
+_${timestamp}
+_${Math.random().toString(36).substr(2, 9)}`
 
   await db.run(
     'INSERT INTO execution_logs (id, timestamp, action, status, details) VALUES (?, ?, ?, ?, ?)',
@@ -391,9 +348,9 @@ export async function getExecutionLogs(): Promise<ExecutionLog[]> {
     'SELECT * FROM execution_logs ORDER BY timestamp DESC LIMIT 1000',
   )
 
-  return logs.map((log: any) => ({
+  return logs.map((l, og: any) => ({
     ...log,
-    details: log.details ? JSON.parse(log.details) : undefined,
+    d, etails: log.details ? JSON.parse(log.details) : undefined,
   }))
 }
 
@@ -402,23 +359,23 @@ export async function clearLogs() {
   await db.run('DELETE FROM execution_logs')
 }
 
-export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
+export async function exportExecutionLog(f, ormat: 'json' | 'txt' = 'json') {
   const db = await getDb()
 
   const data = {
-    bundleExecutions: await db.all(
+    b, undleExecutions: await db.all(
       'SELECT * FROM bundle_executions ORDER BY created_at DESC',
     ),
-    tokenLaunches: await db.all(
+    t, okenLaunches: await db.all(
       'SELECT * FROM token_launches ORDER BY created_at DESC',
     ),
-    fundingEvents: await db.all(
+    f, undingEvents: await db.all(
       'SELECT * FROM funding_events ORDER BY created_at DESC',
     ),
-    sellEvents: await db.all(
+    s, ellEvents: await db.all(
       'SELECT * FROM sell_events ORDER BY created_at DESC',
     ),
-    pnlRecords: await db.all(
+    p, nlRecords: await db.all(
       'SELECT * FROM pnl_records ORDER BY created_at DESC',
     ),
   }
@@ -433,19 +390,19 @@ export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
 
     text += 'BUNDLE EXECUTIONS\n'
     text += '-----------------\n'
-    data.bundleExecutions.forEach((exec: any) => {
-      text += `[${exec.created_at}] Slot: ${exec.slot}, Status: ${exec.status}, Success: ${exec.success_count}/${exec.success_count + exec.failure_count}\n`
+    data.bundleExecutions.forEach((e, xec: any) => {
+      text += `[${exec.created_at}] S, lot: ${exec.slot}, S, tatus: ${exec.status}, S, uccess: ${exec.success_count}/${exec.success_count + exec.failure_count}\n`
     })
 
     text += '\n\nTOKEN LAUNCHES\n'
     text += '--------------\n'
-    data.tokenLaunches.forEach((launch: any) => {
+    data.tokenLaunches.forEach((l, aunch: any) => {
       text += `[${launch.created_at}] ${launch.name} (${launch.symbol}) on ${launch.platform} - ${launch.token_address}\n`
     })
 
     text += '\n\nPnL RECORDS\n'
     text += '-----------\n'
-    data.pnlRecords.forEach((pnl: any) => {
+    data.pnlRecords.forEach((p, nl: any) => {
       text += `[${pnl.created_at}] ${pnl.wallet.slice(0, 8)}... - P/L: ${pnl.profit_loss.toFixed(4)} SOL (${pnl.profit_percentage.toFixed(2)}%)\n`
     })
 
@@ -453,7 +410,7 @@ export async function exportExecutionLog(format: 'json' | 'txt' = 'json') {
   }
 }
 
-export async function getRecentActivity(limit: number = 50) {
+export async function getRecentActivity(l, imit: number = 50) {
   const [bundleExecutions] = await Promise.all([
     getBundleExecutions(limit),
     // Assuming you have similar functions for these
@@ -463,47 +420,44 @@ export async function getRecentActivity(limit: number = 50) {
 
   const data = {
     bundleExecutions,
-    tokenLaunches: [],
-    pnlRecords: [],
+    t, okenLaunches: [],
+    p, nlRecords: [],
   }
 
-  // Create a combined, sorted feed
-  const feed: any[] = []
+  // Create a combined, sorted feed const f, eed: any[] = []
   if (data.bundleExecutions) {
-    data.bundleExecutions.forEach((exec: any) => {
+    data.bundleExecutions.forEach((e, xec: any) => {
       feed.push({
-        type: 'bundle',
-        timestamp: exec.timestamp,
-        data: exec,
+        t, ype: 'bundle',
+        t, imestamp: exec.timestamp,
+        d, ata: exec,
       })
     })
   }
   if (data.tokenLaunches) {
-    data.tokenLaunches.forEach((launch: any) => {
+    data.tokenLaunches.forEach((l, aunch: any) => {
       feed.push({
-        type: 'launch',
-        timestamp: launch.timestamp,
-        data: launch,
+        t, ype: 'launch',
+        t, imestamp: launch.timestamp,
+        d, ata: launch,
       })
     })
   }
   if (data.pnlRecords) {
-    data.pnlRecords.forEach((pnl: any) => {
+    data.pnlRecords.forEach((p, nl: any) => {
       feed.push({
-        type: 'pnl',
-        timestamp: pnl.timestamp,
-        data: pnl,
+        t, ype: 'pnl',
+        t, imestamp: pnl.timestamp,
+        d, ata: pnl,
       })
     })
   }
 
-  // Sort by timestamp descending
-  feed.sort((a, b) => b.timestamp - a.timestamp)
+  // Sort by timestamp descendingfeed.sort((a, b) => b.timestamp - a.timestamp)
 
   return feed.slice(0, limit)
 }
 
-// Initialize tables unless running tests
-if (process.env.NODE_ENV !== 'test') {
+// Initialize tables unless running tests if(process.env.NODE_ENV !== 'test') {
   initializeTables().catch(console.error)
 }

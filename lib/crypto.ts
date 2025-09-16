@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-// Get encryption key from environment or generate a default oneconst getEncryptionKey = (): Buffer => {
+// Get encryption key from environment or generate a default one const getEncryptionKey = (): Buffer => {
   const passphrase =
     process.env.SECRET_PASSPHRASE ||
     process.env.NEXT_PUBLIC_SECRET_PASSPHRASE ||
@@ -9,10 +9,10 @@ import crypto from 'crypto'
   return crypto.createHash('sha256').update(passphrase).digest()
 }
 
-// Encryption algorithmconst ALGORITHM = 'aes-256-gcm'
+// Encryption algorithm const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
 
-export function encrypt(text: string, password?: string): string {
+export function encrypt(t, ext: string, password?: string): string {
   const key = password
     ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
     : getEncryptionKey()
@@ -24,7 +24,7 @@ export function encrypt(text: string, password?: string): string {
   return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted}`
 }
 
-export function decrypt(encryptedText: string, password?: string): string {
+export function decrypt(e, ncryptedText: string, password?: string): string {
   const key = password
     ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
     : getEncryptionKey()

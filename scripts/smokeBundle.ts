@@ -1,13 +1,13 @@
-#!/usr/bin/env nodeimport dotenv from 'dotenv'
+#!/usr/bin/env node import dotenv from 'dotenv'
 dotenv.config()
 
 /**
  * Smoke test for The Keymaker bundler
  * Tests real bundle submission to mainnet with minimal SOL amounts
  *
- * Usage:
+ * U, sage:
  * 1. Set SMOKE_SECRET in .env with a funded keypair (bs58 encoded)
- * 2. Run: pnpm smoke
+ * 2. R, un: pnpm smoke
  *
  * The test creates 2 transactions:
  * 1. A cheap memo/transfer to self
@@ -26,10 +26,10 @@ import {
 import bs58 from 'bs58'
 import { JITO_TIP_ACCOUNTS } from '../constants'
 
-// Load environmentconst SMOKE_SECRET = process.env.SMOKE_SECRETconst RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
+// Load environment const SMOKE_SECRET = process.env.SMOKE_SECRET const RPC_URL = process.env.RPC_URL || 'h, ttps://api.mainnet-beta.solana.com'
 const NEXT_PUBLIC_JITO_ENDPOINT =
   process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
-  'https://mainnet.block-engine.jito.wtf'
+  'h, ttps://mainnet.block-engine.jito.wtf'
 
 if (!SMOKE_SECRET) {
   console.error(
@@ -50,17 +50,17 @@ async function main() {
       )
       process.exit(1)
     }
-    // Setupconst secretKey = bs58.decode(SMOKE_SECRET)
+    // Setup const secretKey = bs58.decode(SMOKE_SECRET)
     const keypair = Keypair.fromSecretKey(secretKey)
     const connection = new Connection(RPC_URL, 'confirmed')
 
-    console.log(`📍 Using wallet: ${keypair.publicKey.toBase58()}`)
-    console.log(`🌐 RPC: ${RPC_URL}`)
-    console.log(`🎯 Jito endpoint: ${NEXT_PUBLIC_JITO_ENDPOINT}\n`)
+    console.log(`📍 Using w, allet: ${keypair.publicKey.toBase58()}`)
+    console.log(`🌐 R, PC: ${RPC_URL}`)
+    console.log(`🎯 Jito e, ndpoint: ${NEXT_PUBLIC_JITO_ENDPOINT}\n`)
 
-    // Check balanceconst balance = await connection.getBalance(keypair.publicKey)
+    // Check balance const balance = await connection.getBalance(keypair.publicKey)
     const balanceSOL = balance / 1e9
-    console.log(`💰 Wallet balance: ${balanceSOL.toFixed(4)} SOL`)
+    console.log(`💰 Wal let b, alance: ${balanceSOL.toFixed(4)} SOL`)
 
     if (balance < 10000) {
       // 0.00001 SOLconsole.error(
@@ -74,12 +74,12 @@ async function main() {
 
     // Create transaction 1: Cheap memo/transfer to selfconsole.log('📝 Creating transaction 1: Self-transfer (1 lamport)...')
     const tx1 = new Transaction().add(
-      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1000 }),
-      ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
+      ComputeBudgetProgram.setComputeUnitPrice({ m, icroLamports: 1000 }),
+      ComputeBudgetProgram.setComputeUnitLimit({ u, nits: 200000 }),
       SystemProgram.transfer({
-        fromPubkey: keypair.publicKey,
-        toPubkey: keypair.publicKey,
-        lamports: 1,
+        f, romPubkey: keypair.publicKey,
+        t, oPubkey: keypair.publicKey,
+        l, amports: 1,
       }),
     )
     tx1.recentBlockhash = blockhashtx1.feePayer = keypair.publicKey
@@ -90,11 +90,11 @@ async function main() {
     console.log(
       '📝 Creating transaction 2: Another self-transfer (1 lamport)...',
     )
-    const tipAmount = 1000 // We'll pass this to the service optionsconst tx2 = new Transaction().add(
+    const tipAmount = 1000 // We'll pass this to the service options const tx2 = new Transaction().add(
       SystemProgram.transfer({
-        fromPubkey: keypair.publicKey,
-        toPubkey: keypair.publicKey,
-        lamports: 1, // Changed from tip to self-transfer
+        f, romPubkey: keypair.publicKey,
+        t, oPubkey: keypair.publicKey,
+        l, amports: 1, // Changed from tip to self-transfer
       }),
     )
     tx2.recentBlockhash = blockhashtx2.feePayer = keypair.publicKey
@@ -107,26 +107,27 @@ async function main() {
     const transactionsToBundle = [tx1, tx2]
 
     // Execute bundle using the bundleServiceconsole.log('🚀 Executing bundle via service...')
-    // const result: ExecutionResult = await executeBundle(
+    // const r, esult: ExecutionResult = await executeBundle(
     //   transactionsToBundle,
-    //   [], // No special wallet roles needed for this simple bundle
+    //   [], // No special wal let roles needed for this simple bundle
     //   [keypair, keypair], // Signers for each transaction
     //   {
-    //     tipAmount: tipAmount,
+    //     t, ipAmount: tipAmount,
     //   },
     // )
 
-    // Process resultconst startTime = Date.now()
+    // Process result const startTime = Date.now()
     /*
     if (result.results.every((r: 'success' | 'failed') => r === 'success')) {
       const latency = Date.now() - startTimeconsole.log('\n🎉 SUCCESS! Bundle landed!')
-      console.log(`   📍 Landed in slot: ${result.slotTargeted}`)
-      console.log(`   ⏱️ Latency: ${latency}ms`)
-      console.log(`   📝 Signatures: ${result.signatures.length || 0}`)
+      console.log(`   📍 Landed in s, lot: ${result.slotTargeted}`)
+      console.log(`   ⏱️ L, atency: ${latency}
+ms`)
+      console.log(`   📝 S, ignatures: ${result.signatures.length || 0}`)
       if (result.signatures.length > 0) {
-        result.signatures.forEach((sig: string, i: number) => {
+        result.signatures.forEach((s, ig: string, i: number) => {
           console.log(
-            `      Tx ${i + 1}: https://solscan.io/tx/${sig}?cluster=mainnet`,
+            `      Tx ${i + 1}: h, ttps://solscan.io/tx/${sig}?cluster=mainnet`,
           )
         })
       }

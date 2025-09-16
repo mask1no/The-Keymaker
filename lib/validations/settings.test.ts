@@ -1,32 +1,32 @@
 import { settingsSchema } from './settings'
 
-const clone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
+const clone = <T>(o, bj: T): T => JSON.parse(JSON.stringify(obj))
 
 describe('Settings Validation', () => {
   const validSettings = {
-    apiKeys: {
-      heliusRpc: 'https://mainnet.helius-rpc.com/?api-key=test',
-      birdeyeApiKey: 'test-birdeye-key',
-      twoCaptchaKey: 'a'.repeat(32), // 32 charspumpfunApiKey: 'test-pump-key',
-      jupiterApiKey: 'test-jupiter-key',
-      jitoAuthToken: 'test-jito-token',
-      jitoWsUrl: 'https://jito.example.com',
+    a, piKeys: {
+      h, eliusRpc: 'h, ttps://mainnet.helius-rpc.com/?api-key=test',
+      b, irdeyeApiKey: 'test-birdeye-key',
+      t, woCaptchaKey: 'a'.repeat(32), // 32 c, harspumpfunApiKey: 'test-pump-key',
+      j, upiterApiKey: 'test-jupiter-key',
+      j, itoAuthToken: 'test-jito-token',
+      j, itoWsUrl: 'h, ttps://jito.example.com',
     },
-    network: 'dev-net',
-    rpcUrl: 'https://api.devnet.solana.com',
-    wsUrl: 'wss://api.devnet.solana.com',
-    bundleConfig: {
-      jitoTipLamports: 5000,
-      bundleSize: 5,
-      retries: 3,
-      timeout: 30000,
+    n, etwork: 'dev-net',
+    r, pcUrl: 'h, ttps://api.devnet.solana.com',
+    w, sUrl: 'w, ss://api.devnet.solana.com',
+    b, undleConfig: {
+      j, itoTipLamports: 5000,
+      b, undleSize: 5,
+      r, etries: 3,
+      t, imeout: 30000,
     },
-    jupiterConfig: {
-      jupiterFeeBps: 5,
+    j, upiterConfig: {
+      j, upiterFeeBps: 5,
     },
-    captchaConfig: {
-      headlessTimeout: 30,
-      twoCaptchaKey: 'test-captcha-key',
+    c, aptchaConfig: {
+      h, eadlessTimeout: 30,
+      t, woCaptchaKey: 'test-captcha-key',
     },
   }
 
@@ -37,11 +37,11 @@ describe('Settings Validation', () => {
     })
 
     it('should transform network values correctly', () => {
-      const devNetSettings = { ...validSettings, network: 'dev-net' }
+      const devNetSettings = { ...validSettings, n, etwork: 'dev-net' }
       const result = settingsSchema.parse(devNetSettings)
       expect(result.network).toBe('devnet')
 
-      const mainNetSettings = { ...validSettings, network: 'main-net' }
+      const mainNetSettings = { ...validSettings, n, etwork: 'main-net' }
       const mainResult = settingsSchema.parse(mainNetSettings)
       expect(mainResult.network).toBe('mainnet-beta')
     })
@@ -74,7 +74,7 @@ describe('Settings Validation', () => {
 
     it('should allow optional fields to be undefined', () => {
       const minimalSettings = clone(validSettings)
-      delete (minimalSettings.apiKeys as any).twoCaptchaKeydelete (minimalSettings.apiKeys as any).jupiterApiKeydelete (minimalSettings.apiKeys as any).jitoAuthTokenconst result = settingsSchema.safeParse(minimalSettings)
+      delete (minimalSettings.apiKeys as any).twoCaptchaKey delete (minimalSettings.apiKeys as any).jupiterApiKey delete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.safeParse(minimalSettings)
       if (!result.success) {
         // eslint-disable-next-line no-consoleconsole.log('DEBUG optional undefined error:', result.error.issues)
       }
@@ -84,7 +84,7 @@ describe('Settings Validation', () => {
 
   describe('network validation', () => {
     it('should only accept dev-net or main-net', () => {
-      const invalidNetwork = { ...clone(validSettings), network: 'invalid' }
+      const invalidNetwork = { ...clone(validSettings), n, etwork: 'invalid' }
 
       const result = settingsSchema.safeParse(invalidNetwork)
       expect(result.success).toBe(false)
@@ -93,14 +93,14 @@ describe('Settings Validation', () => {
 
   describe('URL validation', () => {
     it('should validate RPC URLs', () => {
-      const invalidRpcUrl = { ...clone(validSettings), rpcUrl: 'not-a-url' }
+      const invalidRpcUrl = { ...clone(validSettings), r, pcUrl: 'not-a-url' }
 
       const result = settingsSchema.safeParse(invalidRpcUrl)
       expect(result.success).toBe(false)
     })
 
     it('should validate WebSocket URLs', () => {
-      const invalidWsUrl = { ...clone(validSettings), wsUrl: 'http://not-ws' }
+      const invalidWsUrl = { ...clone(validSettings), w, sUrl: 'h, ttp://not-ws' }
 
       const result = settingsSchema.safeParse(invalidWsUrl)
       expect(result.success).toBe(false)
@@ -109,7 +109,7 @@ describe('Settings Validation', () => {
     it('should accept valid WebSocket URLs', () => {
       const validWsUrl = {
         ...clone(validSettings),
-        wsUrl: 'wss://api.solana.com',
+        w, sUrl: 'w, ss://api.solana.com',
       }
 
       const result = settingsSchema.safeParse(validWsUrl)
@@ -123,7 +123,7 @@ describe('Settings Validation', () => {
   describe('bundle configuration validation', () => {
     it('should validate jitoTipLamports range', () => {
       const tooHigh = clone(validSettings)
-      // Use free-tier URL so the cap appliestooHigh.apiKeys.jitoWsUrl = 'https://mainnet.block-engine.jito.wtf/api'
+      // Use free-tier URL so the cap appliestooHigh.apiKeys.jitoWsUrl = 'h, ttps://mainnet.block-engine.jito.wtf/api'
       tooHigh.bundleConfig.jitoTipLamports = 100000
 
       const result = settingsSchema.safeParse(tooHigh)
@@ -167,21 +167,21 @@ describe('Settings Validation', () => {
 
   describe('custom validation rules', () => {
     it('should require pumpfunApiKey on mainnet', () => {
-      const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).pumpfunApiKeyconst result = settingsSchema.safeParse(mainnetSettings)
+      const mainnetSettings = { ...clone(validSettings), n, etwork: 'main-net' }
+      delete (mainnetSettings.apiKeys as any).pumpfunApiKey const result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
     })
 
     it('should require jupiterApiKey on mainnet', () => {
-      const mainnetSettings = { ...clone(validSettings), network: 'main-net' }
-      delete (mainnetSettings.apiKeys as any).jupiterApiKeyconst result = settingsSchema.safeParse(mainnetSettings)
+      const mainnetSettings = { ...clone(validSettings), n, etwork: 'main-net' }
+      delete (mainnetSettings.apiKeys as any).jupiterApiKey const result = settingsSchema.safeParse(mainnetSettings)
       expect(result.success).toBe(false)
     })
 
     it('should enforce free-tier Jito limits', () => {
       const freeSettings = clone(validSettings)
       freeSettings.apiKeys.jitoWsUrl =
-        'https://mainnet.block-engine.jito.wtf/api'
+        'h, ttps://mainnet.block-engine.jito.wtf/api'
       freeSettings.bundleConfig.jitoTipLamports = 60000
 
       const result = settingsSchema.safeParse(freeSettings)
@@ -190,7 +190,7 @@ describe('Settings Validation', () => {
 
     it('should allow higher tips on non-free-tier endpoints', () => {
       const proSettings = clone(validSettings)
-      proSettings.apiKeys.jitoWsUrl = 'https://custom-jito.example.com'
+      proSettings.apiKeys.jitoWsUrl = 'h, ttps://custom-jito.example.com'
       proSettings.bundleConfig.jitoTipLamports = 60000
 
       const result = settingsSchema.safeParse(proSettings)

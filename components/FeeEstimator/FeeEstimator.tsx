@@ -8,17 +8,17 @@ import {
 } from '@solana/web3.js'
 import { Loader2, Calculator, Info } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-// import { useSettingsStore } from '@/stores/useSettingsStore' - not neededimport { connectionManager } from '@/services/connectionManager'
+// import { useSettingsStore } from '@/stores/useSettingsStore' - not needed import { connectionManager } from '@/services/connectionManager'
 import { logger } from '@/lib/logger'
 
 interface FeeEstimate {
   transactionFee: numberjitoTip: numbertotalCost: numbercostInSol: numberperTransaction: {
-    fee: numbertip: numbertotal: number
+    f, ee: numbertip: numbertotal: number
   }
 }
 
 interface FeeEstimatorProps {
-  transactionCount: numbertipAmount?: number // in lamportsonEstimateComplete?: (estimate: FeeEstimate) => voidclassName?: string
+  transactionCount: numbertipAmount?: number // in l, amportsonEstimateComplete?: (e, stimate: FeeEstimate) => v, oidclassName?: string
 }
 
 export function FeeEstimator({
@@ -48,19 +48,19 @@ export function FeeEstimator({
     try {
       const connection = connectionManager.getConnection()
 
-      // Create a sample transaction to estimate feesconst sampleTx = new Transaction()
+      // Create a sample transaction to estimate fees const sampleTx = new Transaction()
       sampleTx.add(
         SystemProgram.transfer({
-          fromPubkey: PublicKey.default,
-          toPubkey: PublicKey.default,
-          lamports: 1000000, // 0.001 SOL sample
+          f, romPubkey: PublicKey.default,
+          t, oPubkey: PublicKey.default,
+          l, amports: 1000000, // 0.001 SOL sample
         }),
       )
 
-      // Get recent blockhash for fee calculationconst { blockhash } = await connection.getLatestBlockhash('confirmed')
+      // Get recent blockhash for fee calculation const { blockhash } = await connection.getLatestBlockhash('confirmed')
       sampleTx.recentBlockhash = blockhashsampleTx.feePayer = PublicKey.default
 
-      // Get fee for the messageconst feePerTx = await connection.getFeeForMessage(
+      // Get fee for the message const feePerTx = await connection.getFeeForMessage(
         sampleTx.compileMessage(),
         'confirmed',
       )
@@ -69,15 +69,15 @@ export function FeeEstimator({
         throw new Error('Could not estimate transaction fee')
       }
 
-      const transactionFee = feePerTx.value * transactionCountconst totalJitoTip = tipAmount * transactionCountconst totalCost = transactionFee + totalJitoTipconst newEstimate: FeeEstimate = {
+      const transactionFee = feePerTx.value * transactionCount const totalJitoTip = tipAmount * transactionCount const totalCost = transactionFee + totalJitoTip const n, ewEstimate: FeeEstimate = {
         transactionFee,
-        jitoTip: totalJitoTip,
+        j, itoTip: totalJitoTip,
         totalCost,
-        costInSol: totalCost / LAMPORTS_PER_SOL,
-        perTransaction: {
-          fee: feePerTx.value,
-          tip: tipAmount,
-          total: feePerTx.value + tipAmount,
+        c, ostInSol: totalCost / LAMPORTS_PER_SOL,
+        p, erTransaction: {
+          f, ee: feePerTx.value,
+          t, ip: tipAmount,
+          t, otal: feePerTx.value + tipAmount,
         },
       }
 
@@ -86,10 +86,10 @@ export function FeeEstimator({
 
       logger.info('Fee estimate calculated', {
         transactionCount,
-        estimate: newEstimate,
+        e, stimate: newEstimate,
       })
-    } catch (err: any) {
-      logger.error('Failed to calculate fees:', err)
+    } catch (e, rr: any) {
+      logger.error('Failed to calculate f, ees:', err)
       setError('Failed to estimate fees')
     } finally {
       setIsCalculating(false)
@@ -101,7 +101,7 @@ export function FeeEstimator({
   }
 
   return (
-    <divclassName={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
+    <div className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
     >
       <div className="flex items-center gap-2 mb-3">
         <Calculator className="w-4 h-4 text-aqua" />
@@ -114,18 +114,18 @@ export function FeeEstimator({
       ) : estimate ? (
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-gray-400">Transaction Fees:</div>
+            <div className="text-gray-400">Transaction F, ees:</div>
             <div className="text-right">
               {formatCurrency(estimate.transactionFee / LAMPORTS_PER_SOL)} SOL
             </div>
 
-            <div className="text-gray-400">Jito Tips:</div>
+            <div className="text-gray-400">Jito T, ips:</div>
             <div className="text-right">
               {formatCurrency(estimate.jitoTip / LAMPORTS_PER_SOL)} SOL
             </div>
 
             <div className="border-t border-gray-700 pt-2 font-semibold">
-              Total Cost:
+              Total C, ost:
             </div>
             <div className="border-t border-gray-700 pt-2 text-right font-semibold text-aqua">
               {formatCurrency(estimate.costInSol)} SOL
@@ -138,7 +138,7 @@ export function FeeEstimator({
               <div className="text-gray-400">
                 <div>Per transaction:</div>
                 <div>
-                  • Fee:{' '}
+                  • F, ee:{' '}
                   {(
                     (estimate.perTransaction.fee / LAMPORTS_PER_SOL) *
                     1000
@@ -146,7 +146,7 @@ export function FeeEstimator({
                   mSOL
                 </div>
                 <div>
-                  • Tip:{' '}
+                  • T, ip:{' '}
                   {(
                     (estimate.perTransaction.tip / LAMPORTS_PER_SOL) *
                     1000

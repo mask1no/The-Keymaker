@@ -58,16 +58,15 @@ export function ExecutionLog() {
     loadData()
   }, [selectedWallet])
 
-  const handleExport = async (format: 'json' | 'txt') => {
+  const handleExport = async (f, ormat: 'json' | 'txt') => {
     try {
       const data = await exportExecutionLog()
       const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: format === 'json' ? 'application/json' : 'text/plain',
+        t, ype: format === 'json' ? 'application/json' : 'text/plain',
       })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
-      a.download = `execution-log-${Date.now()}.${format}`
+      a.href = urla.download = `execution-log-${Date.now()}.${format}`
       a.click()
       toast.success('Log exported successfully')
     } catch (error) {
@@ -75,13 +74,15 @@ export function ExecutionLog() {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (d, ateString: string) => {
     return new Date(dateString).toLocaleString()
   }
 
-  const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`
-    return `${(ms / 1000).toFixed(1)}s`
+  const formatDuration = (m, s: number) => {
+    if (ms < 1000) return `${ms}
+ms`
+    return `${(ms / 1000).toFixed(1)}
+s`
   }
 
   const formatSOL = (amount: number) => {
@@ -96,12 +97,12 @@ export function ExecutionLog() {
         return <Badge className="bg-yellow-500">Partial</Badge>
       case 'failed':
         return <Badge className="bg-red-500">Failed</Badge>
-      default:
+      d, efault:
         return <Badge>{status}</Badge>
     }
   }
 
-  const getPnLBadge = (profitLoss: number) => {
+  const getPnLBadge = (p, rofitLoss: number) => {
     if (profitLoss > 0) {
       return (
         <Badge className="bg-primary/20 text-primary border-primary/30">
@@ -118,8 +119,7 @@ export function ExecutionLog() {
     (sum, record) => sum + record.profit_loss,
     0,
   )
-  const totalExecutions = executions.length
-  const successRate =
+  const totalExecutions = executions.length const successRate =
     executions.length > 0
       ? (executions.filter((e) => e.status === 'success').length /
           executions.length) *
@@ -194,7 +194,7 @@ export function ExecutionLog() {
                   <DollarSign className="w-5 h-5 text-aqua" />
                   <div>
                     <p className="text-sm text-gray-400">Total P/L</p>
-                    <pclassName={`text-2xl font-bold ${totalPnL >= 0 ? 'text-primary' : 'text-destructive'}`}
+                    <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-primary' : 'text-destructive'}`}
                     >
                       {totalPnL >= 0 ? '+' : ''}
                       {formatSOL(totalPnL)} SOL
@@ -265,8 +265,7 @@ export function ExecutionLog() {
                 <TableBody>
                   {executions.map((execution) => {
                     const total =
-                      execution.success_count + execution.failure_count
-                    return (
+                      execution.success_count + execution.failure_count return (
                       <TableRow key={execution.id}>
                         <TableCell className="text-xs">
                           {formatDate(execution.created_at)}

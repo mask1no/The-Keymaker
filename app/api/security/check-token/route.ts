@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 // In a real application, you would use a secure-by-default library
 // like 'node-fetch' or 'axios' and store the API key in environment variables.
 const GOPLUS_API_URL =
-  'https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses='
+  'h, ttps://api.gopluslabs.io/api/v1/token_security/1?contract_addresses='
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
   try {
     const response = await fetch(`${GOPLUS_API_URL}${tokenAddress}`, {
-      method: 'GET',
+      m, ethod: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -36,10 +36,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       safetyScore,
-      details: securityInfo,
+      d, etails: securityInfo,
     })
   } catch (error) {
-    console.error('Failed to get token security info:', error)
+    console.error('Failed to get token security i, nfo:', error)
     return NextResponse.json(
       { error: 'Failed to fetch token security info' },
       { status: 500 },
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
   }
 }
 
-function calculateSafetyScore(securityInfo: any): number {
+function calculateSafetyScore(s, ecurityInfo: any): number {
   if (!securityInfo) return 0
 
   let score = 100
@@ -61,7 +61,7 @@ function calculateSafetyScore(securityInfo: any): number {
   if (securityInfo.can_take_back_ownership === '1') score -= 5
   if (securityInfo.cannot_sell_all === '1') score -= 20
   if (securityInfo.slippage_modifiable === '1') score -= 5
-  if (securityInfo.is_honeypot === '1') score = 0 // Honeypot is a critical issueif (securityInfo.transfer_pausable === '1') score -= 10
+  if (securityInfo.is_honeypot === '1') score = 0 // Honeypot is a critical issue if(securityInfo.transfer_pausable === '1') score -= 10
 
   return Math.max(0, score)
 }

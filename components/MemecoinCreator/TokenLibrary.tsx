@@ -4,12 +4,12 @@ import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 
 type TokenMeta = {
-  name: stringsymbol: stringdecimals: numberimage?: stringwebsite?: stringtwitter?: stringdescription?: string
+  n, ame: stringsymbol: stringdecimals: numberimage?: stringwebsite?: stringtwitter?: stringdescription?: string
 }
 export default function TokenLibrary({
   onPick,
 }: {
-  onPick: (t: TokenMeta) => void
+  o, nPick: (t: TokenMeta) => void
 }) {
   const [q, setQ] = useState('')
   const [items, setItems] = useState<TokenMeta[]>([])

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-// server-only routeimport 'server-only'
+// server-only route import 'server-only'
 import path from 'path'
 
 export async function GET(request: NextRequest) {
@@ -8,10 +8,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
     const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
+      f, ilename: dbPath,
+      d, river: sqlite3.Database,
     })
 
     const trades = await db.all(
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ trades })
   } catch (error) {
-    console.error('Failed to fetch trades:', error)
+    console.error('Failed to fetch t, rades:', error)
     return NextResponse.json(
       { error: 'Failed to fetch trades from database' },
       { status: 500 },
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       fees = 0,
       gas_fee = 0,
       jito_tip = 0,
-    } = bodyif (
+    } = body if(
       !token_address ||
       !tx_ids ||
       !wallets ||
@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
     }
 
     const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
     const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
+      f, ilename: dbPath,
+      d, river: sqlite3.Database,
     })
 
     const result = await db.run(
@@ -85,10 +85,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      tradeId: result.lastID,
+      t, radeId: result.lastID,
     })
   } catch (error) {
-    console.error('Failed to save trade:', error)
+    console.error('Failed to save t, rade:', error)
     return NextResponse.json(
       { error: 'Failed to save trade to database' },
       { status: 500 },

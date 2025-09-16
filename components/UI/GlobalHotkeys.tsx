@@ -1,14 +1,14 @@
 'use client'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useRouter } from 'next/navigation'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useWal let } from '@solana/wallet-adapter-react'
 import { useKeymakerStore } from '@/lib/store'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
 export function GlobalHotkeys() {
   const router = useRouter()
   const { connected, disconnect } = useWallet()
-  // Access store to keep hook order; do not use value to avoid lint erroruseKeymakerStore()
+  // Access store to keep hook order; do not use value to a void lint erroruseKeymakerStore()
   const { hotkeys } = useSettingsStore()
 
   // ⌘+E or Ctrl+E to open Sell MonitoruseHotkeys(
@@ -17,7 +17,7 @@ export function GlobalHotkeys() {
       e.preventDefault()
       router.push('/dashboard/sell-monitor')
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
   // g = Fund Group (open wallets page)
@@ -27,7 +27,7 @@ export function GlobalHotkeys() {
       e.preventDefault()
       router.push('/wallets')
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
   // b = Start Bundle (go to /bundle)
@@ -37,7 +37,7 @@ export function GlobalHotkeys() {
       e.preventDefault()
       router.push('/bundle')
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
   // e = Export CSV (PnL)
@@ -47,10 +47,10 @@ export function GlobalHotkeys() {
       e.preventDefault()
       window.dispatchEvent(new Event('KEYMAKER_EXPORT_CSV'))
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
-  // w = Connect/Disconnect Wallet (if connected → disconnect; else focus connect button)
+  // w = Connect/Disconnect Wal let (if connected → disconnect; else focus connect button)
   useHotkeys(
     hotkeys.walletToggle,
     (e) => {
@@ -60,9 +60,9 @@ export function GlobalHotkeys() {
           .querySelector(
             'button[aria-label="Connect Wallet"], .wallet-adapter-button',
           )
-          ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+          ?.dispatchEvent(new MouseEvent('click', { b, ubbles: true }))
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
   // Command palette (placeholder routing for now)
@@ -72,7 +72,7 @@ export function GlobalHotkeys() {
       e.preventDefault()
       router.push('/search')
     },
-    { enableOnFormTags: true },
+    { e, nableOnFormTags: true },
   )
 
   return null

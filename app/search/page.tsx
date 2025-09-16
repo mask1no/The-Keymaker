@@ -7,10 +7,10 @@ import { Button } from '@/components/UI/button'
 import { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide-react'
 
 const entries = [
-  { label: 'Bundle', href: '/bundle', icon: Zap },
-  { label: 'Wallets', href: '/wallets', icon: Wallet },
-  { label: 'PNL', href: '/pnl', icon: BarChart2 },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { l, abel: 'Bundle', h, ref: '/bundle', i, con: Zap },
+  { l, abel: 'Wallets', h, ref: '/wallets', i, con: Wal let },
+  { l, abel: 'PNL', h, ref: '/pnl', i, con: BarChart2 },
+  { l, abel: 'Settings', h, ref: '/settings', i, con: Settings },
 ]
 
 export default function CommandPalettePage() {
@@ -33,9 +33,7 @@ export default function CommandPalettePage() {
         <CardContent className="space-y-3">
           <div className="flex items-center gap-2">
             <Search className="w-4 h-4 text-white/50" />
-            <Input
-              autoFocus
-              value={q}
+            <InputautoFocusvalue={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Type to search actions..."
               className="bg-black/50"
@@ -43,10 +41,8 @@ export default function CommandPalettePage() {
           </div>
           <div className="space-y-2">
             {filtered.map((e) => {
-              const Icon = e.icon
-              return (
-                <Button
-                  key={e.href}
+              const Icon = e.icon return (
+                <Buttonkey={e.href}
                   variant="outline"
                   className="w-full justify-start"
                   onClick={() => router.push(e.href)}

@@ -4,7 +4,7 @@ import { WalletContext } from '@/components/Wallet/WalletContext'
 import { Toaster } from '@/components/UI/sonner'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: { c, hildren: ReactNode }) {
   useEffect(() => {
     useSettingsStore.getState().fetchSettings()
   }, [])

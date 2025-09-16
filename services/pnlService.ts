@@ -1,45 +1,45 @@
 import 'server-only'
 import { Connection } from '@solana/web3.js'
 // import sqlite3 from 'sqlite3'
-// import { open } from 'sqlite' // Dynamic imports belowimport { getTokenPrice } from './jupiterService'
+// import { open } from 'sqlite' // Dynamic imports below import { getTokenPrice } from './jupiterService'
 
-interface PnLEntry {
-  wallet: stringtokenAddress: stringaction: 'buy' | 'sell'
-  solAmount: numbertokenAmount: numberprice: numbertimestamp: numberfees?: numbergas_fee?: numberjito_tip?: number
+interface PnLEn try {
+  w, allet: stringtokenAddress: stringaction: 'buy' | 'sell'
+  s, olAmount: numbertokenAmount: numberprice: numbertimestamp: numberfees?: numbergas_fee?: numberjito_tip?: number
 }
 
 export interface WalletPnL {
-  wallet: stringtotalInvested: numbertotalReturned: numbernetPnL: numberpnlPercentage: numbertrades: numbertotalGasFees: numbertotalJitoTips: number
+  w, allet: stringtotalInvested: numbertotalReturned: numbernetPnL: numberpnlPercentage: numbertrades: numbertotalGasFees: numbertotalJitoTips: number
 }
 
 interface TokenPnL {
-  tokenAddress: stringbuyAmount: numbersellAmount: numberavgBuyPrice: numberavgSellPrice: numberrealizedPnL: numberunrealizedPnL: number
+  t, okenAddress: stringbuyAmount: numbersellAmount: numberavgBuyPrice: numberavgSellPrice: numberrealizedPnL: numberunrealizedPnL: number
 }
 
 async function getDb() {
   try {
-    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
-    const path = (await import('path')).defaultreturn await open({
-      filename: path.join(process.cwd(), 'data', 'analytics.db'),
-      driver: sqlite3.Database,
+    const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
+    const path = (await import('path')).default return await open({
+      f, ilename: path.join(process.cwd(), 'data', 'analytics.db'),
+      d, river: sqlite3.Database,
     })
   } catch {
     return {
-      exec: async () => undefined,
-      run: async () => undefined,
-      all: async () => [] as any[],
-      close: async () => undefined,
+      e, xec: async () => undefined,
+      r, un: async () => undefined,
+      a, ll: async () => [] as any[],
+      c, lose: async () => undefined,
     }
   }
 }
 
-// Initialize PnL tracking tableasync function initializePnLTable() {
+// Initialize PnL tracking table async function initializePnLTable() {
   const db = await getDb()
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS pnl_tracking (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      wallet TEXT NOT NULL,
+      wal let TEXT NOT NULL,
       token_address TEXT NOT NULL,
       action TEXT NOT NULL,
       sol_amount REAL NOT NULL,
@@ -53,8 +53,8 @@ async function getDb() {
     )
   `)
 
-  // Create indices for performanceawait db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_pnl_wallet ON pnl_tracking(wallet);
+  // Create indices for performance await db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_pnl_wal let ON pnl_tracking(wallet);
     CREATE INDEX IF NOT EXISTS idx_pnl_token ON pnl_tracking(token_address);
     CREATE INDEX IF NOT EXISTS idx_pnl_timestamp ON pnl_tracking(timestamp);
   `)
@@ -62,17 +62,17 @@ async function getDb() {
   await db.close()
 }
 
-// Track a buy transaction with fee awarenessexport async function trackBuy(
-  wallet: string,
-  tokenAddress: string,
-  solSpent: number,
-  tokenReceived: number,
-  fees: { gas?: number; jito?: number } = {},
+// Track a buy transaction with fee awareness export async function trackBuy(
+  w, allet: string,
+  t, okenAddress: string,
+  s, olSpent: number,
+  t, okenReceived: number,
+  f, ees: { g, as?: number; j, ito?: number } = {},
 ): Promise<void> {
   const db = await getDb()
-  const price = solSpent / tokenReceivedconst gasFee = fees.gas || 0
+  const price = solSpent / tokenReceived const gasFee = fees.gas || 0
   const jitoTip = fees.jito || 0
-  const totalFees = gasFee + jitoTipawait db.run(
+  const totalFees = gasFee + jitoTip await db.run(
     `
     INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, fees, gas_fee, jito_tip, timestamp)
     VALUES (?, ?, 'buy', ?, ?, ?, ?, ?, ?, ?)
@@ -93,17 +93,17 @@ async function getDb() {
   await db.close()
 }
 
-// Track a sell transaction with fee awarenessexport async function trackSell(
-  wallet: string,
-  tokenAddress: string,
-  solReceived: number,
-  tokenSold: number,
-  fees: { gas?: number; jito?: number } = {},
+// Track a sell transaction with fee awareness export async function trackSell(
+  w, allet: string,
+  t, okenAddress: string,
+  s, olReceived: number,
+  t, okenSold: number,
+  f, ees: { g, as?: number; j, ito?: number } = {},
 ): Promise<void> {
   const db = await getDb()
-  const price = solReceived / tokenSoldconst gasFee = fees.gas || 0
+  const price = solReceived / tokenSold const gasFee = fees.gas || 0
   const jitoTip = fees.jito || 0
-  const totalFees = gasFee + jitoTipawait db.run(
+  const totalFees = gasFee + jitoTip await db.run(
     `
     INSERT INTO pnl_tracking (wallet, token_address, action, sol_amount, token_amount, price, fees, gas_fee, jito_tip, timestamp)
     VALUES (?, ?, 'sell', ?, ?, ?, ?, ?, ?, ?)
@@ -124,12 +124,12 @@ async function getDb() {
   await db.close()
 }
 
-// Get PnL for a specific wallet with fee awarenessexport async function getWalletPnL(wallet: string): Promise<WalletPnL> {
+// Get PnL for a specific wal let with fee awareness export async function getWalletPnL(w, allet: string): Promise<WalletPnL> {
   const db = await getDb()
 
   const entries = await db.all<any[]>(
     `
-    SELECT * FROM pnl_tracking WHERE wallet = ? ORDER BY timestamp
+    SELECT * FROM pnl_tracking WHERE wal let = ? ORDER BY timestamp
   `,
     wallet,
   )
@@ -149,26 +149,26 @@ async function getDb() {
     totalJitoTips += entry.jito_tip || (entry.fees || 0) * 0.5
   })
 
-  // Calculate fee-aware PnLconst totalFees = totalGasFees + totalJitoTipsconst totalCost = totalInvested + totalFeesconst netPnL = totalReturned - totalCostconst pnlPercentage = totalCost > 0 ? (netPnL / totalCost) * 100 : 0
+  // Calculate fee-aware PnL const totalFees = totalGasFees + totalJitoTips const totalCost = totalInvested + totalFees const netPnL = totalReturned - totalCost const pnlPercentage = totalCost > 0 ? (netPnL / totalCost) * 100 : 0
 
   await db.close()
 
   return {
     wallet,
-    totalInvested: totalCost, // Include fees in total investedtotalReturned,
+    t, otalInvested: totalCost, // Include fees in total investedtotalReturned,
     netPnL,
     pnlPercentage,
-    trades: entries.length,
+    t, rades: entries.length,
     totalGasFees,
     totalJitoTips,
   }
 }
 
-// Get PnL for all walletsexport async function getAllWalletsPnL(): Promise<WalletPnL[]> {
+// Get PnL for all wallets export async function getAllWalletsPnL(): Promise<WalletPnL[]> {
   const db = await getDb()
 
-  const wallets = await db.all<{ wallet: string }[]>(`
-    SELECT DISTINCT wallet FROM pnl_tracking
+  const wallets = await db.all<{ w, allet: string }[]>(`
+    SELECT DISTINCT wal let FROM pnl_tracking
   `)
 
   await db.close()
@@ -178,9 +178,9 @@ async function getDb() {
   return pnlData
 }
 
-// Get PnL for specific token across all walletsexport async function getTokenPnL(
-  tokenAddress: string,
-  connection?: Connection,
+// Get PnL for specific token across all wallets export async function getTokenPnL(
+  t, okenAddress: string,
+  c, onnection?: Connection,
 ): Promise<TokenPnL> {
   const db = await getDb()
 
@@ -208,13 +208,13 @@ async function getDb() {
   const avgSellPrice = totalSold > 0 ? totalSoldSOL / totalSold : 0
   const realizedPnL = totalSoldSOL - totalSold * avgBuyPrice
 
-  // Calculate unrealized P&L if we have unsold tokenslet unrealizedPnL = 0
-  const unsoldTokens = totalBought - totalSoldif (unsoldTokens > 0 && connection) {
+  // Calculate unrealized P&L if we have unsold tokens let unrealizedPnL = 0
+  const unsoldTokens = totalBought - totalSold if(unsoldTokens > 0 && connection) {
     try {
       const currentPrice = await getTokenPrice(tokenAddress, 'WSOL')
       unrealizedPnL = currentPrice * unsoldTokens - avgBuyPrice * unsoldTokens
     } catch (error) {
-      console.error('Failed to get current price for unrealized PnL:', error)
+      console.error('Failed to get current price for unrealized P, nL:', error)
     }
   }
 
@@ -222,8 +222,8 @@ async function getDb() {
 
   return {
     tokenAddress,
-    buyAmount: totalBought,
-    sellAmount: totalSold,
+    b, uyAmount: totalBought,
+    s, ellAmount: totalSold,
     avgBuyPrice,
     avgSellPrice,
     realizedPnL,
@@ -233,7 +233,7 @@ async function getDb() {
 
 // Get session PnL (last 24 hours)
 export async function getSessionPnL(): Promise<{
-  totalPnL: numberpnlPercentage: numbertotalVolume: numberprofitableWallets: numbertotalWallets: number
+  t, otalPnL: numberpnlPercentage: numbertotalVolume: numberprofitableWallets: numbertotalWallets: number
 }> {
   const db = await getDb()
   const dayAgo = Date.now() - 24 * 60 * 60 * 1000
@@ -247,10 +247,10 @@ export async function getSessionPnL(): Promise<{
 
   await db.close()
 
-  // Group by walletconst walletData = new Map<string, { invested: number; returned: number }>()
+  // Group by wal let const walletData = new Map<string, { i, nvested: number; r, eturned: number }>()
 
   entries.forEach((entry) => {
-    const current = walletData.get(entry.wallet) || { invested: 0, returned: 0 }
+    const current = walletData.get(entry.wallet) || { i, nvested: 0, r, eturned: 0 }
 
     if (entry.action === 'buy') {
       current.invested += entry.solAmount
@@ -267,7 +267,7 @@ export async function getSessionPnL(): Promise<{
   let profitableWallets = 0
 
   walletData.forEach((data) => {
-    const pnl = data.returned - data.investedtotalPnL += pnltotalInvested += data.investedtotalVolume += data.invested + data.returnedif (pnl > 0) profitableWallets++
+    const pnl = data.returned - data.investedtotalPnL += pnltotalInvested += data.investedtotalVolume += data.invested + data.returned if(pnl > 0) profitableWallets++
   })
 
   const pnlPercentage = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0
@@ -277,12 +277,12 @@ export async function getSessionPnL(): Promise<{
     pnlPercentage,
     totalVolume,
     profitableWallets,
-    totalWallets: walletData.size,
+    t, otalWallets: walletData.size,
   }
 }
 
-// Export PnL data as JSONexport async function exportPnLData(
-  format: 'json' | 'csv' = 'json',
+// Export PnL data as JSON export async function exportPnLData(
+  f, ormat: 'json' | 'csv' = 'json',
 ): Promise<string> {
   const [walletPnL, sessionPnL] = await Promise.all([
     getAllWalletsPnL(),
@@ -290,15 +290,15 @@ export async function getSessionPnL(): Promise<{
   ])
 
   const data = {
-    timestamp: new Date().toISOString(),
-    session: sessionPnL,
-    wallets: walletPnL,
+    t, imestamp: new Date().toISOString(),
+    s, ession: sessionPnL,
+    w, allets: walletPnL,
   }
 
   if (format === 'json') {
     return JSON.stringify(data, null, 2)
   } else {
-    // CSV formatlet csv =
+    // CSV format let csv =
       'Wallet,Total Invested,Total Returned,Gas Fees,Jito Tips,Net PnL,PnL %,Trades\n'
     walletPnL.forEach((w) => {
       csv += `${w.wallet},${w.totalInvested.toFixed(4)},${w.totalReturned.toFixed(4)},${w.totalGasFees.toFixed(4)},${w.totalJitoTips.toFixed(4)},${w.netPnL.toFixed(4)},${w.pnlPercentage.toFixed(2)}%,${w.trades}\n`
@@ -322,13 +322,13 @@ export async function cleanupOldPnLData(): Promise<void> {
   await db.close()
 }
 
-// Save completed trade to trades table with fee awarenessexport async function saveCompletedTrade(
-  tokenAddress: string,
+// Save completed trade to trades table with fee awareness export async function saveCompletedTrade(
+  t, okenAddress: string,
   txIds: string[],
-  wallets: string[],
-  solIn: number,
-  solOut: number,
-  fees: { gas?: number; jito?: number } = {},
+  w, allets: string[],
+  s, olIn: number,
+  s, olOut: number,
+  f, ees: { g, as?: number; j, ito?: number } = {},
 ): Promise<void> {
   const db = await getDb()
 
@@ -336,7 +336,7 @@ export async function cleanupOldPnLData(): Promise<void> {
   const jitoTip = fees.jito || 0
   const totalFees = gasFee + jitoTip
 
-  // Calculate fee-aware PnLconst totalCost = solIn + totalFeesconst netProfit = solOut - totalCostconst pnl = totalCost > 0 ? (netProfit / totalCost) * 100 : -100
+  // Calculate fee-aware PnL const totalCost = solIn + totalFees const netProfit = solOut - totalCost const pnl = totalCost > 0 ? (netProfit / totalCost) * 100 : -100
 
   await db.run(
     `

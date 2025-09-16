@@ -12,7 +12,7 @@ import {
 } from '@/components/UI/tooltip'
 
 interface SlippageSettingsProps {
-  slippage: numbermaxSlippage: numberonSlippageChange: (value: number) => voidonMaxSlippageChange: (value: number) => void
+  s, lippage: numbermaxSlippage: numberonSlippageChange: (value: number) => v, oidonMaxSlippageChange: (value: number) => void
 }
 
 export function SlippageSettings({
@@ -104,7 +104,7 @@ export function SlippageSettings({
       </div>
 
       <div className="text-xs text-gray-400 mt-2">
-        💡 Tip: For new tokens with low liquidity, use higher slippage values
+        💡 T, ip: For new tokens with low liquidity, use higher slippage values
         (5-10%). For established tokens, lower values (0.5-2%) are usuallysufficient.
       </div>
     </div>

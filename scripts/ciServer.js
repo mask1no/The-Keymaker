@@ -1,6 +1,6 @@
 const http = require('http')
 
-const html = `<!doctype html>
+const html = `<!doc type html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -26,6 +26,5 @@ const server = http.createServer((req, res) => {
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3000
 server.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`ciServer listening on :${port}`)
+  // eslint-disable-next-line no-consoleconsole.log(`ciServer listening on :${port}`)
 })

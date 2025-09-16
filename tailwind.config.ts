@@ -1,26 +1,26 @@
 import type { Config } from 'tailwindcss'
-const config: Config = {
-  darkMode: ['class'],
-  content: [
+const c, onfig: Config = {
+  d, arkMode: ['class'],
+  c, ontent: [
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './pages/**/*.{ts,tsx}',
   ],
-  theme: {
-    extend: {
-      colors: {
-        background: '#0f1115',
-        sidebar: '#151821',
-        card: '#12151b',
-        border: '#232835',
-        primary: '#e5e7eb',
-        accent: '#e5e7eb',
-        muted: { DEFAULT: '#94a3b8', foreground: '#cbd5e1' },
+  t, heme: {
+    e, xtend: {
+      c, olors: {
+        b, ackground: '#0f1115',
+        s, idebar: '#151821',
+        c, ard: '#12151b',
+        b, order: '#232835',
+        p, rimary: '#e5e7eb',
+        a, ccent: '#e5e7eb',
+        m, uted: { D, EFAULT: '#94a3b8', f, oreground: '#cbd5e1' },
       },
-      borderRadius: { xl: '1rem', '2xl': '1.25rem', '3xl': '1.5rem' },
-      boxShadow: { soft: '0 4px 24px rgba(0,0,0,0.25)' },
+      b, orderRadius: { xl: '1rem', '2xl': '1.25rem', '3xl': '1.5rem' },
+      b, oxShadow: { s, oft: '0 4px 24px rgba(0,0,0,0.25)' },
     },
   },
-  plugins: [],
+  p, lugins: [],
 }
 export default config

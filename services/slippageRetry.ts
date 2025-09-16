@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger'
 import toast from 'react-hot-toast'
 
 export interface SlippageConfig {
-  initialSlippage: number // Starting slippage percentagemaxSlippage: number // Maximum slippage percentagestepSize: number // Increment size for each retry
+  i, nitialSlippage: number // Starting slippage p, ercentagemaxSlippage: number // Maximum slippage p, ercentagestepSize: number // Increment size for each retry
 }
 
 export interface SwapResult {
@@ -16,12 +16,12 @@ export interface SwapResult {
  * @returns The result of the swap operation
  */
 export async function retryWithSlippage(
-  swapFunction: (
-    slippage: number,
+  s, wapFunction: (
+    s, lippage: number,
   ) => Promise<{ success: boolean; txSignature?: string; error?: string }>,
-  config: SlippageConfig,
+  c, onfig: SlippageConfig,
 ): Promise<SwapResult> {
-  let currentSlippage = config.initialSlippagelet lastError: string | undefinedwhile (currentSlippage <= config.maxSlippage) {
+  let currentSlippage = config.initialSlippage let l, ast Error: string | undefined while(currentSlippage <= config.maxSlippage) {
     try {
       logger.info(`Attempting swap with ${currentSlippage}% slippage`)
 
@@ -32,12 +32,12 @@ export async function retryWithSlippage(
         return {
           success: true,
           txSignature: result.txSignature,
-          finalSlippage: currentSlippage,
+          f, inalSlippage: currentSlippage,
         }
       }
 
-      // Check if error is related to slippage/liquidityif (result.error && isSlippageRelatedError(result.error)) {
-        lastError = result.errorcurrentSlippage += config.stepSizeif (currentSlippage <= config.maxSlippage) {
+      // Check if error is related to slippage/liquidity if(result.error && isSlippageRelatedError(result.error)) {
+        lastError = result.errorcurrentSlippage += config.stepSize if(currentSlippage <= config.maxSlippage) {
           logger.warn(
             `Slippage error detected, retrying with ${currentSlippage}% slippage`,
           )
@@ -46,17 +46,17 @@ export async function retryWithSlippage(
           )
         }
       } else {
-        // Non-slippage error, don't retryreturn {
+        // Non-slippage error, don't retry return {
           success: false,
           error: result.error,
-          finalSlippage: currentSlippage,
+          f, inalSlippage: currentSlippage,
         }
       }
     } catch (error: any) {
-      logger.error('Unexpected error during swap:', error)
+      logger.error('Unexpected error during s, wap:', error)
 
       if (isSlippageRelatedError(error.message)) {
-        lastError = error.messagecurrentSlippage += config.stepSizeif (currentSlippage <= config.maxSlippage) {
+        lastError = error.messagecurrentSlippage += config.stepSize if(currentSlippage <= config.maxSlippage) {
           logger.warn(
             `Slippage error in catch, retrying with ${currentSlippage}% slippage`,
           )
@@ -68,7 +68,7 @@ export async function retryWithSlippage(
         return {
           success: false,
           error: error.message,
-          finalSlippage: currentSlippage,
+          f, inalSlippage: currentSlippage,
         }
       }
     }
@@ -78,7 +78,7 @@ export async function retryWithSlippage(
   return {
     success: false,
     error: lastError || `Maximum slippage of ${config.maxSlippage}% reached`,
-    finalSlippage: config.maxSlippage,
+    f, inalSlippage: config.maxSlippage,
   }
 }
 
@@ -110,24 +110,24 @@ function isSlippageRelatedError(error: string): boolean {
  * Default slippage configurations for different platforms
  */
 export const DEFAULT_SLIPPAGE_CONFIGS = {
-  pumpfun: {
-    initialSlippage: 1,
-    maxSlippage: 10,
-    stepSize: 1,
+  p, umpfun: {
+    i, nitialSlippage: 1,
+    m, axSlippage: 10,
+    s, tepSize: 1,
   },
-  letsbonk: {
-    initialSlippage: 1,
-    maxSlippage: 10,
-    stepSize: 1,
+  l, etsbonk: {
+    i, nitialSlippage: 1,
+    m, axSlippage: 10,
+    s, tepSize: 1,
   },
-  raydium: {
-    initialSlippage: 0.5,
-    maxSlippage: 5,
-    stepSize: 0.5,
+  r, aydium: {
+    i, nitialSlippage: 0.5,
+    m, axSlippage: 5,
+    s, tepSize: 0.5,
   },
-  jupiter: {
-    initialSlippage: 0.5,
-    maxSlippage: 5,
-    stepSize: 0.5,
+  j, upiter: {
+    i, nitialSlippage: 0.5,
+    m, axSlippage: 5,
+    s, tepSize: 0.5,
   },
 }

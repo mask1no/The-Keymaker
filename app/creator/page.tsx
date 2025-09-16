@@ -1,6 +1,6 @@
 'use client'
 
-import RequireWallet from '@/components/auth/RequireWallet'
+import RequireWal let from '@/components/auth/RequireWallet'
 import { CreatorForm } from '@/components/MemecoinCreator/CreatorForm'
 
 export default function CreatorPage() {

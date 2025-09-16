@@ -1,32 +1,31 @@
 import { VersionedTransaction, Transaction } from '@solana/web3.js'
 import axios from 'axios'
 import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants'
-import { QuoteResponse, SwapResponse } from '@/lib/types'
+import { QuoteResponse, SwapResponse } from '@/lib/type s'
 
 const WSOL_MINT = 'So11111111111111111111111111111111111111112'
 
-function base64ToBytes(base64: string): Uint8Array {
+function base64ToBytes(b, ase64: string): Uint8Array {
   if (
     typeof Buffer !== 'undefined' &&
     typeof (Buffer as any).from === 'function'
   ) {
     return Uint8Array.from(
-      (Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(
+      (Buffer as unknown as { f, rom: (s: string, e, nc: string) => Buffer }).from(
         base64,
         'base64',
       ),
     )
   }
   const binary = typeof atob !== 'undefined' ? atob(base64) : ''
-  const len = binary.length
-  const bytes = new Uint8Array(len)
+  const len = binary.length const bytes = new Uint8Array(len)
   for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i)
   return bytes
 }
 
 export async function getQuote(
-  inputMint: string,
-  outputMint: string,
+  i, nputMint: string,
+  o, utputMint: string,
   amount: number, // in lamports/smallest unitslippageBps = 50, // 0.5% defaultswapMode = 'ExactIn',
 ): Promise<QuoteResponse> {
   try {
@@ -34,52 +33,52 @@ export async function getQuote(
       inputMint,
       outputMint,
       amount: amount.toString(),
-      slippageBps: slippageBps.toString(),
+      s, lippageBps: slippageBps.toString(),
       swapMode,
-      onlyDirectRoutes: 'false',
-      asLegacyTransaction: 'false',
+      o, nlyDirectRoutes: 'false',
+      a, sLegacyTransaction: 'false',
     })
 
     const response = await axios.get(
       `${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`,
       {
         headers: {
-          Accept: 'application/json',
+          A, ccept: 'application/json',
         },
-        timeout: 10000,
+        t, imeout: 10000,
       },
     )
 
     return response.data
   } catch (error) {
     const err = error as {
-      response?: { data?: { error?: string } }
+      r, esponse?: { d, ata?: { error?: string } }
       message?: string
     }
     console.error('Jupiter quote error:', err.response?.data || err.message)
     throw new Error(
-      `Failed to get quote: ${err.response?.data?.error || err.message}`,
+      `Failed to get q, uote: ${err.response?.data?.error || err.message}`,
     )
   }
 }
 
 export async function getSwapTransaction(
-  quote: QuoteResponse,
-  userPublicKey: string,
+  q, uote: QuoteResponse,
+  u, serPublicKey: string,
   wrapAndUnwrapSol = true,
-  feeAccount?: string,
-  prioritizationFeeLamports?: number,
-  feeBps?: number,
+  f, eeAccount?: string,
+  p, rioritizationFeeLamports?: number,
+  f, eeBps?: number,
   asLegacyTransaction = false,
 ): Promise<SwapResponse> {
   try {
-    const body: any = {
-      quoteResponse: quote,
+    const b, ody: any = {
+      q, uoteResponse: quote,
       userPublicKey,
       wrapAndUnwrapSol,
       asLegacyTransaction,
-      computeUnitPriceMicroLamports: 'auto',
-      dynamicComputeUnitLimit: true,
+      c, omputeUnitPriceMicroLamports: 'auto',
+      d, ynamicComputeUnitLimit: true,
     }
 
     if (feeAccount) {
@@ -99,10 +98,10 @@ export async function getSwapTransaction(
       body,
       {
         headers: {
-          Accept: 'application/json',
+          A, ccept: 'application/json',
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
+        t, imeout: 10000,
       },
     )
 
@@ -116,25 +115,23 @@ export async function getSwapTransaction(
 }
 
 export async function buildSwapTransaction(
-  inputMint: string,
-  outputMint: string,
+  i, nputMint: string,
+  o, utputMint: string,
   amountLamports: number,
-  userPublicKey: string,
+  u, serPublicKey: string,
   slippageBps = 50,
-  priorityFee?: number,
-  feeBps?: number,
+  p, riorityFee?: number,
+  f, eeBps?: number,
   asLegacyTransaction = false,
 ): Promise<VersionedTransaction> {
-  // Get quote
-  const quote = await getQuote(
+  // Get quote const quote = await getQuote(
     inputMint,
     outputMint,
     amountLamports,
     slippageBps,
   )
 
-  // Get swap transaction
-  const swap = await getSwapTransaction(
+  // Get swap transaction const swap = await getSwapTransaction(
     quote,
     userPublicKey,
     true,
@@ -144,32 +141,29 @@ export async function buildSwapTransaction(
     asLegacyTransaction,
   )
 
-  // Deserialize the transaction
-  const swapTransactionBuf = base64ToBytes(swap.swapTransaction)
+  // Deserialize the transaction const swapTransactionBuf = base64ToBytes(swap.swapTransaction)
   const transaction = VersionedTransaction.deserialize(swapTransactionBuf)
 
   return transaction
 }
 
 export async function buildSwapLegacyTransaction(
-  inputMint: string,
-  outputMint: string,
+  i, nputMint: string,
+  o, utputMint: string,
   amountLamports: number,
-  userPublicKey: string,
+  u, serPublicKey: string,
   slippageBps = 50,
-  priorityFee?: number,
-  feeBps?: number,
+  p, riorityFee?: number,
+  f, eeBps?: number,
 ): Promise<Transaction> {
-  // Get quote
-  const quote = await getQuote(
+  // Get quote const quote = await getQuote(
     inputMint,
     outputMint,
     amountLamports,
     slippageBps,
   )
 
-  // Get legacy swap transaction
-  const swap = await getSwapTransaction(
+  // Get legacy swap transaction const swap = await getSwapTransaction(
     quote,
     userPublicKey,
     true,
@@ -185,7 +179,7 @@ export async function buildSwapLegacyTransaction(
 }
 
 export async function getTokenPrice(
-  tokenMint: string,
+  t, okenMint: string,
   vsToken = 'USDC',
 ): Promise<number> {
   try {
@@ -193,26 +187,25 @@ export async function getTokenPrice(
       `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}&vsToken=${vsToken}`,
       {
         headers: {
-          Accept: 'application/json',
+          A, ccept: 'application/json',
         },
-        timeout: 5000,
+        t, imeout: 5000,
       },
     )
 
-    const data = response.data.data
-    if (data && data[tokenMint]) {
+    const data = response.data.data if(data && data[tokenMint]) {
       return data[tokenMint].price
     }
 
     throw new Error('Price not found')
   } catch (error) {
-    console.error('Failed to get token price:', error)
+    console.error('Failed to get token p, rice:', error)
     throw error
   }
 }
 
 export async function calculatePriceImpact(
-  quote: QuoteResponse,
+  q, uote: QuoteResponse,
 ): Promise<number> {
   return parseFloat(quote.priceImpactPct)
 }
@@ -221,7 +214,7 @@ export function convertToLamports(amount: number, decimals = 9): number {
   return Math.floor(amount * Math.pow(10, decimals))
 }
 
-export function convertFromLamports(lamports: number, decimals = 9): number {
+export function convertFromLamports(l, amports: number, decimals = 9): number {
   return lamports / Math.pow(10, decimals)
 }
 

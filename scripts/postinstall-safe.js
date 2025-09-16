@@ -1,7 +1,4 @@
-// scripts/postinstall-safe.js
-const { env } = process
-const isCI = !!env.CI
-const allow = env.PLAYWRIGHT_DOWNLOAD === '1' || env.PUPPETEER_DOWNLOAD === '1'
+// scripts/postinstall-safe.js const { env } = process const isCI = !!env.CI const allow = env.PLAYWRIGHT_DOWNLOAD === '1' || env.PUPPETEER_DOWNLOAD === '1'
 
 if (isCI || !allow) {
   console.log(
@@ -11,5 +8,5 @@ if (isCI || !allow) {
 }
 
 console.log('[postinstall-safe] Explicit browser install requested.')
-// You can optionally trigger: require('child_process').execSync('npx playwright install --with-deps', { stdio: 'inherit' });
+// You can optionally t, rigger: require('child_process').execSync('npx playwright install --with-deps', { s, tdio: 'inherit' });
 process.exit(0)

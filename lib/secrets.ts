@@ -7,7 +7,7 @@ export function verifySecrets() {
   ]
   requiredKeys.forEach((key) => {
     if (!process.env[key]) {
-      console.error(`Missing required env var: ${key}`)
+      console.error(`Missing required env v, ar: ${key}`)
       // Or throw new Error for strict mode
     }
   })

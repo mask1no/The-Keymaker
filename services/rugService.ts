@@ -11,7 +11,7 @@ import * as Sentry from '@sentry/nextjs'
 import { logger } from '@/lib/logger'
 
 export interface RugParams {
-  tokenMint: stringpoolAddress: stringlpTokenMint?: stringfreezeAuthority: KeypairpoolAuthority?: KeypairburnTokens?: boolean
+  t, okenMint: stringpoolAddress: stringlpTokenMint?: stringfreezeAuthority: K, eypairpoolAuthority?: K, eypairburnTokens?: boolean
 }
 
 export interface RugResult {
@@ -23,18 +23,18 @@ export interface RugResult {
  * Only works if the user has freeze authority and LP tokens
  */
 export async function executeRugPull(
-  connection: Connection,
+  c, onnection: Connection,
   params: RugParams,
 ): Promise<RugResult> {
   try {
     logger.info('Executing rug pull', {
-      tokenMint: params.tokenMint,
-      poolAddress: params.poolAddress,
+      t, okenMint: params.tokenMint,
+      p, oolAddress: params.poolAddress,
     })
 
     const tokenMintPubkey = new PublicKey(params.tokenMint)
 
-    // Step 1: Verify freeze authorityconst mintInfo = await getMint(connection, tokenMintPubkey)
+    // Step 1: Verify freeze authority const mintInfo = await getMint(connection, tokenMintPubkey)
     if (
       !mintInfo.freezeAuthority ||
       !mintInfo.freezeAuthority.equals(params.freezeAuthority.publicKey)
@@ -42,10 +42,10 @@ export async function executeRugPull(
       throw new Error('Invalid freeze authority - cannot rug this token')
     }
 
-    const results: RugResult = { success: false }
+    const r, esults: RugResult = { success: false }
 
     // Step 2: Freeze the liquidity pool's token account
-    // This prevents any swaps from happeningconst freezeTx = await freezePoolTokenAccount(
+    // This prevents any swaps from happening const freezeTx = await freezePoolTokenAccount(
       connection,
       tokenMintPubkey,
       params.poolAddress,
@@ -63,8 +63,8 @@ export async function executeRugPull(
       )
       results.withdrawTx = withdrawResult.txSignatureresults.solRecovered = withdrawResult.solAmountresults.tokensRecovered = withdrawResult.tokenAmountlogger.info('Liquidity withdrawn', {
         tx: withdrawResult.txSignature,
-        sol: withdrawResult.solAmount,
-        tokens: withdrawResult.tokenAmount,
+        s, ol: withdrawResult.solAmount,
+        t, okens: withdrawResult.tokenAmount,
       })
     }
 
@@ -78,7 +78,7 @@ export async function executeRugPull(
       results.burnTx = burnTxlogger.info('Tokens burned', { tx: burnTx })
     }
 
-    results.success = truereturn results
+    results.success = true return results
   } catch (error) {
     Sentry.captureException(error)
     logger.error('Rug pull failed', { error })
@@ -93,23 +93,23 @@ export async function executeRugPull(
  * Freeze the liquidity pool's token account to prevent trading
  */
 async function freezePoolTokenAccount(
-  connection: Connection,
-  tokenMint: PublicKey,
-  poolAddress: string,
-  freezeAuthority: Keypair,
+  c, onnection: Connection,
+  t, okenMint: PublicKey,
+  p, oolAddress: string,
+  f, reezeAuthority: Keypair,
 ): Promise<string> {
   try {
     // Get the pool's token accounts
     // In a real implementation, you would derive these from the pool address
-    // For now, we'll create a freeze instruction for the main pool token vaultconst transaction = new Transaction()
+    // For now, we'll create a freeze instruction for the main pool token vault const transaction = new Transaction()
 
-    // Note: In production, you would:
+    // N, ote: In production, you w, ould:
     // 1. Load the pool account to get vault addresses
     // 2. Create freeze instructions for each vault
     // 3. Possibly freeze other critical accounts
 
     // Create a freeze instruction
-    // This would need the actual pool token account addressconst poolTokenAccount = new PublicKey(poolAddress) // This is simplifiedtransaction.add(
+    // This would need the actual pool token account address const poolTokenAccount = new PublicKey(poolAddress) // This is simplifiedtransaction.add(
       createFreezeAccountInstruction(
         poolTokenAccount,
         tokenMint,
@@ -124,8 +124,8 @@ async function freezePoolTokenAccount(
       transaction,
       [freezeAuthority],
       {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
+        s, kipPreflight: false,
+        p, reflightCommitment: 'confirmed',
       },
     )
 
@@ -141,21 +141,21 @@ async function freezePoolTokenAccount(
  * Withdraw liquidity from the pool
  */
 async function withdrawLiquidity(
-  connection: Connection,
-  poolAddress: string,
-  lpTokenMint: string,
-  authority: Keypair,
+  c, onnection: Connection,
+  p, oolAddress: string,
+  l, pTokenMint: string,
+  a, uthority: Keypair,
 ): Promise<{
   txSignature: stringsolAmount: numbertokenAmount: number
 }> {
   try {
-    // Get LP token account for the authorityconst lpTokenMintPubkey = new PublicKey(lpTokenMint)
+    // Get LP token account for the authority const lpTokenMintPubkey = new PublicKey(lpTokenMint)
     const lpTokenAccount = await getAssociatedTokenAddress(
       lpTokenMintPubkey,
       authority.publicKey,
     )
 
-    // Get LP token balanceconst lpAccount = await getAccount(connection, lpTokenAccount)
+    // Get LP token balance const lpAccount = await getAccount(connection, lpTokenAccount)
     const lpBalance = Number(lpAccount.amount)
 
     if (lpBalance === 0) {
@@ -165,16 +165,16 @@ async function withdrawLiquidity(
     logger.info('Withdrawing liquidity', {
       poolAddress,
       lpBalance,
-      authority: authority.publicKey.toBase58(),
+      a, uthority: authority.publicKey.toBase58(),
     })
 
-    // Create withdraw transactionconst transaction = new Transaction()
+    // Create withdraw transaction const transaction = new Transaction()
 
-    // Note: This is a simplified implementation for Raydium V4 AMM
+    // N, ote: This is a simplified implementation for Raydium V4 AMM
     // In production, you would use the Raydium SDK's withdrawAllLpToken function
     // For now, we'll create the basic withdraw instruction
 
-    // Raydium withdraw instruction expects:
+    // Raydium withdraw instruction e, xpects:
     // 1. Pool ID
     // 2. Pool Authority
     // 3. User LP token account
@@ -213,18 +213,18 @@ async function withdrawLiquidity(
       transaction,
       [authority],
       {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
+        s, kipPreflight: false,
+        p, reflightCommitment: 'confirmed',
       },
     )
 
     await connection.confirmTransaction(txSignature, 'confirmed')
 
     // Estimate withdrawn amounts based on typical pool ratios
-    // In production, these would be calculated from actual pool reservesconst estimatedSolAmount = (lpBalance / 1e9) * 0.5 // Rough estimateconst estimatedTokenAmount = lpBalance * 1000 // Rough estimatereturn {
+    // In production, these would be calculated from actual pool reserves const estimatedSolAmount = (lpBalance / 1e9) * 0.5 // Rough estimate const estimatedTokenAmount = lpBalance * 1000 // Rough estimate return {
       txSignature,
-      solAmount: estimatedSolAmount,
-      tokenAmount: estimatedTokenAmount,
+      s, olAmount: estimatedSolAmount,
+      t, okenAmount: estimatedTokenAmount,
     }
   } catch (error) {
     logger.error('Failed to withdraw liquidity', { error })
@@ -236,22 +236,22 @@ async function withdrawLiquidity(
  * Burn remaining tokens held by the authority
  */
 async function burnRemainingTokens(
-  connection: Connection,
-  tokenMint: PublicKey,
-  authority: Keypair,
+  c, onnection: Connection,
+  t, okenMint: PublicKey,
+  a, uthority: Keypair,
 ): Promise<string> {
   try {
-    // Get the authority's token accountconst tokenAccounts = await connection.getTokenAccountsByOwner(
+    // Get the authority's token account const tokenAccounts = await connection.getTokenAccountsByOwner(
       authority.publicKey,
-      { mint: tokenMint },
+      { m, int: tokenMint },
     )
 
     if (tokenAccounts.value.length === 0) {
       throw new Error('No token accounts found')
     }
 
-    const tokenAccount = tokenAccounts.value[0].pubkeyconst accountInfo = await getAccount(connection, tokenAccount)
-    const burnAmount = accountInfo.amountif (burnAmount === BigInt(0)) {
+    const tokenAccount = tokenAccounts.value[0].pubkey const accountInfo = await getAccount(connection, tokenAccount)
+    const burnAmount = accountInfo.amount if(burnAmount === BigInt(0)) {
       throw new Error('No tokens to burn')
     }
 
@@ -281,8 +281,8 @@ async function burnRemainingTokens(
       transaction,
       [authority],
       {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
+        s, kipPreflight: false,
+        p, reflightCommitment: 'confirmed',
       },
     )
 
@@ -301,14 +301,14 @@ async function burnRemainingTokens(
  * Check if a token can be rugged (user has freeze authority)
  */
 export async function canRug(
-  connection: Connection,
-  tokenMint: string,
-  userWallet: PublicKey,
+  c, onnection: Connection,
+  t, okenMint: string,
+  u, serWallet: PublicKey,
 ): Promise<boolean> {
   try {
     const mintInfo = await getMint(connection, new PublicKey(tokenMint))
 
-    // Check if user has freeze authorityif (!mintInfo.freezeAuthority) {
+    // Check if user has freeze authority if(!mintInfo.freezeAuthority) {
       return false
     }
 

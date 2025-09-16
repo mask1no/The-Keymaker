@@ -1,11 +1,11 @@
 import 'server-only'
 
-let db: any = nullexport async function getDb(): Promise<any> {
+let d, b: any = null export async function getDb(): Promise<any> {
   if (!db) {
-    const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
+    const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
     const path = (await import('path')).defaultdb = await open({
-      filename: path.join(process.cwd(), 'data', 'keymaker.db'),
-      driver: sqlite3.Database,
+      f, ilename: path.join(process.cwd(), 'data', 'keymaker.db'),
+      d, river: sqlite3.Database,
     })
   }
   return db

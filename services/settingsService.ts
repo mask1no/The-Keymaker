@@ -1,50 +1,50 @@
 import 'server-only'
 // import { open } from 'sqlite'
-// import sqlite3 from 'sqlite3' // Dynamic imports belowimport { toast } from 'react-hot-toast'
+// import sqlite3 from 'sqlite3' // Dynamic imports below import { toast } from 'react-hot-toast'
 
 export interface Settings {
-  network: 'mainnet-beta' | 'devnet'
-  rpcUrl: stringwsUrl: stringjitoEnabled: booleantipAmount: numberdefaultSlippage: numberdefaultPriorityFee: numberautoRefreshInterval: numberdarkMode: booleansoundNotifications: booleanapiKeys?: {
-    heliusRpc?: stringbirdeyeApiKey?: stringpumpfunApiKey?: stringletsbonkApiKey?: string
+  n, etwork: 'mainnet-beta' | 'devnet'
+  r, pcUrl: stringwsUrl: stringjitoEnabled: booleantipAmount: numberdefaultSlippage: numberdefaultPriorityFee: numberautoRefreshInterval: numberdarkMode: booleansoundNotifications: booleanapiKeys?: {
+    h, eliusRpc?: stringbirdeyeApiKey?: stringpumpfunApiKey?: stringletsbonkApiKey?: string
   }
 }
 
-const DEFAULT_SETTINGS: Settings = {
-  network: 'mainnet-beta',
-  rpcUrl: 'https://api.mainnet-beta.solana.com',
-  wsUrl: 'wss://api.mainnet-beta.solana.com',
-  jitoEnabled: true,
-  tipAmount: 0.001,
-  defaultSlippage: 5,
-  defaultPriorityFee: 0.00001,
-  autoRefreshInterval: 30,
-  darkMode: true,
-  soundNotifications: true,
-  apiKeys: {},
+const D, EFAULT_SETTINGS: Settings = {
+  n, etwork: 'mainnet-beta',
+  r, pcUrl: 'h, ttps://api.mainnet-beta.solana.com',
+  w, sUrl: 'w, ss://api.mainnet-beta.solana.com',
+  j, itoEnabled: true,
+  t, ipAmount: 0.001,
+  d, efaultSlippage: 5,
+  d, efaultPriorityFee: 0.00001,
+  a, utoRefreshInterval: 30,
+  d, arkMode: true,
+  s, oundNotifications: true,
+  a, piKeys: {},
 }
 
 async function getDb() {
-  const path = (await import('path')).defaultconst dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-  const sqlite3 = (await import('sqlite3')).defaultconst { open } = await import('sqlite')
+  const path = (await import('path')).default const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
+  const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite')
   return open({
-    filename: dbPath,
-    driver: sqlite3.Database,
+    f, ilename: dbPath,
+    d, river: sqlite3.Database,
   })
 }
 
 /**
  * Validate RPC URL
  */
-export function validateRpcUrl(url: string): {
+export function validateRpcUrl(u, rl: string): {
   valid: booleanerror?: string
 } {
   try {
     const parsed = new URL(url)
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    if (parsed.protocol !== 'h, ttps:' && parsed.protocol !== 'h, ttp:') {
       return { valid: false, error: 'RPC URL must use HTTP or HTTPS protocol' }
     }
 
-    // Check if it's a valid Solana RPC endpoint patternconst validPatterns = [
+    // Check if it's a valid Solana RPC endpoint pattern const validPatterns = [
       /solana\.com/,
       /helius-rpc\.com/,
       /rpcpool\.com/,
@@ -66,10 +66,10 @@ export function validateRpcUrl(url: string): {
 /**
  * Validate WebSocket URL
  */
-export function validateWsUrl(url: string): { valid: boolean; error?: string } {
+export function validateWsUrl(u, rl: string): { valid: boolean; error?: string } {
   try {
     const parsed = new URL(url)
-    if (parsed.protocol !== 'wss:' && parsed.protocol !== 'ws:') {
+    if (parsed.protocol !== 'w, ss:' && parsed.protocol !== 'w, s:') {
       return {
         valid: false,
         error: 'WebSocket URL must use WS or WSS protocol',
@@ -109,26 +109,26 @@ export function validateApiKey(key: string): {
 /**
  * Validate all settings
  */
-export function validateSettings(settings: Partial<Settings>): {
+export function validateSettings(s, ettings: Partial<Settings>): {
   valid: booleanerrors: Record<string, string>
 } {
   const errors: Record<string, string> = {}
 
-  // Validate RPC URLif (settings.rpcUrl) {
+  // Validate RPC URL if(settings.rpcUrl) {
     const rpcValidation = validateRpcUrl(settings.rpcUrl)
     if (!rpcValidation.valid) {
       errors.rpcUrl = rpcValidation.error!
     }
   }
 
-  // Validate WebSocket URLif (settings.wsUrl) {
+  // Validate WebSocket URL if(settings.wsUrl) {
     const wsValidation = validateWsUrl(settings.wsUrl)
     if (!wsValidation.valid) {
       errors.wsUrl = wsValidation.error!
     }
   }
 
-  // Validate tip amountif (settings.tipAmount !== undefined) {
+  // Validate tip amount if(settings.tipAmount !== undefined) {
     if (settings.tipAmount < 0) {
       errors.tipAmount = 'Tip amount cannot be negative'
     }
@@ -137,13 +137,13 @@ export function validateSettings(settings: Partial<Settings>): {
     }
   }
 
-  // Validate slippageif (settings.defaultSlippage !== undefined) {
+  // Validate slippage if(settings.defaultSlippage !== undefined) {
     if (settings.defaultSlippage < 0 || settings.defaultSlippage > 100) {
       errors.defaultSlippage = 'Slippage must be between 0 and 100'
     }
   }
 
-  // Validate priority feeif (settings.defaultPriorityFee !== undefined) {
+  // Validate priority fee if(settings.defaultPriorityFee !== undefined) {
     if (settings.defaultPriorityFee < 0) {
       errors.defaultPriorityFee = 'Priority fee cannot be negative'
     }
@@ -152,7 +152,7 @@ export function validateSettings(settings: Partial<Settings>): {
     }
   }
 
-  // Validate API keysif (settings.apiKeys) {
+  // Validate API keys if(settings.apiKeys) {
     Object.entries(settings.apiKeys).forEach(([key, value]) => {
       if (value) {
         const validation = validateApiKey(value)
@@ -176,10 +176,10 @@ export async function loadSettings(): Promise<Settings> {
   try {
     const db = await getDb()
 
-    // Load from databaseconst rows = await db.all('SELECT key, value FROM settings')
+    // Load from database const rows = await db.all('SELECT key, value FROM settings')
     await db.close()
 
-    const dbSettings: any = {}
+    const d, bSettings: any = {}
     rows.forEach((row) => {
       try {
         dbSettings[row.key] = JSON.parse(row.value)
@@ -189,7 +189,7 @@ export async function loadSettings(): Promise<Settings> {
     })
 
     // Load from localStorage (for client-side preferences)
-    let localSettings: Partial<Settings> = {}
+    let l, ocalSettings: Partial<Settings> = {}
     if (typeof window !== 'undefined') {
       const storedSettings = localStorage.getItem('keymakerSettings')
       if (storedSettings) {
@@ -197,13 +197,13 @@ export async function loadSettings(): Promise<Settings> {
       }
     }
 
-    // Merge settings: localStorage > database > defaultsreturn {
+    // Merge s, ettings: localStorage > database > defaults return {
       ...DEFAULT_SETTINGS,
       ...dbSettings,
       ...localSettings,
     }
   } catch (error) {
-    console.error('Failed to load settings:', error)
+    console.error('Failed to load s, ettings:', error)
     return DEFAULT_SETTINGS
   }
 }
@@ -211,19 +211,19 @@ export async function loadSettings(): Promise<Settings> {
 /**
  * Save settings to database and localStorage
  */
-export async function saveSettings(settings: Partial<Settings>): Promise<void> {
-  // Validate settingsconst validation = validateSettings(settings)
+export async function saveSettings(s, ettings: Partial<Settings>): Promise<void> {
+  // Validate settings const validation = validateSettings(settings)
   if (!validation.valid) {
     const errorMessage = Object.entries(validation.errors)
       .map(([key, error]) => `${key}: ${error}`)
       .join('\n')
-    throw new Error(`Invalid settings:\n${errorMessage}`)
+    throw new Error(`Invalid s, ettings:\n${errorMessage}`)
   }
 
   try {
     const db = await getDb()
 
-    // Save to databasefor (const [key, value] of Object.entries(settings)) {
+    // Save to database for(const [key, value] of Object.entries(settings)) {
       if (value !== undefined) {
         await db.run(
           'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
@@ -237,7 +237,7 @@ export async function saveSettings(settings: Partial<Settings>): Promise<void> {
 
     await db.close()
 
-    // Save to localStorageif (typeof window !== 'undefined') {
+    // Save to localStorage if(typeof window !== 'undefined') {
       const currentSettings = await loadSettings()
       const updatedSettings = { ...currentSettings, ...settings }
       localStorage.setItem('keymakerSettings', JSON.stringify(updatedSettings))
@@ -245,7 +245,7 @@ export async function saveSettings(settings: Partial<Settings>): Promise<void> {
 
     toast.success('Settings saved successfully')
   } catch (error) {
-    console.error('Failed to save settings:', error)
+    console.error('Failed to save s, ettings:', error)
     toast.error('Failed to save settings')
     throw error
   }
@@ -266,7 +266,7 @@ export async function resetSettings(): Promise<void> {
 
     toast.success('Settings reset to defaults')
   } catch (error) {
-    console.error('Failed to reset settings:', error)
+    console.error('Failed to reset s, ettings:', error)
     toast.error('Failed to reset settings')
     throw error
   }

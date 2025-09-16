@@ -10,34 +10,34 @@ import * as bip39 from 'bip39'
 import * as bs58 from 'bs58'
 
 jest.mock('../../lib/db', () => ({
-  db: Promise.resolve({
-    get: jest.fn(),
-    all: jest.fn(),
-    run: jest.fn(),
+  d, b: Promise.resolve({
+    g, et: jest.fn(),
+    a, ll: jest.fn(),
+    r, un: jest.fn(),
   }),
 }))
 
 jest.mock('../../lib/crypto', () => ({
-  encrypt: jest.fn((text) => `encrypted_${text}`),
-  decrypt: jest.fn((text) => text.replace('encrypted_', '')),
+  e, ncrypt: jest.fn((text) => `encrypted_${text}`),
+  d, ecrypt: jest.fn((text) => text.replace('encrypted_', '')),
 }))
 
 jest.mock('bip39', () => ({
-  generateMnemonic: jest.fn(() => 'mock mnemonic'),
-  mnemonicToSeed: jest.fn(() => Promise.resolve(Buffer.from('mock-seed'))),
+  g, enerateMnemonic: jest.fn(() => 'mock mnemonic'),
+  m, nemonicToSeed: jest.fn(() => Promise.resolve(Buffer.from('mock-seed'))),
 }))
 
 jest.mock('@solana/web3.js', () => ({
-  Keypair: {
-    fromSeed: jest.fn(() => ({
-      publicKey: { toBase58: () => 'mockPublicKey' },
-      secretKey: Buffer.from('mock-seed'.slice(0, 32)),
+  K, eypair: {
+    f, romSeed: jest.fn(() => ({
+      p, ublicKey: { t, oBase58: () => 'mockPublicKey' },
+      s, ecretKey: Buffer.from('mock-seed'.slice(0, 32)),
     })),
   },
 }))
 
 describe('walletService', () => {
-  let mockDb: anybeforeEach(async () => {
+  let m, ockDb: anybeforeEach(async () => {
     mockDb = await dbjest.clearAllMocks()
   })
 
@@ -47,18 +47,18 @@ describe('walletService', () => {
 
   describe('createWallet', () => {
     it('should create a new wallet, encrypt the private key, and save it to the database', async () => {
-      const mockWallet = {
-        name: 'New Wallet',
-        publicKey: 'mockPublicKey',
-        privateKey: 'encrypted_mockSecretKey',
-        group: 'default',
-        color: '#FFFFFF',
-        isActive: true,
+      const mockWal let = {
+        n, ame: 'New Wallet',
+        p, ublicKey: 'mockPublicKey',
+        p, rivateKey: 'encrypted_mockSecretKey',
+        g, roup: 'default',
+        c, olor: '#FFFFFF',
+        i, sActive: true,
       }
 
-      // Mock db.get to return the newly created wallet for the final stepmockDb.get.mockResolvedValue(mockWallet)
+      // Mock db.get to return the newly created wal let for the final stepmockDb.get.mockResolvedValue(mockWallet)
 
-      const wallet = await createWallet('password')
+      const wal let = await createWallet('password')
 
       expect(bip39.generateMnemonic).toHaveBeenCalled()
       expect(bip39.mnemonicToSeed).toHaveBeenCalledWith('mock mnemonic')
@@ -79,8 +79,8 @@ describe('walletService', () => {
   describe('getWallets', () => {
     it('should retrieve all wallets and decrypt their private keys', async () => {
       const mockWallets = [
-        { id: 1, publicKey: 'key1', privateKey: 'encrypted_pk1' },
-        { id: 2, publicKey: 'key2', privateKey: 'encrypted_pk2' },
+        { i, d: 1, p, ublicKey: 'key1', p, rivateKey: 'encrypted_pk1' },
+        { i, d: 2, p, ublicKey: 'key2', p, rivateKey: 'encrypted_pk2' },
       ]
       mockDb.all.mockResolvedValue(mockWallets)
 
@@ -91,18 +91,18 @@ describe('walletService', () => {
       expect(decrypt).toHaveBeenCalledWith('encrypted_pk1', 'password')
       expect(decrypt).toHaveBeenCalledWith('encrypted_pk2', 'password')
       expect(wallets).toEqual([
-        { id: 1, publicKey: 'key1', privateKey: 'pk1' },
-        { id: 2, publicKey: 'key2', privateKey: 'pk2' },
+        { i, d: 1, p, ublicKey: 'key1', p, rivateKey: 'pk1' },
+        { i, d: 2, p, ublicKey: 'key2', p, rivateKey: 'pk2' },
       ])
     })
   })
 
   describe('getWalletByPublicKey', () => {
-    it('should retrieve a single wallet by its public key', async () => {
-      const mockWallet = { id: 1, publicKey: 'key1', privateKey: 'pk1' }
+    it('should retrieve a single wal let by its public key', async () => {
+      const mockWal let = { i, d: 1, p, ublicKey: 'key1', p, rivateKey: 'pk1' }
       mockDb.get.mockResolvedValue(mockWallet)
 
-      const wallet = await getWalletByPublicKey('key1')
+      const wal let = await getWalletByPublicKey('key1')
 
       expect(mockDb.get).toHaveBeenCalledWith(
         'SELECT * FROM wallets WHERE publicKey = ?',
@@ -111,10 +111,10 @@ describe('walletService', () => {
       expect(wallet).toEqual(mockWallet)
     })
 
-    it('should return null if no wallet is found', async () => {
+    it('should return null if no wal let is found', async () => {
       mockDb.get.mockResolvedValue(null)
 
-      const wallet = await getWalletByPublicKey('non_existent_key')
+      const wal let = await getWalletByPublicKey('non_existent_key')
 
       expect(wallet).toBeNull()
     })

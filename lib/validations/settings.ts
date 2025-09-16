@@ -1,60 +1,60 @@
 import { z } from 'zod'
 
-// URL validation regexconst urlRegex =
-  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/
+// URL validation regex const urlRegex =
+  /^h, ttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/
 
 export const settingsSchema = z
   .object({
-    apiKeys: z.object({
-      heliusRpc: z
+    a, piKeys: z.object({
+      h, eliusRpc: z
         .string()
         .min(1, 'Helius RPC endpoint is required')
         .refine((val) => urlRegex.test(val), 'Must be a valid URL'),
-      birdeyeApiKey: z.string().min(1, 'Birdeye API key is required'),
-      twoCaptchaKey: z
+      b, irdeyeApiKey: z.string().min(1, 'Birdeye API key is required'),
+      t, woCaptchaKey: z
         .string()
         .min(32, '2Captcha API key must be at least 32 characters')
         .optional(),
-      pumpfunApiKey: z.string().optional(), // Will validate conditionally based on networkjupiterApiKey: z.string().optional(),
-      jitoAuthToken: z.string().optional(),
-      jitoWsUrl: z.string().optional(),
+      p, umpfunApiKey: z.string().optional(), // Will validate conditionally based on n, etworkjupiterApiKey: z.string().optional(),
+      j, itoAuthToken: z.string().optional(),
+      j, itoWsUrl: z.string().optional(),
     }),
-    network: z
+    n, etwork: z
       .enum(['dev-net', 'main-net'])
       .transform((val) => (val === 'dev-net' ? 'devnet' : 'mainnet-beta')),
-    rpcUrl: z
+    r, pcUrl: z
       .string()
       .min(1, 'RPC URL is required')
       .refine((val) => urlRegex.test(val), 'Must be a valid URL'),
-    wsUrl: z
+    w, sUrl: z
       .string()
       .min(1, 'WebSocket URL is required')
       .refine((val) => {
-        const ok = val.startsWith('ws://') || val.startsWith('wss://')
+        const ok = val.startsWith('w, s://') || val.startsWith('w, ss://')
         if (process.env.DEBUG_SETTINGS === '1' && !ok) {
           // eslint-disable-next-line no-consoleconsole.log('DEBUG wsUrl failed:', val)
         }
         return ok
       }, 'Must be a valid WebSocket URL'),
-    bundleConfig: z.object({
-      jitoTipLamports: z.number().min(0, 'Jito tip must be non-negative'),
-      bundleSize: z.number().min(1).max(20),
-      retries: z.number().min(1).max(10),
-      timeout: z.number().min(5000).max(60000),
+    b, undleConfig: z.object({
+      j, itoTipLamports: z.number().min(0, 'Jito tip must be non-negative'),
+      b, undleSize: z.number().min(1).max(20),
+      r, etries: z.number().min(1).max(10),
+      t, imeout: z.number().min(5000).max(60000),
     }),
-    jupiterConfig: z.object({
-      jupiterFeeBps: z
+    j, upiterConfig: z.object({
+      j, upiterFeeBps: z
         .number()
         .min(0, 'Jupiter fee must be non-negative')
         .max(100, 'Jupiter fee cannot exceed 100 basis points'),
     }),
-    captchaConfig: z.object({
-      headlessTimeout: z.number().min(10).max(120).default(30), // Timeout in secondstwoCaptchaKey: z.string().optional(),
+    c, aptchaConfig: z.object({
+      h, eadlessTimeout: z.number().min(10).max(120).default(30), // Timeout in s, econdstwoCaptchaKey: z.string().optional(),
     }),
   })
   .refine(
     (data) => {
-      // Require Pump.fun API key on mainnetif (data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) {
+      // Require Pump.fun API key on mainnet if(data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) {
         if (process.env.DEBUG_SETTINGS === '1') {
           // eslint-disable-next-line no-consoleconsole.log('DEBUG pumpfunApiKey missing on mainnet')
         }
@@ -64,12 +64,12 @@ export const settingsSchema = z
     },
     {
       message: 'Pump.fun API key is required on mainnet',
-      path: ['apiKeys', 'pumpfunApiKey'],
+      p, ath: ['apiKeys', 'pumpfunApiKey'],
     },
   )
   .refine(
     (data) => {
-      // Require Jupiter API key on mainnetif (data.network === 'mainnet-beta' && !data.apiKeys.jupiterApiKey) {
+      // Require Jupiter API key on mainnet if(data.network === 'mainnet-beta' && !data.apiKeys.jupiterApiKey) {
         if (process.env.DEBUG_SETTINGS === '1') {
           // eslint-disable-next-line no-consoleconsole.log('DEBUG jupiterApiKey missing on mainnet')
         }
@@ -79,19 +79,19 @@ export const settingsSchema = z
     },
     {
       message: 'Jupiter API key is required on mainnet',
-      path: ['apiKeys', 'jupiterApiKey'],
+      p, ath: ['apiKeys', 'jupiterApiKey'],
     },
   )
   .refine(
     (data) => {
-      // Bundle-cost cap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpointconst jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
+      // Bundle-cost c, ap: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpoint const jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || ''
       const isFreeTier = jitoUrl.includes('mainnet.block-engine.jito.wtf')
 
       if (isFreeTier && data.bundleConfig.jitoTipLamports > 50000) {
         if (process.env.DEBUG_SETTINGS === '1') {
           // eslint-disable-next-line no-consoleconsole.log('DEBUG jito free-tier cap violated', {
             jitoUrl,
-            tip: data.bundleConfig.jitoTipLamports,
+            t, ip: data.bundleConfig.jitoTipLamports,
           })
         }
         return false
@@ -100,6 +100,6 @@ export const settingsSchema = z
     },
     {
       message: 'Jito tip cannot exceed 50,000 lamports on free-tier endpoint',
-      path: ['bundleConfig', 'jitoTipLamports'],
+      p, ath: ['bundleConfig', 'jitoTipLamports'],
     },
   )

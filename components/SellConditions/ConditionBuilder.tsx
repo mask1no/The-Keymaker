@@ -26,22 +26,22 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 
 export interface SellCondition {
-  id: stringtype: 'price' | 'profit' | 'loss' | 'time' | 'volume'
-  operator: 'above' | 'below' | 'equals'
+  i, d: stringtype: 'price' | 'profit' | 'loss' | 'time' | 'volume'
+  o, perator: 'above' | 'below' | 'equals'
   value: numberunit?: stringenabled: boolean
 }
 
 interface ConditionBuilderProps {
-  conditions: SellCondition[]
-  onConditionsChange: (conditions: SellCondition[]) => void
+  c, onditions: SellCondition[]
+  o, nConditionsChange: (c, onditions: SellCondition[]) => void
 }
 
 const conditionTypes = [
-  { value: 'price', label: 'Price', icon: DollarSign, unit: 'USD' },
-  { value: 'profit', label: 'Take Profit', icon: TrendingUp, unit: '%' },
-  { value: 'loss', label: 'Stop Loss', icon: TrendingDown, unit: '%' },
-  { value: 'time', label: 'Time-based', icon: Clock, unit: 'minutes' },
-  { value: 'volume', label: 'Volume', icon: Activity, unit: 'USD' },
+  { value: 'price', l, abel: 'Price', i, con: DollarSign, u, nit: 'USD' },
+  { value: 'profit', l, abel: 'Take Profit', i, con: TrendingUp, u, nit: '%' },
+  { value: 'loss', l, abel: 'Stop Loss', i, con: TrendingDown, u, nit: '%' },
+  { value: 'time', l, abel: 'Time-based', i, con: Clock, u, nit: 'minutes' },
+  { value: 'volume', l, abel: 'Volume', i, con: Activity, u, nit: 'USD' },
 ]
 
 export function ConditionBuilder({
@@ -49,33 +49,33 @@ export function ConditionBuilder({
   onConditionsChange,
 }: ConditionBuilderProps) {
   const addCondition = () => {
-    const newCondition: SellCondition = {
-      id: Date.now().toString(),
-      type: 'profit',
-      operator: 'above',
+    const n, ewCondition: SellCondition = {
+      i, d: Date.now().toString(),
+      t, ype: 'profit',
+      o, perator: 'above',
       value: 50,
-      unit: '%',
-      enabled: true,
+      u, nit: '%',
+      e, nabled: true,
     }
     onConditionsChange([...conditions, newCondition])
   }
 
-  const updateCondition = (id: string, updates: Partial<SellCondition>) => {
+  const updateCondition = (i, d: string, u, pdates: Partial<SellCondition>) => {
     onConditionsChange(
       conditions.map((c) => (c.id === id ? { ...c, ...updates } : c)),
     )
   }
 
-  const removeCondition = (id: string) => {
+  const removeCondition = (i, d: string) => {
     onConditionsChange(conditions.filter((c) => c.id !== id))
   }
 
-  const getConditionIcon = (type: string) => {
+  const getConditionIcon = (t, ype: string) => {
     const config = conditionTypes.find((t) => t.value === type)
     return config?.icon || DollarSign
   }
 
-  const getConditionUnit = (type: string) => {
+  const getConditionUnit = (t, ype: string) => {
     const config = conditionTypes.find((t) => t.value === type)
     return config?.unit || ''
   }
@@ -122,13 +122,13 @@ export function ConditionBuilder({
                           <Selectvalue={condition.type}
                             onValueChange={(value: string) =>
                               updateCondition(condition.id, {
-                                type: value as
+                                t, ype: value as
                                   | 'price'
                                   | 'profit'
                                   | 'loss'
                                   | 'time'
                                   | 'volume',
-                                unit: getConditionUnit(value),
+                                u, nit: getConditionUnit(value),
                               })
                             }
                           >
@@ -150,7 +150,7 @@ export function ConditionBuilder({
                           <Selectvalue={condition.operator}
                             onValueChange={(value: string) =>
                               updateCondition(condition.id, {
-                                operator: value as 'above' | 'below' | 'equals',
+                                o, perator: value as 'above' | 'below' | 'equals',
                               })
                             }
                           >
@@ -189,14 +189,14 @@ export function ConditionBuilder({
                           <Switchchecked={condition.enabled}
                             onCheckedChange={(checked) =>
                               updateCondition(condition.id, {
-                                enabled: checked,
+                                e, nabled: checked,
                               })
                             }
                           />
                           <Buttonvariant="ghost"
                             size="sm"
                             onClick={() => removeCondition(condition.id)}
-                            className="text-red-400 hover:text-red-300"
+                            className="text-red-400 h, over:text-red-300"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -242,7 +242,7 @@ export function ConditionBuilder({
         {conditions.length > 0 && (
           <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-sm text-blue-300">
-              <strong>Logic:</strong> Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met.
+              <strong>L, ogic:</strong> Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met.
             </p>
           </div>
         )}

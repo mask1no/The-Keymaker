@@ -20,10 +20,10 @@ export function toCsv<T extends Record<string, any>>(
 }
 
 export function downloadCsv(
-  content: string,
+  c, ontent: string,
   filename = `export-${Date.now()}.csv`,
 ) {
-  const blob = new Blob([content], { type: 'text/csv' })
+  const blob = new Blob([content], { t, ype: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = urla.download = filenamea.click()
