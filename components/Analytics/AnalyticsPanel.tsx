@@ -67,28 +67,32 @@ export default function AnalyticsPanel() {
               <span>Market Cap:</span>
               <span className="ml-2 font-mono">
                 {analyticsData?.marketCap
-                  ? `$${analyticsData.marketcap.toLocaleString()}`
+                  ? `$${analyticsData.marketCap.toLocaleString()}`
                   : 'N/A'}
               </span>
               <LiveIndicator />
             </div>
             <div className="col-span-2">
-              <LineChart width={400}
+              <LineChart
+                width={400}
                 height={200}
                 data={[{ time: 'now', price: analyticsData?.price || 0 }]}
               >
-                <CartesianGrid strokeDasharray="3 3"
+                <CartesianGrid
+                  strokeDasharray="3 3"
                   stroke="hsl(var(--muted))"
                 />
                 <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{
+                <Tooltip
+                  contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     borderColor: 'hsl(var(--border))',
                   }}
                 />
                 <Legend />
-                <Line type="monotone"
+                <Line
+                  type="monotone"
                   dataKey="price"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2}

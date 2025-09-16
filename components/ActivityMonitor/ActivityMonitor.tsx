@@ -20,8 +20,14 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
 import toast from 'react-hot-toast'
 
 interface ActivityEntry {
-  id: stringtype: 'buy' | 'sell' | 'other'
-  isOurs: booleanamount?: stringwallet: stringsignature: stringtimestamp: numberslot: number
+  id: string
+  type: 'buy' | 'sell' | 'other'
+  isOurs: boolean
+  amount?: string
+  wallet: string
+  signature: string
+  timestamp: number
+  slot: number
 }
 
 export function ActivityMonitor() {
@@ -33,10 +39,12 @@ export function ActivityMonitor() {
   const subscriptionIdRef = useRef<number | null>(null)
   const maxEntries = 200
 
-  // Get our wallet addresses for comparisonconst ourWalletAddresses = wallets.map((w) => w.publicKey)
+  // Get our wallet addresses for comparison
+  const ourWalletAddresses = wallets.map((w) => w.publicKey)
 
   useEffect(() => {
-    // Cleanup on unmountreturn () => {
+    // Cleanup on unmount
+    return () => {
       if (subscriptionIdRef.current && connectionRef.current) {
         connectionRef.current.removeOnLogsListener(subscriptionIdRef.current)
       }
@@ -52,7 +60,8 @@ export function ActivityMonitor() {
     try {
       setIsMonitoring(true)
 
-      // Create WebSocket connectionconnectionRef.current = new Connection(NEXT_PUBLIC_HELIUS_RPC, {
+      // Create WebSocket connection
+      connectionRef.current = new Connection(NEXT_PUBLIC_HELIUS_RPC, {
         commitment: 'confirmed',
         wsEndpoint: NEXT_PUBLIC_HELIUS_RPC.replace(
           'https://',
@@ -63,7 +72,8 @@ export function ActivityMonitor() {
       const tokenMint = new PublicKey(tokenLaunchData.mintAddress)
 
       // Subscribe to logs for the token mint
-      // This will catch all transactions involving the tokensubscriptionIdRef.current = connectionRef.current.onLogs(
+      // This will catch all transactions involving the token
+      subscriptionIdRef.current = connectionRef.current.onLogs(
         tokenMint,
         (logs: Logs, context: Context) => {
           processTransaction(logs, context)
@@ -92,13 +102,18 @@ export function ActivityMonitor() {
 
   const processTransaction = (logs: Logs, context: Context) => {
     try {
-      const signature = logs.signatureconst slot = context.slot
+      const signature = logs.signature
+      const slot = context.slot
 
-      // Parse logs to determine transaction typelet type: 'buy' | 'sell' | 'other' = 'other'
-      let isOurs = falselet wallet = ''
+      // Parse logs to determine transaction type
+      let type: 'buy' | 'sell' | 'other' = 'other'
+      let isOurs = false
+      let wallet = ''
 
-      // Check if any of our wallets are involvedfor (const log of logs.logs) {
-        // Look for transfer logsif (log.includes('Transfer')) {
+      // Check if any of our wallets are involved
+      for (const log of logs.logs) {
+        // Look for transfer logs
+        if (log.includes('Transfer')) {
           if (log.includes('SOL') && log.includes('->')) {
             // Likely a buy (SOL going in)
             type = 'buy'
@@ -108,15 +123,20 @@ export function ActivityMonitor() {
           }
         }
 
-        // Check if our wallets are mentionedfor (const ourWallet of ourWalletAddresses) {
+        // Check if our wallets are mentioned
+        for (const ourWallet of ourWalletAddresses) {
           if (log.includes(ourWallet)) {
-            isOurs = truewallet = ourWalletbreak
+            isOurs = true
+            wallet = ourWallet
+            break
           }
         }
       }
 
-      // Extract wallet from logs if not oursif (!wallet && logs.logs.length > 0) {
-        // Try to extract wallet address from logsconst match = logs.logs[0].match(/[1-9A-HJ-NP-Za-km-z]{32,44}/)
+      // Extract wallet from logs if not ours
+      if (!wallet && logs.logs.length > 0) {
+        // Try to extract wallet address from logs
+        const match = logs.logs[0].match(/[1-9A-HJ-NP-Za-km-z]{32,44}/)
         if (match) {
           wallet = match[0]
         }
@@ -134,7 +154,8 @@ export function ActivityMonitor() {
 
       setActivities((prev) => {
         const updated = [newActivity, ...prev]
-        // Keep only the most recent entriesreturn updated.slice(0, maxEntries)
+        // Keep only the most recent entries
+        return updated.slice(0, maxEntries)
       })
     } catch (error) {
       console.error('Error processing transaction:', error)
@@ -173,13 +194,15 @@ export function ActivityMonitor() {
           </CardTitle>
           <div className="flex items-center gap-2">
             {isConnected && (
-              <Badgevariant="outline"
+              <Badge
+                variant="outline"
                 className="text-green-500 border-green-500"
               >
                 Live
               </Badge>
             )}
-            <Buttonsize="sm"
+            <Button
+              size="sm"
               variant={isMonitoring ? 'destructive' : 'default'}
               onClick={isMonitoring ? stopMonitoring : startMonitoring}
               disabled={!tokenLaunchData?.mintAddress}
@@ -215,12 +238,15 @@ export function ActivityMonitor() {
               </div>
             ) : (
               activities.map((activity, index) => (
-                <motion.divkey={activity.id}
+                <motion.div
+                  key={activity.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ delay: index * 0.01 }}
-                  className={`flex items-center gap-2 py-1 ${getActivityColor(activity)}`}
+                  className={`flex items-center gap-2 py-1 ${getActivityColor(
+                    activity,
+                  )}`}
                 >
                   {getActivityIcon(activity.type)}
                   <span className="text-muted-foreground">
@@ -241,7 +267,8 @@ export function ActivityMonitor() {
                       OURS
                     </Badge>
                   )}
-                  <ahref={`https://solscan.io/tx/${activity.signature}`}
+                  <a
+                    href={`https://solscan.io/tx/${activity.signature}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-auto text-blue-400 hover:underline"

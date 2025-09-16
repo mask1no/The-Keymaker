@@ -853,12 +853,22 @@ node scripts/canaryTrade.js
 
 ## System Status
 
-**Build:** ✅ Green  
-**Bundler (Jito):** ✅ Preview → Execute → Poll (mainnet)  
-**WS Light:** ✅ Requires `NEXT_PUBLIC_HELIUS_WS=wss://…`  
-**Token Creators:** 🚫 Quarantined by default (enable flags when ready)  
-**Wallet UX:** ✅ Folders, AES-GCM local encryption  
+**Build:** ✅ Green
+**Bundler (Jito):** ✅ Preview → Execute → Poll (mainnet)
+**RPC/WS:** ✅ Green (via `NEXT_PUBLIC_HELIUS_RPC`/`_WS`)
+**Token Creators:** ✅ Enabled
+**Wallet UX:** ✅ Folders, AES-GCM local encryption
 **Settings / Guide:** ✅ Restored (health checks + basic docs)
+
+## Hygiene
+
+To ensure code quality and prevent regressions, run the hygiene script:
+
+```bash
+pnpm hygiene
+```
+
+This script checks for common corruption patterns and other issues.
 
 ## Quickstart
 

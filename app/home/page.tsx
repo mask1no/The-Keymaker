@@ -22,7 +22,8 @@ import { LAMPORTS_PER_SOL, Connection } from '@solana/web3.js'
 import { useSystemStatus } from '@/hooks/useSystemStatus'
 import { Skeleton } from '@/components/UI/skeleton'
 
-// Import all required componentsimport { ControlPanel } from '@/components/ControlCenter/ControlPanel'
+// Import all required components
+import { ControlPanel } from '@/components/ControlCenter/ControlPanel'
 import WalletManager from '@/components/WalletManager/WalletManager'
 import { LogsPanel } from '@/components/ExecutionLog/LogsPanel'
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel'
@@ -45,14 +46,18 @@ export default function DashboardPage() {
   useSystemStatus()
   const [activeTab, setActiveTab] = useState<TabView>('overview')
   interface Trade {
-    pnl: numbertoken_address: stringexecuted_at: string
+    pnl: number
+    token_address: string
+    executed_at: string
   }
   const [recentTrades, setRecentTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // Calculate statsconst totalBalance =
-    wallets.reduce((sum, w) => sum + w.balance, 0) / LAMPORTS_PER_SOLconst masterWallet = wallets.find((w) => w.role === 'master')
+  // Calculate stats
+  const totalBalance =
+    wallets.reduce((sum, w) => sum + w.balance, 0) / LAMPORTS_PER_SOL
+  const masterWallet = wallets.find((w) => w.role === 'master')
   const sniperWallets = wallets.filter((w) => w.role === 'sniper')
   const devWallets = wallets.filter((w) => w.role === 'dev')
   const pnlPercentage =
@@ -60,7 +65,8 @@ export default function DashboardPage() {
       ? ((totalReturned - totalInvested) / totalInvested) * 100
       : 0
 
-  // Fetch recent trades from databaseuseEffect(() => {
+  // Fetch recent trades from database
+  useEffect(() => {
     const fetchRecentTrades = async () => {
       try {
         const response = await fetch('/api/trades?limit=5')
@@ -76,12 +82,15 @@ export default function DashboardPage() {
     }
 
     fetchRecentTrades()
-    const interval = setInterval(fetchRecentTrades, 30000) // Refresh every 30 secondsreturn () => clearInterval(interval)
+    const interval = setInterval(fetchRecentTrades, 30000) // Refresh every 30 seconds
+    return () => clearInterval(interval)
   }, [])
 
-  // Update wallet balances periodicallyuseEffect(() => {
+  // Update wallet balances periodically
+  useEffect(() => {
     const updateBalances = async () => {
-      if (wallets.length === 0) returntry {
+      if (wallets.length === 0) return
+      try {
         new Connection(rpcUrl)
         // This would normally update balances via the store
         // For now, balances are updated elsewhere
@@ -91,7 +100,8 @@ export default function DashboardPage() {
     }
 
     updateBalances()
-    const interval = setInterval(updateBalances, 10000) // Every 10 secondsreturn () => clearInterval(interval)
+    const interval = setInterval(updateBalances, 10000) // Every 10 seconds
+    return () => clearInterval(interval)
   }, [wallets, rpcUrl])
 
   const stats = [
@@ -188,7 +198,8 @@ export default function DashboardPage() {
       <div className="border-b border-white/10 bg-black/40 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <motion.divinitial={{ opacity: 0, y: -20 }}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
@@ -199,20 +210,23 @@ export default function DashboardPage() {
                 Solana Memecoin Orchestration Platform
               </p>
             </motion.div>
-            <motion.divclassName="flex items-center gap-4"
+            <motion.div
+              className="flex items-center gap-4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               {tokenLaunchData?.mintAddress && (
-                <Badgevariant="outline"
+                <Badge
+                  variant="outline"
                   className="bg-green-500/10 text-green-400 border-green-500/20 px-4 py-1.5"
                 >
                   Token: {tokenLaunchData.symbol}
                 </Badge>
               )}
               {masterWallet && (
-                <Badgevariant="outline"
+                <Badge
+                  variant="outline"
                   className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20 px-4 py-1.5"
                 >
                   Master: {masterWallet.publicKey.slice(0, 8)}...
@@ -228,7 +242,8 @@ export default function DashboardPage() {
         <div className="container mx-auto px-6">
           <div className="flex space-x-1 overflow-x-auto py-2">
             {tabs.map((tab) => (
-              <buttonkey={tab.id}
+              <button
+                key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap
@@ -251,7 +266,8 @@ export default function DashboardPage() {
       <div className="container mx-auto px-6 py-6">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <motion.divkey="overview"
+            <motion.div
+              key="overview"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -260,7 +276,8 @@ export default function DashboardPage() {
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {stats.map((stat, index) => (
-                  <motion.divkey={stat.title}
+                  <motion.div
+                    key={stat.title}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{
@@ -280,14 +297,16 @@ export default function DashboardPage() {
                         <CardTitle className="text-xs font-medium text-white/60 group-hover:text-white/80 transition-colors">
                           {stat.title}
                         </CardTitle>
-                        <motion.divclassName={`${stat.color} group-hover:scale-110 transition-transform`}
+                        <motion.div
+                          className={`${stat.color} group-hover:scale-110 transition-transform`}
                           whileHover={{ rotate: 15 }}
                         >
                           {stat.icon}
                         </motion.div>
                       </CardHeader>
                       <CardContent>
-                        <divclassName={`text-2xl font-bold ${stat.color} group-hover:scale-105 transition-transform origin-left`}
+                        <div
+                          className={`text-2xl font-bold ${stat.color} group-hover:scale-105 transition-transform origin-left`}
                         >
                           {stat.value}
                         </div>
@@ -304,7 +323,8 @@ export default function DashboardPage() {
               <div className="grid grid-cols-12 gap-6">
                 {/* Market Cap Card */}
                 <div className="col-span-12 md:col-span-6 lg:col-span-4">
-                  <MarketCapCardmintAddress={tokenLaunchData?.mintAddress ?? ''}
+                  <MarketCapCard
+                    mintAddress={tokenLaunchData?.mintAddress ?? ''}
                     tokenSymbol={tokenLaunchData?.symbol}
                   />
                 </div>
@@ -316,7 +336,8 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-12 gap-4">
-                      <buttononClick={() => router.push('/dashboard/bundle')}
+                      <button
+                        onClick={() => router.push('/dashboard/bundle')}
                         className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl border border-purple-500/20 hover:border-purple-500/40 transition-all"
                       >
                         <PlayCircle className="h-8 w-8 mb-3 text-purple-400" />
@@ -326,7 +347,8 @@ export default function DashboardPage() {
                         </p>
                       </button>
 
-                      <buttononClick={() => router.push('/dashboard/wallets')}
+                      <button
+                        onClick={() => router.push('/dashboard/wallets')}
                         className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-2xl border border-green-500/20 hover:border-green-500/40 transition-all"
                       >
                         <Wallet className="h-8 w-8 mb-3 text-green-400" />
@@ -336,7 +358,8 @@ export default function DashboardPage() {
                         </p>
                       </button>
 
-                      <buttononClick={() => router.push('/dashboard/create')}
+                      <button
+                        onClick={() => router.push('/dashboard/create')}
                         className="col-span-12 md:col-span-4 p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-2xl border border-blue-500/20 hover:border-blue-500/40 transition-all"
                       >
                         <Rocket className="h-8 w-8 mb-3 text-blue-400" />
@@ -367,7 +390,8 @@ export default function DashboardPage() {
                   ) : recentTrades.length > 0 ? (
                     <div className="space-y-2">
                       {recentTrades.map((trade: Trade, idx) => (
-                        <divkey={idx}
+                        <div
+                          key={idx}
                           className="flex items-center justify-between p-2 bg-white/5 rounded-lg"
                         >
                           <div className="flex items-center gap-3">
@@ -394,7 +418,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'control' && (
-            <motion.divkey="control"
+            <motion.div
+              key="control"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -404,7 +429,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'wallets' && (
-            <motion.divkey="wallets"
+            <motion.div
+              key="wallets"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -414,7 +440,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'create' && (
-            <motion.divkey="create"
+            <motion.div
+              key="create"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -424,7 +451,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'logs' && (
-            <motion.divkey="logs"
+            <motion.div
+              key="logs"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -434,7 +462,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'analytics' && (
-            <motion.divkey="analytics"
+            <motion.div
+              key="analytics"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -444,7 +473,8 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'activity' && (
-            <motion.divkey="activity"
+            <motion.div
+              key="activity"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}

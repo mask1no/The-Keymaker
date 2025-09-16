@@ -20,16 +20,20 @@ import {
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
-// Fetcher function for SWRconst fetcher = (url: string) => fetch(url).then((res) => res.json())
+// Fetcher function for SWR
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-// Fetch recent bundle activity from telemetryasync function fetchRecentActivity(): Promise<any[]> {
+// Fetch recent bundle activity from telemetry
+async function fetchRecentActivity(): Promise<any[]> {
   try {
-    // Import the service dynamically to avoid issues in client-sideconst { getExecutionHistory } = await import(
+    // Import the service dynamically to avoid issues in client-side
+    const { getExecutionHistory } = await import(
       '@/services/executionLogService'
     )
     const executions = await getExecutionHistory(3) // Get last 3 executions
 
-    // Transform the data to match the expected formatreturn executions.map((exec: any) => ({
+    // Transform the data to match the expected format
+    return executions.map((exec: any) => ({
       id: exec.bundle_id || `bundle_${exec.id}`,
       status:
         exec.status === 'success'
@@ -39,17 +43,21 @@ import useSWR from 'swr'
             : 'pending',
       slot: exec.slot || 0,
       latency: exec.execution_time || 0,
-      tipLamports: 0, // Will be added when we integrate with more detailed telemetrycreatedAt: exec.created_at,
+      tipLamports: 0, // Will be added when we integrate with more detailed telemetry
+      createdAt: exec.created_at,
     }))
   } catch (error) {
     console.warn('Failed to fetch recent activity:', error)
-    // Return empty array on errorreturn []
+    // Return empty array on error
+    return []
   }
 }
 
-// Compute bundle partitions from active walletsfunction partitions(active: number, cap: number = 5): number[] {
+// Compute bundle partitions from active wallets
+function partitions(active: number, cap: number = 5): number[] {
   const out: number[] = []
-  let left = activewhile (left > 0) {
+  let left = active
+  while (left > 0) {
     const take = Math.min(cap, left)
     out.push(take)
     left -= take
@@ -62,18 +70,21 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false)
   const [recentActivity, setRecentActivity] = useState<any[]>([])
 
-  // Fetch tip data from APIconst {
+  // Fetch tip data from API
+  const {
     data: tipData,
     error: tipError,
     isLoading: tipLoading,
   } = useSWR('/api/jito/tipfloor?region=ffm', fetcher, {
-    refreshInterval: 10000, // Refresh every 10 secondsrevalidateOnFocus: false,
+    refreshInterval: 10000, // Refresh every 10 seconds
+    revalidateOnFocus: false,
   })
 
   useEffect(() => {
     setMounted(true)
 
-    // Fetch recent activity on mountfetchRecentActivity()
+    // Fetch recent activity on mount
+    fetchRecentActivity()
       .then((activity) => {
         setRecentActivity(activity)
       })
@@ -122,7 +133,8 @@ export default function Dashboard() {
       {/* Top Row - Big Bento Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bundle Planner */}
-        <motion.divinitial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
@@ -159,7 +171,8 @@ export default function Dashboard() {
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {partitions(19).map((count, index) => (
-                    <divkey={index}
+                    <div
+                      key={index}
                       className="h-2 bg-primary/20 rounded-full"
                       style={{ width: `${(count / 5) * 100}%` }}
                     />
@@ -171,7 +184,8 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Tip Preview */}
-        <motion.divinitial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
@@ -257,7 +271,8 @@ export default function Dashboard() {
       {/* Bottom Row - Small Bento Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <motion.divinitial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
@@ -271,7 +286,8 @@ export default function Dashboard() {
             <CardContent className="space-y-3">
               {recentActivity.length > 0 ? (
                 recentActivity.map((activity) => (
-                  <divkey={activity.id}
+                  <div
+                    key={activity.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-card/30 border border-border/50"
                   >
                     <div className="flex items-center gap-3">
@@ -285,7 +301,10 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <divclassName={`text-sm font-mono ${getStatusColor(activity.status)}`}
+                    <div
+                      className={`text-sm font-mono ${getStatusColor(
+                        activity.status,
+                      )}`}
                     >
                       {activity.latency}ms
                     </div>
@@ -305,7 +324,8 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Shortcuts */}
-        <motion.divinitial={{ opacity: 0, y: 20 }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
@@ -317,7 +337,8 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3">
-              <ButtononClick={() => router.push('/bundle')}
+              <Button
+                onClick={() => router.push('/bundle')}
                 className="h-auto p-4 justify-start"
                 variant="outline"
               >
@@ -332,7 +353,8 @@ export default function Dashboard() {
                 </div>
               </Button>
 
-              <ButtononClick={() => router.push('/creator')}
+              <Button
+                onClick={() => router.push('/creator')}
                 className="h-auto p-4 justify-start"
                 variant="outline"
               >
@@ -347,7 +369,8 @@ export default function Dashboard() {
                 </div>
               </Button>
 
-              <ButtononClick={() => router.push('/settings')}
+              <Button
+                onClick={() => router.push('/settings')}
                 className="h-auto p-4 justify-start"
                 variant="outline"
               >

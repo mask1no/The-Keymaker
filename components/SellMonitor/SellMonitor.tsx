@@ -189,7 +189,8 @@ export function SellMonitor() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -219,7 +220,8 @@ export function SellMonitor() {
                   <DollarSign className="h-3 w-3" />
                   Market Cap Threshold
                 </Label>
-                <Input type="number"
+                <Input
+                  type="number"
                   value={marketCapInput}
                   onChange={(e) => setMarketCapInput(e.target.value)}
                   placeholder="1000000"
@@ -233,7 +235,8 @@ export function SellMonitor() {
                   <TrendingUp className="h-3 w-3" />
                   Profit Target (%)
                 </Label>
-                <Input type="number"
+                <Input
+                  type="number"
                   value={profitInput}
                   onChange={(e) => setProfitInput(e.target.value)}
                   placeholder="100"
@@ -247,7 +250,8 @@ export function SellMonitor() {
                   <TrendingDown className="h-3 w-3" />
                   Stop Loss (%)
                 </Label>
-                <Input type="number"
+                <Input
+                  type="number"
                   value={lossInput}
                   onChange={(e) => setLossInput(e.target.value)}
                   placeholder="50"
@@ -261,7 +265,8 @@ export function SellMonitor() {
                   <Clock className="h-3 w-3" />
                   Time Delay (min)
                 </Label>
-                <Input type="number"
+                <Input
+                  type="number"
                   value={timeDelayInput}
                   onChange={(e) => setTimeDelayInput(e.target.value)}
                   placeholder="180"
@@ -279,7 +284,8 @@ export function SellMonitor() {
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {holdings.map((holding) => (
-                <div key={holding.tokenAddress}
+                <div
+                  key={holding.tokenAddress}
                   className="bg-white/5 rounded-lg p-3 flex items-center justify-between"
                 >
                   <div>
@@ -289,7 +295,8 @@ export function SellMonitor() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-medium ${holding.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                    <p
+                      className={`text-sm font-medium ${holding.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}
                     >
                       {holding.pnl >= 0 ? '+' : ''}
                       {holding.pnl.toFixed(2)}%
@@ -306,14 +313,16 @@ export function SellMonitor() {
           {/* Control Buttons */}
           <div className="flex gap-2">
             {!isMonitoring ? (
-              <Button onClick={startMonitoring}
+              <Button
+                onClick={startMonitoring}
                 className="flex-1"
                 disabled={holdings.length === 0}
               >
                 Start Monitoring
               </Button>
             ) : (
-              <Button onClick={stopMonitoring}
+              <Button
+                onClick={stopMonitoring}
                 variant="destructive"
                 className="flex-1"
               >

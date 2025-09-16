@@ -514,3 +514,18 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - Market-aware execution strategies
 - Risk management and position limits
 - Performance monitoring and adaptation
+
+### Non-custodial guarantees
+
+- **Client-side signing:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
+- **AES-GCM key storage:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
+
+### Failure handling
+
+| Scenario                         | Fallback                                       | Status Polling Timeout |
+| -------------------------------- | ---------------------------------------------- | ---------------------- |
+| Jito RPC failure                 | Switch to standard RPC                         | 30 seconds             |
+| Standard RPC failure             | Display error message and retry                | 60 seconds             |
+| WebSocket connection failure     | Fallback to HTTP polling                       | N/A                    |
+| Jito bundle submission failure   | Retry submission up to 3 times                 | 20 seconds per attempt |
+| Transaction confirmation timeout | Display warning and monitor transaction status | 120 seconds            |

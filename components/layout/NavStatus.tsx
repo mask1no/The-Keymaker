@@ -1,15 +1,42 @@
 'use client'
 import { useEffect, useState } from 'react'
-function Dot({ ok }:{ ok:boolean }){ return <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${ok?'bg-emerald-400':'bg-zinc-500'}`} /> }
-function Chip({ ok, label }:{ ok:boolean; label:string }){
-  return <div className="flex items-center gap-1.5 rounded-xl border border-border px-2 py-1 text-[11px] leading-none text-primary"><Dot ok={ok}/><span>{label}</span></div>
-}
+import { Server, Radio, Zap } from 'lucide-react'
+
+const Chip = ({ ok, label, Icon }:{
+  ok:boolean; label:string; Icon: any
+}) => (
+  <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs bg-card">
+    <Icon className="h-3.5 w-3.5 opacity-90" />
+    <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
+  </div>
+)
+
 export default function NavStatus(){
-  const [rpc,setRpc]=useState(false),[ws,setWs]=useState(false),[jito,setJito]=useState(false),[net,setNet]=useState<'MAINNET'|'DEVNET'>('MAINNET')
-  useEffect(()=>{ const rpcUrl=(process.env.NEXT_PUBLIC_HELIUS_RPC||'').toLowerCase(); setNet(rpcUrl.includes('devnet')?'DEVNET':'MAINNET')
-    fetch('/api/jito/tipfloor',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(()=>{setRpc(true);setJito(true)}).catch(()=>{setRpc(false);setJito(false)})
-    const wsUrl=(process.env.NEXT_PUBLIC_HELIUS_WS||'').trim(); if(!wsUrl) return setWs(false)
-    try{const s=new WebSocket(wsUrl); let opened=false; s.onopen=()=>{opened=true;setWs(true);s.close()}; s.onerror=()=>{if(!opened)setWs(false)}}catch{setWs(false)}
+  const [rpc,setRpc]=useState(false)
+  const [ws,setWs]=useState(false)
+  const [jito,setJito]=useState(false)
+  const [net,setNet]=useState<'MAINNET'|'DEVNET'|'UNKNOWN'>('UNKNOWN')
+  useEffect(()=>{
+    const rpcUrl = (process.env.NEXT_PUBLIC_HELIUS_RPC || '').toLowerCase()
+    setNet(rpcUrl.includes('devnet') ? 'DEVNET' : rpcUrl ? 'MAINNET' : 'UNKNOWN')
+    fetch('/api/jito/tipfloor',{cache:'no-store'})
+      .then(r=>r.ok? r.json(): Promise.reject())
+      .then(()=>{ setRpc(true); setJito(true) })
+      .catch(()=>{ setRpc(false); setJito(false) })
+    const wsUrl = (process.env.NEXT_PUBLIC_HELIUS_WS || '').trim()
+    if (!wsUrl) { setWs(false); return }
+    try {
+      const s = new WebSocket(wsUrl); let opened=false
+      s.onopen = ()=>{ opened=true; setWs(true); s.close() }
+      s.onerror = ()=>{ if(!opened) setWs(false) }
+    } catch { setWs(false) }
   },[])
-  return <div className="grid grid-cols-2 gap-2 mt-3"><Chip ok={rpc} label="RPC"/><Chip ok={ws} label="WS"/><Chip ok={jito} label="JITO"/><Chip ok label={net}/></div>
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <Chip ok={rpc} label="RPC" Icon={Server}/>
+      <Chip ok={ws} label="WebSocket" Icon={Radio}/>
+      <Chip ok={jito} label="JITO" Icon={Zap}/>
+      <Chip ok label={net} Icon={Server}/>
+    </div>
+  )
 }

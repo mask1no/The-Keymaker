@@ -142,7 +142,8 @@ export function NotificationCenter() {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon Button */}
-      <Button variant="ghost"
+      <Button
+        variant="ghost"
         size="icon"
         onClick={toggleDropdown}
         className="relative"
@@ -158,7 +159,8 @@ export function NotificationCenter() {
       {/* Dropdown */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div initial={{ opacity: 0 }}
+          <motion.div
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
@@ -169,13 +171,15 @@ export function NotificationCenter() {
           >
             <Card className="w-96 max-h-[500px] overflow-hidden shadow-xl border-gray-800 bg-gray-900/95 backdrop-blur-md">
               {/* Header */}
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
+              <div
+                className="p-4 border-b border-gray-800 flex items-center justify-between cursor-move select-none"
                 onMouseDown={onMouseDown}
               >
                 <h3 className="font-semibold text-lg">Notifications</h3>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (
-                    <Button size="sm"
+                    <Button
+                      size="sm"
                       variant="ghost"
                       onClick={clearNotifications}
                       className="text-xs"
@@ -184,7 +188,8 @@ export function NotificationCenter() {
                       Clear All
                     </Button>
                   )}
-                  <Button size="icon"
+                  <Button
+                    size="icon"
                     variant="ghost"
                     onClick={() => setIsOpen(false)}
                     className="h-8 w-8"
@@ -204,7 +209,8 @@ export function NotificationCenter() {
                 ) : (
                   <div className="divide-y divide-gray-800">
                     {notifications.slice(0, 20).map((notification, index) => (
-                      <motion.div key={notification.id}
+                      <motion.div
+                        key={notification.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
@@ -225,7 +231,8 @@ export function NotificationCenter() {
                               {formatTime(notification.timestamp)}
                             </p>
                           </div>
-                          <Button size="icon"
+                          <Button
+                            size="icon"
                             variant="ghost"
                             onClick={() => removeNotification(notification.id)}
                             className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"

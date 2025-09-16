@@ -132,7 +132,8 @@ export function PnLPanel() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
@@ -142,7 +143,8 @@ export function PnLPanel() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
               <DollarSign className="w-5 h-5 text-muted" />
-              <Badge variant="outline"
+              <Badge
+                variant="outline"
                 className={getColorClass(sessionData.totalPnL)}
               >
                 24h
@@ -219,22 +221,26 @@ export function PnLPanel() {
               Wallet P&L Breakdown
             </span>
             <div className="flex items-center gap-2">
-              <Button size="sm"
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => loadPnLData()}
                 disabled={refreshing}
               >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
+                <RefreshCw
+                  className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
                 />
               </Button>
-              <Button size="sm"
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => handleExport('json')}
               >
                 <Download className="w-4 h-4 mr-1" />
                 JSON
               </Button>
-              <Button size="sm"
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => handleExport('csv')}
               >
@@ -284,11 +290,13 @@ export function PnLPanel() {
                       <TableCell className="text-right text-muted">
                         {wallet.totalJitoTips.toFixed(4)} SOL
                       </TableCell>
-                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}
+                      <TableCell
+                        className={`text-right font-semibold ${getColorClass(wallet.netPnL)}`}
                       >
                         {formatSOL(wallet.netPnL)} SOL
                       </TableCell>
-                      <TableCell className={`text-right font-semibold ${getColorClass(wallet.pnlPercentage)}`}
+                      <TableCell
+                        className={`text-right font-semibold ${getColorClass(wallet.pnlPercentage)}`}
                       >
                         {formatPercentage(wallet.pnlPercentage)}
                       </TableCell>

@@ -85,14 +85,16 @@ export function TransactionCard({
       case 'swap':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TokenSelector tokens={HARDCODED_TOKENS}
+            <TokenSelector
+              tokens={HARDCODED_TOKENS}
               isLoading={false}
               onSelect={(tokenAddress) =>
                 handleTokenSelect(tokenAddress, 'fromToken')
               }
               placeholder="From Token"
             />
-            <TokenSelector tokens={HARDCODED_TOKENS}
+            <TokenSelector
+              tokens={HARDCODED_TOKENS}
               isLoading={false}
               onSelect={(tokenAddress) =>
                 handleTokenSelect(tokenAddress, 'toToken')
@@ -100,7 +102,8 @@ export function TransactionCard({
               placeholder="To Token"
             />
             <div className="flex items-center gap-2">
-              <Button variant="outline"
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => checkSecurity(transaction.toToken)}
                 disabled={isLoadingSecurity || !transaction.toToken}
@@ -109,7 +112,8 @@ export function TransactionCard({
                 {isLoadingSecurity ? 'Checking...' : 'Check Security'}
               </Button>
               {securityScore !== null && (
-                <div className={`text-sm font-bold ${
+                <div
+                  className={`text-sm font-bold ${
                     securityScore > 80
                       ? 'text-primary'
                       : securityScore > 50
@@ -121,13 +125,15 @@ export function TransactionCard({
                 </div>
               )}
             </div>
-            <Input type="number"
+            <Input
+              type="number"
               placeholder="Amount"
               onChange={(e) =>
                 onUpdate(transaction.id, { amount: parseFloat(e.target.value) })
               }
             />
-            <Input type="number"
+            <Input
+              type="number"
               placeholder="Slippage (%)"
               onChange={(e) =>
                 onUpdate(transaction.id, {
@@ -140,12 +146,14 @@ export function TransactionCard({
       case 'transfer':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input placeholder="Recipient Address"
+            <Input
+              placeholder="Recipient Address"
               onChange={(e) =>
                 onUpdate(transaction.id, { recipient: e.target.value })
               }
             />
-            <Input type="number"
+            <Input
+              type="number"
               placeholder="Amount (SOL)"
               onChange={(e) =>
                 onUpdate(transaction.id, {
@@ -161,7 +169,8 @@ export function TransactionCard({
   }
 
   return (
-    <div ref={setNodeRef}
+    <div
+      ref={setNodeRef}
       style={style}
       {...attributes}
       data-testid={`transaction-card-${transaction.id}`}
@@ -172,12 +181,14 @@ export function TransactionCard({
             <div {...listeners} className="cursor-grab">
               <GripVertical className="h-5 w-5 text-muted-foreground" />
             </div>
-            <Select defaultValue={transaction.type}
+            <Select
+              defaultValue={transaction.type}
               onValueChange={(value: 'swap' | 'transfer') =>
                 onUpdate(transaction.id, { type: value })
               }
             >
-              <SelectTrigger className="w-[120px]"
+              <SelectTrigger
+                className="w-[120px]"
                 data-testid="transaction-type-select"
               >
                 <SelectValue placeholder="Type" />
@@ -188,7 +199,8 @@ export function TransactionCard({
               </SelectContent>
             </Select>
           </div>
-          <Button variant="ghost"
+          <Button
+            variant="ghost"
             size="icon"
             onClick={() => onRemove(transaction.id)}
             data-testid="remove-transaction-button"

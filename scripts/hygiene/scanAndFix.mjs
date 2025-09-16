@@ -35,6 +35,7 @@ if (del.length) {
   for (const r of del) fs.rmSync(path.join(ROOT, r))
 }
 if (warn.length) {
-  console.error('Corrupted TS/TSX:\n' + warn.join('\n')); process.exit(1)
+  console.error('Corrupted TS/TSX:\n' + warn.join('\n'))
+  process.exit(1)
 }
 console.log('Hygiene OK')
