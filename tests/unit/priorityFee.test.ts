@@ -1,5 +1,5 @@
 describe('priorityFee (placeholder)', () => {
   it('smoke', () => {
-    expect(true).toBe(true)
-  })
-})
+    expect(true).toBe(true);
+  });
+});

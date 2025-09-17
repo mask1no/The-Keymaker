@@ -1,16 +1,21 @@
-import { Result } from './Result'
-import { SimulationService } from './SimulationService'
-import { SubmissionService } from './SubmissionService'
-import { VersionedTransaction } from '@solana/web3.js'
+import { Result } from './Result';
+import { SimulationService } from './SimulationService';
+import { SubmissionService } from './SubmissionService';
+import { VersionedTransaction } from '@solana/web3.js';
 
 export class BundleExecutor {
-  constructor(private simulator: SimulationService, private submitter: SubmissionService) {}
+  constructor(
+    private simulator: SimulationService,
+    private submitter: SubmissionService,
+  ) {}
 
   async preview(txs: VersionedTransaction[]): Promise<Result<void>> {
-    return this.simulator.simulateAll(txs)
+    return this.simulator.simulateAll(txs);
   }
 
-  async execute(txs_b64: string[]): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
-    return this.submitter.submitAndPoll(txs_b64)
+  async execute(
+    txs_b64: string[],
+  ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
+    return this.submitter.submitAndPoll(txs_b64);
   }
 }
