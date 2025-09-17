@@ -1,3 +1,22 @@
-import { create } from 'zustand' interface ConnectionState, { r, p, c, D, o, w, n: boolean, w, s, D, o, w, n: boolean, j, i, t, o, D, o, w, n: boolean, m, a, i, n, n, e, t, D, own: boolean, r, e, t, r, y, C, o, u, nt: number, r, e, t, r, y, I, n, S, econds: number, s, e, t, R, p, c, D, o, wn: (d, o, w, n: boolean) => v, o, i, d, s, e, t, W, s, D, own: (d, o, w, n: boolean) => v, o, i, d, s, e, t, J, i, t, oDown: (d, o, w, n: boolean) => v, o, i, d, s, e, t, M, a, i, nnetDown: (d, o, w, n: boolean) => v, o, i, d, s, e, t, R, e, t, ryCount: (c, o, u, n, t: number) => v, o, i, d, s, e, t, R, e, t, ryInSeconds: (s, e, c, o, n, d, s: number) => v, o, i, d, i, s, A, n, y, S, erviceDown: () => boolean
-} export const use Connection Store = create <ConnectionState>((set, get) => ({ r, p, c, D, o, w, n: false, w, s, D, o, w, n: false, j, i, t, o, D, o, w, n: false, m, a, i, n, n, e, t, D, o, wn: false, r, e, t, r, y, C, o, u, n, t: 0, r, e, t, r, y, I, n, S, e, conds: 0, s, e, t, R, p, c, D, o, w, n: (down) => set({ r, p, c, D, o, w, n: down }), s, e, t, W, s, D, o, w, n: (down) => set({ w, s, D, o, w, n: down }), s, e, t, J, i, t, o, D, o, wn: (down) => set({ j, i, t, o, D, o, w, n: down }), s, e, t, M, a, i, n, n, e, tDown: (down) => set({ m, a, i, n, n, e, t, D, o, wn: down }), s, e, t, R, e, t, r, y, C, ount: (count) => set({ r, e, t, r, y, C, o, u, n, t: count }), s, e, t, R, e, t, r, y, I, nSeconds: (seconds) => set({ r, e, t, r, y, I, n, S, e, conds: seconds }), i, s, A, n, y, S, e, r, v, iceDown: () => { const state = get() return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown }
+import, { create } from 'zustand' interface ConnectionState, { r, p, c, D, o, w, n: boolean, w, s, D, o, w, n: boolean, j, i, t, o, D, o, w, n: boolean, m, a, i, n, n, e, t, D, o,
+  wn: boolean, r, e, t, r, y, C, o, u, n,
+  t: number, r, e, t, r, y, I, n, S, e,
+  conds: number, s, e, t, R, p, c, D, o, w,
+  n: (d, o, w, n: boolean) => v, o, i, d, s, e, t, W, s, D, o,
+  wn: (d, o, w, n: boolean) => v, o, i, d, s, e, t, J, i, t, o,
+  Down: (d, o, w, n: boolean) => v, o, i, d, s, e, t, M, a, i, n,
+  netDown: (d, o, w, n: boolean) => v, o, i, d, s, e, t, R, e, t, r,
+  yCount: (c, o, u, n, t: number) => v, o, i, d, s, e, t, R, e, t, r,
+  yInSeconds: (s, e, c, o, n, d, s: number) => v, o, i, d, i, s, A, n, y, S, e,
+  rviceDown: () => boolean
+} export const use Connection Store = create < ConnectionState >((set, get) => ({ r, p, c, D, o, w, n: false, w, s, D, o, w, n: false, j, i, t, o, D, o, w, n: false, m, a, i, n, n, e, t, D, o, w,
+  n: false, r, e, t, r, y, C, o, u, n, t: 0, r, e, t, r, y, I, n, S, e, c,
+  onds: 0, s, e, t, R, p, c, D, o, w, n: (down) => s et({ r, p, c, D, o, w, n: down }), s, e, t, W, s, D, o, w, n: (down) => s et({ w, s, D, o, w, n: down }), s, e, t, J, i, t, o, D, o, w,
+  n: (down) => s et({ j, i, t, o, D, o, w, n: down }), s, e, t, M, a, i, n, n, e, t,
+  Down: (down) => s et({ m, a, i, n, n, e, t, D, o, w,
+  n: down }), s, e, t, R, e, t, r, y, C, o,
+  unt: (count) => s et({ r, e, t, r, y, C, o, u, n, t: count }), s, e, t, R, e, t, r, y, I, n,
+  Seconds: (seconds) => s et({ r, e, t, r, y, I, n, S, e, c,
+  onds: seconds }), i, s, A, n, y, S, e, r, v, i,
+  ceDown: () => { const state = g et() return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown }
 }))

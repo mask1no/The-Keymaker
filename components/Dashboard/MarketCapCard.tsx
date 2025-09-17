@@ -1,11 +1,68 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
-import { TrendingUp, TrendingDown, DollarSign, Activity, Users, Volume2 } from 'lucide-react' interface MarketCapData, { m, i, n, t: string, m, a, r, k, e, t, C, a, p: number, p, r, i, c, e: number, v, o, l, u, m, e24, h: number, p, r, i, c, e, C, h, a, nge24h: number, f, d, v: number l, i, q, u, i, d, i, tyUSD?: number h, o, l, d, e, r, s?: number, l, a, s, t, U, p, d, a, ted: string
+import, { useState, useEffect } from 'react'
+import, { Card, CardContent, CardHeader, CardTitle } from '@/ components / UI / Card'
+import, { TrendingUp, TrendingDown, DollarSign, Activity, Users, Volume2 } from 'lucide - react' interface MarketCapData, { m, i, n, t: string, m, a, r, k, e, t, C, a, p: number, p, r, i, c, e: number, v, o, l, u, m, e24, h: number, p, r, i, c, e, C, h, a, n,
+  ge24h: number, f, d, v: number l, i, q, u, i, d, i, tyUSD?: number h, o, l, d, e, r, s?: number, l, a, s, t, U, p, d, a, t,
+  ed: string
 } interface MarketCapCardProps, { m, i, n, t, A, d, d, r, e, s, s: string t, o, k, e, n, N, a, me?: string t, o, k, e, n, S, y, mbol?: string
-} export function M a rketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCapCardProps) { const [data, setData] = useState <MarketCapData | null>(null) const [loading, setLoading] = u s eState(true) const [error, setError] = useState <string | null>(null) const fetch Market Cap = async () => { try { s e tLoading(true) const response = await fetch(`/api/marketcap/${mintAddress}`) const result = await response.json() if (response.ok) { s e tData(result) s e tError(null) } else, { s e tError(result.error || 'Failed to fetch data') }
-} } catch (err) { s e tError('Network error') } finally, { s e tLoading(false) }
-} u s eEffect(() => { f e tchMarketCap()//Refresh every 30 seconds const interval = s e tInterval(fetchMarketCap, 30000) return () => c l earInterval(interval) }, [mintAddress]) const format Currency = (v, a, lue: number) => { if (value>= 1e9) return `$${(value/1e9).toFixed(2) }
-B` if (value>= 1e6) return `$${(value/1e6).toFixed(2) }
-M` if (value>= 1e3) return `$${(value/1e3).toFixed(2) }
-K` return `$${value.toFixed(4) }` } const format Price = (p, r, i, c, e: number) => { if (price <0.0001) return `$${price.toFixed(8) }` if (price <0.01) return `$${price.toFixed(6) }` return `$${price.toFixed(4) }` } if (loading && !data) { return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h - 5 w-5"/> Market Data </CardTitle> </CardHeader> <CardContent> <div className ="animate - pulse space - y-3"> <div className ="h - 4 bg - muted rounded w-3/4"></div> <div className ="h - 4 bg - muted rounded w-1/2"></div> <div className ="h - 4 bg - muted rounded w-2/3"></div> </div> </CardContent> </Card> ) } if (error || !data) { return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h - 5 w-5"/> Market Data </CardTitle> </CardHeader> <CardContent> <div className ="text - center py-4"> <p className ="text - sm text-muted-foreground"> {error || 'Market data not available'} </p> <buttonon Click ={fetchMarketCap} className ="text - xs text - primary h, o, ver:underline mt-2"> Try again </button> </div> </CardContent> </Card> ) } return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h-5 w-5"/> {tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : 'Market Data'} </CardTitle> </CardHeader> <CardContent className ="space - y-4"> {/* Price */} <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <DollarSign className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> Price </span> </div> <div className ="text-right"> <div className ="text - lg font-semibold"> {f o rmatPrice(data.price) } </div> <div className ={`text - xs flex items - center gap-1 ${ data.priceChange24h>= 0 ? 'text - green - 400' : 'text - red-400' }`}> {data.priceChange24h>= 0 ? ( <TrendingUp className ="h - 3 w-3"/> ) : ( <TrendingDown className ="h - 3 w-3"/> ) }, {data.priceChange24h>= 0 ? '+' : ''}, {data.priceChange24h.toFixed(2) }% </div> </div> </div> {/* Market Cap */} <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Activity className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> Market Cap </span> </div> <div className ="text - lg font-semibold"> {f o rmatCurrency(data.marketCap) } </div> </div> {/* 24h Volume */} <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Volume2 className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> 24h Volume </span> </div> <div className ="text - lg font-semibold"> {f o rmatCurrency(data.volume24h) } </div> </div> {/* FDV */}, {data.fdv> 0 && data.fdv !== data.marketCap && ( <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Activity className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> FDV </span> </div> <div className ="text - lg font-semibold"> {f o rmatCurrency(data.fdv) } </div> </div> ) }, {/* Holders */}, {data.holders && data.holders> 0 && ( <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Users className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> Holders </span> </div> <div className ="text - lg font-semibold"> {data.holders.t oL ocaleString() } </div> </div> ) }, {/* Liquidity */}, {data.liquidityUSD && data.liquidityUSD> 0 && ( <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Activity className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> Liquidity </span> </div> <div className ="text - lg font-semibold"> {f o rmatCurrency(data.liquidityUSD) } </div> </div> ) }, {/* Last Updated */} <div className ="pt - 2 border - t border-border"> <div className ="text - xs text - muted - foreground text-center"> Last u, p, d, a, t, e, d: {new Date(data.lastUpdated).toLocaleTimeString() } </div> </div> </CardContent> </Card> ) }
+} export function M a r ketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCapCardProps) { const, [data, setData] = useState < MarketCapData | null >(null) const, [loading, setLoading] = u s eS tate(true) const, [error, setError] = useState < string | null >(null) const fetch Market Cap = a sync () => { try, { s e tL oading(true) const response = await f etch(`/ api / marketcap / $,{mintAddress}`) const result = await response.j son() i f (response.ok) { s e tD ata(result) s e tE rror(null) } else, { s e tE rror(result.error || 'Failed to fetch data') }
+} } c atch (err) { s e tE rror('Network error') } finally, { s e tL oading(false) }
+} u s eE ffect(() => { f e t chMarketCap()// Refresh every 30 seconds const interval = s e tI nterval(fetchMarketCap, 30000) r eturn () => c l e arInterval(interval) }, [mintAddress]) const format Currency = (v, a, l,
+  ue: number) => { i f (value >= 1e9) return `$$,{(value / 1e9).t oFixed(2) }
+B` i f (value >= 1e6) return `$$,{(value / 1e6).t oFixed(2) }
+M` i f (value >= 1e3) return `$$,{(value / 1e3).t oFixed(2) }
+K` return `$$,{value.t oFixed(4) }` } const format Price = (p, r, i, c, e: number) => { i f (price < 0.0001) return `$$,{price.t oFixed(8) }` i f (price < 0.01) return `$$,{price.t oFixed(6) }` return `$$,{price.t oFixed(4) }` } i f (loading && ! data) { r eturn ( < Card class
+  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader > < CardTitle class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 5 w - 5"/> Market Data </ CardTitle > </ CardHeader > < CardContent > < div class
+  Name ="animate - pulse space - y - 3"> < div class
+  Name ="h - 4 bg - muted rounded w - 3 / 4"></ div > < div class
+  Name ="h - 4 bg - muted rounded w - 1 / 2"></ div > < div class
+  Name ="h - 4 bg - muted rounded w - 2 / 3"></ div > </ div > </ CardContent > </ Card > ) } i f (error || ! data) { r eturn ( < Card class
+  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader > < CardTitle class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 5 w - 5"/> Market Data </ CardTitle > </ CardHeader > < CardContent > < div class
+  Name ="text - center py - 4"> < p class
+  Name ="text - sm text - muted - foreground"> {error || 'Market data not available'} </ p > < buttonon Click ={fetchMarketCap} class
+  Name ="text - xs text - primary h, o, v,
+  er:underline mt - 2"> Try again </ button > </ div > </ CardContent > </ Card > ) } r eturn ( < Card class
+  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader > < CardTitle class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 5 w - 5"/> {tokenName && tokenSymbol ? `$,{tokenName} ($,{tokenSymbol})` : 'Market Data'} </ CardTitle > </ CardHeader > < CardContent class
+  Name ="space - y - 4"> {/* Price */} < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < DollarSign class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> Price </ span > </ div > < div class
+  Name ="text - right"> < div class
+  Name ="text - lg font - semibold"> {f o r matPrice(data.price) } </ div > < div class
+  Name ={`text - xs flex items - center gap - 1 $,{ data.priceChange24h >= 0 ? 'text - green - 400' : 'text - red - 400' }`}> {data.priceChange24h >= 0 ? ( < TrendingUp class
+  Name ="h - 3 w - 3"/> ) : ( < TrendingDown class
+  Name ="h - 3 w - 3"/> ) }, {data.priceChange24h >= 0 ? '+' : ''}, {data.priceChange24h.t oFixed(2) }% </ div > </ div > </ div > {/* Market Cap */} < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> Market Cap </ span > </ div > < div class
+  Name ="text - lg font - semibold"> {f o r matCurrency(data.marketCap) } </ div > </ div > {/* 24h Volume */} < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Volume2 class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> 24h Volume </ span > </ div > < div class
+  Name ="text - lg font - semibold"> {f o r matCurrency(data.volume24h) } </ div > </ div > {/* FDV */}, {data.fdv > 0 && data.fdv !== data.marketCap && ( < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> FDV </ span > </ div > < div class
+  Name ="text - lg font - semibold"> {f o r matCurrency(data.fdv) } </ div > </ div > ) }, {/* Holders */}, {data.holders && data.holders > 0 && ( < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Users class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> Holders </ span > </ div > < div class
+  Name ="text - lg font - semibold"> {data.holders.t oL o caleString() } </ div > </ div > ) }, {/* Liquidity */}, {data.liquidityUSD && data.liquidityUSD > 0 && ( < div class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 4 w - 4 text - muted - foreground"/> < span class
+  Name ="text - sm text - muted - foreground"> Liquidity </ span > </ div > < div class
+  Name ="text - lg font - semibold"> {f o r matCurrency(data.liquidityUSD) } </ div > </ div > ) }, {/* Last Updated */} < div class
+  Name ="pt - 2 border - t border - border"> < div class
+  Name ="text - xs text - muted - foreground text - center"> Last u, p, d, a, t, e, d: {new D ate(data.lastUpdated).t oLocaleTimeString() } </ div > </ div > </ CardContent > </ Card > ) }

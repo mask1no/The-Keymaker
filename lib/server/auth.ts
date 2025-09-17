@@ -1,9 +1,17 @@
 import nacl from 'tweetnacl'
-import { PublicKey } from '@solana/web3.js' export function verifySignedIntent({ address, nonce, signatureBase64, body }: { a, ddress: string, n, once: string, s, ignatureBase64: string, b, ody: unknown }) { try { const message = new TextEncoder().encode(`${nonce}:${JSON.stringify(body)}`) const signature = Buffer.from(signatureBase64, 'base64') const publicKey = new PublicKey(address).toBytes() return nacl.sign.detached.verify(message, signature, publicKey) } catch (error) { return false }
-}//In - memory nonce cache with TTL
-const nonceCache = new Map <string, number>()
-const NONCE_TTL = 5 * 60 * 1000//5 minutes export function generateNonce(): string { const nonce = Math.random().toString(36).substring(2, 15) nonceCache.set(nonce, Date.now() + NONCE_TTL) return nonce
-} export function validateNonce(n, once: string): boolean { const expiry = nonceCache.get(nonce) if (!expiry || Date.now() > expiry) { nonceCache.delete(nonce) return false } //Use nonce (remove it) nonceCache.delete(nonce) return true
-}//Cleanup expired nonces periodically
-setInterval(() => { const now = Date.now() for (const [nonce, expiry] of nonceCache.entries()) { if (now > expiry) { nonceCache.delete(nonce) } }
-}, 60 * 1000)//Every minute
+import, { PublicKey } from '@solana / web3.js' export function v erifySignedIntent({ address, nonce, signatureBase64, body }: { a, d,
+  dress: string, n, o,
+  nce: string, s, i,
+  gnatureBase64: string, b, o,
+  dy: unknown }) { try, { const message = new T extEncoder().e ncode(`$,{nonce}:$,{JSON.s tringify(body)}`) const signature = Buffer.f rom(signatureBase64, 'base64') const public
+  Key = new P ublicKey(address).t oBytes() return nacl.sign.detached.v erify(message, signature, publicKey) } c atch (error) { return false }
+}// In - memory nonce cache with TTL
+const nonce
+  Cache = new Map < string, number >()
+const N
+  ONCE_TTL = 5 * 60 * 1000 // 5 minutes export function g enerateNonce(): string, { const nonce = Math.r andom().t oString(36).s ubstring(2, 15) nonceCache.s et(nonce, Date.n ow() + NONCE_TTL) return nonce
+} export function v alidateNonce(n, o,
+  nce: string): boolean, { const expiry = nonceCache.g et(nonce) i f (! expiry || Date.n ow() > expiry) { nonceCache.d elete(nonce) return false } // Use n once (remove it) nonceCache.d elete(nonce) return true
+}// Cleanup expired nonces periodically
+s etInterval(() => { const now = Date.n ow() f or (const, [nonce, expiry] of nonceCache.e ntries()) { i f (now > expiry) { nonceCache.d elete(nonce) } }
+}, 60 * 1000)// Every minute

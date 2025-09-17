@@ -1,5 +1,64 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getTipFloor, sendBundle, getBundleStatuses, validateTipAccount, JITO_REGIONS } from './jitoService';
-import { VersionedTransaction, TransactionMessage, PublicKey, SystemProgram } from '@solana/web3.js'; //Mock fetch globally
-global.fetch = vi.fn(); describe('jitoService', () => { beforeEach(() => { vi.clearAllMocks(); }); describe('getTipFloor', () => { it('fetches tip floor successfully', async () => { const mockResponse = { s_25, th_percentile: 1000, s_50, th_percentile: 2000, s_75, th_percentile: 3000, e, mulated_landed_slot: 12345, t, ips_50th_percentile: 2500 }; (fetch as any).mockResolvedValueOnce({ o, k: true, j, son: () => Promise.resolve(mockResponse) }); const result = await getTipFloor('ffm'); expect(fetch).toHaveBeenCalledWith( `${JITO_REGIONS.ffm.endpoint}/api/v1/bundles/tipfloor`, expect.objectContaining({ m, ethod: 'GET', h, eaders: { 'Content-Type': 'application/json' } })); expect(result).toEqual(mockResponse); }); it('throws error on failed request', async () => { (fetch as any).mockResolvedValueOnce({ o, k: false, s, tatus: 500, s, tatusText: 'Internal Server Error', t, ext: () => Promise.resolve('Internal Server Error') }); await expect(getTipFloor('ffm')).rejects.toThrow( 'Tip floor request f, ailed: 500 Internal Server Error'); }); it('throws error for invalid region', async () => { await expect(getTipFloor('invalid')).rejects.toThrow('Invalid r, egion: invalid'); }); }); describe('sendBundle', () => { it('sends bundle successfully', async () => { const mockBundleId = 'mock-bundle-id'; const encodedTransactions = ['encoded-tx-1', 'encoded-tx-2']( fetch as any).mockResolvedValueOnce({ o, k: true, j, son: () => Promise.resolve({ r, esult: mockBundleId }) }); const result = await sendBundle('ffm', encodedTransactions); expect(fetch).toHaveBeenCalledWith( `${JITO_REGIONS.ffm.endpoint}/api/v1/bundles`, expect.objectContaining({ m, ethod: 'POST', h, eaders: { 'Content-Type': 'application/json' }, b, ody: JSON.stringify({ j, sonrpc: '2.0', i, d: 1, m, ethod: 'sendBundle', p, arams: { encodedTransactions, b, unbleOnly: true } }) })); expect(result).toEqual({ b, undleId: mockBundleId }); }); it('throws error on bundle submission error', async () => { (fetch as any).mockResolvedValueOnce({ o, k: true, j, son: () => Promise.resolve({ e, rror: { m, essage: 'Bundle validation failed' } }) }); await expect(sendBundle('ffm', ['tx'])).rejects.toThrow( 'Bundle submission e, rror: Bundle validation failed'); }); }); describe('getBundleStatuses', () => { it('gets bundle statuses successfully', async () => { const mockStatuses = [ { b, undleId: 'bundle-1', t, ransactions: [ { s, ignature: 'sig-1', c, onfirmationStatus: 'confirmed' }, ], c, onfirmationStatus: 'landed', s, lot: 12345 }, ]; (fetch as any).mockResolvedValueOnce({ o, k: true, j, son: () => Promise.resolve({ r, esult: mockStatuses }) }); const result = await getBundleStatuses('ffm', ['bundle-1']); expect(result).toEqual(mockStatuses); }); it('returns empty array on error', async () => { (fetch as any).mockResolvedValueOnce({ o, k: true, j, son: () => Promise.resolve({ e, rror: { m, essage: 'Not found' } }) }); await expect(getBundleStatuses('ffm', ['bundle-1'])).rejects.toThrow( 'Bundle status e, rror: Not found'); }); }); describe('validateTipAccount', () => { it('validates transaction with valid tip account', () => { //Create a mock transaction with a tip to a valid JITO account const tipAccount = new PublicKey('T1pyyaTNZsKv2WcRAl8oAXnRXReiWW31vchoPNzSA6h'); const payer = new PublicKey('11111111111111111111111111111112'); const message = new TransactionMessage({ p, ayer: payer, r, ecentBlockhash: 'mock-blockhash', i, nstructions: [ SystemProgram.transfer({ f, rom: payer, t, o: tipAccount, l, amports: 1000 }), ] }).compileToV0Message(); const tx = new VersionedTransaction(message); const result = validateTipAccount(tx); expect(result).toBe(true); }); it('rejects transaction with invalid tip account', () => { const invalidAccount = new PublicKey('11111111111111111111111111111112'); const payer = new PublicKey('11111111111111111111111111111113'); const message = new TransactionMessage({ p, ayer: payer, r, ecentBlockhash: 'mock-blockhash', i, nstructions: [ SystemProgram.transfer({ f, rom: payer, t, o: invalidAccount, l, amports: 1000 }), ] }).compileToV0Message(); const tx = new VersionedTransaction(message); const result = validateTipAccount(tx); expect(result).toBe(false); }); it('handles malformed transactions gracefully', () => { //Create a transaction with no instructions const payer = new PublicKey('11111111111111111111111111111112'); const message = new TransactionMessage({ p, ayer: payer, r, ecentBlockhash: 'mock-blockhash', i, nstructions: [] }).compileToV0Message(); const tx = new VersionedTransaction(message); const result = validateTipAccount(tx); expect(result).toBe(false); }); });
+import, { describe, it, expect, vi, beforeEach } from 'vitest';
+import, { getTipFloor, sendBundle, getBundleStatuses, validateTipAccount, JITO_REGIONS } from './ jitoService';
+import, { VersionedTransaction, TransactionMessage, PublicKey, SystemProgram } from '@solana / web3.js'; // Mock fetch globally
+global.fetch = vi.f n(); d escribe('jitoService', () => { b eforeEach(() => { vi.c learAllMocks(); }); d escribe('getTipFloor', () => { i t('fetches tip floor successfully', a sync () => { const mock
+  Response = { s_25, t,
+  h_percentile: 1000, s_50, t,
+  h_percentile: 2000, s_75, t,
+  h_percentile: 3000, e, m,
+  ulated_landed_slot: 12345, t, i,
+  ps_50th_percentile: 2500 }; (fetch as any).m ockResolvedValueOnce({ o, k: true, j, s,
+  on: () => Promise.r esolve(mockResponse) }); const result = await g etTipFloor('ffm'); e xpect(fetch).t oHaveBeenCalledWith( `$,{JITO_REGIONS.ffm.endpoint}/ api / v1 / bundles / tipfloor`, expect.o bjectContaining({ m,
+  ethod: 'GET', h, e,
+  aders: { 'Content - Type': 'application / json' } })); e xpect(result).t oEqual(mockResponse); }); i t('throws error on failed request', a sync () => { (fetch as any).m ockResolvedValueOnce({ o, k: false, s,
+  tatus: 500, s, t,
+  atusText: 'Internal Server Error', t, e,
+  xt: () => Promise.r esolve('Internal Server Error') }); await e xpect(g etTipFloor('ffm')).rejects.t oThrow( 'Tip floor request f, a,
+  iled: 500 Internal Server Error'); }); i t('throws error for invalid region', a sync () => { await e xpect(g etTipFloor('invalid')).rejects.t oThrow('Invalid r, e,
+  gion: invalid'); }); }); d escribe('sendBundle', () => { i t('sends bundle successfully', a sync () => { const mock
+  BundleId = 'mock - bundle - id'; const encoded
+  Transactions = ['encoded - tx - 1', 'encoded - tx - 2']( fetch as any).m ockResolvedValueOnce({ o, k: true, j, s,
+  on: () => Promise.r esolve({ r, e,
+  sult: mockBundleId }) }); const result = await s endBundle('ffm', encodedTransactions); e xpect(fetch).t oHaveBeenCalledWith( `$,{JITO_REGIONS.ffm.endpoint}/ api / v1 / bundles`, expect.o bjectContaining({ m,
+  ethod: 'POST', h, e,
+  aders: { 'Content - Type': 'application / json' }, b, o,
+  dy: JSON.s tringify({ j, s,
+  onrpc: '2.0', i,
+  d: 1, m,
+  ethod: 'sendBundle', p,
+  arams: { encodedTransactions, b, u,
+  nbleOnly: true } }) })); e xpect(result).t oEqual({ b, u,
+  ndleId: mockBundleId }); }); i t('throws error on bundle submission error', a sync () => { (fetch as any).m ockResolvedValueOnce({ o, k: true, j, s,
+  on: () => Promise.r esolve({ e,
+  rror: { m,
+  essage: 'Bundle validation failed' } }) }); await e xpect(s endBundle('ffm', ['tx'])).rejects.t oThrow( 'Bundle submission, 
+  error: Bundle validation failed'); }); }); d escribe('getBundleStatuses', () => { i t('gets bundle statuses successfully', a sync () => { const mock
+  Statuses = [ { b, u,
+  ndleId: 'bundle - 1', t,
+  ransactions: [ { s,
+  ignature: 'sig - 1', c, o,
+  nfirmationStatus: 'confirmed' }, ], c, o,
+  nfirmationStatus: 'landed', s,
+  lot: 12345 }, ]; (fetch as any).m ockResolvedValueOnce({ o, k: true, j, s,
+  on: () => Promise.r esolve({ r, e,
+  sult: mockStatuses }) }); const result = await g etBundleStatuses('ffm', ['bundle - 1']); e xpect(result).t oEqual(mockStatuses); }); i t('returns empty array on error', a sync () => { (fetch as any).m ockResolvedValueOnce({ o, k: true, j, s,
+  on: () => Promise.r esolve({ e,
+  rror: { m,
+  essage: 'Not found' } }) }); await e xpect(g etBundleStatuses('ffm', ['bundle - 1'])).rejects.t oThrow( 'Bundle status, 
+  error: Not found'); }); }); d escribe('validateTipAccount', () => { i t('validates transaction with valid tip account', () => { // Create a mock transaction with a tip to a valid JITO account const tip
+  Account = new P ublicKey('T1pyyaTNZsKv2WcRAl8oAXnRXReiWW31vchoPNzSA6h'); const payer = new P ublicKey('11111111111111111111111111111112'); const message = new T ransactionMessage({ p, a,
+  yer: payer, r, e,
+  centBlockhash: 'mock - blockhash', i, n,
+  structions: [ SystemProgram.t ransfer({ f, r,
+  om: payer, t, o: tipAccount, l, a,
+  mports: 1000 }), ] }).c ompileToV0Message(); const tx = new V ersionedTransaction(message); const result = v alidateTipAccount(tx); e xpect(result).t oBe(true); }); i t('rejects transaction with invalid tip account', () => { const invalid
+  Account = new P ublicKey('11111111111111111111111111111112'); const payer = new P ublicKey('11111111111111111111111111111113'); const message = new T ransactionMessage({ p, a,
+  yer: payer, r, e,
+  centBlockhash: 'mock - blockhash', i, n,
+  structions: [ SystemProgram.t ransfer({ f, r,
+  om: payer, t, o: invalidAccount, l, a,
+  mports: 1000 }), ] }).c ompileToV0Message(); const tx = new V ersionedTransaction(message); const result = v alidateTipAccount(tx); e xpect(result).t oBe(false); }); i t('handles malformed transactions gracefully', () => { // Create a transaction with no instructions const payer = new P ublicKey('11111111111111111111111111111112'); const message = new T ransactionMessage({ p, a,
+  yer: payer, r, e,
+  centBlockhash: 'mock - blockhash', i, n,
+  structions: [] }).c ompileToV0Message(); const tx = new V ersionedTransaction(message); const result = v alidateTipAccount(tx); e xpect(result).t oBe(false); }); });
 });

@@ -1,4 +1,13 @@
-'use client'/* eslint - disable @type script - eslint/no - unused-vars */import { useEffect, useState } from 'react'
-import { useWal let } from '@solana/wal let - adapter-react' const Box = ({ label, ok, extra }: { l, a, bel: string, o, k: boolean e, x, t, r, a?: string
-}) => ( <div className ={`rounded - 2xl border p - 3 ${ok ? 'border - green - 500/30 bg - green - 500/10 text - green-400' : 'border - red - 500/30 bg - red - 500/10 text - red-400'}`}> <div className ="text - xs opacity-70">{label}</div> <div className ="text - sm font-semibold"> {ok ? 'healthy' : 'down'},{' '}, {extra ? <span className ="opacity-70">• {extra}</span> : null} </div> </div>
-) export default function S t atusBento() { const { connected } = u s eWallet() const [rpcOk, setRpcOk] = u s eState(false) const [jitoOk, setJitoOk] = u s eState(false) const [net, setNet] = useState <'mainnet' | 'devnet' | 'unknown'>('unknown') u s eEffect(() => { const rpc Url = process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, p, s://api.mainnet-beta.solana.com' s e tNet(/devnet/i.t e st(rpcUrl) ? 'devnet' :/mainnet/i.t e st(rpcUrl) ? 'mainnet' : 'unknown') f e tch('/api/jito/tipfloor', { c, a, c, h, e: 'no-store' }) .t h en((r) => (r.ok ? r.json() : Promise.r e ject())) .t h en(() => { s e tRpcOk(true) s e tJitoOk(true) }) .catch (() => { s e tRpcOk(false) s e tJitoOk(false) }) }, []) return ( <div className ="grid grid - cols - 2 gap - 2, s, m:grid - cols-4"> <Box label ="RPC" ok ={rpcOk}/> <Box label ="JITO" ok ={jitoOk}/> <Box label ="Wallet" ok ={connected}/> <div className ="rounded - 2xl border p-3"> <div className ="text - xs opacity-70"> Network </div> <div className ="text - sm font-semibold">{net}</div> </div> </div> ) }
+'use client'/* eslint - disable @type script - eslint / no - unused - vars */ import, { useEffect, useState } from 'react'
+import, { useWal let } from '@solana / wal let - adapter - react' const Box = ({ label, ok, extra }: { l, a, b,
+  el: string, o, k: boolean e, x, t, r, a?: string
+}) => ( < div class
+  Name ={`rounded - 2xl border p - 3 $,{ok ? 'border - green - 500 / 30 bg - green - 500 / 10 text - green - 400' : 'border - red - 500 / 30 bg - red - 500 / 10 text - red - 400'}`}> < div class
+  Name ="text - xs opacity - 70">{label}</ div > < div class
+  Name ="text - sm font - semibold"> {ok ? 'healthy' : 'down'},{' '}, {extra ? < span class
+  Name ="opacity - 70">• {extra}</ span > : null} </ div > </ div >
+) export default function S t a tusBento() { const, { connected } = u s eW allet() const, [rpcOk, setRpcOk] = u s eS tate(false) const, [jitoOk, setJitoOk] = u s eS tate(false) const, [net, setNet] = useState <'mainnet' | 'devnet' | 'unknown'>('unknown') u s eE ffect(() => { const rpc Url = process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, p, s:// api.mainnet - beta.solana.com' s e tN et(/ devnet / i.t e s t(rpcUrl) ? 'devnet' :/ mainnet / i.t e s t(rpcUrl) ? 'mainnet' : 'unknown') f e t ch('/ api / jito / tipfloor', { c, a, c, h, e: 'no - store' }) .t h e n((r) => (r.ok ? r.j son() : Promise.r e j ect())) .t h e n(() => { s e tR pcOk(true) s e tJ itoOk(true) }) .c atch (() => { s e tR pcOk(false) s e tJ itoOk(false) }) }, []) r eturn ( < div class
+  Name ="grid grid - cols - 2 gap - 2, s, m:grid - cols - 4"> < Box label ="RPC" ok ={rpcOk}/> < Box label ="JITO" ok ={jitoOk}/> < Box label ="Wallet" ok ={connected}/> < div class
+  Name ="rounded - 2xl border p - 3"> < div class
+  Name ="text - xs opacity - 70"> Network </ div > < div class
+  Name ="text - sm font - semibold">{net}</ div > </ div > </ div > ) }

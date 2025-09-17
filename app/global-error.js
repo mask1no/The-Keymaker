@@ -1,4 +1,4 @@
 'use client'
-import * as Sentry from '@sentry/nextjs'
-import Error from 'next/error'
-import { useEffect } from 'react' export default function G l obalError({ error }) { u s eEffect(() => { Sentry.c a ptureException(error) }, [error]) return ( <html> <body> <Error/> </body> </html> ) }
+import * as Sentry from '@sentry / nextjs'
+import Error from 'next / error'
+import, { useEffect } from 'react' export default function G l o balError({ error }) { u s eE ffect(() => { Sentry.c a p tureException(error) }, [error]) r eturn ( < html > < body > < Error /> </ body > </ html > ) }

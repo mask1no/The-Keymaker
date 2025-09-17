@@ -1,28 +1,78 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
-import { Input } from '@/components/UI/input'
-import { Button } from '@/components/UI/button'
-import { Label } from '@/components/UI/label'
-import { Badge } from '@/components/UI/badge'
-import { TrendingUp, TrendingDown, Clock, DollarSign, Activity } from 'lucide-react'
-import toast from 'react - hot-toast'
-import { type SellConditions, checkSellConditions, sellToken } from '@/services/sellService'
-import { Connection, Keypair, PublicKey } from '@solana/web3.js'
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
-import { decrypt as decryptBrowser } from '@/utils/browserCrypto'
-import { logger } from '@/lib/logger' interface TokenHolding, { t, o, k, e, n, A, d, d, r, ess: string, t, o, k, e, n, N, a, m, e: string, a, m, o, u, n, t: number, e, n, t, r, y, P, r, i, ce: number, c, u, r, r, e, n, t, P, rice: number, p, n, l: number, m, a, r, k, e, t, C, a, p: number
-} export function S e llMonitor() { const [isMonitoring, setIsMonitoring] = u s eState(false) const [holdings, setHoldings] = useState <TokenHolding,[]>([])//Conditions are set when monitoring starts const [profitInput, setProfitInput] = u s eState('100') const [lossInput, setLossInput] = u s eState('50') const [timeDelayInput, setTimeDelayInput] = u s eState('180') const [marketCapInput, setMarketCapInput] = u s eState('1000000') const [monitorInterval, setMonitorInterval] = useState <NodeJS.Timeout | null>( null) u s eEffect(() => {//Load holdings from localStorage or API const load Holdings = () => { const stored = localStorage.g e tItem('tokenHoldings') if (stored) { s e tHoldings(JSON.p a rse(stored)) }
-} l o adHoldings() }, [])//Clean up interval on u n mountuseEffect(() => { return () => { if (monitorInterval) { c l earInterval(monitorInterval) }
-} }, [monitorInterval]) const start Monitoring = () => { if (holdings.length === 0) { return toast.error('No holdings to monitor') } const u, p, d, a, t, e, d, C, o, n, ditions: Sell Conditions = { m, i, n, P, n, l, P, e, r, c, ent: p a rseFloat(profitInput) || undefined, m, a, x, L, o, s, s, P, e, r, cent: p a rseFloat(lossInput) ?- p a rseFloat(lossInput) : undefined, m, i, n, H, o, l, d, T, i, m, e: p a rseFloat(timeDelayInput) || undefined } s e tIsMonitoring(true) toast.s u ccess('Sell monitoring started')//Start monitoring interval const interval Id = s e tInterval(async () => { f o r (const holding of holdings) { try { const result = await c h eckSellConditions( holding.tokenAddress, updatedConditions, holding.entryPrice, Date.n o w()-(updatedConditions.minHoldTime || 0) * 60000,//Convert minutes to ms ) if (result.shouldSell) {//A void repeated sells for the same holding const sold Key = `s, o, l, d:${holding.tokenAddress}` if (localStorage.g e tItem(soldKey)) { continue } toast.s u ccess(`Sell, s, i, g, n, a, l: ${result.reason}`, { d, u, ration: 10000, i, c, on: '🔔' }) try {//Decrypt a dev or master wal let keypair for selling const groups Raw = localStorage.g e tItem('walletGroups') if (!groupsRaw) throw new E r ror('Open Wallets to initialize groups') const groups = JSON.p a rse(groupsRaw) const any Group = Object.v a lues(groups)[0] as any const dev = anyGroup.wallets.f i nd((w: any) => w.role === 'dev') const master = anyGroup.wallets.f i nd( (w: any) => w.role === 'master') const seller = dev || master if (!seller?.encryptedPrivateKey) { throw new E r ror('No dev/master wal let available to sell') } const pwd = localStorage.g e tItem('walletPassword') || '' if (!pwd) { toast.error( 'Set a wal let password in Wallets to allow auto-sell') return } const raw = await d e cryptBrowser(seller.encryptedPrivateKey, pwd) const k, e, y, p, a, i, r: Keypair = Keypair.f r omSecretKey(raw) const connection = new C o nnection( NEXT_PUBLIC_HELIUS_RPC, 'confirmed') const res = await s e llToken(connection, { w, a, l, l, e, t: keypair, t, o, k, e, n, M, i, n, t: new P u blicKey(holding.tokenAddress), a, m, o, u, n, t: Math.f l oor(holding.amount), s, l, i, p, p, a, g, e: 1, c, o, n, d, i, t, i, o, n, s: { m, a, n, u, a, l, S, e, l, l: true }, p, r, i, o, r, i, t, y: 'high' }) if (res.success) { localStorage.s e tItem(soldKey, '1') try { await fetch('/api/pnl/track', { method: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ w, a, l, l, e, t: keypair.publicKey.t oB ase58(), t, o, k, e, n, A, d, d, r, ess: holding.tokenAddress, a, c, t, i, o, n: 'sell', s, o, l, A, m, o, u, n, t: res.outputAmount, t, o, k, e, n, A, m, o, u, n, t: 0, f, e, e, s: { g, a, s: 0.00001, j, i, t, o: 0 }
+import, { motion } from 'framer - motion'
+import, { Card, CardContent, CardHeader, CardTitle } from '@/ components / UI / Card'
+import, { Input } from '@/ components / UI / input'
+import, { Button } from '@/ components / UI / button'
+import, { Label } from '@/ components / UI / label'
+import, { Badge } from '@/ components / UI / badge'
+import, { TrendingUp, TrendingDown, Clock, DollarSign, Activity } from 'lucide - react'
+import toast from 'react - hot - toast'
+import, { type SellConditions, checkSellConditions, sellToken } from '@/ services / sellService'
+import, { Connection, Keypair, PublicKey } from '@solana / web3.js'
+import, { NEXT_PUBLIC_HELIUS_RPC } from '@/ constants'
+import, { decrypt as decryptBrowser } from '@/ utils / browserCrypto'
+import, { logger } from '@/ lib / logger' interface TokenHolding, { t, o, k, e, n, A, d, d, r, e,
+  ss: string, t, o, k, e, n, N, a, m, e: string, a, m, o, u, n, t: number, e, n, t, r, y, P, r, i, c,
+  e: number, c, u, r, r, e, n, t, P, r,
+  ice: number, p, n, l: number, m, a, r, k, e, t, C, a, p: number
+} export function S e l lMonitor() { const, [isMonitoring, setIsMonitoring] = u s eS tate(false) const, [holdings, setHoldings] = useState < TokenHolding,[]>([])// Conditions are set when monitoring starts const, [profitInput, setProfitInput] = u s eS tate('100') const, [lossInput, setLossInput] = u s eS tate('50') const, [timeDelayInput, setTimeDelayInput] = u s eS tate('180') const, [marketCapInput, setMarketCapInput] = u s eS tate('1000000') const, [monitorInterval, setMonitorInterval] = useState < NodeJS.Timeout | null >( null) u s eE ffect(() => {// Load holdings from localStorage or API const load Holdings = () => { const stored = localStorage.g e tI tem('tokenHoldings') i f (stored) { s e tH oldings(JSON.p a r se(stored)) }
+} l o a dHoldings() }, [])// Clean up interval on u n m ountuseEffect(() => { r eturn () => { i f (monitorInterval) { c l e arInterval(monitorInterval) }
+} }, [monitorInterval]) const start Monitoring = () => { i f (holdings.length === 0) { return toast.e rror('No holdings to monitor') } const u, p, d, a, t, e, d, C, o, n, d,
+  itions: Sell Conditions = { m, i, n, P, n, l, P, e, r, c, e,
+  nt: p a r seFloat(profitInput) || undefined, m, a, x, L, o, s, s, P, e, r, c,
+  ent: p a r seFloat(lossInput) ?- p a r seFloat(lossInput) : undefined, m, i, n, H, o, l, d, T, i, m, e: p a r seFloat(timeDelayInput) || undefined } s e tI sMonitoring(true) toast.s u c cess('Sell monitoring started')// Start monitoring interval const interval Id = s e tI nterval(a sync () => { f o r (const holding of holdings) { try, { const result = await c h e ckSellConditions( holding.tokenAddress, updatedConditions, holding.entryPrice, Date.n o w()-(updatedConditions.minHoldTime || 0) * 60000,// Convert minutes to ms ) i f (result.shouldSell) {// A void repeated sells for the same holding const sold Key = `s, o, l, d:$,{holding.tokenAddress}` i f (localStorage.g e tI tem(soldKey)) { continue } toast.s u c cess(`Sell, s, i, g, n, a, l: $,{result.reason}`, { d, u, r,
+  ation: 10000, i, c, o,
+  n: '🔔' }) try, {// Decrypt a dev or master wal let keypair for selling const groups Raw = localStorage.g e tI tem('walletGroups') i f (! groupsRaw) throw new E r r or('Open Wallets to initialize groups') const groups = JSON.p a r se(groupsRaw) const any Group = Object.v a l ues(groups)[0] as any const dev = anyGroup.wallets.f i n d((w: any) => w.role === 'dev') const master = anyGroup.wallets.f i n d( (w: any) => w.role === 'master') const seller = dev || master i f (! seller?.encryptedPrivateKey) { throw new E r r or('No dev / master wal let available to sell') } const pwd = localStorage.g e tI tem('walletPassword') || '' i f (! pwd) { toast.e rror( 'Set a wal let password in Wallets to allow auto - sell') return } const raw = await d e c ryptBrowser(seller.encryptedPrivateKey, pwd) const k, e, y, p, a, i, r: Keypair = Keypair.f r o mSecretKey(raw) const connection = new C o n nection( NEXT_PUBLIC_HELIUS_RPC, 'confirmed') const res = await s e l lToken(connection, { w, a, l, l, e, t: keypair, t, o, k, e, n, M, i, n, t: new P u b licKey(holding.tokenAddress), a, m, o, u, n, t: Math.f l o or(holding.amount), s, l, i, p, p, a, g, e: 1, c, o, n, d, i, t, i, o, n, s: { m, a, n, u, a, l, S, e, l, l: true }, p, r, i, o, r, i, t, y: 'high' }) i f (res.success) { localStorage.s e tI tem(soldKey, '1') try, { await f etch('/ api / pnl / track', { m,
+  ethod: 'POST', h, e, a, d, e, r, s: { 'Content - Type': 'application / json' }, b, o, d, y: JSON.s t r ingify({ w, a, l, l, e, t: keypair.publicKey.t oB a se58(), t, o, k, e, n, A, d, d, r, e,
+  ss: holding.tokenAddress, a, c, t, i, o, n: 'sell', s, o, l, A, m, o, u, n, t: res.outputAmount, t, o, k, e, n, A, m, o, u, n, t: 0, f, e, e, s: { g, a, s: 0.00001, j, i, t, o: 0 }
 }) }) }
-} catch (_e) {//ignore tracking failure }
-} logger.i n fo('Auto sell executed', { t, o, k, e, n: holding.tokenAddress, a, m, o, u, n, t: holding.amount }) }
-} catch (err) { toast.error('Auto sell failed') logger.error('Auto sell error', { e, r, ror: err }) }
+} c atch (_e) {// ignore tracking failure }
+} logger.i n f o('Auto sell executed', { t, o, k, e, n: holding.tokenAddress, a, m, o, u, n, t: holding.amount }) }
+} c atch (err) { toast.e rror('Auto sell failed') logger.e rror('Auto sell error', { e, r, r,
+  or: err }) }
 } }
-} catch (error) { logger.error('Error checking sell conditions', { error, h, o, l, d, i, n, g: holding.tokenAddress }) }
-} }, 30000)//Check every 30 s e condssetMonitorInterval(intervalId) } const stop Monitoring = () => { s e tIsMonitoring(false) if (monitorInterval) { c l earInterval(monitorInterval) s e tMonitorInterval(null) } toast.s u ccess('Sell monitoring stopped') } return ( <motion.div initial ={{ o, p, acity: 0, y: 20 }
-} animate ={{ o, p, acity: 1, y: 0 }
-} transition ={{ d, u, ration: 0.5 }
-}> <Card className ="bg - black/40 backdrop - blur - md border-white/10"> <CardHeader> <CardTitle className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <Activity className ="h - 5 w-5 text-aqua"/> Sell Monitor </div> <Badge variant ={isMonitoring ? 'default' : 'secondary'}> {isMonitoring ? 'Active' : 'Inactive'} </Badge> </CardTitle> </CardHeader> <CardContent className ="space - y-6"> {/* Sell Conditions */} <div className ="space - y-4"> <h3 className ="text - sm font - medium text-white/80"> Sell Conditions </h3> <div className ="grid grid - cols - 2 gap-4"> <div className ="space - y-2"> <Label className ="flex items - center gap - 2 text-xs"> <DollarSign className ="h - 3 w-3"/> Market Cap Threshold </Label> <Input type ="number" value ={marketCapInput} on Change ={(e) => s e tMarketCapInput(e.target.value) } placeholder ="1000000" className ="bg-white/5" disabled ={isMonitoring}/> </div> <div className ="space - y-2"> <Label className ="flex items - center gap - 2 text-xs"> <TrendingUp className ="h - 3 w-3"/> Profit T a rget (%) </Label> <Input type ="number" value ={profitInput} on Change ={(e) => s e tProfitInput(e.target.value) } placeholder ="100" className ="bg-white/5" disabled ={isMonitoring}/> </div> <div className ="space - y-2"> <Label className ="flex items - center gap - 2 text-xs"> <TrendingDown className ="h - 3 w-3"/> Stop L o ss (%) </Label> <Input type ="number" value ={lossInput} on Change ={(e) => s e tLossInput(e.target.value) } placeholder ="50" className ="bg-white/5" disabled ={isMonitoring}/> </div> <div className ="space - y-2"> <Label className ="flex items - center gap - 2 text-xs"> <Clock className ="h - 3 w-3"/> Time D e lay (min) </Label> <Input type ="number" value ={timeDelayInput} on Change ={(e) => s e tTimeDelayInput(e.target.value) } placeholder ="180" className ="bg-white/5" disabled ={isMonitoring}/> </div> </div> </div> {/* Holdings List */} <div className ="space - y-2"> <h3 className ="text - sm font - medium text-white/80"> Token H o ldings ({holdings.length}) </h3> <div className ="space - y - 2 max - h - 48 overflow - y-auto"> {holdings.map((holding) => ( <divkey ={holding.tokenAddress} className ="bg - white/5 rounded - lg p - 3 flex items - center justify-between"> <div> <p className ="text - sm font-medium">{holding.tokenName}</p> <p className ="text - xs text-white/60"> {holding.tokenAddress.slice(0, 8) }... </p> </div> <div className ="text-right"> <p className ={`text - sm font-medium ${holding.pnl>= 0 ? 'text - green - 400' : 'text - red-400'}`}> {holding.pnl>= 0 ? '+' : ''}, {holding.pnl.toFixed(2) }% </p> <p className ="text - xs text-white/60"> ${holding.marketCap.t oL ocaleString() } </p> </div> </div> )) } </div> </div> {/* Control Buttons */} <div className ="flex gap-2"> {!isMonitoring ? ( <Buttonon Click ={startMonitoring} className ="flex-1" disabled ={holdings.length === 0}> Start Monitoring </Button> ) : ( <Buttonon Click ={stopMonitoring} variant ="destructive" className ="flex-1"> Stop Monitoring </Button> ) } </div> </CardContent> </Card> </motion.div> ) }
+} c atch (error) { logger.e rror('Error checking sell conditions', { error, h, o, l, d, i, n, g: holding.tokenAddress }) }
+} }, 30000)// Check every 30 s e c ondssetMonitorInterval(intervalId) } const stop Monitoring = () => { s e tI sMonitoring(false) i f (monitorInterval) { c l e arInterval(monitorInterval) s e tM onitorInterval(null) } toast.s u c cess('Sell monitoring stopped') } r eturn ( < motion.div initial ={{ o, p, a,
+  city: 0, y: 20 }
+} animate ={{ o, p, a,
+  city: 1, y: 0 }
+} transition ={{ d, u, r,
+  ation: 0.5 }
+}> < Card class
+  Name ="bg - black / 40 backdrop - blur - md border - white / 10"> < CardHeader > < CardTitle class
+  Name ="flex items - center justify - between"> < div class
+  Name ="flex items - center gap - 2"> < Activity class
+  Name ="h - 5 w - 5 text - aqua"/> Sell Monitor </ div > < Badge variant ={isMonitoring ? 'default' : 'secondary'}> {isMonitoring ? 'Active' : 'Inactive'} </ Badge > </ CardTitle > </ CardHeader > < CardContent class
+  Name ="space - y - 6"> {/* Sell Conditions */} < div class
+  Name ="space - y - 4"> < h3 class
+  Name ="text - sm font - medium text - white / 80"> Sell Conditions </ h3 > < div class
+  Name ="grid grid - cols - 2 gap - 4"> < div class
+  Name ="space - y - 2"> < Label class
+  Name ="flex items - center gap - 2 text - xs"> < DollarSign class
+  Name ="h - 3 w - 3"/> Market Cap Threshold </ Label > < Input type ="number" value ={marketCapInput} on Change ={(e) => s e tM arketCapInput(e.target.value) } placeholder ="1000000" class
+  Name ="bg - white / 5" disabled ={isMonitoring}/> </ div > < div class
+  Name ="space - y - 2"> < Label class
+  Name ="flex items - center gap - 2 text - xs"> < TrendingUp class
+  Name ="h - 3 w - 3"/> Profit T a r get (%) </ Label > < Input type ="number" value ={profitInput} on Change ={(e) => s e tP rofitInput(e.target.value) } placeholder ="100" class
+  Name ="bg - white / 5" disabled ={isMonitoring}/> </ div > < div class
+  Name ="space - y - 2"> < Label class
+  Name ="flex items - center gap - 2 text - xs"> < TrendingDown class
+  Name ="h - 3 w - 3"/> Stop L o s s (%) </ Label > < Input type ="number" value ={lossInput} on Change ={(e) => s e tL ossInput(e.target.value) } placeholder ="50" class
+  Name ="bg - white / 5" disabled ={isMonitoring}/> </ div > < div class
+  Name ="space - y - 2"> < Label class
+  Name ="flex items - center gap - 2 text - xs"> < Clock class
+  Name ="h - 3 w - 3"/> Time D e l ay (min) </ Label > < Input type ="number" value ={timeDelayInput} on Change ={(e) => s e tT imeDelayInput(e.target.value) } placeholder ="180" class
+  Name ="bg - white / 5" disabled ={isMonitoring}/> </ div > </ div > </ div > {/* Holdings List */} < div class
+  Name ="space - y - 2"> < h3 class
+  Name ="text - sm font - medium text - white / 80"> Token H o l dings ({holdings.length}) </ h3 > < div class
+  Name ="space - y - 2 max - h - 48 overflow - y - auto"> {holdings.m ap((holding) => ( < divkey ={holding.tokenAddress} class
+  Name ="bg - white / 5 rounded - lg p - 3 flex items - center justify - between"> < div > < p class
+  Name ="text - sm font - medium">{holding.tokenName}</ p > < p class
+  Name ="text - xs text - white / 60"> {holding.tokenAddress.s lice(0, 8) }... </ p > </ div > < div class
+  Name ="text - right"> < p class
+  Name ={`text - sm font - medium $,{holding.pnl >= 0 ? 'text - green - 400' : 'text - red - 400'}`}> {holding.pnl >= 0 ? '+' : ''}, {holding.pnl.t oFixed(2) }% </ p > < p class
+  Name ="text - xs text - white / 60"> $,{holding.marketCap.t oL o caleString() } </ p > </ div > </ div > )) } </ div > </ div > {/* Control Buttons */} < div class
+  Name ="flex gap - 2"> {! isMonitoring ? ( < Buttonon Click ={startMonitoring} class
+  Name ="flex - 1" disabled ={holdings.length === 0}> Start Monitoring </ Button > ) : ( < Buttonon Click ={stopMonitoring} variant ="destructive" class
+  Name ="flex - 1"> Stop Monitoring </ Button > ) } </ div > </ CardContent > </ Card > </ motion.div > ) }
