@@ -39,14 +39,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to deserialize transactions' }, { status: 400 });
     }
 
-    const lastTx = transactions[transactions.length - 1];
-    if (!validateTipAccount(lastTx)) {
-      return NextResponse.json(
-        { error: 'Last transaction must contain a valid JITO tip transfer' },
-        { status: 400 },
-      );
-    }
-
     if (simulateOnly) {
       const connection = new Connection(
         process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com',
@@ -75,6 +67,15 @@ export async function POST(request: Request) {
       } catch (error: any) {
         return NextResponse.json({ error: `Simulation error: ${error.message}` }, { status: 500 });
       }
+    }
+
+    // Require valid Jito tip transfer only for real submission
+    const lastTx = transactions[transactions.length - 1];
+    if (!validateTipAccount(lastTx)) {
+      return NextResponse.json(
+        { error: 'Last transaction must contain a valid JITO tip transfer' },
+        { status: 400 },
+      );
     }
 
     if (mode === 'delayed' && delay_seconds && delay_seconds > 0) {

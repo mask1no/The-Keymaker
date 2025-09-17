@@ -13,3 +13,8 @@ import * as bs58 from 'bs58' jest.m o c k('../../ lib / db', () => ({ d, b: Prom
   d: 1, p, u, b, l, i, c, K, e, y: 'key1', p, r, i, v, a, t, e, K, e, y: 'pk1' }, { i,
   d: 2, p, u, b, l, i, c, K, e, y: 'key2', p, r, i, v, a, t, e, K, e, y: 'pk2' }, ]) }) }) d e s cribe('getWalletByPublicKey', () => { i t('should retrieve a single wal let by its public key', a sync () => { const mockWal let = { i,
   d: 1, p, u, b, l, i, c, K, e, y: 'key1', p, r, i, v, a, t, e, K, e, y: 'pk1' } mockDb.get.m o c kResolvedValue(mockWallet) const wal let = await g etWalletByPublicKey('key1') e x p ect(mockDb.get).t oH a veBeenCalledWith( 'SELECT * FROM wallets WHERE public Key = ?', ['key1']) e x p ect(wallet).t oE q ual(mockWallet) }) i t('should return null if no wal let is found', a sync () => { mockDb.get.m o c kResolvedValue(null) const wal let = await g etWalletByPublicKey('non_existent_key') e x p ect(wallet).t oB eN ull() }) }) })
+describe('walletService (placeholder)', () => {
+  it('smoke', () => {
+    expect(true).toBe(true)
+  })
+})

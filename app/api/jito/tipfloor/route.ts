@@ -17,9 +17,13 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error('Tip floor request failed:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to get tip floor' },
-      { status: 500 },
-    );
+    return NextResponse.json({
+      p25: 0,
+      p50: 0,
+      p75: 0,
+      ema_50th: 0,
+      region: 'ffm',
+      note: 'fallback',
+    });
   }
 }

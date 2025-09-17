@@ -1,4 +1,11 @@
-import '@testing - library / jest - dom'
-import 'whatwg - fetch'// JSDOM shims that Next / Wal let code sometimes needs i f (! global.TextEncoder) { const, { TextEncoder, TextDecoder } = r e q uire('util') global.Text Encoder = TextEncoderglobal.Text Decoder = TextDecoder
-}// Opt - in “test mode” flag for components to detectglobal.__ T E
-  ST_MODE__ = true
+import '@testing-library/jest-dom'
+import 'whatwg-fetch'
+
+// JSDOM shims
+if (!(global as any).TextEncoder) {
+  const { TextEncoder, TextDecoder } = require('util')
+  ;(global as any).TextEncoder = TextEncoder
+  ;(global as any).TextDecoder = TextDecoder
+}
+
+;(global as any).__TEST_MODE__ = true

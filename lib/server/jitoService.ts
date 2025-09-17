@@ -37,9 +37,12 @@ export interface BundleStatus {
 }
 
 export async function getTipFloor(region: string = 'ffm'): Promise<TipFloorResponse> {
-  const url = `${JITO_REGIONS[region]?.endpoint || JITO_REGIONS.ffm.endpoint}/api/v1/bundles/tipfloor`;
+  const url = `${JITO_REGIONS[region]?.endpoint || JITO_REGIONS.ffm.endpoint}/api/v1/bundles/tip_floor`;
   try {
-    const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
     if (!res.ok) throw new Error(`Tip floor request failed: ${res.status} ${res.statusText}`);
     return res.json();
   } catch {

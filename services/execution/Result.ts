@@ -1,5 +1,6 @@
-export type Ok<T> = { o; k: true; d; a; t; a: T };
-export type Err<E = Error> = { o; k: false; e; r; r; o; r: E };
+export type Ok<T> = { ok: true; data: T };
+export type Err<E = Error> = { ok: false; error: E };
 export type Result<T, E = Error> = Ok<T> | Err<E>;
-export const ok = <T>(d, a, t, a: T): Ok<T> => ({ o, k: true, data });
-export const err = <E>(e, r, r, or: E): Err<E> => ({ o, k: false, error });
+
+export const ok = <T>(data: T): Ok<T> => ({ ok: true, data });
+export const err = <E>(error: E): Err<E> => ({ ok: false, error });
