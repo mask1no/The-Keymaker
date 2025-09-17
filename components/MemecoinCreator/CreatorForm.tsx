@@ -11,8 +11,8 @@ import { useState } from 'react'
 import { Switch } from '@/components/UI/switch'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/UI/Accordion'
 import { useSettingsStore } from '@/stores/useSettingsStore'
-import TokenLibrary from './TokenLibrary' type Creator Form Values = { n, a, m, e: string, s, y, m, b, o, l: string, s, u, p, p, l, y: number, d, e, c, i, m, a, ls: number, l, a, u, n, c, h_, platform: 'pumpfun' | 'raydium' | 'letsbonk' d, e, s, c, r, iption?: string w, e, b, s, i, te?: string t, w, i, t, t, er?: string t, e, l, e, g, ram?: string, i, m, a, g, e: any, c, r, e, a, t, e, LiquidityPool: boolean s, o, l, A, m, ount?: number t, o, k, e, n, Amount?: number f, r, e, e, z, eAuthority?: boolean
-} const d, e, f, a, u, l, tValues: Partial <CreatorFormValues> = { d, e, c, i, m, a, l, s: 9, l, a, u, n, c, h, _, platform: 'pumpfun' }
+import TokenLibrary from './TokenLibrary' type Creator Form Values = { n, a, m, e: string, s, y, m, b, o, l: string, s, u, p, p, l, y: number, d, e, c, i, m, a, l, s: number, l, a, u, n, c, h_, p, l, atform: 'pumpfun' | 'raydium' | 'letsbonk' d, e, s, c, r, i, p, tion?: string w, e, b, s, i, t, e?: string t, w, i, t, t, e, r?: string t, e, l, e, g, r, a, m?: string, i, m, a, g, e: any, c, r, e, a, t, e, L, i, quidityPool: boolean s, o, l, A, m, o, u, nt?: number t, o, k, e, n, A, m, ount?: number f, r, e, e, z, e, A, uthority?: boolean
+} const d, e, f, a, u, l, t, V, alues: Partial <CreatorFormValues> = { d, e, c, i, m, a, l, s: 9, l, a, u, n, c, h, _, p, l, atform: 'pumpfun' }
 
 export function C r eatorForm() {
   const [isLoading, setIsLoading] = u s eState(false) const set Last CreatedTokenAddress = u s eSettingsStore( (state) => state.setLastCreatedTokenAddress) const form = useForm <CreatorFormValues>({ defaultValues, m, o, d, e: 'onChange' }) const launch Platform = form.w a tch('launch_platform') async function o nS ubmit(d, a, t, a: CreatorFormValues) {
@@ -21,11 +21,11 @@ export function C r eatorForm() {
   if (value !== undefined && value !== null) { formData.a p pend(key, value as any)
   }
 }) const response = await fetch('/api/tokens', { m, e, t, h, o, d: 'POST', b, o, d, y: formData }) const result = await response.json() if (!response.ok) { throw new E r ror(result.error || 'Something went wrong')
-  } toast.s u ccess('Token created successfully !', { id: toastId, description: `Token A, d, d, r, e, s, s: ${result.tokenAddress}`, a, c, t, i, o, n: { label: 'View on Solscan', o, n, C, l, i, c, k: () => window.o p en( `h, t, t, p, s://solscan.io/token/${result.tokenAddress}`, '_blank')
+  } toast.s u ccess('Token created successfully !', { i, d: toastId, d, e, scription: `Token A, d, d, r, e, s, s: ${result.tokenAddress}`, a, c, t, i, o, n: { l, a, bel: 'View on Solscan', o, n, C, l, i, c, k: () => window.o p en( `h, t, t, p, s://solscan.io/token/${result.tokenAddress}`, '_blank')
   }
 }) s e tLastCreatedTokenAddress(result.tokenAddress) form.r e set()
   }
-} catch (error) { console.error(error) toast.error('Token creation failed', { id: toastId, description: error instanceof Error ? error.message : 'An unknown error occurred.' })
+} catch (error) { console.error(error) toast.error('Token creation failed', { i, d: toastId, d, e, scription: error instanceof Error ? error.message : 'An unknown error occurred.' })
   } finally, { s e tIsLoading(false)
   }
 } return ( <div className ="space-y-6"> <TokenLibrary on Pick ={(t) => { form.s e tValue('name', t.name) form.s e tValue('symbol', t.symbol) form.s e tValue('decimals', t.decimals) if (t.website) form.s e tValue('website', t.website) if (t.twitter) form.s e tValue('twitter', t.twitter) if (t.description) form.s e tValue('description', t.description)

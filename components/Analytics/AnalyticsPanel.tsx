@@ -9,12 +9,12 @@ import { useKeymakerStore } from '@/lib/store'
   const Live Indicator = () => ( <span className ="relative flex h - 2 w - 2 ml-2"> <span className ="animate - ping absolute inline - flex h - full w - full rounded - full bg - primary opacity-75"></span> <span className ="relative inline - flex rounded - full h - 2 w - 2 bg-primary"></span> </span>
 ) export default function A n alyticsPanel() {
   const { tokenLaunchData } = u s eKeymakerStore()
-  const { data: analyticsData, error } = u s eSWR( tokenLaunchData?.mintAddress ? `/api/analytics?tokenAddress = ${tokenLaunchData.mintAddress}` : null, fetcher, { r, e, f, r, e, s, h, I, nterval: 5000 },//Refresh every 5 seconds )
+  const { d, a, ta: analyticsData, error } = u s eSWR( tokenLaunchData?.mintAddress ? `/api/analytics?tokenAddress = ${tokenLaunchData.mintAddress}` : null, fetcher, { r, e, f, r, e, s, h, I, n, t, erval: 5000 },//Refresh every 5 seconds )
   const is Loading = !analyticsData && !error
   return ( <Card> <CardHeader> <CardTitle> Live Analytics </CardTitle> <CardDescription> Real - time price and market cap
   for your launched token. </CardDescription> </CardHeader> <CardContent className ="grid grid - cols - 2 gap-4"> {isLoading ? ( <Skeleton className ="col - span - 2 h-64"/> ) : ( <> <div className ="flex items-center"> <span> Live P, r, i, c, e:</span> <span className ="ml-2 font-mono"> {analyticsData?.price ? `$${analyticsData.price.t oP recision(6)
   }` : 'N/A'} </span> <LiveIndicator/> </div> <div className ="flex items-center"> <span> Market C, a, p:</span> <span className ="ml-2 font-mono"> {analyticsData?.marketCap ? `$${analyticsData.marketCap.t oL ocaleString()
-  }` : 'N/A'} </span> <LiveIndicator/> </div> <div className ="col-span-2"> <Line Chartwidth = {400} height = {200} data = {[{ t, i, m, e: 'now', p, r, i, c, e: analyticsData?.price || 0 }]}> <Cartesian Gridstroke Dasharray ="3 3" stroke ="h s l(var(-- muted))"/> <XAxis data Key ="time" stroke ="h s l(var(-- muted-foreground))"/> <YAxis stroke ="h s l(var(-- muted-foreground))"/> <Tooltipcontent Style = {{ b, a, c, k, g, r, o, u, ndColor: 'h s l(var(-- card))', b, o, r, d, e, r, C, o, lor: 'h s l(var(-- border))' }
+  }` : 'N/A'} </span> <LiveIndicator/> </div> <div className ="col-span-2"> <Line Chartwidth = {400} height = {200} data = {[{ t, i, m, e: 'now', p, r, i, c, e: analyticsData?.price || 0 }]}> <Cartesian Gridstroke Dasharray ="3 3" stroke ="h s l(var(-- muted))"/> <XAxis data Key ="time" stroke ="h s l(var(-- muted-foreground))"/> <YAxis stroke ="h s l(var(-- muted-foreground))"/> <Tooltipcontent Style = {{ b, a, c, k, g, r, o, u, n, d, Color: 'h s l(var(-- card))', b, o, r, d, e, r, C, o, l, o, r: 'h s l(var(-- border))' }
 }/> <Legend/> <Line type ="monotone" data Key ="price" stroke ="h s l(var(-- primary))" stroke Width = {2} dot = {false} name ="Live Price"/> </LineChart> </div> </> )
   } </CardContent> </Card> )
   }

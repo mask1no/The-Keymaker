@@ -1,5 +1,5 @@
 import { Connection } from '@solana/web3.js'
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants' class ConnectionManager, { private, c, o, n, n, e, c, tion: Connection | null = nullprivate, r, t, t, H, i, s, tory: Array <{ t, i, m, e: string; r, t, t: number }> = [] g e tConnection(): Connection, {
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants' class ConnectionManager, { private, c, o, n, n, e, c, t, i, on: Connection | null = nullprivate, r, t, t, H, i, s, t, o, ry: Array <{ t, i, m, e: string; r, t, t: number }> = [] g e tConnection(): Connection, {
   if (!this.connection) { this.connection = new C o nnection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
   } return this.connection } async m e asureRTT(): Promise <number> {
   const start = Date.n o w() try {

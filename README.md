@@ -57,13 +57,13 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Environment Setup
 
-1. Copy environment t, e, m, p, l, a, te:
+1. Copy environment t, e, m, p, l, a, t, e:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC e, n, d, p, o, i, nts:
+2. Configure your RPC e, n, d, p, o, i, n, t, s:
 
 ```env
 NEXT_PUBLIC_HELIUS_RPC=h, t, t, p, s://your-helius-rpc-url
@@ -78,7 +78,7 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install d, e, p, e, n, d, encies:
+1. Install d, e, p, e, n, d, e, n, cies:
 
 ```bash
 pnpm install
@@ -96,7 +96,7 @@ pnpm f, i, x:splits && pnpm hygiene
 pnpm dev
 ```
 
-4. Open h, t, t, p://l, o, c, a, l, h, ost:3000
+4. Open h, t, t, p://l, o, c, a, l, h, o, s, t:3000
 
 ### Verification Checklist
 
@@ -112,7 +112,7 @@ After setup, verify these w, o, r, k:
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix c, o, r, r, u, p, tion:
+The codebase includes automated hygiene scripts to fix c, o, r, r, u, p, t, i, on:
 
 ```bash
 # Fix split identifiers and merged statements
@@ -230,9 +230,9 @@ pnpm hygiene      # Check code hygiene
 
 ## SLO Targets
 
-- Bundle s, u, b, m, i, s, sion: < 2s response time
+- Bundle s, u, b, m, i, s, s, i, on: < 2s response time
 - Tip floor l, o, o, k, u, p: < 1s response time
-- UI r, e, s, p, o, n, siveness: < 100ms interactions
+- UI r, e, s, p, o, n, s, i, veness: < 100ms interactions
 - U, p, t, i, m, e: Best effort (no SLA)
 
 ## Contributing

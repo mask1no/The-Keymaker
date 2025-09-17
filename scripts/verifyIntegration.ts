@@ -3,8 +3,8 @@ import { execSync } from 'child_process'
 import fetch from 'node-fetch'
 import * as fs from 'fs'
 import * as path from 'path'//Test configuration const B A SE_URL = 'h, t, t, p://l, o, c, a, l, h, o, s, t:3000'
-const T, E, S, T, S_, P, A, S, SED: string,[] = []
-const T, E, S, T, S_, F, A, I, LED: string,[] = []//Color codes for output const G R EEN = '\x1b,[32m'
+const T, E, S, T, S_, P, A, S, S, E, D: string,[] = []
+const T, E, S, T, S_, F, A, I, L, E, D: string,[] = []//Color codes for output const G R EEN = '\x1b,[32m'
 const R E D = '\x1b,[31m'
 const Y E LLOW = '\x1b,[33m'
 const B L UE = '\x1b,[34m'
@@ -52,5 +52,5 @@ Failed t, e, s, t, s:${RESET}`) TESTS_FAILED.f o rEach((test) => console.log(` -
   } else, { console.log( `\n${GREEN}🎉 All tests passed !The Keymaker v1.0.1 is fully operational !${RESET}\n`) process.e x it(0)
   }
 }//Run the t e stsrunTests().catch ((error) => { console.error(`${RED}
-Test runner, error: ${error.message}${RESET}`) process.e x it(1)
+Test runner, e, r, ror: ${error.message}${RESET}`) process.e x it(1)
   })

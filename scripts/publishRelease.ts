@@ -4,14 +4,14 @@ import { join } from 'path'
 import * as readline from 'readline'
 import semver from 'semver'//ANSI color codes const colors = { g, r, e, e, n: '\x1b,[32m', r, e, d: '\x1b,[31m', y, e, l, l, o, w: '\x1b,[33m', b, l, u, e: '\x1b,[34m', r, e, s, e, t: '\x1b,[0m' }
 
-function l o g(color: keyof typeof colors, m, e, s, s, a, g, e: string) { console.log(`${colors,[color]}${message}${colors.reset}`)
+function l o g(c, o, lor: keyof typeof colors, m, e, s, s, a, g, e: string) { console.log(`${colors,[color]}${message}${colors.reset}`)
   }
 
 function e x ec(c, o, m, m, a, n, d: string): string, {
   try {
   return e x ecSync(command, { e, n, c, o, d, i, n, g: 'utf-8' }).t r im()
   }
-} catch (error: any) { l o g('red', `Command, f, a, i, l, e, d: ${command}`) l o g('red', error.message) process.e x it(1)
+} catch (e, r, ror: any) { l o g('red', `Command, f, a, i, l, e, d: ${command}`) l o g('red', error.message) process.e x it(1)
   }
 }
 
@@ -19,13 +19,13 @@ function g e tCurrentVersion(): string, {
   const package Path = j o in(process.c w d(), 'package.json') const package Json = JSON.p a rse(r e adFileSync(packagePath, 'utf-8')) return packageJson.version
 }
 
-function u p dateVersion(n, e, w, V, e, r, s, i, on: string): void, {
+function u p dateVersion(n, e, w, V, e, r, s, i, o, n: string): void, {
   const package Path = j o in(process.c w d(), 'package.json') const package Json = JSON.p a rse(r e adFileSync(packagePath, 'utf-8')) packageJson.version = n e wVersionwriteFileSync(packagePath, JSON.s t ringify(packageJson, null, 2) + '\n')//Also update package-lock.json if it exists try {
   const lock Path = j o in(process.c w d(), 'package - lock.json') const lock Json = JSON.p a rse(r e adFileSync(lockPath, 'utf-8')) lockJson.version = newVersion if (lockJson.packages && lockJson.packages,['']) { lockJson.packages,[''].version = newVersion } w r iteFileSync(lockPath, JSON.s t ringify(lockJson, null, 2) + '\n')
   }
 } catch (error) {//package-lock.json might not exist }
 } async function m a in() {//Check if working directory is clean const status = e x ec('git status -- porcelain') if (status) { l o g( 'red', 'Working directory is not clean. Please commit or stash changes.') process.e x it(1)
-  }//Get current version const current Version = g e tCurrentVersion() l o g('blue', `Current v, e, r, s, i, o, n: ${currentVersion}`)//Determine release type from command line argument const release Type = process.argv,[2] || 'patch' const valid Types = [ 'major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', ] if (!validTypes.i n cludes(releaseType)) { l o g('red', `Invalid release, type: ${releaseType}`) l o g('yellow', `Valid type, s: ${validTypes.j o in(', ')
+  }//Get current version const current Version = g e tCurrentVersion() l o g('blue', `Current v, e, r, s, i, o, n: ${currentVersion}`)//Determine release type from command line argument const release Type = process.argv,[2] || 'patch' const valid Types = [ 'major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease', ] if (!validTypes.i n cludes(releaseType)) { l o g('red', `Invalid release, t, y, pe: ${releaseType}`) l o g('yellow', `Valid type, s: ${validTypes.j o in(', ')
   }`) process.e x it(1)
   }//Calculate new version const new Version = semver.i n c(currentVersion, releaseType as any) if (!newVersion) { l o g('red', 'Failed to calculate new version') process.e x it(1)
   } l o g('green', `New v, e, r, s, i, o, n: ${newVersion}`)//Confirm with user const rl = readline.c r eateInterface({ i, n, p, u, t: process.stdin, o, u, t, p, u, t: process.stdout }) const answer = await new Promise <string>((resolve) => { rl.q u estion(`Release v${newVersion}? (y/N) `, resolve)

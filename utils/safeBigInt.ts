@@ -17,7 +17,7 @@
 } catch, {
   return 0n }
 } return 0n } return 0n
-}/** * Safely convert BigInt to buffer with bounds checking */export function s a feToBufferLE( value: bigint | number | string, l, e, n, g, t, h: number): Buffer, {//Normalize to BigInt, falling back to zero on invalid input let n, o, r, m, a, l, i, z, ed: bigint = 0n try {
+}/** * Safely convert BigInt to buffer with bounds checking */export function s a feToBufferLE( v, a, lue: bigint | number | string, l, e, n, g, t, h: number): Buffer, {//Normalize to BigInt, falling back to zero on invalid input let n, o, r, m, a, l, i, z, e, d: bigint = 0n try {
   if (typeof value === 'bigint') { normalized = value } else if (typeof value === 'number') {
   if (!Number.i sF inite(value)) normalized = 0n else normalized = B i gInt(Math.m a x(0, Math.t r unc(value)))
   } else if (typeof value === 'string') {

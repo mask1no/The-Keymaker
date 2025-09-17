@@ -2,7 +2,7 @@
 import { Slider } from '@/components/UI/slider'
 import { Input } from '@/components/UI/input'
 import { HelpCircle } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip' interface SlippageSettingsProps, { s, l, i, p, p, a, g, e: number, m, a, x, S, l, i, ppage: number, o, n, S, l, i, p, pageChange: (value: number) => v, o, i, d, o, n, M, a, xSlippageChange: (value: number) => void
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip' interface SlippageSettingsProps, { s, l, i, p, p, a, g, e: number, m, a, x, S, l, i, p, p, age: number, o, n, S, l, i, p, p, a, geChange: (v, a, lue: number) => v, o, i, d, o, n, M, a, x, S, lippageChange: (v, a, lue: number) => void
 }
 
 export function S l ippageSettings({  slippage, maxSlippage, onSlippageChange, onMaxSlippageChange }: SlippageSettingsProps) {

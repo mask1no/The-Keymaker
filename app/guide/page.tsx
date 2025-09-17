@@ -10,5 +10,5 @@ export default function G u idePage() {
   }, [])
   if (loading) {
     return ( <div className ="flex items - center justify - center min - h-screen"> <div className ="animate - pulse text - muted-foreground"> Loading guide... </div> </div> )
-  } return ( <div className ="container mx - auto px - 4 py - 8 max - w-4xl"> <div className ="prose prose - invert prose - sm, md:prose - base, lg:prose - lg max - w-none"> <ReactMarkdown>{content}</ReactMarkdown> </div> </div> )
+  } return ( <div className ="container mx - auto px - 4 py - 8 max - w-4xl"> <div className ="prose prose - invert prose - sm, m, d:prose - base, l, g:prose - lg max - w-none"> <ReactMarkdown>{content}</ReactMarkdown> </div> </div> )
   }

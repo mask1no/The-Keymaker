@@ -1,27 +1,22 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
-const ROOT = process.cwd()
+const ROOT = process.cwd();
 
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
     if (
-      [
-        'node_modules',
-        '.git',
-        '.next',
-        'dist',
-        'coverage',
-        'test-results',
-      ].some((s) => d.includes(s))
+      ['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some((s) =>
+        d.includes(s),
+      )
     )
-      continue
-    const p = path.join(d, n)
-    const st = fs.statSync(p)
+      continue;
+    const p = path.join(d, n);
+    const st = fs.statSync(p);
     if (st.isDirectory()) {
-      yield* walk(p)
+      yield* walk(p);
     } else if (/\.(ts|tsx|js|jsx)$/.test(p)) {
-      yield p
+      yield p;
     }
   }
 }
@@ -40,22 +35,22 @@ const patterns = [
   [/\bu\s+seContext\b/g, 'useContext'],
   [/\bu\s+seReducer\b/g, 'useReducer'],
   [/\bu\s+p\s+dateBalances\b/g, 'updateBalances'],
-  
+
   // Fix async/await
   [/\ba\s+sync\b/g, 'async'],
   [/\ba\s+wait\b/g, 'await'],
-  
+
   // Fix fetch patterns
   [/\bf\s+etch\b/g, 'fetch'],
   [/\bf\s+etchRecentTrades\b/g, 'fetchRecentTrades'],
-  
+
   // Fix method calls
   [/\bs\s+etRecentTrades\b/g, 'setRecentTrades'],
   [/\bs\s+etLoading\b/g, 'setLoading'],
   [/\bs\s+etActiveTab\b/g, 'setActiveTab'],
   [/\bs\s+etInterval\b/g, 'setInterval'],
   [/\bc\s+learInterval\b/g, 'clearInterval'],
-  
+
   // Fix object methods
   [/\.r\s+educe\b/g, '.reduce'],
   [/\.f\s+ind\b/g, '.find'],
@@ -68,7 +63,7 @@ const patterns = [
   [/\.t\s+oL\s+ocaleTimeString\b/g, '.toLocaleTimeString'],
   [/\.e\s+r\s+ror\b/g, '.error'],
   [/\.a\s+b\s+s\b/g, '.abs'],
-  
+
   // Fix component names
   [/\bD\s+ashboardPage\b/g, 'DashboardPage'],
   [/\bC\s+onnection\b/g, 'Connection'],
@@ -76,7 +71,7 @@ const patterns = [
   [/\bA\s+r\s+ray\b/g, 'Array'],
   [/\bD\s+a\s+te\b/g, 'Date'],
   [/\bM\s+ath\b/g, 'Math'],
-  
+
   // Fix variables
   [/\bmaster\s*Wal\s+let\b/g, 'masterWallet'],
   [/\bsniper\s*Wallets\b/g, 'sniperWallets'],
@@ -88,7 +83,7 @@ const patterns = [
   [/\bwal\s+let\b/g, 'wallet'],
   [/\bWal\s+let\b/g, 'Wallet'],
   [/\bmarket\s*Cap\s*Card\b/g, 'MarketCapCard'],
-  
+
   // Fix JSX attributes
   [/\bclass\s+Name\b/g, 'className'],
   [/\bon\s+Click\b/g, 'onClick'],
@@ -96,7 +91,7 @@ const patterns = [
   [/\bmint\s*Address\b/g, 'mintAddress'],
   [/\bactive\s+Tab\b/g, 'activeTab'],
   [/\bwhile\s+Hover\b/g, 'whileHover'],
-  
+
   // Fix keywords
   [/\bt\s+ry\b/g, 'try'],
   [/\bc\s+atch\b/g, 'catch'],
@@ -128,7 +123,7 @@ const patterns = [
   [/\bu\s+ndefined\b/g, 'undefined'],
   [/\bt\s+rue\b/g, 'true'],
   [/\bf\s+alse\b/g, 'false'],
-  
+
   // Fix split object properties
   [/\bt,\s*i,\s*t,\s*l,\s*e:/g, 'title:'],
   [/\bv,\s*a,\s*l,\s*u,\s*e:/g, 'value:'],
@@ -151,67 +146,67 @@ const patterns = [
   [/\be,\s*x,\s*e,\s*c,\s*uted_at:/g, 'executed_at:'],
   [/\be,\s*r,\s*r,\s*o,\s*r:/g, 'error:'],
   [/\bs,\s*t,\s*a,\s*t,\s*u,\s*s:/g, 'status:'],
-  
-  // Fix CSS classes  
+
+  // Fix CSS classes
   [/\bh,\s*o,\s*v,\s*e,\s*r:/g, 'hover:'],
   [/\bm,\s*d:/g, 'md:'],
   [/\bl,\s*g:/g, 'lg:'],
   [/\bx,\s*l:/g, 'xl:'],
-  
+
   // Fix console methods
   [/console\.e\s+r\s+ror/g, 'console.error'],
   [/console\.l\s+o\s+g/g, 'console.log'],
-  
+
   // Fix specific patterns from the file
   [/Tab\s+View/g, 'TabView'],
   [/Market\s+Cap\s+Card/g, 'MarketCapCard'],
   [/<\s+/g, '<'],
   [/\s+>/g, '>'],
   [/\s+\//g, '/'],
-  
+
   // Fix template literals
   [/\$\s*,\s*\{/g, '${'],
-  
+
   // Remove extra commas at start of properties
   [/\{,\s+/g, '{ '],
   [/,\s+\}/g, ' }'],
-  
+
   // Fix Trade interface
   [/interface Trade,\s*\{/g, 'interface Trade {'],
-  
+
   // Fix useState generics
   [/useState\s*<\s*Trade,\[\]\s*>/g, 'useState<Trade[]>'],
   [/useState\s*<\s*TabView\s*>/g, 'useState<TabView>'],
-]
+];
 
-let totalFixed = 0
+let totalFixed = 0;
 
 for (const filePath of walk(ROOT)) {
   try {
-    let content = fs.readFileSync(filePath, 'utf8')
-    const original = content
-    
+    let content = fs.readFileSync(filePath, 'utf8');
+    const original = content;
+
     // Apply all patterns
     for (const [pattern, replacement] of patterns) {
-      content = content.replace(pattern, replacement)
+      content = content.replace(pattern, replacement);
     }
-    
+
     // Fix specific spacing issues
-    content = content.replace(/\s+,/g, ',')
-    content = content.replace(/,\s+}/g, ' }')
-    content = content.replace(/\{\s+,/g, '{ ')
-    
+    content = content.replace(/\s+,/g, ',');
+    content = content.replace(/,\s+}/g, ' }');
+    content = content.replace(/\{\s+,/g, '{ ');
+
     // Fix newlines
-    content = content.replace(/\n\s*\n\s*\n+/g, '\n\n')
-    
+    content = content.replace(/\n\s*\n\s*\n+/g, '\n\n');
+
     if (content !== original) {
-      fs.writeFileSync(filePath, content)
-      console.log('Fixed:', filePath)
-      totalFixed++
+      fs.writeFileSync(filePath, content);
+      console.log('Fixed:', filePath);
+      totalFixed++;
     }
   } catch (error) {
-    console.error(`Error processing ${filePath}:`, error.message)
+    console.error(`Error processing ${filePath}:`, error.message);
   }
 }
 
-console.log(`\nTotal files fixed: ${totalFixed}`)
+console.log(`\nTotal files fixed: ${totalFixed}`);

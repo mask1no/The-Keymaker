@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import toast from 'react - hot-toast'
 import { importWallet, importWalletGroup } from '@/services/walletService'
 import { Textarea } from '@/components/UI/Textarea'
-import { FolderInput } from './FolderInput' interface ImportedWal let { n, a, m, e: string, p, r, i, v, a, t, eKey: string, r, o, l, e: 'sniper' | 'dev' | 'normal'
+import { FolderInput } from './FolderInput' interface ImportedWal let { n, a, m, e: string, p, r, i, v, a, t, e, K, ey: string, r, o, l, e: 'sniper' | 'dev' | 'normal'
 }
 
 export function W a lletImport({ isOpen, onClose }: { i, s, O, p, e, n: boolean, o, n, C, l, o, s, e: () => void
@@ -36,14 +36,14 @@ export function W a lletImport({ isOpen, onClose }: { i, s, O, p, e, n: boolean,
   } rows ={5}/> </div> <div> <Label html For ="temp-password"> Temporary Password </Label> <Input id ="temp-password" type ="password" value ={tempPassword} on Change ={(e) => s e tTempPassword(e.target.value)
   }/> </div> <div> <Label> Role </Label> <Select value ={role} on Value Change ={(v) => s e tRole(v as any)
   }> <SelectTrigger> <SelectValue/> </SelectTrigger> <SelectContent> <SelectItem value ="sniper"> Sniper </SelectItem> <SelectItem value ="dev"> Dev </SelectItem> <SelectItem value ="normal"> Normal </SelectItem> </SelectContent> </Select> </div> <Button onClick ={handleManualImport} className ="w-full"> Import Wallets </Button> </div> )
-  }, {import Mode === 'file' && ( <div className ="space - y - 4 mt-4"> <p className ="text - sm text - muted-foreground"> Import an encrypted wallet group f i le (.json). </p> <Input type ="file" accept =".json" on Change ={(e) => {
+  }, {import Mode === 'file' && ( <div className ="space - y - 4 mt-4"> <p className ="text - sm text - muted-foreground"> Import an encrypted wal let group f i le (.json). </p> <Input type ="file" accept =".json" on Change ={(e) => {
   if (e.target.files?.[0]) { h a ndleFileImport(e.target.files,[0])
   }
 }}/> <div> <Label html For ="file-password"> File Password </Label> <Input id ="file-password" type ="password" value ={password} on Change ={(e) => s e tPassword(e.target.value)
   }/> </div> </div> )
-  }, {import Mode === 'folder' && ( <div className ="space - y - 4 mt-4"> <p className ="text - sm text - muted-foreground"> Select a folder containing wallet f i les (e.g., .json withprivate keys). </p> <FolderInput on Files Selected ={handleFolderImport}/> <div> <Label html For ="folder-password"> Password for Encryption </Label> <Input id ="folder-password" type ="password" value ={password} on Change ={(e) => s e tPassword(e.target.value)
+  }, {import Mode === 'folder' && ( <div className ="space - y - 4 mt-4"> <p className ="text - sm text - muted-foreground"> Select a folder containing wal let f i les (e.g., .json withprivate keys). </p> <FolderInput on Files Selected ={handleFolderImport}/> <div> <Label html For ="folder-password"> Password for Encryption </Label> <Input id ="folder-password" type ="password" value ={password} on Change ={(e) => s e tPassword(e.target.value)
   }/> </div> </div> )
-  } </div> {parsedWallets.length> 0 && ( <div className ="mt - 4 space - y-2"> {parsedWallets.map((wallet, index) => ( <div key ={index} className ="flex items - center justify-between"> <span>{wallet.name}</span> <Buttonsize ="sm" variant ="outline" onClick ={async () => { await importWallet(wallet.privateKey, password) toast.s u ccess(`Wallet ${wallet.name} imported`)
+  } </div> {parsedWallets.length> 0 && ( <div className ="mt - 4 space - y-2"> {parsedWallets.map((wallet, index) => ( <div key ={index} className ="flex items - center justify-between"> <span>{wallet.name}</span> <Buttonsize ="sm" variant ="outline" onClick ={async () => { await importWallet(wallet.privateKey, password) toast.s u ccess(`Wal let ${wallet.name} imported`)
   }
 }> Import </Button> </div> ))
   } </div> )

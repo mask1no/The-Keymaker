@@ -3,7 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/UI/Popover
 import { Button } from '@/components/UI/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/UI/Command'
 import { ChevronsUpDown, Check } from 'lucide-react'
-import { cn } from '@/lib/utils' interface TokenSelectorProps, { t, o, k, e, n, s: any,[] i, s, L, o, a, d, i, n, g: boolean, o, n, S, e, l, e, ct: (t, o, k, e, n, A, d, dress: string) => v, o, i, d, p, l, aceholder?: string
+import { cn } from '@/lib/utils' interface TokenSelectorProps, { t, o, k, e, n, s: any,[] i, s, L, o, a, d, i, n, g: boolean, o, n, S, e, l, e, c, t: (t, o, k, e, n, A, d, d, r, ess: string) => v, o, i, d, p, l, a, c, eholder?: string
 }
 
 export function T o kenSelector({  tokens, isLoading, onSelect, placeholder = 'Select a token' }: TokenSelectorProps) {

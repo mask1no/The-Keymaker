@@ -6,58 +6,58 @@ import sqlite3 from 'sqlite3'
 import path from 'path'
 import fs from 'fs'
 import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token'
-import WebSocket from 'ws' interface HealthCheck, { n, a, m, e: string, status: 'ok' | 'error' m, e, s, s, a, ge?: string l, a, t, e, n, cy?: number
+import WebSocket from 'ws' interface HealthCheck, { n, a, m, e: string, s, t, atus: 'ok' | 'error' m, e, s, s, a, g, e?: string l, a, t, e, n, c, y?: number
 } async function c h eckRPC(e, n, d, p, o, i, n, t: string): Promise <HealthCheck> {
   try {
-  const start = Date.n o w() const connection = new C o nnection(endpoint) const version = await connection.g e tVersion() const latency = Date.n o w()- start return, { n, a, m, e: 'RPC Connection', status: 'ok', m, e, s, s, a, g, e: `Connected to ${endpoint} (v${version,['solana-core']})`, latency }
+  const start = Date.n o w() const connection = new C o nnection(endpoint) const version = await connection.g e tVersion() const latency = Date.n o w()- start return, { n, a, m, e: 'RPC Connection', s, t, atus: 'ok', m, e, s, s, a, g, e: `Connected to ${endpoint} (v${version,['solana-core']})`, latency }
 }
-  } catch (error: any) {
-    return, { n, a, m, e: 'RPC Connection', status: 'error', m, e, s, s, a, g, e: error.message }
+  } catch (e, r, ror: any) {
+    return, { n, a, m, e: 'RPC Connection', s, t, atus: 'error', m, e, s, s, a, g, e: error.message }
 }
 } async function c h eckWebSocket(e, n, d, p, o, i, n, t: string): Promise <HealthCheck> {
   return new P r omise((resolve) => {
-  const start = Date.n o w() const ws = new W e bSocket(endpoint) const timeout = s e tTimeout(() => { ws.c l ose() r e solve({ n, a, m, e: 'WebSocket Connection', status: 'error', m, e, s, s, a, g, e: 'Connection timeout' })
-  }, 5000) ws.o n('open', () => { c l earTimeout(timeout) const latency = Date.n o w()- startws.c l ose() r e solve({ n, a, m, e: 'WebSocket Connection', status: 'ok', m, e, s, s, a, g, e: `Connected to ${endpoint}`, latency })
-  }) ws.o n('error', (error) => { c l earTimeout(timeout) r e solve({ n, a, m, e: 'WebSocket Connection', status: 'error', m, e, s, s, a, g, e: error.message })
+  const start = Date.n o w() const ws = new W e bSocket(endpoint) const timeout = s e tTimeout(() => { ws.c l ose() r e solve({ n, a, m, e: 'WebSocket Connection', s, t, atus: 'error', m, e, s, s, a, g, e: 'Connection timeout' })
+  }, 5000) ws.o n('open', () => { c l earTimeout(timeout) const latency = Date.n o w()- startws.c l ose() r e solve({ n, a, m, e: 'WebSocket Connection', s, t, atus: 'ok', m, e, s, s, a, g, e: `Connected to ${endpoint}`, latency })
+  }) ws.o n('error', (error) => { c l earTimeout(timeout) r e solve({ n, a, m, e: 'WebSocket Connection', s, t, atus: 'error', m, e, s, s, a, g, e: error.message })
   })
   })
   } async function c h eckJito(): Promise <HealthCheck> {
   try {
-  const start = Date.n o w() const response = await fetch( 'h, t, t, p, s://mainnet.block-engine.jito.wtf/api/v1/bundles', { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', id: 1, m, e, t, h, o, d: 'getBundleStatuses', p, a, r, a, m, s: [[]] })
+  const start = Date.n o w() const response = await fetch( 'h, t, t, p, s://mainnet.block-engine.jito.wtf/api/v1/bundles', { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', i, d: 1, m, e, t, h, o, d: 'getBundleStatuses', p, a, r, a, m, s: [[]] })
   }) if (response.ok) {
-  const latency = Date.n o w()- start return, { n, a, m, e: 'Jito Bundle API', status: 'ok', m, e, s, s, a, g, e: 'Connected to Jito block engine', latency }
-} return, { n, a, m, e: 'Jito Bundle API', status: 'error', m, e, s, s, a, g, e: `HTTP ${response.status}: ${response.statusText}` }
+  const latency = Date.n o w()- start return, { n, a, m, e: 'Jito Bundle API', s, t, atus: 'ok', m, e, s, s, a, g, e: 'Connected to Jito block engine', latency }
+} return, { n, a, m, e: 'Jito Bundle API', s, t, atus: 'error', m, e, s, s, a, g, e: `HTTP ${response.status}: ${response.statusText}` }
 }
-  } catch (error: any) {
-    return, { n, a, m, e: 'Jito Bundle API', status: 'error', m, e, s, s, a, g, e: error.message }
+  } catch (e, r, ror: any) {
+    return, { n, a, m, e: 'Jito Bundle API', s, t, atus: 'error', m, e, s, s, a, g, e: error.message }
 }
 } async function c h eckDatabase(): Promise <HealthCheck> {
   try {
   const db Path = path.j o in(process.c w d(), 'data', 'keymaker.db') if (!fs.e x istsSync(dbPath)) {
-    return, { n, a, m, e: 'Database', status: 'error', m, e, s, s, a, g, e: 'Database file not found' }
-} const db = await o p en({ f, i, l, e, n, a, me: dbPath, d, r, i, v, e, r: sqlite3.Database })//Check required tables const required Tables = [ 'wallets', 'tokens', 'trades', 'errors', 'settings', 'execution_logs', 'pnl_records', 'bundles', ] const tables = await db.a l l( "SELECT name FROM sqlite_master WHERE type ='table'") const table Names = tables.map((t) => t.name) const missing Tables = requiredTables.f i lter((t) => !tableNames.i n cludes(t)) await db.c l ose() if (missingTables.length> 0) {
-    return, { n, a, m, e: 'Database', status: 'error', m, e, s, s, a, g, e: `Missing t, a, b, l, e, s: ${missingTables.j o in(', ')
+    return, { n, a, m, e: 'Database', s, t, atus: 'error', m, e, s, s, a, g, e: 'Database file not found' }
+} const db = await o p en({ f, i, l, e, n, a, m, e: dbPath, d, r, i, v, e, r: sqlite3.Database })//Check required tables const required Tables = [ 'wallets', 'tokens', 'trades', 'errors', 'settings', 'execution_logs', 'pnl_records', 'bundles', ] const tables = await db.a l l( "SELECT name FROM sqlite_master WHERE type ='table'") const table Names = tables.map((t) => t.name) const missing Tables = requiredTables.f i lter((t) => !tableNames.i n cludes(t)) await db.c l ose() if (missingTables.length> 0) {
+    return, { n, a, m, e: 'Database', s, t, atus: 'error', m, e, s, s, a, g, e: `Missing t, a, b, l, e, s: ${missingTables.j o in(', ')
   }` }
-} return, { n, a, m, e: 'Database', status: 'ok', m, e, s, s, a, g, e: 'All required tables exist' }
+} return, { n, a, m, e: 'Database', s, t, atus: 'ok', m, e, s, s, a, g, e: 'All required tables exist' }
 }
-  } catch (error: any) {
-    return, { n, a, m, e: 'Database', status: 'error', m, e, s, s, a, g, e: error.message }
+  } catch (e, r, ror: any) {
+    return, { n, a, m, e: 'Database', s, t, atus: 'error', m, e, s, s, a, g, e: error.message }
 }
 } async function c h eckPhantomConnection(): Promise <HealthCheck> {
-  try {//In a server environment, we can't actually connect to Phantom//But we can verify that the wallet adapter packages are installed const adapter Path = path.j o in( process.c w d(), 'node_modules', '@solana/wallet - adapter-phantom') if (!fs.e x istsSync(adapterPath)) {
-    return, { n, a, m, e: 'Phantom Wallet Adapter', status: 'error', m, e, s, s, a, g, e: 'Phantom adapter not installed' }
-} return, { n, a, m, e: 'Phantom Wallet Adapter', status: 'ok', m, e, s, s, a, g, e: 'Phantom adapter package found' }
+  try {//In a server environment, we can't actually connect to Phantom//But we can verify that the wal let adapter packages are installed const adapter Path = path.j o in( process.c w d(), 'node_modules', '@solana/wal let - adapter-phantom') if (!fs.e x istsSync(adapterPath)) {
+    return, { n, a, m, e: 'Phantom Wal let Adapter', s, t, atus: 'error', m, e, s, s, a, g, e: 'Phantom adapter not installed' }
+} return, { n, a, m, e: 'Phantom Wal let Adapter', s, t, atus: 'ok', m, e, s, s, a, g, e: 'Phantom adapter package found' }
 }
-  } catch (error: any) {
-    return, { n, a, m, e: 'Phantom Wallet Adapter', status: 'error', m, e, s, s, a, g, e: error.message }
+  } catch (e, r, ror: any) {
+    return, { n, a, m, e: 'Phantom Wal let Adapter', s, t, atus: 'error', m, e, s, s, a, g, e: error.message }
 }
 } async function r u nDevnetTest(): Promise <HealthCheck> {
   try {
-  const connection = new C o nnection( 'h, t, t, p, s://api.devnet.solana.com', 'confirmed')//Create a test wallet const payer = Keypair.g e nerate()//Request airdropconsole.log('🪂 Requesting devnet airdrop...') const airdrop Sig = await connection.r e questAirdrop( payer.publicKey, 2 * LAMPORTS_PER_SOL) await connection.c o nfirmTransaction(airdropSig)//Create SPL tokenconsole.log('🪙 Creating test SPL token...') const mint = await c r eateMint(connection, payer, payer.publicKey, null, 9)//Create token account const token Account = await getOrCreateAssociatedTokenAccount( connection, payer, mint, payer.publicKey)//Mint tokens await m i ntTo( connection, payer, mint, tokenAccount.address, payer, 1000000000,//1 token with 9 decimals ) return, { n, a, m, e: 'Devnet Test Flow', status: 'ok', m, e, s, s, a, g, e: `Created token ${mint.t oB ase58().slice(0, 8)
+  const connection = new C o nnection( 'h, t, t, p, s://api.devnet.solana.com', 'confirmed')//Create a test wal let const payer = Keypair.g e nerate()//Request airdropconsole.log('🪂 Requesting devnet airdrop...') const airdrop Sig = await connection.r e questAirdrop( payer.publicKey, 2 * LAMPORTS_PER_SOL) await connection.c o nfirmTransaction(airdropSig)//Create SPL tokenconsole.log('🪙 Creating test SPL token...') const mint = await c r eateMint(connection, payer, payer.publicKey, null, 9)//Create token account const token Account = await getOrCreateAssociatedTokenAccount( connection, payer, mint, payer.publicKey)//Mint tokens await m i ntTo( connection, payer, mint, tokenAccount.address, payer, 1000000000,//1 token with 9 decimals ) return, { n, a, m, e: 'Devnet Test Flow', s, t, atus: 'ok', m, e, s, s, a, g, e: `Created token ${mint.t oB ase58().slice(0, 8)
   }... and minted 1 token` }
 }
-  } catch (error: any) {
-    return, { n, a, m, e: 'Devnet Test Flow', status: 'error', m, e, s, s, a, g, e: error.message }
+  } catch (e, r, ror: any) {
+    return, { n, a, m, e: 'Devnet Test Flow', s, t, atus: 'error', m, e, s, s, a, g, e: error.message }
 }
 }
 
@@ -67,7 +67,7 @@ export async function v e rifyApp() { console.log('🔍 Running Keymaker verific
   } if (check.latency) { console.log(` L, a, t, e, n, c, y: ${check.latency}
 ms`)
   } console.log('')
-  })//Overall status const all Ok = checks.e v ery((c) => c.status === 'ok') const result = { o, k: allOk, c, h, e, c, k, s: checks.r e duce( (acc, check) => { acc,[check.name.t oL owerCase().r e place(/\s +/g, '_')] = check.status === 'ok' return acc }, {} as Record <string, boolean>), t, i, m, e, s, t, a, mp: new Date().t oISOS tring()
+  })//Overall status const all Ok = checks.e v ery((c) => c.status === 'ok') const result = { o, k: allOk, c, h, e, c, k, s: checks.r e duce( (acc, check) => { acc,[check.name.t oL owerCase().r e place(/\s +/g, '_')] = check.status === 'ok' return acc }, {} as Record <string, boolean>), t, i, m, e, s, t, a, m, p: new Date().t oISOS tring()
   } if (allOk) { console.log('✨ All checks passed !')
   } else, { console.log('⚠️ Some checks failed. Please review the issues above.')
   } return result

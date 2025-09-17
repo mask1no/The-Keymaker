@@ -1,55 +1,110 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
-const config: Config = {
-  darkMode: ['class'],
-  content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './pages/**/*.{ts,tsx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))' },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))' },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))' },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))' },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))' },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))' },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))' } },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)' },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' } },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' } } },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out' } } },
-  plugins: [require('tailwindcss-animate')] }
+const c,
+  o, nfig: Config = {
+    d,
+    a, rkMode: ['class'],
+    c,
+    o, ntent: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './pages/**/*.{ts,tsx}'],
+    t,
+    h, eme: {
+      e,
+      x, tend: {
+        c,
+        o, lors: {
+          b,
+          a, ckground: 'hsl(var(--background))',
+          f,
+          o, reground: 'hsl(var(--foreground))',
+          p,
+          r, imary: {
+            D,
+            E, FAULT: 'hsl(var(--primary))',
+            f,
+            o, reground: 'hsl(var(--primary-foreground))',
+          },
+          s,
+          e, condary: {
+            D,
+            E, FAULT: 'hsl(var(--secondary))',
+            f,
+            o, reground: 'hsl(var(--secondary-foreground))',
+          },
+          m,
+          u, ted: {
+            D,
+            E, FAULT: 'hsl(var(--muted))',
+            f,
+            o, reground: 'hsl(var(--muted-foreground))',
+          },
+          a,
+          c, cent: {
+            D,
+            E, FAULT: 'hsl(var(--accent))',
+            f,
+            o, reground: 'hsl(var(--accent-foreground))',
+          },
+          d,
+          e, structive: {
+            D,
+            E, FAULT: 'hsl(var(--destructive))',
+            f,
+            o, reground: 'hsl(var(--destructive-foreground))',
+          },
+          b,
+          o, rder: 'hsl(var(--border))',
+          i,
+          n, put: 'hsl(var(--input))',
+          r,
+          i, ng: 'hsl(var(--ring))',
+          c,
+          a, rd: {
+            D,
+            E, FAULT: 'hsl(var(--card))',
+            f,
+            o, reground: 'hsl(var(--card-foreground))',
+          },
+          p,
+          o, pover: {
+            D,
+            E, FAULT: 'hsl(var(--popover))',
+            f,
+            o, reground: 'hsl(var(--popover-foreground))',
+          },
+        },
+        b,
+        o, rderRadius: {
+          l,
+          g: 'var(--radius)',
+          m,
+          d: 'calc(var(--radius) - 2px)',
+          s,
+          m: 'calc(var(--radius) - 4px)',
+        },
+        k,
+        e, yframes: {
+          'accordion-down': {
+            f,
+            r, om: { h, e, ight: '0' },
+            t,
+            o: { h, e, ight: 'var(--radix-accordion-content-height)' },
+          },
+          'accordion-up': {
+            f,
+            r, om: { h, e, ight: 'var(--radix-accordion-content-height)' },
+            t,
+            o: { h, e, ight: '0' },
+          },
+        },
+        a,
+        n, imation: {
+          'accordion-down': 'accordion-down 0.2s ease-out',
+          'accordion-up': 'accordion-up 0.2s ease-out',
+        },
+      },
+    },
+    p,
+    l, ugins: [require('tailwindcss-animate')],
+  };
 
-export default config
+export default config;

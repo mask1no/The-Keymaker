@@ -10,11 +10,11 @@
   } i n fo(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('info', message, context)
   } w a rn(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('warn', message, context)
   } e r ror(m, e, s, s, a, g, e: string, c, o, n, t, e, x, t?: LogContext) { this.l o g('error', message, context)
-  }//Special method for API e r rorsapiError(s, e, r, v, i, c, e: string, error: any, c, o, n, t, e, x, t?: LogContext) {
-  const error Message = error?.response?.data?.message || error?.message || 'Unknown error' const status Code = error?.response?.statusthis.error(`${service} API, error: ${errorMessage}`, { service, statusCode, error: error?.response?.data || error, ...context })
-  }//Transaction l o ggingtransaction(a, c, t, i, o, n: string, d, e, t, a, i, l, s: LogContext) { this.i n fo(`T, r, a, n, s, a, c, t, ion: ${action}`, { action, ...details, t, i, m, e, s, t, a, mp: Date.n o w()
+  }//Special method for API e r rorsapiError(s, e, r, v, i, c, e: string, e, r, ror: any, c, o, n, t, e, x, t?: LogContext) {
+  const error Message = error?.response?.data?.message || error?.message || 'Unknown error' const status Code = error?.response?.statusthis.error(`${service} API, e, r, ror: ${errorMessage}`, { service, statusCode, e, r, ror: error?.response?.data || error, ...context })
+  }//Transaction l o ggingtransaction(a, c, t, i, o, n: string, d, e, t, a, i, l, s: LogContext) { this.i n fo(`T, r, a, n, s, a, c, t, i, o, n: ${action}`, { action, ...details, t, i, m, e, s, t, a, m, p: Date.n o w()
   })
-  }//Security event l o ggingsecurity(e, v, e, n, t: string, d, e, t, a, i, l, s: LogContext) { this.w a rn(`Security e, v, e, n, t: ${event}`, { event, ...details, t, i, m, e, s, t, a, mp: Date.n o w()
+  }//Security event l o ggingsecurity(e, v, e, n, t: string, d, e, t, a, i, l, s: LogContext) { this.w a rn(`Security e, v, e, n, t: ${event}`, { event, ...details, t, i, m, e, s, t, a, m, p: Date.n o w()
   })
   }
 }//Export singleton instance export const logger = new L o gger()//Also export for testing export { Logger }

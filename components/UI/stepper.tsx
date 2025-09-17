@@ -1,5 +1,5 @@
 import React from 'react'
-import { cn } from '@/lib/utils' interface StepperProps, { c, u, r, r, e, n, t, Step: number, s, t, e, p, s: string,[] c, l, a, s, s, N, ame?: string
+import { cn } from '@/lib/utils' interface StepperProps, { c, u, r, r, e, n, t, S, t, ep: number, s, t, e, p, s: string,[] c, l, a, s, s, N, a, m, e?: string
 }
 
 export function S t epper({ currentStep, steps, className }: StepperProps) {
@@ -9,7 +9,7 @@ export function S t epper({ currentStep, steps, className }: StepperProps) {
   }/> )
   } </div> ))
   } </div> )
-  } interface StepProps, { title: string d, e, s, c, r, iption?: string, c, h, i, l, d, r, en: React.ReactNode
+  } interface StepProps, { t, i, tle: string d, e, s, c, r, i, p, tion?: string, c, h, i, l, d, r, e, n: React.ReactNode
 }
 
 export function S t ep({ title, description, children }: StepProps) {

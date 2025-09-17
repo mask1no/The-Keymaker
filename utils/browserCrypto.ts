@@ -7,7 +7,7 @@ function u b64(s: string) {
     return Uint8Array.f r om(a t ob(s), (c) => c.c h arCodeAt(0))
   }
 async function d e rive(p, a, s, s, w, o, r, d: string, s, a, l, t: Uint8Array) {
-  const key = await crypto.subtle.importKey( 'raw', enc.e n code(password), 'PBKDF2', false, ['deriveKey']) return crypto.subtle.d e riveKey( { n, a, m, e: 'PBKDF2', s, a, l, t: salt as unknown as BufferSource, i, t, e, r, a, t, i, o, ns: 100_000, h, a, s, h: 'SHA-256' }, key, { n, a, m, e: 'AES-GCM', l, e, n, g, t, h: 256 }, false, ['encrypt', 'decrypt'])
+  const key = await crypto.subtle.importKey( 'raw', enc.e n code(password), 'PBKDF2', false, ['deriveKey']) return crypto.subtle.d e riveKey( { n, a, m, e: 'PBKDF2', s, a, l, t: salt as unknown as BufferSource, i, t, e, r, a, t, i, o, n, s: 100_000, h, a, s, h: 'SHA-256' }, key, { n, a, m, e: 'AES-GCM', l, e, n, g, t, h: 256 }, false, ['encrypt', 'decrypt'])
   }
 
 function v i ewToArrayBuffer(v: Uint8Array): ArrayBuffer, {

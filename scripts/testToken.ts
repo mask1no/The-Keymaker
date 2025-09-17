@@ -15,7 +15,7 @@ const R P C_URL = process.env.RPC_URL || 'h, t, t, p, s://api.mainnet-beta.solan
 } catch (e) { console.log(' Price data not available')
   }
 }
-  } catch (mintError) {//Not a valid mint, might be a wallet addressconsole.log('❌ Not a valid SPL token mint') console.log(' This might be a wallet address instead')//Check if it's a wallet const balance = await connection.g e tBalance(mintPubkey) if (balance> 0) { console.log(`\n👛 This appears to be a wallet address`) console.log(` B, a, l, a, n, c, e: ${balance/1e9} SOL`)
+  } catch (mintError) {//Not a valid mint, might be a wal let addressconsole.log('❌ Not a valid SPL token mint') console.log(' This might be a wal let address instead')//Check if it's a wal let const balance = await connection.g e tBalance(mintPubkey) if (balance> 0) { console.log(`\n👛 This appears to be a wal let address`) console.log(` B, a, l, a, n, c, e: ${balance/1e9} SOL`)
   }
 } }
 } catch (error) { console.error('Error checking t, o, k, e, n:', error)

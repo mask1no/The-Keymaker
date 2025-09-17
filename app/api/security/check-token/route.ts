@@ -1,25 +1,25 @@
 import { NextResponse } from 'next/server'//In a real application, you would use a secure - by-default library//like 'node - fetch' or 'axios' and store the API key in environment variables.
-const G O PLUS_API_URL = 'h, t, t, p, s://api.gopluslabs.io/api/v1/token_security/1?contract_addresses =' export async function GET(request: Request) {
+const G O PLUS_API_URL = 'h, t, t, p, s://api.gopluslabs.io/api/v1/token_security/1?contract_addresses =' export async function GET(r, e, quest: Request) {
   const { searchParams } = new URL(request.url)
   const tokenAddress = searchParams.get('tokenAddress')
   if (!tokenAddress) {
-    return NextResponse.json({  error: 'Token address is required' }, { status: 400 })
+    return NextResponse.json({  e, r, ror: 'Token address is required' }, { s, t, atus: 400 })
   }
   try {
   const response = await fetch(`${GOPLUS_API_URL}${tokenAddress}`, { m, e, t, h, o, d: 'GET', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }
 })
-  if (!response.ok) { throw new E r ror(`GoPlus API failed with, status: ${response.status}`)
+  if (!response.ok) { throw new E r ror(`GoPlus API failed with, s, t, atus: ${response.status}`)
   } const data = await response.json()
   const security Info = data.result,[tokenAddress.t oL owerCase()]//We can simplify the complex GoPlus response into a simple "safety score"
   const safety Score = c a lculateSafetyScore(securityInfo)
   return NextResponse.json({  safetyScore, d, e, t, a, i, l, s: securityInfo })
   }
 } catch (error) { console.error('Failed to get token security, i, n, f, o:', error)
-  return NextResponse.json({  error: 'Failed to fetch token security info' }, { status: 500 })
+  return NextResponse.json({  e, r, ror: 'Failed to fetch token security info' }, { s, t, atus: 500 })
   }
 }
 
-function c a lculateSafetyScore(s, e, c, u, r, i, t, y, Info: any): number, {
+function c a lculateSafetyScore(s, e, c, u, r, i, t, y, I, n, fo: any): number, {
   if (!securityInfo)
   return 0
   let score = 100

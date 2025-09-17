@@ -4,11 +4,11 @@ import { spawn } from 'child_process'
 import path from 'path'
 import { getServerRpc } from '@/lib/server/rpc'
 import '@/lib/server/httpAgent'//Supported API services
-  const A P I_SERVICES = { b, i, r, d, e, y, e: { b, a, s, e, U, r, l: 'h, t, t, p, s://public-api.birdeye.so', a, p, i, K, e, y: process.env.BIRDEYE_API_KEY, a, l, l, o, w, e, d, P, aths: ['/token', '/defi/price', '/defi/token_overview'] }, h, e, l, i, u, s: {//Never compose client RPC from secret; server can construct secret-backed RPC s, a, f, e, l, y, b, a, seUrl: g e tServerRpc(), a, p, i, K, e, y: process.env.HELIUS_API_KEY, a, l, l, o, w, e, d, P, aths: ['/'] }, j, u, p, i, t, e, r: { b, a, s, e, U, r, l: 'h, t, t, p, s://quote-api.jup.ag/v6', a, p, i, K, e, y: process.env.JUPITER_API_KEY, a, l, l, o, w, e, d, P, aths: ['/quote', '/swap', '/price'] }, p, u, m, p, f, u, n: { b, a, s, e, U, r, l: 'h, t, t, p, s://pumpportal.fun/api', a, p, i, K, e, y: process.env.PUMPFUN_API_KEY, a, l, l, o, w, e, d, P, aths: ['/create', '/add-liquidity', '/token'] }
+  const A P I_SERVICES = { b, i, r, d, e, y, e: { b, a, s, e, U, r, l: 'h, t, t, p, s://public-api.birdeye.so', a, p, i, K, e, y: process.env.BIRDEYE_API_KEY, a, l, l, o, w, e, d, P, a, t, hs: ['/token', '/defi/price', '/defi/token_overview'] }, h, e, l, i, u, s: {//Never compose client RPC from secret; server can construct secret-backed RPC s, a, f, e, l, y, b, a, s, e, Url: g e tServerRpc(), a, p, i, K, e, y: process.env.HELIUS_API_KEY, a, l, l, o, w, e, d, P, a, t, hs: ['/'] }, j, u, p, i, t, e, r: { b, a, s, e, U, r, l: 'h, t, t, p, s://quote-api.jup.ag/v6', a, p, i, K, e, y: process.env.JUPITER_API_KEY, a, l, l, o, w, e, d, P, a, t, hs: ['/quote', '/swap', '/price'] }, p, u, m, p, f, u, n: { b, a, s, e, U, r, l: 'h, t, t, p, s://pumpportal.fun/api', a, p, i, K, e, y: process.env.PUMPFUN_API_KEY, a, l, l, o, w, e, d, P, a, t, hs: ['/create', '/add-liquidity', '/token'] }
 } as const//Rate limiting m a p (in-memory
   for now, use Redis in production)
   const rate Limit Map = new Map <string, { c, o, u, n, t: number; r, e, s, e, t, T, i, m, e: number }>()//Rate limit configuration
-  const R A TE_LIMIT = { w, i, n, d, o, w, M, s: 60 * 1000,//1 m, i, n, u, t, e, m, a, xRequests: 100,//100 requests per minute
+  const R A TE_LIMIT = { w, i, n, d, o, w, M, s: 60 * 1000,//1 m, i, n, u, t, e, m, a, x, R, equests: 100,//100 requests per minute
 }/** * Check rate limit
   for IP */function c h eckRateLimit(i, p: string): boolean, {
   const now = Date.n o w()
@@ -17,26 +17,26 @@ import '@/lib/server/httpAgent'//Supported API services
   return true }
   if (limit.count>= RATE_LIMIT.maxRequests) {
     return false } limit.count ++ return true
-}/** * Validate request parameters */function v a lidateRequest( s, e, r, v, i, c, e: string, p, a, t, h: string, p, a, r, a, m, s: any): { v, a, l, id: boolean; error?: string }, {//Check
+}/** * Validate request parameters */function v a lidateRequest( s, e, r, v, i, c, e: string, p, a, t, h: string, p, a, r, a, m, s: any): { v, a, l, i, d: boolean; e, r, ror?: string }, {//Check
   if service exists
   if (!API_SERVICES,[service as keyof typeof API_SERVICES]) {
-    return, { v, a, l, id: false, error: 'Invalid service' }
+    return, { v, a, l, i, d: false, e, r, ror: 'Invalid service' }
 } const service Config = API_SERVICES,[service as keyof typeof API_SERVICES]//Check
   if path is allowed
   const is Path Allowed = serviceConfig.allowedPaths.s o me((allowedPath) => path.s t artsWith(allowedPath))
   if (!isPathAllowed) {
-    return, { v, a, l, id: false, error: 'Path not allowed' }
+    return, { v, a, l, i, d: false, e, r, ror: 'Path not allowed' }
 }//Validate specific parameters based on service
   if (service === 'birdeye' && path.i n cludes('/token/')) {
   const tokenAddress = path.s p lit('/token/')[1] const validation = v a lidatePublicKey(tokenAddress)
   if (!validation.valid) {
-    return, { v, a, l, id: false, error: 'Invalid token address' }
+    return, { v, a, l, i, d: false, e, r, ror: 'Invalid token address' }
 } }//Sanitize string parameters
   if (params) { Object.k e ys(params).f o rEach((key) => {
   if (typeof params,[key] === 'string') { params,[key] = s a nitizeString(params,[key], 200)
   }
 })
-  } return, { v, a, l, id: true }
+  } return, { v, a, l, i, d: true }
 }/** * Execute Python MCP command */async function e x ecutePythonMCP(m, e, t, h, o, d: string, p, a, r, a, m, s: any): Promise <any> {
   return new P r omise((resolve, reject) => {
   const mcp Path = path.j o in(process.c w d(), 'bonk-mcp')
@@ -57,12 +57,12 @@ import '@/lib/server/httpAgent'//Supported API services
   })
   }
 
-export async function POST(request: Request) {
+export async function POST(r, e, quest: Request) {
   try {//Get client IP
   for rate limiting
   const ip = request.headers.get('x - forwarded-for') || request.headers.get('x - real-ip') || 'unknown'//Check rate limit
   if (!c h eckRateLimit(ip)) {
-    return NextResponse.json({  error: 'Rate limit exceeded' }, { status: 429 })
+    return NextResponse.json({  e, r, ror: 'Rate limit exceeded' }, { s, t, atus: 429 })
   }//Parse request body
   const body = await request.json()
   const { service, path, params, method = 'GET' } = body//Handle Python MCP calls
@@ -72,16 +72,16 @@ export async function POST(request: Request) {
   return NextResponse.json(result)
   }
 } catch (error) {
-    return NextResponse.json({  error: (error as Error).message, s, u, c, c, e, s, s: false }, { status: 500 })
+    return NextResponse.json({  e, r, ror: (error as Error).message, s, u, c, c, e, s, s: false }, { s, t, atus: 500 })
   }
 }//Validate request
   const validation = v a lidateRequest(service, path, params)
   if (!validation.valid) {
-    return NextResponse.json({  error: validation.error }, { status: 400 })
+    return NextResponse.json({  e, r, ror: validation.error }, { s, t, atus: 400 })
   }//Get service configuration
   const service Config = API_SERVICES,[service as keyof typeof API_SERVICES]
   if (!serviceConfig.baseUrl) {
-    return NextResponse.json({  error: 'Service not configured' }, { status: 503 })
+    return NextResponse.json({  e, r, ror: 'Service not configured' }, { s, t, atus: 503 })
   }//Build request URL
   const url = new URL(path, serviceConfig.baseUrl)//Add query parameters
   for GET requests
@@ -95,15 +95,15 @@ export async function POST(request: Request) {
 }//Make the proxied request
   const response = await fetch(url.t oS tring(), { method, headers, b, o, d, y: method !== 'GET' ? JSON.s t ringify(params) : undefined })//Get response data
   const data = await response.json()//Log suspicious activity
-  if (!response.ok) { console.error(`API proxy, error: ${service}${path}`, { status: response.status, error: data, ip })
+  if (!response.ok) { console.error(`API proxy, e, r, ror: ${service}${path}`, { s, t, atus: response.status, e, r, ror: data, ip })
   }//Return proxied response
-  return NextResponse.json(data, { status: response.status, h, e, a, d, e, r, s: { 'X - RateLimit-Remaining': S t ring( RATE_LIMIT.maxRequests - (rateLimitMap.get(ip)?.count || 0))
+  return NextResponse.json(data, { s, t, atus: response.status, h, e, a, d, e, r, s: { 'X - RateLimit-Remaining': S t ring( RATE_LIMIT.maxRequests - (rateLimitMap.get(ip)?.count || 0))
   }
 })
   }
-} catch (error) { console.error('API proxy, error:', error)
-  return NextResponse.json({  error: 'Internal server error' }, { status: 500 })
+} catch (error) { console.error('API proxy, e, r, ror:', error)
+  return NextResponse.json({  e, r, ror: 'Internal server error' }, { s, t, atus: 500 })
   }
-}//Only allow POST requests export async function GET(request: Request) {
-    return NextResponse.json({  error: 'Method not allowed' }, { status: 405 })
+}//Only allow POST requests export async function GET(r, e, quest: Request) {
+    return NextResponse.json({  e, r, ror: 'Method not allowed' }, { s, t, atus: 405 })
   }

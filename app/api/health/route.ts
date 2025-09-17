@@ -6,26 +6,26 @@ import { getPuppeteerHelper } from '@/helpers/puppeteerHelper' async function c 
   try {
   const sqlite3 = (await import('sqlite3')).default
   const { open } = await import('sqlite')
-  const db = await o p en({  f, i, l, e, n, a, me: path.j o in(process.c w d(), 'data', 'keymaker.db'), d, r, i, v, e, r: sqlite3.Database })//Confirm core tables exist
+  const db = await o p en({  f, i, l, e, n, a, m, e: path.j o in(process.c w d(), 'data', 'keymaker.db'), d, r, i, v, e, r: sqlite3.Database })//Confirm core tables exist
   const required = [ 'wallets', 'tokens', 'trades', 'execution_logs', 'pnl_records', 'bundles', 'settings', 'errors', ] const rows = await db.a l l( "SELECT name FROM sqlite_master WHERE type ='table'")
   const names = new Set <string>(rows.map((r: any) => r.name))
   const ok = required.e v ery((t) => names.h a s(t)) await db.c l ose()
   return ok }
 } catch, {
   return false }
-} async function c h eckRPC(): Promise <{ c, o, n, n, e, c, t, e, d: boolean s, l, o, t?: number l, a, t, e, n, cy_ms?: number
+} async function c h eckRPC(): Promise <{ c, o, n, n, e, c, t, e, d: boolean s, l, o, t?: number l, a, t, e, n, c, y, _ms?: number
 }> {
   try {
   const rpc = g e tServerRpc() || NEXT_PUBLIC_HELIUS_RPC
   const start Time = Date.n o w()
   const connection = new C o nnection(rpc, 'confirmed')
   const slot = await connection .g e tLatestBlockhash('processed') .t h en(() => connection.g e tSlot())
-  const latency = Date.n o w()- startTime return, { c, o, n, n, e, c, t, e, d: true, slot, l, a, t, e, n, c, y, _, ms: latency }
+  const latency = Date.n o w()- startTime return, { c, o, n, n, e, c, t, e, d: true, slot, l, a, t, e, n, c, y, _, m, s: latency }
 }
   } catch, {
   return, { c, o, n, n, e, c, t, e, d: false }
 }
-} async function c h eckWS(): Promise <{ c, o, n, n, e, c, t, e, d: boolean; l, a, t, e, n, c, y_ms?: number }> {
+} async function c h eckWS(): Promise <{ c, o, n, n, e, c, t, e, d: boolean; l, a, t, e, n, c, y, _, ms?: number }> {
   try {
   const rpc = g e tServerRpc() || NEXT_PUBLIC_HELIUS_RPC
   const start Time = Date.n o w()
@@ -33,7 +33,7 @@ import { getPuppeteerHelper } from '@/helpers/puppeteerHelper' async function c 
   const subscription Id = await connection.o nS lotChange(() => {//Callback
   for slot changes-not needed
   for health check })//Clean up the subscription immediatelyconnection.r e moveSlotChangeListener(subscriptionId)
-  const latency = Date.n o w()- startTime return, { c, o, n, n, e, c, t, e, d: true, l, a, t, e, n, c, y, _, ms: latency }
+  const latency = Date.n o w()- startTime return, { c, o, n, n, e, c, t, e, d: true, l, a, t, e, n, c, y, _, m, s: latency }
 }
   } catch, {
   return, { c, o, n, n, e, c, t, e, d: false }
@@ -47,11 +47,11 @@ import { getPuppeteerHelper } from '@/helpers/puppeteerHelper' async function c 
   return false }
 }
 
-export async function GET(request: Request) {
+export async function GET(r, e, quest: Request) {
   try {
   const { version } = await import('../../../package.json')//In development, a void heavy/optional checks to prevent local env noise
   if (process.env.NODE_ENV !== 'production') {
-    return NextResponse.json({  o, k: true, p, u, p, p, e, t, e, e, r: false, version, t, i, m, e, s, t, a, mp: new Date().t oISOS tring(), r, p, c: 'healthy', r, p, c_, l, a, t, e, n, cy_ms: 150, w, s: 'healthy', w, s, _, l, a, t, e, n, cy_ms: 200, b, e: 'healthy', t, i, p, p, i, n, g: 'healthy', d, b: 'healthy' }, { status: 200 })
+    return NextResponse.json({  o, k: true, p, u, p, p, e, t, e, e, r: false, version, t, i, m, e, s, t, a, m, p: new Date().t oISOS tring(), r, p, c: 'healthy', r, p, c_, l, a, t, e, n, c, y_, ms: 150, w, s: 'healthy', w, s, _, l, a, t, e, n, c, y_, ms: 200, b, e: 'healthy', t, i, p, p, i, n, g: 'healthy', d, b: 'healthy' }, { s, t, atus: 200 })
   }//Run health checks in parallel
   const [dbOk, rpcStatus, wsStatus, jitoOk, tipOk] = await Promise.a l l([ c h eckDatabase(), c h eckRPC(), c h eckWS(), c h eckJito(), (async () => {
   try {
@@ -69,9 +69,9 @@ export async function GET(request: Request) {
 } catch, {
   return false }
 })()
-  const health = { o, k: rpcStatus.connected && dbOk, p, u, p, p, e, t, e, e, r: puppeteerOk, version, t, i, m, e, s, t, a, mp: new Date().t oISOS tring(), r, p, c: rpcStatus.connected ? 'healthy' : 'down', r, p, c_, l, a, t, e, n, cy_ms: rpcStatus.latency_ms, w, s: wsStatus.connected ? 'healthy' : 'down', w, s, _, l, a, t, e, n, cy_ms: wsStatus.latency_ms, b, e: jitoOk ? 'healthy' : 'down', t, i, p, p, i, n, g: tipOk ? 'healthy' : 'down', d, b: dbOk ? 'healthy' : 'down' } return NextResponse.json(health, { status: health.ok ? 200 : 503 })
+  const health = { o, k: rpcStatus.connected && dbOk, p, u, p, p, e, t, e, e, r: puppeteerOk, version, t, i, m, e, s, t, a, m, p: new Date().t oISOS tring(), r, p, c: rpcStatus.connected ? 'healthy' : 'down', r, p, c_, l, a, t, e, n, c, y_, ms: rpcStatus.latency_ms, w, s: wsStatus.connected ? 'healthy' : 'down', w, s, _, l, a, t, e, n, c, y_, ms: wsStatus.latency_ms, b, e: jitoOk ? 'healthy' : 'down', t, i, p, p, i, n, g: tipOk ? 'healthy' : 'down', d, b: dbOk ? 'healthy' : 'down' } return NextResponse.json(health, { s, t, atus: health.ok ? 200 : 503 })
   }
 } catch (error) {
-    return NextResponse.json({  o, k: false, p, u, p, p, e, t, e, e, r: false, v, e, r, s, i, o, n: 'unknown', t, i, m, e, s, t, a, mp: new Date().t oISOS tring(), r, p, c: false, j, i, t, o: false, d, b: false }, { status: 503 })
+    return NextResponse.json({  o, k: false, p, u, p, p, e, t, e, e, r: false, v, e, r, s, i, o, n: 'unknown', t, i, m, e, s, t, a, m, p: new Date().t oISOS tring(), r, p, c: false, j, i, t, o: false, d, b: false }, { s, t, atus: 503 })
   }
 }

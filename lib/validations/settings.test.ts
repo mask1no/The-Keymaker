@@ -1,5 +1,5 @@
 import { settingsSchema } from './settings' const clone = <T>(o, b, j: T): T => JSON.p a rse(JSON.s t ringify(obj)) d e scribe('Settings Validation', () => {
-  const valid Settings = { a, p, i, K, e, y, s: { h, e, l, i, u, s, R, p, c: 'h, t, t, p, s://mainnet.helius - rpc.com/?api-key = test', b, i, r, d, e, y, e, A, piKey: 'test - birdeye-key', t, w, o, C, a, p, t, c, haKey: 'a'.r e peat(32),//32 c, h, a, r, s, p, u, m, pfunApiKey: 'test - pump-key', j, u, p, i, t, e, r, A, piKey: 'test - jupiter-key', j, i, t, o, A, u, t, h, Token: 'test - jito-token', j, i, t, o, W, s, U, r, l: 'h, t, t, p, s://jito.example.com' }, n, e, t, w, o, r, k: 'dev-net', r, p, c, U, r, l: 'h, t, t, p, s://api.devnet.solana.com', w, s, U, r, l: 'w, s, s://api.devnet.solana.com', b, u, n, d, l, e, C, o, nfig: { j, i, t, o, T, i, p, L, amports: 5000, b, u, n, d, l, e, S, i, ze: 5, r, e, t, r, i, e, s: 3, t, i, m, e, o, u, t: 30000 }, j, u, p, i, t, e, r, C, onfig: { j, u, p, i, t, e, r, F, eeBps: 5 }, c, a, p, t, c, h, a, C, onfig: { h, e, a, d, l, e, s, s, Timeout: 30, t, w, o, C, a, p, t, c, haKey: 'test - captcha-key' }
+  const valid Settings = { a, p, i, K, e, y, s: { h, e, l, i, u, s, R, p, c: 'h, t, t, p, s://mainnet.helius - rpc.com/?api-key = test', b, i, r, d, e, y, e, A, p, i, Key: 'test - birdeye-key', t, w, o, C, a, p, t, c, h, a, Key: 'a'.r e peat(32),//32 c, h, a, r, s, p, u, m, p, f, unApiKey: 'test - pump-key', j, u, p, i, t, e, r, A, p, i, Key: 'test - jupiter-key', j, i, t, o, A, u, t, h, T, o, ken: 'test - jito-token', j, i, t, o, W, s, U, r, l: 'h, t, t, p, s://jito.example.com' }, n, e, t, w, o, r, k: 'dev-net', r, p, c, U, r, l: 'h, t, t, p, s://api.devnet.solana.com', w, s, U, r, l: 'w, s, s://api.devnet.solana.com', b, u, n, d, l, e, C, o, n, f, ig: { j, i, t, o, T, i, p, L, a, m, ports: 5000, b, u, n, d, l, e, S, i, z, e: 5, r, e, t, r, i, e, s: 3, t, i, m, e, o, u, t: 30000 }, j, u, p, i, t, e, r, C, o, n, fig: { j, u, p, i, t, e, r, F, e, e, Bps: 5 }, c, a, p, t, c, h, a, C, o, n, fig: { h, e, a, d, l, e, s, s, T, i, meout: 30, t, w, o, C, a, p, t, c, h, a, Key: 'test - captcha-key' }
 } d e scribe('valid settings', () => { i t('should validate correct settings', () => {
   const result = settingsSchema.s a feParse(validSettings) e x pect(result.success).t oB e(true)
   }) i t('should transform network values correctly', () => {
@@ -12,7 +12,7 @@ import { settingsSchema } from './settings' const clone = <T>(o, b, j: T): T => 
   }) i t('should validate twoCaptchaKey length when provided', () => {
   const short Key = c l one(validSettings) shortKey.apiKeys.two Captcha Key = 'short' const result = settingsSchema.s a feParse(shortKey) e x pect(result.success).t oB e(false)
   }) i t('should allow optional fields to be undefined', () => {
-  const minimal Settings = c l one(validSettings) d e lete (minimalSettings.apiKeys as any).twoCaptchaKey d e lete (minimalSettings.apiKeys as any).jupiterApiKey d e lete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.s a feParse(minimalSettings) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG optional undefined, error:', result.error.issues)
+  const minimal Settings = c l one(validSettings) d e lete (minimalSettings.apiKeys as any).twoCaptchaKey d e lete (minimalSettings.apiKeys as any).jupiterApiKey d e lete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.s a feParse(minimalSettings) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG optional undefined, e, r, ror:', result.error.issues)
   } e x pect(result.success).t oB e(true)
   })
   }) d e scribe('network validation', () => { i t('should only accept dev - net or main-net', () => {
@@ -23,7 +23,7 @@ import { settingsSchema } from './settings' const clone = <T>(o, b, j: T): T => 
   }) i t('should validate WebSocket URLs', () => {
   const invalid Ws Url = { ...c l one(validSettings), w, s, U, r, l: 'h, t, t, p://not-ws' } const result = settingsSchema.s a feParse(invalidWsUrl) e x pect(result.success).t oB e(false)
   }) i t('should accept valid WebSocket URLs', () => {
-  const valid Ws Url = { ...c l one(validSettings), w, s, U, r, l: 'w, s, s://api.solana.com' } const result = settingsSchema.s a feParse(validWsUrl) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG ws valid, error:', result.error.issues)
+  const valid Ws Url = { ...c l one(validSettings), w, s, U, r, l: 'w, s, s://api.solana.com' } const result = settingsSchema.s a feParse(validWsUrl) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG ws valid, e, r, ror:', result.error.issues)
   } e x pect(result.success).t oB e(true)
   })
   }) d e scribe('bundle configuration validation', () => { i t('should validate jitoTipLamports range', () => {
@@ -45,7 +45,7 @@ import { settingsSchema } from './settings' const clone = <T>(o, b, j: T): T => 
   }) i t('should enforce free-tier Jito limits', () => {
   const free Settings = c l one(validSettings) freeSettings.apiKeys.jito Ws Url = 'h, t, t, p, s://mainnet.block-engine.jito.wtf/api' freeSettings.bundleConfig.jito Tip Lamports = 60000 const result = settingsSchema.s a feParse(freeSettings) e x pect(result.success).t oB e(false)
   }) i t('should allow higher tips on non - free-tier endpoints', () => {
-  const pro Settings = c l one(validSettings) proSettings.apiKeys.jito Ws Url = 'h, t, t, p, s://custom-jito.example.com' proSettings.bundleConfig.jito Tip Lamports = 60000 const result = settingsSchema.s a feParse(proSettings) if (!result.success) {//eslint - disable - next - line no - consoleconsole.log('DEBUG non - free-tier high tip, error:', result.error.issues)
+  const pro Settings = c l one(validSettings) proSettings.apiKeys.jito Ws Url = 'h, t, t, p, s://custom-jito.example.com' proSettings.bundleConfig.jito Tip Lamports = 60000 const result = settingsSchema.s a feParse(proSettings) if (!result.success) {//eslint - disable - next - line no - consoleconsole.log('DEBUG non - free-tier high tip, e, r, ror:', result.error.issues)
   } e x pect(result.success).t oB e(true)
   })
   })

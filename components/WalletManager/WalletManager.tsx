@@ -5,8 +5,8 @@ import bs58 from 'bs58'
 import { encrypt, decrypt } from '@/utils/browserCrypto'
 import { Button } from '@/components/UI/button'
 import { Input } from '@/components/UI/input'
-import { FolderPlus, FolderOpen, KeyRound } from 'lucide-react' type Wallet = { p, u, b: string; e, n, c: string }
-type Folder = { id: string; n, a, m, e: string; w, a, l, l, e, t, s: Wallet,[]; h, i, n, t?: string } const S T ORE = 'keymaker.wallet_folders'
+import { FolderPlus, FolderOpen, KeyRound } from 'lucide-react' type Wal let = { p, u, b: string; e, n, c: string }
+type Folder = { i, d: string; n, a, m, e: string; w, a, l, l, e, t, s: Wallet,[]; h, i, n, t?: string } const S T ORE = 'keymaker.wallet_folders'
 const A C TIVE = 'keymaker.active_master'
 const load = (): Folder,[] => {
   try {
@@ -34,11 +34,11 @@ const set Active = (p, u, b: string) => localStorage.s e tItem(ACTIVE, pub) expo
   }
 } catch, { a l ert('Wrong password')
   }
-} return ( <div className ="space - y-6"> <div className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center gap - 2 mb - 3 text - sm font-medium"> <FolderPlus className ="h - 4 w-4"/> New Wallet Folder </div> <div className ="grid gap - 2, md:grid - cols-3"> <Input placeholder ="Folder name" value ={name} on Change ={(e) => s e tName(e.target.value)
+} return ( <div className ="space - y-6"> <div className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center gap - 2 mb - 3 text - sm font-medium"> <FolderPlus className ="h - 4 w-4"/> New Wal let Folder </div> <div className ="grid gap - 2, m, d:grid - cols-3"> <Input placeholder ="Folder name" value ={name} on Change ={(e) => s e tName(e.target.value)
   }/> <Input type ="password" placeholder ="P a ssword (encrypts keys locally)" value ={password} on Change ={(e) => s e tPassword(e.target.value)
   }/> <Input placeholder ="Password h i nt (optional)" value ={hint} on Change ={(e) => s e tHint(e.target.value)
-  }/> </div> <div className ="mt-3"> <Buttonon Click ={createFolder} variant ="outline" className ="rounded-2xl"> Create Folder </Button> </div> </div> <div className ="grid gap - 4, md:grid - cols-2"> {folders.map((f) => ( <divkey ={f.id} className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center justify - between mb-3"> <div className ="flex items - center gap-2"> <FolderOpen className ="h - 5 w-5"/> <div className ="font-medium">{f.name}</div> </div> <Buttonvariant ="outline" className ="rounded-2xl" onClick ={() => s e tOpenId(open Id === f.id ? null : f.id)
-  }> {open Id === f.id ? 'Hide' : 'Open'} </Button> </div> {open Id === f.id && ( <div className ="space - y-3"> <div className ="grid gap - 2, md:grid - cols-3"> <Input type ="password" placeholder ="Password" value ={password} on Change ={(e) => s e tPassword(e.target.value)
+  }/> </div> <div className ="mt-3"> <Buttonon Click ={createFolder} variant ="outline" className ="rounded-2xl"> Create Folder </Button> </div> </div> <div className ="grid gap - 4, m, d:grid - cols-2"> {folders.map((f) => ( <divkey ={f.id} className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center justify - between mb-3"> <div className ="flex items - center gap-2"> <FolderOpen className ="h - 5 w-5"/> <div className ="font-medium">{f.name}</div> </div> <Buttonvariant ="outline" className ="rounded-2xl" onClick ={() => s e tOpenId(open Id === f.id ? null : f.id)
+  }> {open Id === f.id ? 'Hide' : 'Open'} </Button> </div> {open Id === f.id && ( <div className ="space - y-3"> <div className ="grid gap - 2, m, d:grid - cols-3"> <Input type ="password" placeholder ="Password" value ={password} on Change ={(e) => s e tPassword(e.target.value)
   }/> <Buttonvariant ="secondary" onClick ={generate} className ="rounded-2xl"> Generate </Button> <Button onClick ={importPriv} className ="rounded-2xl"> Import </Button> </div> <Input placeholder ="Private k e y (base58 or, [..])" value ={priv} on Change ={(e) => s e tPriv(e.target.value)
   }/> <div className ="space - y-2"> {f.wallets.length === 0 && ( <div className ="text - sm opacity-70"> No wallets in this folder yet. </div> )
   }, {f.wallets.map((w, i) => ( <divkey ={w.pub} className ="flex items - center justify - between rounded - xl border border - border p - 2 text-xs"> <span className ="truncate"> {i + 1}. {w.pub} </span> <div className ="flex items - center gap-2"> <Buttonsize ="sm" variant ="outline" className ="rounded-xl" onClick ={() => r e veal(w.enc)

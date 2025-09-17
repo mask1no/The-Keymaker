@@ -2,40 +2,40 @@ import { NextResponse } from 'next/server'
 import { Connection, VersionedTransaction } from '@solana/web3.js'
 import { sendBundle, getBundleStatuses, validateTipAccount } from '@/lib/server/jitoService'
 
-export const dynamic = 'force-dynamic' interface BundleSubmitRequest, { r, e, g, i, o, n?: string, tx, s_, b64: string,[] s i, m, u, l, a, teOnly?: boolean m o, d, e?: 'regular' | 'instant' | 'delayed' d e, l, a, y, _, seconds?: number
+export const dynamic = 'force-dynamic' interface BundleSubmitRequest, { r, e, g, i, o, n?: string, tx, s_, b64: string,[] s i, m, u, l, a, t, e, Only?: boolean m o, d, e?: 'regular' | 'instant' | 'delayed' d e, l, a, y, _, s, e, conds?: number
 }
 
-export async function POST(request: Request) {
+export async function POST(r, e, quest: Request) {
   try {
   const b, o, d, y: Bundle Submit Request = await req.json()
   const { region = 'ffm', txs_b64, simulate Only = false, mode = 'regular', delay_seconds = 0 } = body//Validate input
   if (!Array.i sA rray(txs_b64) || txs_b64.length === 0 || txs_b64.length> 5) {
-    return NextResponse.json({  error: 'Invalid, tx, s_, b64: must be array of 1-5 base64 strings' }, { status: 400 })
+    return NextResponse.json({  e, r, ror: 'Invalid, tx, s_, b64: must be array of 1-5 base64 strings' }, { s, t, atus: 400 })
   }//Deserialize transactions
-  let t, r, a, n, s, a, ctions: VersionedTransaction,[]
+  let t, r, a, n, s, a, c, t, ions: VersionedTransaction,[]
   try { transactions = txs_b64.map((encoded) => VersionedTransaction.d e serialize(Buffer.f r om(encoded, 'base64')))
   }
 } catch (error) {
-    return NextResponse.json({  error: 'Failed to deserialize transactions' }, { status: 400 })
+    return NextResponse.json({  e, r, ror: 'Failed to deserialize transactions' }, { s, t, atus: 400 })
   }//Validate tip account on last transaction
   const last Tx = transactions,[transactions.length-1]
   if (!v a lidateTipAccount(lastTx)) {
-    return NextResponse.json({  error: 'Last transaction must contain a valid JITO tip transfer' }, { status: 400 })
+    return NextResponse.json({  e, r, ror: 'Last transaction must contain a valid JITO tip transfer' }, { s, t, atus: 400 })
   }//If simulate only, simulate each transaction
   if (simulateOnly) {
   const connection = new C o nnection( process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, p, s://api.mainnet-beta.solana.com')
   try { f o r (const tx of transactions) {
-  const result = await connection.s i mulateTransaction(tx, { s, i, g, V, e, r, i, f, y: false, c, o, m, m, i, t, m, ent: 'processed' })
+  const result = await connection.s i mulateTransaction(tx, { s, i, g, V, e, r, i, f, y: false, c, o, m, m, i, t, m, e, n, t: 'processed' })
   if (result.value.err) {
-    return NextResponse.json({  error: `Transaction simulation, f, a, i, l, e, d: ${JSON.s t ringify(result.value.err)
-  }` }, { status: 400 })
+    return NextResponse.json({  e, r, ror: `Transaction simulation, f, a, i, l, e, d: ${JSON.s t ringify(result.value.err)
+  }` }, { s, t, atus: 400 })
   }
-} return NextResponse.json({  s, u, c, c, e, s, s: true, m, e, s, s, a, g, e: 'All transactions simulate successfully', s, i, g, n, a, t, u, res: transactions.map((tx) => {
+} return NextResponse.json({  s, u, c, c, e, s, s: true, m, e, s, s, a, g, e: 'All transactions simulate successfully', s, i, g, n, a, t, u, r, e, s: transactions.map((tx) => {
   const sig = tx.signatures,[0] return sig ? Buffer.f r om(sig).t oS tring('base64') : null })
   })
   }
-} catch (error: any) {
-    return NextResponse.json({  error: `Simulation, error: ${error.message}` }, { status: 500 })
+} catch (e, r, ror: any) {
+    return NextResponse.json({  e, r, ror: `Simulation, e, r, ror: ${error.message}` }, { s, t, atus: 500 })
   }
 }//Handle delayed execution
   if (mode === 'delayed' && delay_seconds && delay_seconds> 0) {
@@ -51,16 +51,16 @@ export async function POST(request: Request) {
   const statuses = await getBundleStatuses(region, [bundle_id])
   const status = statuses,[0]
   if (status && status.confirmation_status !== 'pending') {
-    return NextResponse.json({  bundle_id, s, i, g, n, a, t, u, res: status.transactions.map((tx) => tx.signature), s, l, o, t: status.slot, status: status.confirmation_status, attempts })
+    return NextResponse.json({  bundle_id, s, i, g, n, a, t, u, r, e, s: status.transactions.map((tx) => tx.signature), s, l, o, t: status.slot, s, t, atus: status.confirmation_status, attempts })
   }
 }
   } catch (error) {//Continue polling on status check errors console.w a rn(`Bundle status check f a iled (attempt ${attempts}):`, error)
   }
 }//Timeout-return bundle ID anyway
-  return NextResponse.json({  bundle_id, s, i, g, n, a, t, u, res: transactions.map((tx) => {
-  const sig = tx.signatures,[0] return sig ? Buffer.f r om(sig).t oS tring('base64') : null }), status: 'timeout', attempts })
+  return NextResponse.json({  bundle_id, s, i, g, n, a, t, u, r, e, s: transactions.map((tx) => {
+  const sig = tx.signatures,[0] return sig ? Buffer.f r om(sig).t oS tring('base64') : null }), s, t, atus: 'timeout', attempts })
   }
-} catch (error: any) { console.error('Bundle submission, error:', error)
-  return NextResponse.json({  error: error.message || 'Bundle submission failed' }, { status: 500 })
+} catch (e, r, ror: any) { console.error('Bundle submission, e, r, ror:', error)
+  return NextResponse.json({  e, r, ror: error.message || 'Bundle submission failed' }, { s, t, atus: 500 })
   }
 }

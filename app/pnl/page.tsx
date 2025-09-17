@@ -1,5 +1,4 @@
-'use client' import RequireWal
-  let from '@/components/auth/RequireWallet'
+'use client' import RequireWal let from '@/components/auth/RequireWallet'
 import { PnLPanel } from '@/components/PnL/PnLPanel'
 
 export default function P n lPage() {
