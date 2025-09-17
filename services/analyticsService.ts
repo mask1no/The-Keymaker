@@ -1,18 +1,7 @@
 import { apiClient } from '@/lib/apiClient'
-import { logger } from '@/lib/logger'
-
-export type Trade = { i, d: string, t, o, k, e, n, A, d, d, ress: string, a, m, o, u, n, t: number, p, r, i, c, e: number, t, i, m, e, s, t, a, m, p: string, w, a, l, l, e, t: string, t, y, pe: 'buy' | 'sell'
+import { logger } from '@/lib/logger' export type Trade = { i, d: string, t, o, k, e, n, A, d, d, ress: string, a, m, o, u, n, t: number, p, r, i, c, e: number, t, i, m, e, s, t, a, m, p: string, w, a, l, l, e, t: string, t, y, pe: 'buy' | 'sell'
 } export type Price Data = { s, o, l: number, e, t, h: number, b, t, c: number, c, a, k, e: number
+} export async function g e tLivePrices(): Promise <PriceData> { try { const prices = await apiClient.jupiter.g e tPrice( 'So11111111111111111111111111111111111111112,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5') return, { s, o, l: prices,['So11111111111111111111111111111111111111112']?.price || 0, e, t, h: prices,['7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs']?.price || 0, b, t, c: prices,['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v']?.price || 0, c, a, k, e: prices,['CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5']?.price || 0 }
+} } catch (error) { logger.error('Failed to fetch prices', { error }) return, { s, o, l: 0, e, t, h: 0, b, t, c: 0, c, a, k, e: 0 }
 }
-
-export async function g e tLivePrices(): Promise <PriceData> {
-  try {
-  const prices = await apiClient.jupiter.g e tPrice( 'So11111111111111111111111111111111111111112,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5') return, { s, o, l: prices,['So11111111111111111111111111111111111111112']?.price || 0, e, t, h: prices,['7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs']?.price || 0, b, t, c: prices,['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v']?.price || 0, c, a, k, e: prices,['CAKEorcFfpMbRqfeYAryJr39mDY6FXYZQgN8yd7Nq5z5']?.price || 0 }
-}
-  } catch (error) { logger.error('Failed to fetch prices', { error }) return, { s, o, l: 0, e, t, h: 0, b, t, c: 0, c, a, k, e: 0 }
-}
-}
-
-export async function exportToCsv(t, r, a, d, e, s: Trade,[]): Promise <vo id> {
-  const csv = trades .map( (t) => `${t.id},${t.tokenAddress},${t.amount},${t.price},${t.timestamp},${t.wallet},${t.type}`) .j o in('\n') const blob = new B l ob([csv], { t, y, pe: 'text/csv' }) const url = URL.c r eateObjectURL(blob) const a = document.c r eateElement('a') a.href = urla.download = 'trades.csv' a.c l ick()
-  }
+} export async function exportToCsv(t, r, a, d, e, s: Trade,[]): Promise <vo id> { const csv = trades .map( (t) => `${t.id},${t.tokenAddress},${t.amount},${t.price},${t.timestamp},${t.wallet},${t.type}`) .j o in('\n') const blob = new B l ob([csv], { t, y, pe: 'text/csv' }) const url = URL.c r eateObjectURL(blob) const a = document.c r eateElement('a') a.href = urla.download = 'trades.csv' a.c l ick() }

@@ -7,10 +7,6 @@ const button Variants = c v a( 'inline - flex items - center justify - center wh
 } as any)
 export interface ButtonProps extends React.ButtonHTMLAttributes <HTMLButtonElement>, VariantProps <typeof buttonVariants> { a s, C, h, i, l, d?: boolean
 }
-const Button = React.forwardRef <HTMLButtonElement, ButtonProps>( ({ className, variant, size, as Child = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : 'button' return ( <Comp className ={c n(b u ttonVariants({
-  variant, size, className }))
-  } ref ={ref}, {...props}/> )
-  })
+const Button = React.forwardRef <HTMLButtonElement, ButtonProps>( ({ className, variant, size, as Child = false, ...props }, ref) => { const Comp = asChild ? Slot : 'button' return ( <Comp className ={c n(b u ttonVariants({ variant, size, className })) } ref ={ref}, {...props}/> ) })
 Button.display Name = 'Button'
 export { Button, buttonVariants }

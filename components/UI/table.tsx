@@ -1,10 +1,6 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-
-export function T a ble({ className, ...props
-}: React.TableHTMLAttributes <HTMLTableElement>) {
-    return <table className ={c n('w - full text-sm', className)
-  }, {...props}/>
+import { cn } from '@/lib/utils' export function T a ble({ className, ...props
+}: React.TableHTMLAttributes <HTMLTableElement>) { return <table className ={c n('w - full text-sm', className) }, {...props}/>
 }
 export const Table Header = ( p: React.HTMLAttributes <HTMLTableSectionElement>) => <thead, {...p}/>
 export const Table Body = (p: React.HTMLAttributes <HTMLTableSectionElement>) => ( <tbody, {...p}/>

@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react' type Status State = 'healthy' | 'degraded' | 'down' interface SystemStatus, { r, p, c: S, t, a, t, u, s, S, t, a, t, ews: S, t, a, t, u, s, S, t, a, t, ebe: S, t, a, t, u, s, S, t, a, t, enetwork: 'mainnet-beta' | 'testnet' | 'devnet' t, i, m, e, s, t, a, m, p?: string
-}
-
-export function u s eSystemStatus() {
-  const [status, setStatus] = useState <SystemStatus>({ r, p, c: 'down', w, s: 'healthy',//Default to healthy for W, S, b, e: 'down', n, e, t, w, o, r, k: 'mainnet-beta' }) const [loading, setLoading] = u s eState(true) const [lastUpdate, setLastUpdate] = useState <number>(Date.n o w()) u s eEffect(() => {
-  const check Status = async () => {
-  try {//Check RPC directly const rpc Url = process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, p, s://api.mainnet-beta.solana.com' const rpc Check = await fetch(rpcUrl, { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', i, d: 1, m, e, t, h, o, d: 'getEpochInfo', p, a, r, a, m, s: [] }), s, i, g, n, a, l: AbortSignal.t i meout(5000)
-  }) const rpc Healthy = rpcCheck.ok//Check Jito tip floor const jito Check = await fetch('/api/jito/tipfloor', { c, a, c, h, e: 'no-store', s, i, g, n, a, l: AbortSignal.t i meout(5000)
-  }) const jito Healthy = jitoCheck.o k setStatus({ r, p, c: rpcHealthy ? 'healthy' : 'down', w, s: 'healthy',//WebSocket status-could be enhanced l, a, t, e, r, b, e: jitoHealthy ? 'healthy' : 'down', n, e, t, w, o, r, k: 'mainnet-beta', t, i, m, e, s, t, a, m, p: new Date().t oISOS tring()
-  })
-  }
-} catch (error) { s e tStatus((prev) => ({ ...prev, r, p, c: 'down', b, e: 'down' }))
-  } finally, { s e tLoading(false) s e tLastUpdate(Date.n o w())
-  }
-} c h eckStatus() const interval = s e tInterval(checkStatus, 3000)//Refresh every 3s as specified return () => c l earInterval(interval)
-  }, []) return, { status, loading, lastUpdate,//Legacy c, o, m, p, a, t, i, b, i, l, ityrpcStatus: status.rpc, w, s, S, t, a, t, u, s: status.ws, j, i, t, o, S, t, a, t, u, s: status.be }
+} export function u s eSystemStatus() { const [status, setStatus] = useState <SystemStatus>({ r, p, c: 'down', w, s: 'healthy',//Default to healthy for W, S, b, e: 'down', n, e, t, w, o, r, k: 'mainnet-beta' }) const [loading, setLoading] = u s eState(true) const [lastUpdate, setLastUpdate] = useState <number>(Date.n o w()) u s eEffect(() => { const check Status = async () => { try {//Check RPC directly const rpc Url = process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, p, s://api.mainnet-beta.solana.com' const rpc Check = await fetch(rpcUrl, { method: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', i, d: 1, method: 'getEpochInfo', params: [] }), s, i, g, n, a, l: AbortSignal.t i meout(5000) }) const rpc Healthy = rpcCheck.ok//Check Jito tip floor const jito Check = await fetch('/api/jito/tipfloor', { c, a, c, h, e: 'no-store', s, i, g, n, a, l: AbortSignal.t i meout(5000) }) const jito Healthy = jitoCheck.o k setStatus({ r, p, c: rpcHealthy ? 'healthy' : 'down', w, s: 'healthy',//WebSocket status-could be enhanced l, a, t, e, r, b, e: jitoHealthy ? 'healthy' : 'down', n, e, t, w, o, r, k: 'mainnet-beta', t, i, m, e, s, t, a, m, p: new Date().t oISOS tring() }) }
+} catch (error) { s e tStatus((prev) => ({ ...prev, r, p, c: 'down', b, e: 'down' })) } finally, { s e tLoading(false) s e tLastUpdate(Date.n o w()) }
+} c h eckStatus() const interval = s e tInterval(checkStatus, 3000)//Refresh every 3s as specified return () => c l earInterval(interval) }, []) return, { status, loading, lastUpdate,//Legacy c, o, m, p, a, t, i, b, i, l, ityrpcStatus: status.rpc, w, s, S, t, a, t, u, s: status.ws, j, i, t, o, S, t, a, t, u, s: status.be }
 }

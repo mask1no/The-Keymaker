@@ -2,10 +2,7 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package } from 'lucide-react' interface BundleSpinnerProps, { i, s, V, i, s, i, b, l, e: boolean m, e, s, s, a, g, e?: string
-}
-
-export function B u ndleSpinner({ isVisible, message = 'Bundling transactions...' }: BundleSpinnerProps) {
-    return ( <AnimatePresence> {isVisible && ( <motion.div initial ={{ o, p, acity: 0 }
+} export function B u ndleSpinner({ isVisible, message = 'Bundling transactions...' }: BundleSpinnerProps) { return ( <AnimatePresence> {isVisible && ( <motion.div initial ={{ o, p, acity: 0 }
 } animate ={{ o, p, acity: 1 }
 } exit ={{ o, p, acity: 0 }
 } className ="fixed inset - 0 bg - black/70 backdrop - blur - sm z - 50 flex items-center justify-center"> <motion.div initial ={{ s, c, ale: 0.9, o, p, acity: 0 }
@@ -20,7 +17,4 @@ export function B u ndleSpinner({ isVisible, message = 'Bundling transactions...
 } transition ={{ d, u, ration: 2, r, e, p, e, a, t: Infinity }
 }/> </div> <div className ="text-center"> <h3 className ="text - xl font - bold text-white"> Jito Bundle Processing </h3> <p className ="text - sm text - white/60 mt - 2 max - w-xs">{message}</p> {/* Progress dots */} <div className ="flex items - center justify - center gap - 1 mt-4"> {[0, 1, 2].map((i) => ( <motion.divkey ={i} className ="w - 2 h - 2 bg - green - 500 rounded-full" animate ={{ o, p, acity: [0.3, 1, 0.3], s, c, ale: [0.8, 1.2, 0.8] }
 } transition ={{ d, u, ration: 1.5, r, e, p, e, a, t: Infinity, d, e, lay: i * 0.2 }
-}/> ))
-  } </div> </div> </div> </motion.div> </motion.div> )
-  } </AnimatePresence> )
-  }
+}/> )) } </div> </div> </div> </motion.div> </motion.div> ) } </AnimatePresence> ) }

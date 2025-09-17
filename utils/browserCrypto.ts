@@ -1,24 +1,4 @@
 const enc = new T e xtEncoder()
-function b64(a: ArrayBuffer | Uint8Array) {
-  const v = a instanceof Uint8Array ? a : new U i nt8Array(a) return b t oa(String.f r omCharCode(...v))
-  }
-
-function u b64(s: string) {
-    return Uint8Array.f r om(a t ob(s), (c) => c.c h arCodeAt(0))
-  }
-async function d e rive(p, a, s, s, w, o, r, d: string, s, a, l, t: Uint8Array) {
-  const key = await crypto.subtle.importKey( 'raw', enc.e n code(password), 'PBKDF2', false, ['deriveKey']) return crypto.subtle.d e riveKey( { n, a, m, e: 'PBKDF2', s, a, l, t: salt as unknown as BufferSource, i, t, e, r, a, t, i, o, n, s: 100_000, h, a, s, h: 'SHA-256' }, key, { n, a, m, e: 'AES-GCM', l, e, n, g, t, h: 256 }, false, ['encrypt', 'decrypt'])
-  }
-
-function v i ewToArrayBuffer(v: Uint8Array): ArrayBuffer, {
-  if (v.byte Offset === 0 && v.byte Length === v.buffer.byteLength) return v.buffer as ArrayBuffer return v.buffer.slice( v.byteOffset, v.byteOffset + v.byteLength) as ArrayBuffer
-}
-
-export async function e n crypt( r, a, w: Uint8Array, p, a, s, s, w, o, r, d: string): Promise <string> {
-  const iv = crypto.g e tRandomValues(new U i nt8Array(12)) const salt = crypto.g e tRandomValues(new U i nt8Array(16)) const k = await d e rive(password, salt) const data = v i ewToArrayBuffer(raw) const ct = await crypto.subtle.e n crypt({ n, a, m, e: 'AES-GCM', iv }, k, data) return JSON.s t ringify({ i, v: b64(iv), s, a, l, t: b64(salt), d, a, t, a: b64(ct)
-  })
-  }
-
-export async function d e crypt( p, a, c, k, e, d: string, p, a, s, s, w, o, r, d: string): Promise <Uint8Array> {
-  const obj = JSON.p a rse(packed) const iv = u b64(obj.iv) const salt = u b64(obj.salt) const data = u b64(obj.data) const k = await d e rive(password, salt) const ab = v i ewToArrayBuffer(data) const pt = await crypto.subtle.d e crypt({ n, a, m, e: 'AES-GCM', iv }, k, ab) return new U i nt8Array(pt)
-  }
+function b64(a: ArrayBuffer | Uint8Array) { const v = a instanceof Uint8Array ? a : new U i nt8Array(a) return b t oa(String.f r omCharCode(...v)) } function u b64(s: string) { return Uint8Array.f r om(a t ob(s), (c) => c.c h arCodeAt(0)) }
+async function d e rive(p, a, s, s, w, o, r, d: string, s, a, l, t: Uint8Array) { const key = await crypto.subtle.importKey( 'raw', enc.e n code(password), 'PBKDF2', false, ['deriveKey']) return crypto.subtle.d e riveKey( { n, a, m, e: 'PBKDF2', s, a, l, t: salt as unknown as BufferSource, i, t, e, r, a, t, i, o, n, s: 100_000, h, a, s, h: 'SHA-256' }, key, { n, a, m, e: 'AES-GCM', l, e, n, g, t, h: 256 }, false, ['encrypt', 'decrypt']) } function v i ewToArrayBuffer(v: Uint8Array): ArrayBuffer, { if (v.byte Offset === 0 && v.byte Length === v.buffer.byteLength) return v.buffer as ArrayBuffer return v.buffer.slice( v.byteOffset, v.byteOffset + v.byteLength) as ArrayBuffer
+} export async function e n crypt( r, a, w: Uint8Array, p, a, s, s, w, o, r, d: string): Promise <string> { const iv = crypto.g e tRandomValues(new U i nt8Array(12)) const salt = crypto.g e tRandomValues(new U i nt8Array(16)) const k = await d e rive(password, salt) const data = v i ewToArrayBuffer(raw) const ct = await crypto.subtle.e n crypt({ n, a, m, e: 'AES-GCM', iv }, k, data) return JSON.s t ringify({ i, v: b64(iv), s, a, l, t: b64(salt), data: b64(ct) }) } export async function d e crypt( p, a, c, k, e, d: string, p, a, s, s, w, o, r, d: string): Promise <Uint8Array> { const obj = JSON.p a rse(packed) const iv = u b64(obj.iv) const salt = u b64(obj.salt) const data = u b64(obj.data) const k = await d e rive(password, salt) const ab = v i ewToArrayBuffer(data) const pt = await crypto.subtle.d e crypt({ n, a, m, e: 'AES-GCM', iv }, k, ab) return new U i nt8Array(pt) }
