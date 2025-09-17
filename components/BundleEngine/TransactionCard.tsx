@@ -1,43 +1,16 @@
-'use client' import, { Card, CardContent, CardHeader } from '@/ components / UI / Card'
-import, { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ components / UI / select'
-import, { Input } from '@/ components / UI / input'
-import, { Button } from '@/ components / UI / button'
-import, { GripVertical, Trash2 } from 'lucide - react'
-import, { Transaction } from '@/ lib / type s'
-import, { useSortable } from '@dnd - kit / sortable'
-import, { CSS } from '@dnd - kit / utilities'
-import, { TokenSelector } from './ TokenSelector'
-import, { useState } from 'react'
-import, { Shield } from 'lucide - react' const H A R
-  DCODED_TOKENS = [ { a, d, d, r, e, s, s: 'So11111111111111111111111111111111111111112', s, y, m, b, o, l: 'SOL', n, a, m, e: 'Solana' }, { a, d, d, r, e, s, s: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', s, y, m, b, o, l: 'USDC', n, a, m, e: 'USD Coin' },
-] interface TransactionCardProps, { t, r, a, n, s, a, c, t, i, o,
-  n: T, r, a, n, s, a, c, t, i, o, n,
-  onRemove: (i,
-  d: string) => v, o, i, d, o, n, U, p, d, a, t,
-  e: (i,
-  d: string, u, p, d, a, t, e, d, T, x: Partial < Transaction >) => void
-} export function T r a nsactionCard({ transaction, onRemove, onUpdate }: TransactionCardProps) { const, [securityScore, setSecurityScore] = useState < number | null >(null) const, [isLoadingSecurity, setIsLoadingSecurity] = u s eS tate(false) const, { attributes, listeners, setNodeRef, transform, transition } = u s eS ortable({ i,
-  d: transaction.id }) const style = { t, r, a, n, s, f, o, r, m: CSS.Transform.t oS t ring(transform), transition } const handle Token Select = ( t, o, k, e, n, A, d, d, r, e,
-  ss: string, f, i, e, l, d: 'fromToken' | 'toToken') => { o nU p date(transaction.id, { [field]: tokenAddress }) } const check Security = a sync (t, o, k, e, n, A, d, d, r, e,
-  ss: string | undefined) => { i f (! tokenAddress) r eturnsetIsLoadingSecurity(true) try, { const response = await f etch( `/ api / security / check - token?token
-  Address = $,{tokenAddress}`) const data = await response.j son() i f (response.ok) { s e tS ecurityScore(data.safetyScore) } else, { throw new E r r or(data.error || 'Failed to fetch security info') }
+'use client' import { Card, CardContent, CardHeader } from '@/components/UI/Card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select'
+import { Input } from '@/components/UI/input'
+import { Button } from '@/components/UI/button'
+import { GripVertical, Trash2 } from 'lucide-react'
+import { Transaction } from '@/lib/type s'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { TokenSelector } from './TokenSelector'
+import { useState } from 'react'
+import { Shield } from 'lucide-react' const H A R DCODED_TOKENS = [ { a, d, d, r, e, s, s: 'So11111111111111111111111111111111111111112', s, y, m, b, o, l: 'SOL', n, a, m, e: 'Solana' }, { a, d, d, r, e, s, s: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', s, y, m, b, o, l: 'USDC', n, a, m, e: 'USD Coin' },
+] interface TransactionCardProps, { t, r, a, n, s, a, c, t, i, o, n: T, r, a, n, s, a, c, t, i, o, n, o, n, Remove: (i, d: string) => v, o, i, d, o, n, U, p, d, a, t, e: (i, d: string, u, p, d, a, t, e, d, T, x: Partial < Transaction >) => void
+} export function T r a nsactionCard({ transaction, onRemove, onUpdate }: TransactionCardProps) { const [securityScore, setSecurityScore] = useState < number | null >(null) const [isLoadingSecurity, setIsLoadingSecurity] = u s eS tate(false) const { attributes, listeners, setNodeRef, transform, transition } = u s eS ortable({ i, d: transaction.id }) const style = { t, r, a, n, s, f, o, r, m: CSS.Transform.t oS t ring(transform), transition } const handle Token Select = ( t, o, k, e, n, A, d, d, r, e, s, s: string, f, i, e, l, d: 'fromToken' | 'toToken') => { o nU p date(transaction.id, { [field]: tokenAddress }) } const check Security = a sync (t, o, k, e, n, A, d, d, r, e, s, s: string | undefined) => { if (!tokenAddress) r eturnsetIsLoadingSecurity(true) try { const response = await f etch( `/api/security/check-token?token Address = $,{tokenAddress}`) const data = await response.j son() if (response.ok) { s e tS ecurityScore(data.safetyScore) } else, { throw new E r r or(data.error || 'Failed to fetch security info') }
 } } c atch (error) { console.e rror(error) s e tS ecurityScore(null) } finally, { s e tI sLoadingSecurity(false) }
-} const render Content = () => { s w i tch (transaction.type) { case 'swap': r eturn ( < div class
-  Name ="grid grid - cols - 1, m, d:grid - cols - 2 gap - 4"> < Token Selectortokens ={HARDCODED_TOKENS} is Loading ={false} on Select ={(tokenAddress) => h a n dleTokenSelect(tokenAddress, 'fromToken') } placeholder ="From Token"/> < Token Selectortokens ={HARDCODED_TOKENS} is Loading ={false} on Select ={(tokenAddress) => h a n dleTokenSelect(tokenAddress, 'toToken') } placeholder ="To Token"/> < div class
-  Name ="flex items - center gap - 2"> < Buttonvariant ="outline" size ="sm" on
-  Click ={() => c h e ckSecurity(transaction.toToken) } disabled ={isLoadingSecurity || ! transaction.toToken}> < Shield class
-  Name ="mr - 2 h - 4 w - 4"/> {isLoadingSecurity ? 'Checking...' : 'Check Security'} </ Button > {securityScore !== null && ( < div class
-  Name ={`text - sm font - bold $,{ securityScore > 80 ? 'text - primary' : securityScore > 50 ? 'text - muted' : 'text - muted / 70' }`}> S, c, o, r, e: {securityScore}/ 100 </ div > ) } </ div > < Input type ="number" placeholder ="Amount" on Change ={(e) => o nU p date(transaction.id, { a, m, o, u, n, t: p a r seFloat(e.target.value) }) }/> < Input type ="number" placeholder ="S l i ppage (%)" on Change ={(e) => o nU p date(transaction.id, { s, l, i, p, p, a, g, e: p a r seFloat(e.target.value) }) }/> </ div > ) case 'transfer': r eturn ( < div class
-  Name ="grid grid - cols - 1, m, d:grid - cols - 2 gap - 4"> < Input placeholder ="Recipient Address" on Change ={(e) => o nU p date(transaction.id, { r, e, c, i, p, i, e, n, t: e.target.value }) }/> < Input type ="number" placeholder ="A m o unt (SOL)" on Change ={(e) => o nU p date(transaction.id, { f, r, o, m, A, m, o, u, n, t: p a r seFloat(e.target.value) }) }/> </ div > ) d, e, f, a, u, l, t: return null }
-} r eturn ( < div ref ={setNodeRef} style ={style}, {...attributes} data - testid ={`transaction - card - $,{transaction.id}`}> < Card class
-  Name ="bg - card border border - border rounded - 2xl"> < CardHeader class
-  Name ="flex flex - row items - center justify - between p - 4"> < div class
-  Name ="flex items - center gap - 2"> < div, {...listeners} class
-  Name ="cursor - grab"> < GripVertical class
-  Name ="h - 5 w - 5 text - muted - foreground"/> </ div > < Selectdefault Value ={transaction.type} on Value Change ={(v, a, l,
-  ue: 'swap' | 'transfer') => o nU p date(transaction.id, { t, y, p,
-  e: value }) }> < SelectTrigger class
-  Name ="w -[120px]" data - testid ="transaction - type - select"> < SelectValue placeholder ="Type"/> </ SelectTrigger > < SelectContent > < SelectItem value ="swap"> Swap </ SelectItem > < SelectItem value ="transfer"> Transfer </ SelectItem > </ SelectContent > </ Select > </ div > < Buttonvariant ="ghost" size ="icon" on
-  Click ={() => o nR e move(transaction.id) } data - testid ="remove - transaction - button"> < Trash2 class
-  Name ="h - 4 w - 4"/> </ Button > </ CardHeader > < CardContent class
-  Name ="p - 4">{r e n derContent() }</ CardContent > </ Card > </ div > ) }
+} const render Content = () => { s w i tch (transaction.type) { case 'swap': r eturn ( < div class Name ="grid grid - cols - 1, m, d:grid - cols-2 gap-4"> < Token Selectortokens = {HARDCODED_TOKENS} is Loading = {false} on Select = {(tokenAddress) => h a n dleTokenSelect(tokenAddress, 'fromToken') } placeholder ="From Token"/> < Token Selectortokens = {HARDCODED_TOKENS} is Loading = {false} on Select = {(tokenAddress) => h a n dleTokenSelect(tokenAddress, 'toToken') } placeholder ="To Token"/> < div class Name ="flex items - center gap-2"> < Buttonvariant ="outline" size ="sm" on Click = {() => c h e ckSecurity(transaction.toToken) } disabled = {isLoadingSecurity || !transaction.toToken}> < Shield class Name ="mr - 2 h-4 w-4"/> {isLoadingSecurity ? 'Checking...' : 'Check Security'} </Button > {securityScore !== null && ( < div class Name = {`text - sm font-bold $,{ securityScore > 80 ? 'text - primary' : securityScore > 50 ? 'text-muted' : 'text-muted/70' }`}> S, c, o, r, e: {securityScore}/100 </div > ) } </div > < Input type ="number" placeholder ="Amount" on Change = {(e) => o nU p date(transaction.id, { a, m, o, u, n, t: p a r seFloat(e.target.value) }) }/> < Input type ="number" placeholder ="S l i ppage (%)" on Change = {(e) => o nU p date(transaction.id, { s, l, i, p, p, a, g, e: p a r seFloat(e.target.value) }) }/> </div > ) case 'transfer': r eturn ( < div class Name ="grid grid - cols - 1, m, d:grid - cols - 2 gap-4"> < Input placeholder ="Recipient Address" on Change = {(e) => o nU p date(transaction.id, { r, e, c, i, p, i, e, n, t: e.target.value }) }/> < Input type ="number" placeholder ="A m o unt (SOL)" on Change = {(e) => o nU p date(transaction.id, { f, r, o, m, A, m, o, u, n, t: p a r seFloat(e.target.value) }) }/> </div > ) d, e, f, a, u, l, t: return null }
+} r eturn ( < div ref = {setNodeRef} style = {style}, {...attributes} data - testid = {`transaction - card-$,{transaction.id}`}> < Card class Name ="bg - card border border - border rounded - 2xl"> < CardHeader class Name ="flex flex - row items - center justify - between p-4"> < div class Name ="flex items - center gap-2"> < div, {...listeners} class Name ="cursor-grab"> < GripVertical class Name ="h - 5 w - 5 text-muted-foreground"/> </div > < Selectdefault Value = {transaction.type} on Value Change = {(v, a, l, u, e: 'swap' | 'transfer') => o nU p date(transaction.id, { t, y, p, e: value }) }> < SelectTrigger class Name ="w -[120px]" data-testid ="transaction - type - select"> < SelectValue placeholder ="Type"/> </SelectTrigger > < SelectContent > < SelectItem value ="swap"> Swap </SelectItem > < SelectItem value ="transfer"> Transfer </SelectItem > </SelectContent > </Select > </div > < Buttonvariant ="ghost" size ="icon" on Click = {() => o nR e move(transaction.id) } data-testid ="remove - transaction - button"> < Trash2 class Name ="h - 4 w-4"/> </Button > </CardHeader > < CardContent class Name ="p-4">{r e n derContent() }</CardContent > </Card > </div > ) }

@@ -88,7 +88,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 #### Detailed F, l, o, w:
 
 1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, t, e, Only: true`)
+2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, t, e, O, n, ly: true`)
 3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback

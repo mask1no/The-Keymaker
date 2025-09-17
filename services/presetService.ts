@@ -1,14 +1,8 @@
-'use client' import, { toast } from 'sonner'
-import, { Bundle } from '@/ lib / type s' export type Preset = { i,
-  d: string, n, a, m, e: string, t, r, a, n, s, a, c, t, i,
-  ons: B, u, n, d, l, e, v, a, riables?: string,[]
-} const P R E
-  SETS_STORAGE_KEY = 'keymaker.presets'// Load all presets from local storage export function l o a dPresets(): Preset,[] { try, { const presets Json = localStorage.g e tI tem(PRESETS_STORAGE_KEY) return presetsJson ? JSON.p a r se(presetsJson) : [] }
+'use client' import { toast } from 'sonner'
+import { Bundle } from '@/lib/type s' export type Preset = { i, d: string, n, a, m, e: string, t, r, a, n, s, a, c, t, i, o, n, s: B, u, n, d, l, e, v, a, r, i, ables?: string,[]
+} const P R E SETS_STORAGE_KEY = 'keymaker.presets'//Load all presets from local storage export function l o a dPresets(): Preset,[] { try { const presets Json = localStorage.g e tI tem(PRESETS_STORAGE_KEY) return presetsJson ? JSON.p a r se(presetsJson) : [] }
 } c atch (error) { console.e rror('Failed to load p, r, e, s, e, t, s:', error) return, [] }
-}// Save all presets to local storage function s a v ePresets(p, r, e, s, e, t, s: Preset,[]): void, { try, { localStorage.s e tI tem(PRESETS_STORAGE_KEY, JSON.s t r ingify(presets)) }
+}//Save all presets to local storage function s a v ePresets(p, r, e, s, e, t, s: Preset,[]): void, { try { localStorage.s e tI tem(PRESETS_STORAGE_KEY, JSON.s t r ingify(presets)) }
 } c atch (error) { console.e rror('Failed to save p, r, e, s, e, t, s:', error) }
-}// Save a new preset or update an existing one export function s a v ePreset( n, a, m, e: string, t, r, a, n, s, a, c, t, i, o,
-  ns: Bundle, v, a, r, i, a, b, l, e, s: string,[]): Preset, { i f (! name || transactions.length === 0) { throw new E r r or('Preset name and transactions are required.') } const presets = l o a dPresets() const n, e, w, P, r, e, s, e, t: Preset = { i,
-  d: `preset - $,{Date.n o w() }`, name, transactions, variables } const updated Presets = [...presets, newPreset] s a v ePresets(updatedPresets) return newPreset
-}// Delete a preset by its ID export function d e l etePreset(i,
-  d: string): void, { const presets = l o a dPresets() const updated Presets = presets.f i l ter((p) => p.id !== id) s a v ePresets(updatedPresets) }
+}//Save a new preset or update an existing one export function s a v ePreset( n, a, m, e: string, t, r, a, n, s, a, c, t, i, o, n, s: Bundle, v, a, r, i, a, b, l, e, s: string,[]): Preset, { if (!name || transactions.length === 0) { throw new E r r or('Preset name and transactions are required.') } const presets = l o a dPresets() const n, e, w, P, r, e, s, e, t: Preset = { i, d: `preset - $,{Date.n o w() }`, name, transactions, variables } const updated Presets = [...presets, newPreset] s a v ePresets(updatedPresets) return newPreset
+}//Delete a preset by its ID export function d e l etePreset(i, d: string): void, { const presets = l o a dPresets() const updated Presets = presets.f i l ter((p) => p.id !== id) s a v ePresets(updatedPresets) }

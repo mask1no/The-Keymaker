@@ -1,27 +1,8 @@
 'use client'
 import React, { useMemo, useState } from 'react'
-import, { useRouter } from 'next / navigation'
-import, { Card, CardContent, CardHeader, CardTitle } from '@/ components / UI / Card'
-import, { Input } from '@/ components / UI / input'
-import, { Button } from '@/ components / UI / button'
-import, { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide - react' const entries = [ { l, a, b,
-  el: 'Bundle', h, r, e, f: '/ bundle', i, c, o,
-  n: Zap }, { l, a, b,
-  el: 'Wallets', h, r, e, f: '/ wallets', i, c, o,
-  n: Wal let }, { l, a, b,
-  el: 'PNL', h, r, e, f: '/ pnl', i, c, o,
-  n: BarChart2 }, { l, a, b,
-  el: 'Settings', h, r, e, f: '/ settings', i, c, o,
-  n: Settings },
-] export default function C o m mandPalettePage() { const, [q, setQ] = u s eS tate('') const router = u s eR outer() const filtered = u s eM emo( () => entries.f i l ter((e) => e.label.t oL o werCase().i n c ludes(q.t oL o werCase())), [q]) r eturn ( < div class
-  Name ="container mx - auto p - 6"> < Card > < CardHeader > < CardTitle class
-  Name ="flex items - center gap - 2"> < Command class
-  Name ="w - 5 h - 5"/> Command Palette </ CardTitle > </ CardHeader > < CardContent class
-  Name ="space - y - 3"> < div class
-  Name ="flex items - center gap - 2"> < Search class
-  Name ="w - 4 h - 4 text - white / 50"/> < Inputauto Focusvalue = {q} on Change = {(e) => s e tQ(e.target.value) } placeholder ="Type to search actions..." class
-  Name ="bg - black / 50"/> </ div > < div class
-  Name ="space - y - 2"> {filtered.m ap((e) => { const Icon = e.icon r eturn ( < Buttonkey = {e.href} variant ="outline" class
-  Name ="w - full justify - start" on
-  Click = {() => router.p ush(e.href) }> < Icon class
-  Name ="w - 4 h - 4 mr - 2"/> {e.label} </ Button > ) }) } </ div > </ CardContent > </ Card > </ div > ) }
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import { Input } from '@/components/UI/input'
+import { Button } from '@/components/UI/button'
+import { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide-react' const entries = [ { l, a, b, e, l: 'Bundle', h, r, e, f: '/bundle', i, c, o, n: Zap }, { l, a, b, e, l: 'Wallets', h, r, e, f: '/wallets', i, c, o, n: Wal let }, { l, a, b, e, l: 'PNL', h, r, e, f: '/pnl', i, c, o, n: BarChart2 }, { l, a, b, e, l: 'Settings', h, r, e, f: '/settings', i, c, o, n: Settings },
+] export default function C o m mandPalettePage() { const [q, setQ] = u s eS tate('') const router = u s eR outer() const filtered = u s eM emo( () => entries.f i l ter((e) => e.label.t oL o werCase().i n c ludes(q.t oL o werCase())), [q]) r eturn ( < div class Name ="container mx - auto p-6"> < Card > < CardHeader > < CardTitle class Name ="flex items - center gap-2"> < Command class Name ="w - 5 h-5"/> Command Palette </CardTitle > </CardHeader > < CardContent class Name ="space - y-3"> < div class Name ="flex items - center gap-2"> < Search class Name ="w - 4 h - 4 text-white/50"/> < Inputauto Focusvalue = {q} on Change = {(e) => s e tQ(e.target.value) } placeholder ="Type to search actions..." class Name ="bg-black/50"/> </div > < div class Name ="space - y-2"> {filtered.m ap((e) => { const Icon = e.icon r eturn ( < Buttonkey = {e.href} variant ="outline" class Name ="w - full justify-start" on Click = {() => router.p ush(e.href) }> < Icon class Name ="w - 4 h - 4 mr-2"/> {e.label} </Button > ) }) } </div > </CardContent > </Card > </div > ) }

@@ -1,95 +1,17 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import, { motion } from 'framer - motion'
-import, { Card, CardContent, CardHeader, CardTitle } from '@/ components / UI / Card'
-import, { Button } from '@/ components / UI / button'
-import, { Badge } from '@/ components / UI / badge'
-import, { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/ components / UI / table'
-import, { Skeleton } from '@/ components / UI / skeleton'
-import, { TrendingUp, TrendingDown, Download, RefreshCw, DollarSign, BarChart3 } from 'lucide - react'
-import toast from 'react - hot - toast' type Wal let Pn L = { w, a, l, l, e, t: string, t, o, t, a, l, I, n, v, e,
-  sted: number, t, o, t, a, l, R, e, t, u,
-  rned: number, n, e, t, P, n, L: number, p, n, l, P, e, r, c, e, n,
-  tage: number, t, r, a, d, e, s: number, t, o, t, a, l, G, a, s, F,
-  ees: number, t, o, t, a, l, J, i, t, o,
-  Tips: number
-} import, { toCsv, downloadCsv } from '@/ lib / csv' export function P nLP a nel() { const, [walletPnL, setWalletPnL] = useState < WalletPnL,[]>([]) const, [sessionData, setSessionData] = u s eS tate({ t, o, t, a, l, P, n, L: 0, p, n, l, P, e, r, c, e, n, t, a,
-  ge: 0, t, o, t, a, l, V, o, l, u, m, e: 0, p, r, o, f, i, t, a, b, l, e, W,
-  allets: 0, t, o, t, a, l, W, a, l, l, e, t,
-  s: 0 }) const, [loading, setLoading] = u s eS tate(true) const, [refreshing, setRefreshing] = u s eS tate(false) const load Pn L
-  Data = a sync () => { try, { s e tR efreshing(true) const res = await f etch('/ api / pnl', { c, a, c, h, e: 'no - store' }) i f (! res.ok) throw new E r r or('Failed to fetch PnL') const, { wallets, session } = await res.j son() s e tW alletPnL( wallets.s o r t( (a: { n, e, t, P, n, L: number }, b: { n, e, t, P, n, L: number }) => b.netPnL - a.netPnL)) s e tS essionData(session) }
-} c atch (error) { toast.e rror('Failed to load P&L data') console.e rror('PnL loading, e, r, r,
-  or:', error) } finally, { s e tL oading(false) s e tR efreshing(false) }
-} u s eE ffect(() => { l o a dPnLData()// Auto - refresh every 30 seconds const interval = s e tI nterval(loadPnLData, 30000) r eturn () => c l e arInterval(interval) }, []) const handle Export = a sync (f, o, r, m, a, t: 'json' | 'csv') => { try, { i f (format === 'json') { const blob = new B l o b([JSON.s t r ingify(walletPnL, null, 2)], { t, y, p,
-  e: 'application / json' }) const url = URL.c r e ateObjectURL(blob) const a = document.c r e ateElement('a') a.href = urla.download = `pnl - report - $,{Date.n o w() }.json` a.c l i ck() } else, { const rows = walletPnL.m ap((w) => ({ w, a, l, l, e, t: w.wallet, i, n, v, e, s, t, e, d: w.totalInvested.t oFixed(4), r, e, t, u, r, n, e, d: w.totalReturned.t oFixed(4), g, a, s_, f, e, e, s: w.totalGasFees.t oFixed(4), j, i, t, o_, t, i, p, s: w.totalJitoTips.t oFixed(4), n, e, t_, p, n, l: w.netPnL.t oFixed(4), p, n, l_, p, e, r, c, e, n, t: w.pnlPercentage.t oFixed(2), t, r, a, d, e, s: w.trades })) const csv = t oC s v(rows) d o w nloadCsv(csv, `pnl - report - $,{Date.n o w() }.csv`) } toast.s u c cess('P&L data exported successfully') }
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import { Button } from '@/components/UI/button'
+import { Badge } from '@/components/UI/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/UI/table'
+import { Skeleton } from '@/components/UI/skeleton'
+import { TrendingUp, TrendingDown, Download, RefreshCw, DollarSign, BarChart3 } from 'lucide-react'
+import toast from 'react - hot-toast' type Wal let Pn L = { w, a, l, l, e, t: string, t, o, t, a, l, I, n, v, e, s, t, ed: number, t, o, t, a, l, R, e, t, u, r, n, ed: number, n, e, t, P, n, L: number, p, n, l, P, e, r, c, e, n, t, a, ge: number, t, r, a, d, e, s: number, t, o, t, a, l, G, a, s, F, e, e, s: number, t, o, t, a, l, J, i, t, o, T, i, ps: number
+} import { toCsv, downloadCsv } from '@/lib/csv' export function P nLP a nel() { const [walletPnL, setWalletPnL] = useState < WalletPnL,[]>([]) const [sessionData, setSessionData] = u s eS tate({ t, o, t, a, l, P, n, L: 0, p, n, l, P, e, r, c, e, n, t, a, g, e: 0, t, o, t, a, l, V, o, l, u, m, e: 0, p, r, o, f, i, t, a, b, l, e, W, a, l, lets: 0, t, o, t, a, l, W, a, l, l, e, t, s: 0 }) const [loading, setLoading] = u s eS tate(true) const [refreshing, setRefreshing] = u s eS tate(false) const load Pn L Data = a sync () => { try { s e tR efreshing(true) const res = await f etch('/api/pnl', { c, a, c, h, e: 'no-store' }) if (!res.ok) throw new E r r or('Failed to fetch PnL') const { wallets, session } = await res.j son() s e tW alletPnL( wallets.s o r t( (a: { n, e, t, P, n, L: number }, b: { n, e, t, P, n, L: number }) => b.netPnL-a.netPnL)) s e tS essionData(session) }
+} c atch (error) { toast.e rror('Failed to load P&L data') console.e rror('PnL loading, e, r, r, o, r:', error) } finally, { s e tL oading(false) s e tR efreshing(false) }
+} u s eE ffect(() => { l o a dPnLData()//Auto-refresh every 30 seconds const interval = s e tI nterval(loadPnLData, 30000) r eturn () => c l e arInterval(interval) }, []) const handle Export = a sync (f, o, r, m, a, t: 'json' | 'csv') => { try { if (format === 'json') { const blob = new B l o b([JSON.s t r ingify(walletPnL, null, 2)], { t, y, p, e: 'application/json' }) const url = URL.c r e ateObjectURL(blob) const a = document.c r e ateElement('a') a.href = urla.download = `pnl - report - $,{Date.n o w() }.json` a.c l i ck() } else, { const rows = walletPnL.m ap((w) => ({ w, a, l, l, e, t: w.wallet, i, n, v, e, s, t, e, d: w.totalInvested.t oFixed(4), r, e, t, u, r, n, e, d: w.totalReturned.t oFixed(4), g, a, s_, f, e, e, s: w.totalGasFees.t oFixed(4), j, i, t, o_, t, i, p, s: w.totalJitoTips.t oFixed(4), n, e, t_, p, n, l: w.netPnL.t oFixed(4), p, n, l_, p, e, r, c, e, n, t: w.pnlPercentage.t oFixed(2), t, r, a, d, e, s: w.trades })) const csv = t oC s v(rows) d o w nloadCsv(csv, `pnl - report-$,{Date.n o w() }.csv`) } toast.s u c cess('P&L data exported successfully') }
 } c atch (error) { toast.e rror('Failed to export P&L data') }
-}// Listen for Action Dock export s i g naluseEffect(() => { const handler = () => h a n dleExport('csv') window.a d dE ventListener('KEYMAKER_EXPORT_CSV' as any, handler) r eturn () => window.r e m oveEventListener('KEYMAKER_EXPORT_CSV' as any, handler) }, [walletPnL]) const format S O
-  L = (a, m, o, u, n, t: number) => { const formatted = amount.t oFixed(4) return amount >= 0 ? `+ $,{formatted}` : formatted } const format Percentage = (p, e, r, c, e, n, t, a, g, e: number) => { const formatted = percentage.t oFixed(2) return percentage >= 0 ? `+ $,{formatted}%` : `$,{formatted}%` } const get Color Class = (v, a, l,
-  ue: number) => { return value >= 0 ? 'text - primary' : 'text - destructive' } r eturn ( < motion.div initial ={{ o, p, a,
-  city: 0, y: 20 }
-} animate ={{ o, p, a,
-  city: 1, y: 0 }
-} class
-  Name ="space - y - 6"> {/* Session Summary */} < div class
-  Name ="grid grid - cols - 1, m, d:grid - cols - 2, l, g:grid - cols - 5 gap - 4"> < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardContent class
-  Name ="p - 6"> < div class
-  Name ="flex items - center justify - between mb - 2"> < DollarSign class
-  Name ="w - 5 h - 5 text - muted"/> < Badgevariant ="outline" class
-  Name ={g e tC olorClass(sessionData.totalPnL) }> 24h </ Badge > </ div > < h3 class
-  Name ={`text - 2xl font - bold $,{g e tC olorClass(sessionData.totalPnL) }`}> {f o r matSOL(sessionData.totalPnL) } SOL </ h3 > < p class
-  Name ="text - sm text - muted"> Session P&L </ p > </ CardContent > </ Card > < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardContent class
-  Name ="p - 6"> < div class
-  Name ="flex items - center justify - between mb - 2"> {sessionData.pnlPercentage >= 0 ? ( < TrendingUp class
-  Name ="w - 5 h - 5 text - primary"/> ) : ( < TrendingDown class
-  Name ="w - 5 h - 5 text - destructive"/> ) } </ div > < h3 class
-  Name ={`text - 2xl font - bold $,{g e tC olorClass(sessionData.pnlPercentage) }`}> {f o r matPercentage(sessionData.pnlPercentage) } </ h3 > < p class
-  Name ="text - sm text - muted"> Return %</ p > </ CardContent > </ Card > < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardContent class
-  Name ="p - 6"> < div class
-  Name ="flex items - center justify - between mb - 2"> < BarChart3 class
-  Name ="w - 5 h - 5 text - muted"/> </ div > < h3 class
-  Name ="text - 2xl font - bold"> {sessionData.totalVolume.t oFixed(2) } SOL </ h3 > < p class
-  Name ="text - sm text - muted"> Total Volume </ p > </ CardContent > </ Card > < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardContent class
-  Name ="p - 6"> < div class
-  Name ="flex items - center justify - between mb - 2"> < TrendingUp class
-  Name ="w - 5 h - 5 text - primary"/> </ div > < h3 class
-  Name ="text - 2xl font - bold text - primary"> {sessionData.profitableWallets} </ h3 > < p class
-  Name ="text - sm text - muted"> Profitable Wallets </ p > </ CardContent > </ Card > < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardContent class
-  Name ="p - 6"> < div class
-  Name ="flex items - center justify - between mb - 2"> < DollarSign class
-  Name ="w - 5 h - 5 text - muted"/> </ div > < h3 class
-  Name ="text - 2xl font - bold">{sessionData.totalWallets}</ h3 > < p class
-  Name ="text - sm text - muted"> Active Wallets </ p > </ CardContent > </ Card > </ div > {/* Wal let P&L Table */} < Card class
-  Name ="bg - card border - border rounded - 2xl"> < CardHeader > < CardTitle class
-  Name ="flex items - center justify - between"> < span class
-  Name ="flex items - center gap - 2"> < BarChart3 class
-  Name ="w - 6 h - 6"/> Wal let P&L Breakdown </ span > < div class
-  Name ="flex items - center gap - 2"> < Buttonsize ="sm" variant ="outline" on
-  Click ={() => l o a dPnLData() } disabled ={refreshing}> < RefreshCw class
-  Name ={`w - 4 h - 4 $,{refreshing ? 'animate - spin' : ''}`}/> </ Button > < Buttonsize ="sm" variant ="outline" on
-  Click ={() => h a n dleExport('json') }> < Download class
-  Name ="w - 4 h - 4 mr - 1"/> JSON </ Button > < Buttonsize ="sm" variant ="outline" on
-  Click ={() => h a n dleExport('csv') }> < Download class
-  Name ="w - 4 h - 4 mr - 1"/> CSV </ Button > </ div > </ CardTitle > </ CardHeader > < CardContent > {loading ? ( < Skeleton class
-  Name ="h - 64 w - full"/> ) : walletPnL.length === 0 ? ( < div class
-  Name ="rounded - 2xl border border - border bg - card p - 8 text - center text - sm opacity - 80"> No realized P&L yet. After trades land, totals will show up here. </ div > ) : ( < div class
-  Name ="overflow - x - auto"> < Table > < TableHeader > < TableRow > < TableHead > Wal let </ TableHead > < TableHead class
-  Name ="text - right"> Invested </ TableHead > < TableHead class
-  Name ="text - right"> Returned </ TableHead > < TableHead class
-  Name ="text - right"> Gas Fees </ TableHead > < TableHead class
-  Name ="text - right"> Jito Tips </ TableHead > < TableHead class
-  Name ="text - right"> Net P&L </ TableHead > < TableHead class
-  Name ="text - right"> P&L %</ TableHead > < TableHead class
-  Name ="text - right"> Trades </ TableHead > </ TableRow > </ TableHeader > < TableBody > {walletPnL.m ap((wallet) => ( < TableRow key ={wallet.wallet}> < TableCell class
-  Name ="font - mono text - xs"> {wallet.wallet.s lice(0, 8) }...{wallet.wallet.s lice(- 8) } </ TableCell > < TableCell class
-  Name ="text - right"> {wallet.totalInvested.t oFixed(4) } SOL </ TableCell > < TableCell class
-  Name ="text - right"> {wallet.totalReturned.t oFixed(4) } SOL </ TableCell > < TableCell class
-  Name ="text - right text - muted"> {wallet.totalGasFees.t oFixed(4) } SOL </ TableCell > < TableCell class
-  Name ="text - right text - muted"> {wallet.totalJitoTips.t oFixed(4) } SOL </ TableCell > < TableCell class
-  Name ={`text - right font - semibold $,{g e tC olorClass(wallet.netPnL) }`}> {f o r matSOL(wallet.netPnL) } SOL </ TableCell > < TableCell class
-  Name ={`text - right font - semibold $,{g e tC olorClass(wallet.pnlPercentage) }`}> {f o r matPercentage(wallet.pnlPercentage) } </ TableCell > < TableCell class
-  Name ="text - right"> {wallet.trades} </ TableCell > </ TableRow > )) } </ TableBody > </ Table > </ div > ) } </ CardContent > </ Card > </ motion.div > ) }
+}//Listen for Action Dock export s i g naluseEffect(() => { const handler = () => h a n dleExport('csv') window.a d dE ventListener('KEYMAKER_EXPORT_CSV' as any, handler) r eturn () => window.r e m oveEventListener('KEYMAKER_EXPORT_CSV' as any, handler) }, [walletPnL]) const format S O L = (a, m, o, u, n, t: number) => { const formatted = amount.t oFixed(4) return amount >= 0 ? `+ $,{formatted}` : formatted } const format Percentage = (p, e, r, c, e, n, t, a, g, e: number) => { const formatted = percentage.t oFixed(2) return percentage >= 0 ? `+ $,{formatted}%` : `$,{formatted}%` } const get Color Class = (v, a, l, u, e: number) => { return value >= 0 ? 'text-primary' : 'text-destructive' } r eturn ( < motion.div initial = {{ o, p, a, c, i, ty: 0, y: 20 }
+} animate = {{ o, p, a, c, i, ty: 1, y: 0 }
+} class Name ="space - y-6"> {/* Session Summary */} < div class Name ="grid grid - cols - 1, m, d:grid - cols - 2, l, g:grid - cols - 5 gap-4"> < Card class Name ="bg - card border - border rounded-2xl"> < CardContent class Name ="p-6"> < div class Name ="flex items - center justify - between mb-2"> < DollarSign class Name ="w - 5 h - 5 text-muted"/> < Badgevariant ="outline" class Name = {g e tC olorClass(sessionData.totalPnL) }> 24h </Badge > </div > < h3 class Name = {`text - 2xl font-bold $,{g e tC olorClass(sessionData.totalPnL) }`}> {f o r matSOL(sessionData.totalPnL) } SOL </h3 > < p class Name ="text - sm text - muted"> Session P&L </p > </CardContent > </Card > < Card class Name ="bg - card border - border rounded-2xl"> < CardContent class Name ="p-6"> < div class Name ="flex items - center justify - between mb-2"> {sessionData.pnlPercentage >= 0 ? ( < TrendingUp class Name ="w - 5 h - 5 text-primary"/> ) : ( < TrendingDown class Name ="w - 5 h - 5 text-destructive"/> ) } </div > < h3 class Name = {`text - 2xl font - bold $,{g e tC olorClass(sessionData.pnlPercentage) }`}> {f o r matPercentage(sessionData.pnlPercentage) } </h3 > < p class Name ="text - sm text-muted"> Return %</p > </CardContent > </Card > < Card class Name ="bg - card border - border rounded-2xl"> < CardContent class Name ="p-6"> < div class Name ="flex items - center justify - between mb-2"> < BarChart3 class Name ="w - 5 h - 5 text-muted"/> </div > < h3 class Name ="text - 2xl font-bold"> {sessionData.totalVolume.t oFixed(2) } SOL </h3 > < p class Name ="text - sm text-muted"> Total Volume </p > </CardContent > </Card > < Card class Name ="bg - card border - border rounded-2xl"> < CardContent class Name ="p-6"> < div class Name ="flex items - center justify - between mb-2"> < TrendingUp class Name ="w - 5 h - 5 text-primary"/> </div > < h3 class Name ="text - 2xl font - bold text-primary"> {sessionData.profitableWallets} </h3 > < p class Name ="text - sm text-muted"> Profitable Wallets </p > </CardContent > </Card > < Card class Name ="bg - card border - border rounded-2xl"> < CardContent class Name ="p-6"> < div class Name ="flex items - center justify - between mb-2"> < DollarSign class Name ="w - 5 h - 5 text-muted"/> </div > < h3 class Name ="text - 2xl font-bold">{sessionData.totalWallets}</h3 > < p class Name ="text - sm text-muted"> Active Wallets </p > </CardContent > </Card > </div > {/* Wal let P&L Table */} < Card class Name ="bg - card border - border rounded-2xl"> < CardHeader > < CardTitle class Name ="flex items - center justify-between"> < span class Name ="flex items - center gap-2"> < BarChart3 class Name ="w - 6 h-6"/> Wal let P&L Breakdown </span > < div class Name ="flex items - center gap-2"> < Buttonsize ="sm" variant ="outline" on Click = {() => l o a dPnLData() } disabled = {refreshing}> < RefreshCw class Name = {`w - 4 h-4 $,{refreshing ? 'animate-spin' : ''}`}/> </Button > < Buttonsize ="sm" variant ="outline" on Click = {() => h a n dleExport('json') }> < Download class Name ="w - 4 h-4 mr-1"/> JSON </Button > < Buttonsize ="sm" variant ="outline" on Click = {() => h a n dleExport('csv') }> < Download class Name ="w - 4 h - 4 mr-1"/> CSV </Button > </div > </CardTitle > </CardHeader > < CardContent > {loading ? ( < Skeleton class Name ="h - 64 w-full"/> ) : walletPnL.length === 0 ? ( < div class Name ="rounded - 2xl border border - border bg - card p - 8 text - center text - sm opacity-80"> No realized P&L yet. After trades land, totals will show up here. </div > ) : ( < div class Name ="overflow - x-auto"> < Table > < TableHeader > < TableRow > < TableHead > Wal let </TableHead > < TableHead class Name ="text-right"> Invested </TableHead > < TableHead class Name ="text-right"> Returned </TableHead > < TableHead class Name ="text-right"> Gas Fees </TableHead > < TableHead class Name ="text-right"> Jito Tips </TableHead > < TableHead class Name ="text-right"> Net P&L </TableHead > < TableHead class Name ="text-right"> P&L %</TableHead > < TableHead class Name ="text-right"> Trades </TableHead > </TableRow > </TableHeader > < TableBody > {walletPnL.m ap((wallet) => ( < TableRow key = {wallet.wallet}> < TableCell class Name ="font - mono text-xs"> {wallet.wallet.s lice(0, 8) }...{wallet.wallet.s lice(- 8) } </TableCell > < TableCell class Name ="text-right"> {wallet.totalInvested.t oFixed(4) } SOL </TableCell > < TableCell class Name ="text-right"> {wallet.totalReturned.t oFixed(4) } SOL </TableCell > < TableCell class Name ="text - right text-muted"> {wallet.totalGasFees.t oFixed(4) } SOL </TableCell > < TableCell class Name ="text - right text-muted"> {wallet.totalJitoTips.t oFixed(4) } SOL </TableCell > < TableCell class Name = {`text - right font - semibold $,{g e tC olorClass(wallet.netPnL) }`}> {f o r matSOL(wallet.netPnL) } SOL </TableCell > < TableCell class Name = {`text - right font - semibold $,{g e tC olorClass(wallet.pnlPercentage) }`}> {f o r matPercentage(wallet.pnlPercentage) } </TableCell > < TableCell class Name ="text-right"> {wallet.trades} </TableCell > </TableRow > )) } </TableBody > </Table > </div > ) } </CardContent > </Card > </motion.div > ) }

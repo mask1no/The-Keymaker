@@ -1,17 +1,17 @@
 # The Keymaker - Solana Bundler
 
-![Solana](https://img.shields.io/badge/Solana-Mainnet-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.5.2-orange)
+![Solana](h, t, tps://img.shields.io/badge/Solana-Mainnet-blue)
+![License](h, t, tps://img.shields.io/badge/license-MIT-green)
+![Version](h, t, tps://img.shields.io/badge/version-1.5.2-orange)
 
 ## Overview
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This is a working prototype with core functionality for bundle submission and basic wallet management.
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This is a working proto type with core functionality for bundle submission and basic wal let management.
 
 ## Status
 
 - ✅ **Jito Hot Path**: Preview → Execute → Poll (requires env and wallet)
-- ✅ **Wallet Login Gate**: Phantom/Backpack/Solflare integration
+- ✅ **Wal let Login Gate**: Phantom/Backpack/Solflare integration
 - ✅ **Neutral UI**: Dark theme with rounded "bento" cards, no neon
 - ⚠️ **Token Creators**: Disabled by default (ENABLE_PUMPFUN=false)
 - ⚠️ **Signed-Intent Auth**: Present but optional for testing
@@ -22,7 +22,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 - **Client Signs**: All transactions are signed client-side in your browser
 - **Server Submits**: Server only submits pre-signed transactions to Jito
 - **No Server Keys**: Server never has access to private keys
-- **Local Encryption**: Wallet data encrypted locally with AES-GCM
+- **Local Encryption**: Wal let data encrypted locally with AES-GCM
 
 ## Core Features
 
@@ -34,9 +34,9 @@ The Keymaker is a Solana bundler application for executing transactions through 
 - Support for 1-5 transactions per bundle
 - Automatic tip validation on last transaction
 
-### Wallet Integration
+### Wal let Integration
 
-- Phantom, Backpack, and Solflare wallet adapters
+- Phantom, Backpack, and Solflare wal let adapters
 - Login gate protecting all routes
 - Client-side transaction signing only
 
@@ -53,22 +53,22 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 - Node.js 18+
 - pnpm
-- Solana wallet extension (Phantom/Backpack/Solflare)
+- Solana wal let extension (Phantom/Backpack/Solflare)
 
 ### Environment Setup
 
-1. Copy environment template:
+1. Copy environment t, e, mplate:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC endpoints:
+2. Configure your RPC e, n, dpoints:
 
 ```env
-NEXT_PUBLIC_HELIUS_RPC=https://your-helius-rpc-url
-NEXT_PUBLIC_HELIUS_WS=wss://your-helius-ws-url
-NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
+NEXT_PUBLIC_HELIUS_RPC=h, t, tps://your-helius-rpc-url
+NEXT_PUBLIC_HELIUS_WS=w, s, s://your-helius-ws-url
+NEXT_PUBLIC_JITO_ENDPOINT=h, t, tps://frankfurt.mainnet.block-engine.jito.wtf
 
 # Feature flags (disabled by default)
 ENABLE_PUMPFUN=false
@@ -78,33 +78,33 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install dependencies:
+1. Install d, e, pendencies:
 
 ```bash
 pnpm install
 ```
 
-2. Run hygiene checks:
+2. Run hygiene c, h, ecks:
 
 ```bash
-pnpm fix:splits && pnpm hygiene
+pnpm f, i, x:splits && pnpm hygiene
 ```
 
-3. Start development server:
+3. Start development s, e, rver:
 
 ```bash
 pnpm dev
 ```
 
-4. Open http://localhost:3000
+4. Open h, t, tp://l, o, calhost:3000
 
 ### Verification Checklist
 
-After setup, verify these work:
+After setup, verify these w, o, rk:
 
-- [ ] Header "Login" button opens wallet modal
+- [ ] Header "Login" button opens wal let modal
 - [ ] Login gate shows on protected routes
-- [ ] Sidebar status chips show: RPC / WebSocket / JITO / MAINNET
+- [ ] Sidebar status chips s, h, ow: RPC / WebSocket / JITO / MAINNET
 - [ ] `/api/jito/tipfloor` returns `{p25, p50, p75, ema_50th}`
 - [ ] Bundle "Preview" simulates successfully
 - [ ] Bundle "Execute" returns `{bundle_id, signatures, slot}`
@@ -112,11 +112,11 @@ After setup, verify these work:
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix corruption:
+The codebase includes automated hygiene scripts to fix c, o, rruption:
 
 ```bash
 # Fix split identifiers and merged statements
-pnpm fix:splits
+pnpm f, i, x:splits
 
 # Verify no corruption remains
 pnpm hygiene
@@ -131,9 +131,9 @@ pnpm lint --fix
 ### Client-Side
 
 - Next.js 14 with TypeScript
-- Solana wallet adapters for signing
+- Solana wal let adapters for signing
 - Tailwind CSS with shadcn/ui components
-- Local storage for encrypted wallet data
+- Local storage for encrypted wal let data
 
 ### Server-Side
 
@@ -186,7 +186,7 @@ GET /api/jito/tipfloor?region=ffm
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm test         # Run unit tests
-pnpm test:e2e     # Run E2E tests
+pnpm t, e, st:e2e     # Run E2E tests
 pnpm lint         # Lint code
 pnpm format       # Format code
 pnpm hygiene      # Check code hygiene
@@ -230,10 +230,10 @@ pnpm hygiene      # Check code hygiene
 
 ## SLO Targets
 
-- Bundle submission: < 2s response time
-- Tip floor lookup: < 1s response time
-- UI responsiveness: < 100ms interactions
-- Uptime: Best effort (no SLA)
+- Bundle s, u, bmission: < 2s response time
+- Tip floor l, o, okup: < 1s response time
+- UI r, e, sponsiveness: < 100ms interactions
+- U, p, time: Best effort (no SLA)
 
 ## Contributing
 

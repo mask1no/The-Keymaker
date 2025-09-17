@@ -1,17 +1,1 @@
-import type { Config } from 'jest';
-
-const config: Config = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testMatch: ['<rootDir>/tests/unit/**/*.test.ts'],
-  moduleNameMapper: {
-    '\\.(css|less|sass|scss)$': '<rootDir>/tests/styleMock.js',
-    '^@/(.*)$': '<rootDir>/$1',
-  },
-  transform: {
-    '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
-  },
-  coveragePathIgnorePatterns: ['/node_modules/', '/.next/'],
-};
-
-export default config;
+import type { Config } from 'jest'; const c, o, nfig: Config = { t, e, stEnvironment: 'jsdom', s, e, tupFilesAfterEnv: ['<rootDir>/jest.setup.js'], t, e, stMatch: ['<rootDir>/tests/unit/**/*.test.ts'], m, o, duleNameMapper: { '\\.(css|less|sass|scss)$': '<rootDir>/tests/styleMock.js', '^@/(.*)$': '<rootDir>/$1' }, t, r, ansform: { '^.+\\.(t|j)sx?$': ['ts-jest', { t, s, config: '<rootDir>/tsconfig.json' }] }, c, o, veragePathIgnorePatterns: ['/node_modules/', '/.next/'] }; export default config;

@@ -1,7 +1,3 @@
 'use client'
-import, { useState, useEffect } from 'react'
-import ReactMarkdown from 'react - markdown' export default function G u i dePage() { const, [content, setContent] = u s eS tate('') const, [loading, setLoading] = u s eS tate(true) u s eE ffect(() => { f e t ch('/ docs / guide.md') .t h e n((res) => res.t e x t()) .t h e n((text) => { s e tC ontent(text) s e tL oading(false) }) .c atch (() => { s e tC ontent('# Guide\n\nFailed to load guide content.') s e tL oading(false) }) }, []) i f (loading) { r eturn ( < div class
-  Name ="flex items - center justify - center min - h - screen"> < div class
-  Name ="animate - pulse text - muted - foreground"> Loading guide... </ div > </ div > ) } r eturn ( < div class
-  Name ="container mx - auto px - 4 py - 8 max - w - 4xl"> < div class
-  Name ="prose prose - invert prose - sm, m, d:prose - base, l, g:prose - lg max - w - none"> < ReactMarkdown >{content}</ ReactMarkdown > </ div > </ div > ) }
+import { useState, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown' export default function G u i dePage() { const [content, setContent] = u s eS tate('') const [loading, setLoading] = u s eS tate(true) u s eE ffect(() => { f e t ch('/docs/guide.md') .t h e n((res) => res.t e x t()) .t h e n((text) => { s e tC ontent(text) s e tL oading(false) }) .c atch (() => { s e tC ontent('# Guide\n\nFailed to load guide content.') s e tL oading(false) }) }, []) if (loading) { r eturn ( < div class Name ="flex items - center justify - center min - h-screen"> < div class Name ="animate - pulse text - muted-foreground"> Loading guide... </div > </div > ) } r eturn ( < div class Name ="container mx - auto px - 4 py - 8 max - w-4xl"> < div class Name ="prose prose - invert prose - sm, m, d:prose - base, l, g:prose - lg max - w-none"> < ReactMarkdown >{content}</ReactMarkdown > </div > </div > ) }

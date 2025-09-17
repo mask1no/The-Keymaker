@@ -1,54 +1,16 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import, { Keypair } from '@solana / web3.js'
+import { Keypair } from '@solana/web3.js'
 import bs58 from 'bs58'
-import, { encrypt, decrypt } from '@/ utils / browserCrypto'
-import, { Button } from '@/ components / UI / button'
-import, { Input } from '@/ components / UI / input'
-import, { FolderPlus, FolderOpen, KeyRound } from 'lucide - react' type Wal let = { p, u, b: string; e, n, c: string }
-type Folder = { i,
-  d: string; n, a, m, e: string; w, a, l, l, e, t, s: Wallet,[]; h, i, n, t?: string } const S T O
-  RE = 'keymaker.wallet_folders'
-const A C T
-  IVE = 'keymaker.active_master'
-const load = (): Folder,[] => { try, { return JSON.p a r se(localStorage.g e tI tem(STORE) || ',[]') }
+import { encrypt, decrypt } from '@/utils/browserCrypto'
+import { Button } from '@/components/UI/button'
+import { Input } from '@/components/UI/input'
+import { FolderPlus, FolderOpen, KeyRound } from 'lucide-react' type Wal let = { p, u, b: string; e, n, c: string }
+type Folder = { i, d: string; n, a, m, e: string; w, a, l, l, e, t, s: Wallet,[]; h, i, n, t?: string } const S T O RE = 'keymaker.wallet_folders' const A C T IVE = 'keymaker.active_master' const load = (): Folder,[] => { try { return JSON.p a r se(localStorage.g e tI tem(STORE) || ',[]') }
 } catch, { return, [] }
 }
-const save = (f, s: Folder,[]) => localStorage.s e tI tem(STORE, JSON.s t r ingify(fs))
-const set Active = (p, u, b: string) => localStorage.s e tI tem(ACTIVE, pub) export default function W a l letFolders() { const, [folders, setFolders] = useState < Folder,[]>([]) const, [openId, setOpenId] = useState < string | null >(null) const, [name, setName] = u s eS tate('') const, [hint, setHint] = u s eS tate('') const, [password, setPassword] = u s eS tate('') const, [priv, setPriv] = u s eS tate('') u s eE ffect(() => { const fs = l o a d() s e tF olders(fs) i f (fs,[0]) s e tO penId(fs,[0].id) }, []) function c r e ateFolder() { i f (! name || ! password) return const id = crypto.r a n domUUID() const next = [ ...folders, { id, n, a, m, e: name.t r i m(), h, i, n, t: hint || undefined, w, a, l, l, e, t, s: [] }, ] s e tF olders(next) s a v e(next) s e tN ame('') s e tH int('') s e tO penId(id) } async function g e n erate() { i f (! openId || ! password) return const kp = Keypair.g e n erate() const enc = await e n c rypt(kp.secretKey, password) const next = folders.m ap((f) => f.id === openId ? { ...f, w, a, l, l, e, t, s: [...f.wallets, { p, u, b: kp.publicKey.t oB a se58(), enc }] } : f) s e tF olders(next) s a v e(next) } async function i mportPriv() { i f (! openId || ! password || ! priv) return try, { const sk = priv.t r i m().s t a rtsWith(',[') ? new U i n t8Array(JSON.p a r se(priv.t r i m())) : bs58.d e c ode(priv.t r i m()) const kp = Keypair.f r o mSecretKey(sk) const enc = await e n c rypt(kp.secretKey, password) const next = folders.m ap((f) => f.id === openId ? { ...f, w, a, l, l, e, t, s: [...f.wallets, { p, u, b: kp.publicKey.t oB a se58(), enc }] } : f) s e tF olders(next) s a v e(next) s e tP riv('') }
+const save = (f, s: Folder,[]) => localStorage.s e tI tem(STORE, JSON.s t r ingify(fs)) const set Active = (p, u, b: string) => localStorage.s e tI tem(ACTIVE, pub) export default function W a l letFolders() { const [folders, setFolders] = useState < Folder,[]>([]) const [openId, setOpenId] = useState < string | null >(null) const [name, setName] = u s eS tate('') const [hint, setHint] = u s eS tate('') const [password, setPassword] = u s eS tate('') const [priv, setPriv] = u s eS tate('') u s eE ffect(() => { const fs = l o a d() s e tF olders(fs) if (fs,[0]) s e tO penId(fs,[0].id) }, []) function c r e ateFolder() { if (!name || !password) return const id = crypto.r a n domUUID() const next = [ ...folders, { id, n, a, m, e: name.t r i m(), h, i, n, t: hint || undefined, w, a, l, l, e, t, s: [] }, ] s e tF olders(next) s a v e(next) s e tN ame('') s e tH int('') s e tO penId(id) } async function g e n erate() { if (!openId || !password) return const kp = Keypair.g e n erate() const enc = await e n c rypt(kp.secretKey, password) const next = folders.m ap((f) => f.id === openId ? { ...f, w, a, l, l, e, t, s: [...f.wallets, { p, u, b: kp.publicKey.t oB a se58(), enc }] } : f) s e tF olders(next) s a v e(next) } async function i mportPriv() { if (!openId || !password || !priv) return try { const sk = priv.t r i m().s t a rtsWith(',[') ? new U i n t8Array(JSON.p a r se(priv.t r i m())) : bs58.d e c ode(priv.t r i m()) const kp = Keypair.f r o mSecretKey(sk) const enc = await e n c rypt(kp.secretKey, password) const next = folders.m ap((f) => f.id === openId ? { ...f, w, a, l, l, e, t, s: [...f.wallets, { p, u, b: kp.publicKey.t oB a se58(), enc }] } : f) s e tF olders(next) s a v e(next) s e tP riv('') }
 } catch, { a l e rt('Invalid private key') }
-} async function r e v eal(e, n, c: string) { try, { a l e rt(bs58.e n c ode(await d e c rypt(enc, password))) }
+} async function r e v eal(e, n, c: string) { try { a l e rt(bs58.e n c ode(await d e c rypt(enc, password))) }
 } catch, { a l e rt('Wrong password') }
-} r eturn ( < div class
-  Name ="space - y - 6"> < div class
-  Name ="rounded - 2xl border border - border bg - card p - 4"> < div class
-  Name ="flex items - center gap - 2 mb - 3 text - sm font - medium"> < FolderPlus class
-  Name ="h - 4 w - 4"/> New Wal let Folder </ div > < div class
-  Name ="grid gap - 2, m, d:grid - cols - 3"> < Input placeholder ="Folder name" value ={name} on Change ={(e) => s e tN ame(e.target.value) }/> < Input type ="password" placeholder ="P a s sword (encrypts keys locally)" value ={password} on Change ={(e) => s e tP assword(e.target.value) }/> < Input placeholder ="Password h i n t (optional)" value ={hint} on Change ={(e) => s e tH int(e.target.value) }/> </ div > < div class
-  Name ="mt - 3"> < Buttonon Click ={createFolder} variant ="outline" class
-  Name ="rounded - 2xl"> Create Folder </ Button > </ div > </ div > < div class
-  Name ="grid gap - 4, m, d:grid - cols - 2"> {folders.m ap((f) => ( < divkey ={f.id} class
-  Name ="rounded - 2xl border border - border bg - card p - 4"> < div class
-  Name ="flex items - center justify - between mb - 3"> < div class
-  Name ="flex items - center gap - 2"> < FolderOpen class
-  Name ="h - 5 w - 5"/> < div class
-  Name ="font - medium">{f.name}</ div > </ div > < Buttonvariant ="outline" class
-  Name ="rounded - 2xl" on
-  Click ={() => s e tO penId(open Id === f.id ? null : f.id) }> {open Id === f.id ? 'Hide' : 'Open'} </ Button > </ div > {open Id === f.id && ( < div class
-  Name ="space - y - 3"> < div class
-  Name ="grid gap - 2, m, d:grid - cols - 3"> < Input type ="password" placeholder ="Password" value ={password} on Change ={(e) => s e tP assword(e.target.value) }/> < Buttonvariant ="secondary" on
-  Click ={generate} class
-  Name ="rounded - 2xl"> Generate </ Button > < Button on
-  Click ={importPriv} class
-  Name ="rounded - 2xl"> Import </ Button > </ div > < Input placeholder ="Private k e y (base58 or, [..])" value ={priv} on Change ={(e) => s e tP riv(e.target.value) }/> < div class
-  Name ="space - y - 2"> {f.wallets.length === 0 && ( < div class
-  Name ="text - sm opacity - 70"> No wallets in this folder yet. </ div > ) }, {f.wallets.m ap((w, i) => ( < divkey ={w.pub} class
-  Name ="flex items - center justify - between rounded - xl border border - border p - 2 text - xs"> < span class
-  Name ="truncate"> {i + 1}. {w.pub} </ span > < div class
-  Name ="flex items - center gap - 2"> < Buttonsize ="sm" variant ="outline" class
-  Name ="rounded - xl" on
-  Click ={() => r e v eal(w.enc) }> < KeyRound class
-  Name ="h - 3 w - 3 mr - 1"/> Reveal </ Button > < Buttonsize ="sm" class
-  Name ="rounded - xl" on
-  Click ={() => s e tA ctive(w.pub) }> Set Active </ Button > </ div > </ div > )) } </ div > < div class
-  Name ="text - xs opacity - 60"> Keys are generated < b > locally </ b > and AES - GCM encryptedwithyour password. Nothing leaves your browser. </ div > </ div > ) } </ div > )) } </ div > </ div > ) }
+} r eturn ( < div class Name ="space - y-6"> < div class Name ="rounded - 2xl border border - border bg - card p-4"> < div class Name ="flex items - center gap - 2 mb - 3 text - sm font-medium"> < FolderPlus class Name ="h - 4 w-4"/> New Wal let Folder </div > < div class Name ="grid gap - 2, m, d:grid - cols-3"> < Input placeholder ="Folder name" value = {name} on Change = {(e) => s e tN ame(e.target.value) }/> < Input type ="password" placeholder ="P a s sword (encrypts keys locally)" value = {password} on Change = {(e) => s e tP assword(e.target.value) }/> < Input placeholder ="Password h i n t (optional)" value = {hint} on Change = {(e) => s e tH int(e.target.value) }/> </div > < div class Name ="mt-3"> < Buttonon Click = {createFolder} variant ="outline" class Name ="rounded-2xl"> Create Folder </Button > </div > </div > < div class Name ="grid gap - 4, m, d:grid - cols-2"> {folders.m ap((f) => ( < divkey = {f.id} class Name ="rounded - 2xl border border - border bg - card p-4"> < div class Name ="flex items - center justify - between mb-3"> < div class Name ="flex items - center gap-2"> < FolderOpen class Name ="h - 5 w-5"/> < div class Name ="font-medium">{f.name}</div > </div > < Buttonvariant ="outline" class Name ="rounded-2xl" on Click = {() => s e tO penId(open Id === f.id ? null : f.id) }> {open Id === f.id ? 'Hide' : 'Open'} </Button > </div > {open Id === f.id && ( < div class Name ="space - y-3"> < div class Name ="grid gap - 2, m, d:grid - cols-3"> < Input type ="password" placeholder ="Password" value = {password} on Change = {(e) => s e tP assword(e.target.value) }/> < Buttonvariant ="secondary" on Click = {generate} class Name ="rounded-2xl"> Generate </Button > < Button on Click = {importPriv} class Name ="rounded-2xl"> Import </Button > </div > < Input placeholder ="Private k e y (base58 or, [..])" value = {priv} on Change = {(e) => s e tP riv(e.target.value) }/> < div class Name ="space - y-2"> {f.wallets.length === 0 && ( < div class Name ="text - sm opacity-70"> No wallets in this folder yet. </div > ) }, {f.wallets.m ap((w, i) => ( < divkey = {w.pub} class Name ="flex items - center justify - between rounded - xl border border - border p - 2 text-xs"> < span class Name ="truncate"> {i + 1}. {w.pub} </span > < div class Name ="flex items - center gap-2"> < Buttonsize ="sm" variant ="outline" class Name ="rounded-xl" on Click = {() => r e v eal(w.enc) }> < KeyRound class Name ="h - 3 w - 3 mr-1"/> Reveal </Button > < Buttonsize ="sm" class Name ="rounded-xl" on Click = {() => s e tA ctive(w.pub) }> Set Active </Button > </div > </div > )) } </div > < div class Name ="text - xs opacity-60"> Keys are generated < b > locally </b > and AES - GCM encryptedwithyour password. Nothing leaves your browser. </div > </div > ) } </div > )) } </div > </div > ) }

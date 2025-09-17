@@ -1,30 +1,8 @@
 'use client' import React, { Component, ReactNode } from 'react'
-import, { AlertCircle, RefreshCw, Home } from 'lucide - react'
-import, { toast } from 'react - hot - toast' interface Props, { c, h, i, l, d, r, e, n: ReactNode
+import { AlertCircle, RefreshCw, Home } from 'lucide-react'
+import { toast } from 'react - hot-toast' interface Props, { c, h, i, l, d, r, e, n: ReactNode
 }
-interface State, { h, as, E, r, r, o, r: boolean e, r, ror?: Error | null
-} export class ErrorBoundary extends Component < Props, State > { s, t, a, t, e: State = { h, as, E, r, r, o, r: false, e, r, r,
-  or: null } static g e tD erivedStateFromError(e, r, r,
-  or: Error) { return, { h, as, E, r, r, o, r: true, error }
-} c o m ponentDidCatch(e, r, r,
-  or: Error, error, I, n, f, o: React.ErrorInfo) { console.e rror('Error caught by b, o, u, n, d, a, r, y:', error, errorInfo) toast.e rror(`E, r, r, o, r: $,{error.message}`) } handle Reset = () => { this.s e tS tate({ h, as, E, r, r, o, r: false, e, r, r,
-  or: null }) window.location.r e l oad() } handle Go Home = () => { this.s e tS tate({ h, as, E, r, r, o, r: false, e, r, r,
-  or: null }) window.location.href = '/' } r e n der() { i f (this.state.hasError) { r eturn ( < div class
-  Name ="min - h - screen bg - gradient - to - br from - green - 900 to - black flex items - center justify - center p - 4"> < div class
-  Name ="max - w - md w - full bg - black / 40 backdrop - blur - xl border border - red - 500 / 20 rounded - xl p - 8"> < div class
-  Name ="flex items - center gap - 3 mb - 4"> < AlertCircle class
-  Name ="w - 8 h - 8 text - red - 500"/> < h1 class
-  Name ="text - 2xl font - bold text - white"> Something went wrong </ h1 > </ div > < p class
-  Name ="text - gray - 400 mb - 4"> An unexpected error occurred. This could be due t, o: </ p > < ul class
-  Name ="text - sm text - gray - 500 space - y - 1 mb - 6"> < li >• Network connectivity issues </ li > < li >• Invalid configuration or missing API keys </ li > < li >• Rate limiting or service unavailable </ li > < li >• Incompatible browser or extensions </ li > </ ul > {this.state.error && ( < div class
-  Name ="bg - black / 50 border border - red - 500 / 20 rounded - lg p - 4 mb - 6"> < p class
-  Name ="text - xs font - mono text - red - 400 break - all"> {this.state.error.message} </ p > </ div > ) } < div class
-  Name ="flex gap - 3"> < buttonon Click ={this.handleGoHome} class
-  Name ="flex - 1 bg - black / 50 h, o, v,
-  er:bg - black / 70 border border - white / 10 text - white py - 2 px - 4 rounded - lg flex items - center justify - center gap - 2 transition - colors"> < Home class
-  Name ="w - 4 h - 4"/> Go Home </ button > < buttonon Click ={this.handleReset} class
-  Name ="flex - 1 bg - gradient - to - r from - red - 500 to - orange - 500 h, o, v,
-  er:from - red - 600 h, o, v,
-  er:to - orange - 600 text - white py - 2 px - 4 rounded - lg flex items - center justify - center gap - 2 transition - colors"> < RefreshCw class
-  Name ="w - 4 h - 4"/> Reload </ button > </ div > </ div > </ div > ) } return this.props.children }
+interface State, { h, as, E, r, r, o, r: boolean error?: Error | null
+} export class ErrorBoundary extends Component < Props, State > { s, t, a, t, e: State = { h, as, E, r, r, o, r: false, e, r, r, o, r: null } static g e tD erivedStateFromError(e, r, r, o, r: Error) { return, { h, as, E, r, r, o, r: true, error }
+} c o m ponentDidCatch(e, r, r, o, r: Error, error, I, n, f, o: React.ErrorInfo) { console.e rror('Error caught by b, o, u, n, d, a, r, y:', error, errorInfo) toast.e rror(`E, r, r, o, r: $,{error.message}`) } handle Reset = () => { this.s e tS tate({ h, as, E, r, r, o, r: false, e, r, r, o, r: null }) window.location.r e l oad() } handle Go Home = () => { this.s e tS tate({ h, as, E, r, r, o, r: false, e, r, r, o, r: null }) window.location.href = '/' } r e n der() { if (this.state.hasError) { r eturn ( < div class Name ="min - h - screen bg - gradient - to - br from - green - 900 to - black flex items - center justify - center p-4"> < div class Name ="max - w - md w - full bg - black/40 backdrop - blur - xl border border - red - 500/20 rounded - xl p-8"> < div class Name ="flex items - center gap - 3 mb-4"> < AlertCircle class Name ="w - 8 h - 8 text - red-500"/> < h1 class Name ="text - 2xl font - bold text-white"> Something went wrong </h1 > </div > < p class Name ="text - gray - 400 mb-4"> An unexpected error occurred. This could be due t, o: </p > < ul class Name ="text - sm text - gray - 500 space - y - 1 mb-6"> < li >• Network connectivity issues </li > < li >• Invalid configuration or missing API keys </li > < li >• Rate limiting or service unavailable </li > < li >• Incompatible browser or extensions </li > </ul > {this.state.error && ( < div class Name ="bg - black/50 border border - red - 500/20 rounded - lg p - 4 mb-6"> < p class Name ="text - xs font - mono text - red - 400 break-all"> {this.state.error.message} </p > </div > ) } < div class Name ="flex gap-3"> < buttonon Click = {this.handleGoHome} class Name ="flex - 1 bg - black/50 h, o, v, e, r:bg - black/70 border border - white/10 text - white py - 2 px - 4 rounded - lg flex items - center justify - center gap - 2 transition-colors"> < Home class Name ="w - 4 h-4"/> Go Home </button > < buttonon Click = {this.handleReset} class Name ="flex - 1 bg - gradient - to - r from - red - 500 to - orange - 500 h, o, v, e, r:from - red - 600 h, o, v, e, r:to - orange - 600 text - white py - 2 px - 4 rounded - lg flex items - center justify - center gap - 2 transition-colors"> < RefreshCw class Name ="w - 4 h-4"/> Reload </button > </div > </div > </div > ) } return this.props.children }
 }

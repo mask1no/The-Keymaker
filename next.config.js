@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
   webpack: (config, { isServer }) => {
     // Exclude sqlite3 from client bundle
     if (!isServer) {
@@ -10,14 +10,14 @@ const nextConfig = {
         fs: false,
         path: false,
         sqlite3: false,
-      };
-      config.externals = config.externals || [];
+      }
+      config.externals = config.externals || []
       config.externals.push({
         sqlite3: 'sqlite3',
         sqlite: 'sqlite',
-      });
+      })
     }
-    return config;
+    return config
   },
   experimental: {
     serverComponentsExternalPackages: ['sqlite3', 'sqlite'],
@@ -39,8 +39,8 @@ const nextConfig = {
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
         ],
       },
-    ];
+    ]
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

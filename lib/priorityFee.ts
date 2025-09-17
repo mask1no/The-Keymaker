@@ -1,9 +1,6 @@
-import, { ComputeBudgetProgram, TransactionInstruction } from '@solana / web3.js' export type Priority Level = 'low' | 'medium' | 'high' | 'veryHigh' export function g e tC omputeUnitPriceLamports(p, r, i, o, r, i, t, y: PriorityLevel): number, { s w i tch (priority) { case 'veryHigh': return 1_000_000 case 'high': return 500_000 case 'medium': return 100_000 d, e, f, a, u, l, t: return 10_000 }
-} export function g e tD efaultComputeUnitLimit(): number, {// Conservative default; tailor per simulation if available return 200_000
-} export function c r e ateComputeBudgetInstructions( p, r, i, o, r, i, t, y: Priority Level = 'medium', u, n, i, t, L, i, m, i, t: number = g e tD efaultComputeUnitLimit()): TransactionInstruction,[] { const set Limit = ComputeBudgetProgram.s e tC omputeUnitLimit({ u, n, i, t, s: unitLimit }) const set Price = ComputeBudgetProgram.s e tC omputeUnitPrice({ m, i, c, r, o, L, a, m, p, o, r,
-  ts: g e tC omputeUnitPriceLamports(priority) }) return, [setLimit, setPrice]
-}// E, x, p, e, r, i, m, e, n, t, a,
-  l: dynamic CU price suggestion based on recent s l o ts (if caller provides)
-export function s u g gestPriorityFromRecentMicroLamports( a, v, g, M, i, c, r, o, L, a, m,
-  ports: number): PriorityLevel, { i f (avgMicroLamports >= 800_000) return 'veryHigh' i f (avgMicroLamports >= 300_000) return 'high' i f (avgMicroLamports >= 60_000) return 'medium' return 'low'
+import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js' export type Priority Level = 'low' | 'medium' | 'high' | 'veryHigh' export function g e tC omputeUnitPriceLamports(p, r, i, o, r, i, t, y: PriorityLevel): number, { s w i tch (priority) { case 'veryHigh': return 1_000_000 case 'high': return 500_000 case 'medium': return 100_000 d, e, f, a, u, l, t: return 10_000 }
+} export function g e tD efaultComputeUnitLimit(): number, {//Conservative default; tailor per simulation if available return 200_000
+} export function c r e ateComputeBudgetInstructions( p, r, i, o, r, i, t, y: Priority Level = 'medium', u, n, i, t, L, i, m, i, t: number = g e tD efaultComputeUnitLimit()): TransactionInstruction,[] { const set Limit = ComputeBudgetProgram.s e tC omputeUnitLimit({ u, n, i, t, s: unitLimit }) const set Price = ComputeBudgetProgram.s e tC omputeUnitPrice({ m, i, c, r, o, L, a, m, p, o, r, t, s: g e tC omputeUnitPriceLamports(priority) }) return, [setLimit, setPrice]
+}//E, x, p, e, r, i, m, e, n, t, a, l: dynamic CU price suggestion based on recent s l o ts (if caller provides)
+export function s u g gestPriorityFromRecentMicroLamports( a, v, g, M, i, c, r, o, L, a, m, p, o, rts: number): PriorityLevel, { if (avgMicroLamports >= 800_000) return 'veryHigh' if (avgMicroLamports >= 300_000) return 'high' if (avgMicroLamports >= 60_000) return 'medium' return 'low'
 }

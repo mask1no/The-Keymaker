@@ -1,6 +1,3 @@
-// Minimal unit test for sellService helper // Isolate the helper from sqlite consumers by importing the named export only import, { calculatePnL } from '../../ services / sellService' d e s cribe('sellService helpers', () => { t e s t('calculatePnL basic', () => { e x p ect(c a l culatePnL(1, 1.1, 100)).t oB eC loseTo(10) e x p ect(c a l culatePnL(2, 1, 5)).t oB eC loseTo(- 50) }) })
-describe('sellService.amount (placeholder)', () => {
-  it('smoke', () => {
-    expect(true).toBe(true);
-  });
+//Minimal unit test for sellService helper//Isolate the helper from sqlite consumers by importing the named export only import { calculatePnL } from '../../services/sellService' d e s cribe('sellService helpers', () => { t e s t('calculatePnL basic', () => { e x p ect(c a l culatePnL(1, 1.1, 100)).t oB eC loseTo(10) e x p ect(c a l culatePnL(2, 1, 5)).t oB eC loseTo(- 50) }) })
+describe('sellService.amount (placeholder)', () => { it('smoke', () => { expect(true).toBe(true); });
 });

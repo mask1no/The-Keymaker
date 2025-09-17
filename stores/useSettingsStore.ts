@@ -1,36 +1,6 @@
-import, { create } from 'zustand' interface HotkeysConfig, { o, p, e, n, S, e, l, l, M, o,
-  nitor: string, f, u, n, d, G, r, o, u, p: string, s, t, a, r, t, B, u, n, d,
-  le: string, e, x, p, o, r, t, C, s, v: string, w, a, l, l, e, t, T, o, g,
-  gle: string, c, o, m, m, a, n, d, P, a,
-  lette: string
-} interface SettingsState, { h, e, l, i, u, s, R, p, c: string, b, i, r, d, e, y, e, A, p,
-  iKey: string p, u, m, p, f, u, n, ApiKey?: string j, u, p, i, t, e, r, ApiKey?: string j, i, t, o, A, u, t, hToken?: string j, i, t, o, W, s, U, rl?: string t, w, o, C, a, p, t, chaKey?: string, h, e, a, d, l, e, s, s, T,
-  imeout: number, j, i, t, o, T, i, p, L, a,
-  mports: number, j, u, p, i, t, e, r, F, e,
-  eBps: number, h, o, t, k, e, y, s: H, o, t, k, e, y, s, C, onfiglastCreatedTokenAddress?: string, s, e, t, S, e, t, t, i, n,
-  gs: (s, e, t, t, i, n, g, s: Partial < SettingsState >) => v, o, i, d, s, e, t, H, o, t, k,
-  eys: (h, o, t, k, e, y, s: Partial < HotkeysConfig >) => v, o, i, d, s, e, t, L, a, s, t,
-  CreatedTokenAddress: (a, d, d, r, e, s, s: string) => v, o, i, d, f, e, t, c, h, S, e,
-  ttings: () => Promise < vo id >
-} export const use Settings Store = create < SettingsState >((set) => ({ h, e, l, i, u, s, R, p, c: process.env.NEXT_PUBLIC_HELIUS_RPC || '', b, i, r, d, e, y, e, A, p, i, K,
-  ey: '', p, u, m, p, f, u, n, A, p, i, K,
-  ey: undefined, j, u, p, i, t, e, r, A, p, i, K,
-  ey: undefined, j, i, t, o, A, u, t, h, T, o, k,
-  en: undefined, j, i, t, o, W, s, U, r, l: process.env.NEXT_PUBLIC_JITO_ENDPOINT, t, w, o, C, a, p, t, c, h, a, K,
-  ey: undefined, h, e, a, d, l, e, s, s, T, i, m,
-  eout: 30, j, i, t, o, T, i, p, L, a, m, p,
-  orts: 5000, j, u, p, i, t, e, r, F, e, e, B,
-  ps: 5, h, o, t, k, e, y, s: { o, p, e, n, S, e, l, l, M, o,
-  nitor: 'meta + e,ctrl + e', f, u, n, d, G, r, o, u, p: 'g', s, t, a, r, t, B, u, n, d, l,
-  e: 'b', e, x, p, o, r, t, C, s, v: 'e', w, a, l, l, e, t, T, o, g, g,
-  le: 'w', c, o, m, m, a, n, d, P, a, l,
-  ette: 'meta + k,ctrl + k' }, l, a, s, t, C, r, e, a, t, e, d,
-  TokenAddress: undefined, s, e, t, S, e, t, t, i, n, g, s: (settings) => s et((state) => ({ ...state, ...settings })), s, e, t, H, o, t, k, e, y, s: (hotkeys) => s et((state) => ({ h, o, t, k, e, y, s: { ...state.hotkeys, ...hotkeys }
-})), s, e, t, L, a, s, t, C, r, e, a,
-  tedTokenAddress: (address) => s et({ l, a, s, t, C, r, e, a, t, e, d,
-  TokenAddress: address }), f, e, t, c, h, S, e, t, t, i, n,
-  gs: a sync () => { try, { const response = await f etch('/ api / settings') const data = await response.j son() s et((state) => ({ ...state, j, i, t, o, T, i, p, L, a, m, p,
-  orts: data.jitoTipLamports, j, u, p, i, t, e, r, F, e, e, B,
-  ps: data.jupiterFeeBps })) }
+import { create } from 'zustand' interface HotkeysConfig, { o, p, e, n, S, e, l, l, M, o, n, i, tor: string, f, u, n, d, G, r, o, u, p: string, s, t, a, r, t, B, u, n, d, l, e: string, e, x, p, o, r, t, C, s, v: string, w, a, l, l, e, t, T, o, g, g, l, e: string, c, o, m, m, a, n, d, P, a, l, e, tte: string
+} interface SettingsState, { h, e, l, i, u, s, R, p, c: string, b, i, r, d, e, y, e, A, p, i, K, ey: string p, u, m, p, f, u, n, A, p, iKey?: string j, u, p, i, t, e, r, A, p, iKey?: string j, i, t, o, A, u, t, h, T, oken?: string j, i, t, o, W, s, U, r, l?: string t, w, o, C, a, p, t, c, h, aKey?: string, h, e, a, d, l, e, s, s, T, i, m, eout: number, j, i, t, o, T, i, p, L, a, m, p, orts: number, j, u, p, i, t, e, r, F, e, e, B, ps: number, h, o, t, k, e, y, s: H, o, t, k, e, y, s, C, o, n, figlastCreatedTokenAddress?: string, s, e, t, S, e, t, t, i, n, g, s: (s, e, t, t, i, n, g, s: Partial < SettingsState >) => v, o, i, d, s, e, t, H, o, t, k, e, y, s: (h, o, t, k, e, y, s: Partial < HotkeysConfig >) => v, o, i, d, s, e, t, L, a, s, t, C, r, eatedTokenAddress: (a, d, d, r, e, s, s: string) => v, o, i, d, f, e, t, c, h, S, e, t, t, ings: () => Promise < vo id >
+} export const use Settings Store = create < SettingsState >((set) => ({ h, e, l, i, u, s, R, p, c: process.env.NEXT_PUBLIC_HELIUS_RPC || '', b, i, r, d, e, y, e, A, p, i, K, e, y: '', p, u, m, p, f, u, n, A, p, i, K, e, y: undefined, j, u, p, i, t, e, r, A, p, i, K, e, y: undefined, j, i, t, o, A, u, t, h, T, o, k, e, n: undefined, j, i, t, o, W, s, U, r, l: process.env.NEXT_PUBLIC_JITO_ENDPOINT, t, w, o, C, a, p, t, c, h, a, K, e, y: undefined, h, e, a, d, l, e, s, s, T, i, m, e, o, ut: 30, j, i, t, o, T, i, p, L, a, m, p, o, r, ts: 5000, j, u, p, i, t, e, r, F, e, e, B, p, s: 5, h, o, t, k, e, y, s: { o, p, e, n, S, e, l, l, M, o, n, i, tor: 'meta + e,ctrl + e', f, u, n, d, G, r, o, u, p: 'g', s, t, a, r, t, B, u, n, d, l, e: 'b', e, x, p, o, r, t, C, s, v: 'e', w, a, l, l, e, t, T, o, g, g, l, e: 'w', c, o, m, m, a, n, d, P, a, l, e, t, te: 'meta + k,ctrl + k' }, l, a, s, t, C, r, e, a, t, e, d, T, o, kenAddress: undefined, s, e, t, S, e, t, t, i, n, g, s: (settings) => s et((state) => ({ ...state, ...settings })), s, e, t, H, o, t, k, e, y, s: (hotkeys) => s et((state) => ({ h, o, t, k, e, y, s: { ...state.hotkeys, ...hotkeys }
+})), s, e, t, L, a, s, t, C, r, e, a, t, e, dTokenAddress: (address) => s et({ l, a, s, t, C, r, e, a, t, e, d, T, o, kenAddress: address }), f, e, t, c, h, S, e, t, t, i, n, g, s: a sync () => { try { const response = await f etch('/api/settings') const data = await response.j son() s et((state) => ({ ...state, j, i, t, o, T, i, p, L, a, m, p, o, r, ts: data.jitoTipLamports, j, u, p, i, t, e, r, F, e, e, B, p, s: data.jupiterFeeBps })) }
 } c atch (error) { console.e rror('Failed to fetch s, e, t, t, i, n, g, s:', error) }
 } }))

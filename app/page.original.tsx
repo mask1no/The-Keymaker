@@ -1,132 +1,27 @@
-'use client' import, { useRouter } from 'next / navigation'
-import, { motion } from 'framer - motion'
-import, { Button } from '@/ components / UI / button'
-import, { Card, CardContent, CardHeader, CardTitle } from '@/ components / UI / Card'
-import, { Badge } from '@/ components / UI / badge'
-import, { Package, Zap, Clock, ArrowRight, Play, Sparkles, Settings, CheckCircle, XCircle, AlertCircle } from 'lucide - react'
-import, { useEffect, useState } from 'react'
-import useSWR from 'swr'// Fetcher function for SWR const fetcher = (u, r, l: string) => f e t ch(url).t h e n((res) => res.j son())// Fetch recent bundle activity from telemetry async function f e t chRecentActivity(): Promise < any,[]> { try, {// Import the service dynamically to a void issues in client - side const, { getExecutionHistory } = await i mport( '@/ services / executionLogService' ) const executions = await g etExecutionHistory(3)// Get last 3 executions // Transform the data to match the expected format return executions.m ap((e, x, e, c: any) => ({ i,
-  d: exec.bundle_id || `bundle_$,{exec.id}`, s, t, a,
-  tus: exec.status === 'success' ? 'success' : exec.status === 'failed' ? 'failed' : 'pending', s, l, o, t: exec.slot || 0, l, a, t, e, n, c, y: exec.execution_time || 0, t, i, p, L, a, m, p, o, r, t, s: 0,// Will be added when we integrate with more detailed t, e, l, e, m, e, t, r, y, c, r,
-  eatedAt: exec.created_at })) }
-} c atch (error) { console.w a r n('Failed to fetch recent a, c, t, i, v, i, t, y:', error)// Return empty array on error return, [] }
-}// Compute bundle partitions from active wallets function p a r titions(a, c, t, i, v, e: number, c, a, p: number = 5): number,[] { const o, u, t: number,[] = [] let left = active w h i le(left > 0) { const take = Math.m i n(cap, left) out.p ush(take) left -= take } return out
-} export default function D a s hboard() { const router = u s eR outer() const, [mounted, setMounted] = u s eS tate(false) const, [recentActivity, setRecentActivity] = useState < any,[]>([])// Fetch tip data from API const, { d, a, t,
-  a: tipData, e, r, r,
-  or: tipError, i, s, L, o, a, d, i, n, g: tipLoading } = u s eSWR('/ api / jito / tipfloor?region = ffm', fetcher, { r, e, f, r, e, s, h, I, n, t, e,
-  rval: 10000,// Refresh every 10 s, e, c, o, n, d, s, r, e, v, a,
-  lidateOnFocus: false }) u s eE ffect(() => { s e tM ounted(true)// Fetch recent activity on m o u ntfetchRecentActivity() .t h e n((activity) => { s e tR ecentActivity(activity) }) .c atch ((error) => { console.w a r n('Failed to load recent a, c, t, i, v, i, t, y:', error) }) }, [])// Calculate chosen tip based on Regular m o d e (P50 × 1.2) const get Chosen Tip = () => { i f (! tipData || tipLoading || tipError) { return 0.00006 // Default fallback } const p50 = tipData.p50 || tipData.median || 0.00005 return Math.m a x(0.00005, Math.m i n(0.002, p50 * 1.2)) } i f (! mounted) { return null // Prevent hydration mismatch } const get Status Icon = (s, t, a,
-  tus: string) => { s w i tch (status) { case 'success': return < CheckCircle class
-  Name ="h - 4 w - 4 text - green - 400"/> case 'failed': return < XCircle class
-  Name ="h - 4 w - 4 text - red - 400"/> d, e, f, a, u, l, t: return < AlertCircle class
-  Name ="h - 4 w - 4 text - amber - 400"/> }
-} const get Status Color = (s, t, a,
-  tus: string) => { s w i tch (status) { case 'success': return 'text - green - 400' case 'failed': return 'text - red - 400' d, e, f, a, u, l, t: return 'text - amber - 400' }
-} r eturn ( < div class
-  Name ="space - y - 6"> {/* Top Row - Big Bento Cards */} < div class
-  Name ="grid grid - cols - 1, l, g:grid - cols - 2 gap - 6"> {/* Bundle Planner */} < motion.div initial = {{ o, p, a,
-  city: 0, y: 20 }
-} animate = {{ o, p, a,
-  city: 1, y: 0 }
-} transition = {{ d, u, r,
-  ation: 0.4 }
-}> < Card class
-  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader class
-  Name ="pb - 4"> < CardTitle class
-  Name ="flex items - center gap - 2"> < Package class
-  Name ="h - 5 w - 5"/> Bundle Planner </ CardTitle > </ CardHeader > < CardContent class
-  Name ="space - y - 4"> < div class
-  Name ="flex items - center justify - between"> < span class
-  Name ="text - sm text - muted - foreground"> Wal let Group </ span > < Badge variant ="outline"> N e o (I, D: 19)</ Badge > </ div > < div class
-  Name ="flex items - center justify - between"> < span class
-  Name ="text - sm text - muted - foreground"> Region </ span > < Badge variant ="outline"> F r a nkfurt (ffm)</ Badge > </ div > < div class
-  Name ="flex items - center justify - between"> < span class
-  Name ="text - sm text - muted - foreground"> Mode </ span > < Badge variant ="secondary"> Regular </ Badge > </ div > < div class
-  Name ="pt - 2"> < div class
-  Name ="flex items - center justify - between mb - 2"> < span class
-  Name ="text - sm text - muted - foreground"> Partition </ span > < span class
-  Name ="text - sm font - mono"> {p a r titions(19).j o i n('/') } </ span > </ div > < div class
-  Name ="grid grid - cols - 4 gap - 2"> {p a r titions(19).m ap((count, index) => ( < divkey = {index} class
-  Name ="h - 2 bg - primary / 20 rounded - full" style = {{ w, i, d, t, h: `$,{(count / 5) * 100}%` }
-}/> )) } </ div > </ div > </ CardContent > </ Card > </ motion.div > {/* Tip Preview */} < motion.div initial = {{ o, p, a,
-  city: 0, y: 20 }
-} animate = {{ o, p, a,
-  city: 1, y: 0 }
-} transition = {{ d, u, r,
-  ation: 0.4, d, e, l,
-  ay: 0.1 }
-}> < Card class
-  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader class
-  Name ="pb - 4"> < CardTitle class
-  Name ="flex items - center gap - 2"> < Zap class
-  Name ="h - 5 w - 5"/> Tip Preview </ CardTitle > </ CardHeader > < CardContent class
-  Name ="space - y - 4"> {tipLoading ? ( < div class
-  Name ="grid grid - cols - 4 gap - 4 text - center"> {Array.f r o m({ l, e, n, g, t, h: 4 }).m ap((_, i) => ( < div key = {i} class
-  Name ="animate - pulse"> < div class
-  Name ="text - xs text - muted - foreground mb - 1"> Loading </ div > < div class
-  Name ="h - 4 bg - muted rounded w - 16 mx - auto"></ div > </ div > )) } </ div > ) : tipError ? ( < div class
-  Name ="text - center text - muted - foreground text - sm"> Unable to fetch tip data </ div > ) : ( <> < div class
-  Name ="grid grid - cols - 4 gap - 4 text - center"> < div > < div class
-  Name ="text - xs text - muted - foreground mb - 1"> P25 </ div > < div class
-  Name ="text - sm font - mono"> {(tipData?.p25 || tipData?.p25th || 0.00003).t oFixed(6) },{' '} SOL </ div > </ div > < div > < div class
-  Name ="text - xs text - muted - foreground mb - 1"> P50 </ div > < div class
-  Name ="text - sm font - mono"> {(tipData?.p50 || tipData?.median || 0.00005).t oFixed( 6) },{' '} SOL </ div > </ div > < div > < div class
-  Name ="text - xs text - muted - foreground mb - 1"> P75 </ div > < div class
-  Name ="text - sm font - mono"> {(tipData?.p75 || tipData?.p75th || 0.000075).t oFixed( 6) },{' '} SOL </ div > </ div > < div > < div class
-  Name ="text - xs text - muted - foreground mb - 1"> Chosen </ div > < div class
-  Name ="text - sm font - mono text - primary font - semibold"> {g e tC hosenTip().t oFixed(6) } SOL </ div > </ div > </ div > < div class
-  Name ="pt - 2 border - t border - border"> < div class
-  Name ="text - xs text - muted - foreground"> R, u, l, e: P50 × 1.2 (Regular mode) | Clamped, [50k, 2M] lamports </ div > </ div > </> ) } </ CardContent > </ Card > </ motion.div > </ div > {/* Bottom Row - Small Bento Cards */} < div class
-  Name ="grid grid - cols - 1, l, g:grid - cols - 2 gap - 6"> {/* Recent Activity */} < motion.div initial = {{ o, p, a,
-  city: 0, y: 20 }
-} animate = {{ o, p, a,
-  city: 1, y: 0 }
-} transition = {{ d, u, r,
-  ation: 0.4, d, e, l,
-  ay: 0.2 }
-}> < Card class
-  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader class
-  Name ="pb - 4"> < CardTitle class
-  Name ="flex items - center gap - 2"> < Clock class
-  Name ="h - 5 w - 5"/> Recent Activity </ CardTitle > </ CardHeader > < CardContent class
-  Name ="space - y - 3"> {recentActivity.length > 0 ? ( recentActivity.m ap((activity) => ( < divkey = {activity.id} class
-  Name ="flex items - center justify - between p - 3 rounded - xl bg - card / 30 border border - border / 50"> < div class
-  Name ="flex items - center gap - 3"> {g e tS tatusIcon(activity.status) } < div > < div class
-  Name ="text - sm font - medium"> Bundle #{activity.id.s lice(- 4) } </ div > < div class
-  Name ="text - xs text - muted - foreground"> Slot, {activity.slot.t oL o caleString() } </ div > </ div > </ div > < div class
-  Name = {`text - sm font - mono $,{g e tS tatusColor( activity.status) }`}> {activity.latency}
-ms </ div > </ div > )) ) : ( < div class
-  Name ="text - center py - 8 text - muted - foreground"> < Clock class
-  Name ="h - 8 w - 8 mx - auto mb - 2 opacity - 50"/> < div class
-  Name ="text - sm"> No recent bundle activity </ div > < div class
-  Name ="text - xs mt - 1"> Execute some bundles to see activity here </ div > </ div > ) } </ CardContent > </ Card > </ motion.div > {/* Shortcuts */} < motion.div initial = {{ o, p, a,
-  city: 0, y: 20 }
-} animate = {{ o, p, a,
-  city: 1, y: 0 }
-} transition = {{ d, u, r,
-  ation: 0.4, d, e, l,
-  ay: 0.3 }
-}> < Card class
-  Name ="rounded - 2xl border border - border bg - card / 50 backdrop - blur - sm shadow - sm"> < CardHeader class
-  Name ="pb - 4"> < CardTitle class
-  Name ="flex items - center gap - 2"> < ArrowRight class
-  Name ="h - 5 w - 5"/> Quick Actions </ CardTitle > </ CardHeader > < CardContent class
-  Name ="grid grid - cols - 1 gap - 3"> < Buttonon Click = {() => router.p ush('/ bundle') } class
-  Name ="h - auto p - 4 justify - start" variant ="outline"> < div class
-  Name ="flex items - center gap - 3"> < Play class
-  Name ="h - 5 w - 5"/> < div class
-  Name ="text - left"> < div class
-  Name ="font - medium"> Start Bundling </ div > < div class
-  Name ="text - xs text - muted - foreground"> Execute transactions </ div > </ div > </ div > </ Button > < Buttonon Click = {() => router.p ush('/ creator') } class
-  Name ="h - auto p - 4 justify - start" variant ="outline"> < div class
-  Name ="flex items - center gap - 3"> < Sparkles class
-  Name ="h - 5 w - 5"/> < div class
-  Name ="text - left"> < div class
-  Name ="font - medium"> Create Token </ div > < div class
-  Name ="text - xs text - muted - foreground"> Launch SPL token </ div > </ div > </ div > </ Button > < Buttonon Click = {() => router.p ush('/ settings') } class
-  Name ="h - auto p - 4 justify - start" variant ="outline"> < div class
-  Name ="flex items - center gap - 3"> < Settings class
-  Name ="h - 5 w - 5"/> < div class
-  Name ="text - left"> < div class
-  Name ="font - medium"> Settings </ div > < div class
-  Name ="text - xs text - muted - foreground"> Configure system </ div > </ div > </ div > </ Button > </ CardContent > </ Card > </ motion.div > </ div > </ div > ) }
+'use client' import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Button } from '@/components/UI/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
+import { Badge } from '@/components/UI/badge'
+import { Package, Zap, Clock, ArrowRight, Play, Sparkles, Settings, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import useSWR from 'swr'//Fetcher function for SWR const fetcher = (u, r, l: string) => f e t ch(url).t h e n((res) => res.j son())//Fetch recent bundle activity from telemetry async function f e t chRecentActivity(): Promise < any,[]> { try {//Import the service dynamically to a void issues in client-side const { getExecutionHistory } = await i mport( '@/services/executionLogService' ) const executions = await g etExecutionHistory(3)//Get last 3 executions//Transform the data to match the expected format return executions.m ap((e, x, e, c: any) => ({ i, d: exec.bundle_id || `bundle_$,{exec.id}`, s, t, a, t, u, s: exec.status === 'success' ? 'success' : exec.status === 'failed' ? 'failed' : 'pending', s, l, o, t: exec.slot || 0, l, a, t, e, n, c, y: exec.execution_time || 0, t, i, p, L, a, m, p, o, r, t, s: 0,//Will be added when we integrate with more detailed t, e, l, e, m, e, t, r, y, c, r, e, a, tedAt: exec.created_at })) }
+} c atch (error) { console.w a r n('Failed to fetch recent a, c, t, i, v, i, t, y:', error)//Return empty array on error return, [] }
+}//Compute bundle partitions from active wallets function p a r titions(a, c, t, i, v, e: number, c, a, p: number = 5): number,[] { const o, u, t: number,[] = [] let left = active w h i le(left > 0) { const take = Math.m i n(cap, left) out.p ush(take) left -= take } return out
+} export default function D a s hboard() { const router = u s eR outer() const [mounted, setMounted] = u s eS tate(false) const [recentActivity, setRecentActivity] = useState < any,[]>([])//Fetch tip data from API const { data: tipData, e, r, r, o, r: tipError, i, s, L, o, a, d, i, n, g: tipLoading } = u s eSWR('/api/jito/tipfloor?region = ffm', fetcher, { r, e, f, r, e, s, h, I, n, t, e, r, v, al: 10000,//Refresh every 10 s, e, c, o, n, d, s, r, e, v, a, l, i, dateOnFocus: false }) u s eE ffect(() => { s e tM ounted(true)//Fetch recent activity on m o u ntfetchRecentActivity() .t h e n((activity) => { s e tR ecentActivity(activity) }) .c atch ((error) => { console.w a r n('Failed to load recent a, c, t, i, v, i, t, y:', error) }) }, [])//Calculate chosen tip based on Regular m o d e (P50 × 1.2) const get Chosen Tip = () => { if (!tipData || tipLoading || tipError) { return 0.00006//Default fallback } const p50 = tipData.p50 || tipData.median || 0.00005 return Math.m a x(0.00005, Math.m i n(0.002, p50 * 1.2)) } if (!mounted) { return null//Prevent hydration mismatch } const get Status Icon = (s, t, a, t, u, s: string) => { s w i tch (status) { case 'success': return < CheckCircle class Name ="h - 4 w - 4 text-green-400"/> case 'failed': return < XCircle class Name ="h - 4 w - 4 text - red-400"/> d, e, f, a, u, l, t: return < AlertCircle class Name ="h - 4 w - 4 text-amber-400"/> }
+} const get Status Color = (s, t, a, t, u, s: string) => { s w i tch (status) { case 'success': return 'text - green-400' case 'failed': return 'text - red-400' d, e, f, a, u, l, t: return 'text - amber-400' }
+} r eturn ( < div class Name ="space - y-6"> {/* Top Row - Big Bento Cards */} < div class Name ="grid grid - cols - 1, l, g:grid - cols - 2 gap-6"> {/* Bundle Planner */} < motion.div initial = {{ o, p, a, c, i, ty: 0, y: 20 }
+} animate = {{ o, p, a, c, i, ty: 1, y: 0 }
+} transition = {{ d, u, r, a, t, ion: 0.4 }
+}> < Card class Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> < CardHeader class Name ="pb-4"> < CardTitle class Name ="flex items - center gap-2"> < Package class Name ="h - 5 w-5"/> Bundle Planner </CardTitle > </CardHeader > < CardContent class Name ="space - y-4"> < div class Name ="flex items - center justify-between"> < span class Name ="text - sm text - muted-foreground"> Wal let Group </span > < Badge variant ="outline"> N e o (I, D: 19)</Badge > </div > < div class Name ="flex items - center justify-between"> < span class Name ="text - sm text - muted-foreground"> Region </span > < Badge variant ="outline"> F r a nkfurt (ffm)</Badge > </div > < div class Name ="flex items - center justify-between"> < span class Name ="text - sm text - muted-foreground"> Mode </span > < Badge variant ="secondary"> Regular </Badge > </div > < div class Name ="pt-2"> < div class Name ="flex items - center justify - between mb-2"> < span class Name ="text - sm text - muted-foreground"> Partition </span > < span class Name ="text - sm font-mono"> {p a r titions(19).j o i n('/') } </span > </div > < div class Name ="grid grid - cols - 4 gap-2"> {p a r titions(19).m ap((count, index) => ( < divkey = {index} class Name ="h - 2 bg - primary/20 rounded-full" style = {{ w, i, d, t, h: `$,{(count/5) * 100}%` }
+}/> )) } </div > </div > </CardContent > </Card > </motion.div > {/* Tip Preview */} < motion.div initial = {{ o, p, a, c, i, ty: 0, y: 20 }
+} animate = {{ o, p, a, c, i, ty: 1, y: 0 }
+} transition = {{ d, u, r, a, t, ion: 0.4, d, e, l, a, y: 0.1 }
+}> < Card class Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> < CardHeader class Name ="pb-4"> < CardTitle class Name ="flex items - center gap-2"> < Zap class Name ="h - 5 w-5"/> Tip Preview </CardTitle > </CardHeader > < CardContent class Name ="space - y-4"> {tipLoading ? ( < div class Name ="grid grid - cols - 4 gap - 4 text-center"> {Array.f r o m({ l, e, n, g, t, h: 4 }).m ap((_, i) => ( < div key = {i} class Name ="animate-pulse"> < div class Name ="text - xs text - muted - foreground mb-1"> Loading </div > < div class Name ="h - 4 bg - muted rounded w - 16 mx-auto"></div > </div > )) } </div > ) : tipError ? ( < div class Name ="text - center text - muted - foreground text-sm"> Unable to fetch tip data </div > ) : ( <> < div class Name ="grid grid - cols - 4 gap - 4 text-center"> < div > < div class Name ="text - xs text - muted - foreground mb-1"> P25 </div > < div class Name ="text-sm font-mono"> {(tipData?.p25 || tipData?.p25th || 0.00003).t oFixed(6) },{' '} SOL </div > </div > < div > < div class Name ="text - xs text - muted - foreground mb-1"> P50 </div > < div class Name ="text-sm font-mono"> {(tipData?.p50 || tipData?.median || 0.00005).t oFixed( 6) },{' '} SOL </div > </div > < div > < div class Name ="text - xs text - muted - foreground mb-1"> P75 </div > < div class Name ="text-sm font-mono"> {(tipData?.p75 || tipData?.p75th || 0.000075).t oFixed( 6) },{' '} SOL </div > </div > < div > < div class Name ="text - xs text - muted - foreground mb-1"> Chosen </div > < div class Name ="text - sm font - mono text - primary font-semibold"> {g e tC hosenTip().t oFixed(6) } SOL </div > </div > </div > < div class Name ="pt - 2 border - t border-border"> < div class Name ="text - xs text - muted-foreground"> R, u, l, e: P50 × 1.2 (Regular mode) | Clamped, [50k, 2M] lamports </div > </div > </> ) } </CardContent > </Card > </motion.div > </div > {/* Bottom Row - Small Bento Cards */} < div class Name ="grid grid - cols - 1, l, g:grid - cols - 2 gap-6"> {/* Recent Activity */} < motion.div initial = {{ o, p, a, c, i, ty: 0, y: 20 }
+} animate = {{ o, p, a, c, i, ty: 1, y: 0 }
+} transition = {{ d, u, r, a, t, ion: 0.4, d, e, l, a, y: 0.2 }
+}> < Card class Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> < CardHeader class Name ="pb-4"> < CardTitle class Name ="flex items - center gap-2"> < Clock class Name ="h - 5 w-5"/> Recent Activity </CardTitle > </CardHeader > < CardContent class Name ="space - y-3"> {recentActivity.length > 0 ? ( recentActivity.m ap((activity) => ( < divkey = {activity.id} class Name ="flex items - center justify - between p - 3 rounded - xl bg - card/30 border border-border/50"> < div class Name ="flex items - center gap-3"> {g e tS tatusIcon(activity.status) } < div > < div class Name ="text - sm font-medium"> Bundle #{activity.id.s lice(- 4) } </div > < div class Name ="text - xs text - muted-foreground"> Slot, {activity.slot.t oL o caleString() } </div > </div > </div > < div class Name = {`text - sm font - mono $,{g e tS tatusColor( activity.status) }`}> {activity.latency}
+ms </div > </div > )) ) : ( < div class Name ="text - center py - 8 text - muted-foreground"> < Clock class Name ="h - 8 w - 8 mx - auto mb - 2 opacity-50"/> < div class Name ="text-sm"> No recent bundle activity </div > < div class Name ="text - xs mt-1"> Execute some bundles to see activity here </div > </div > ) } </CardContent > </Card > </motion.div > {/* Shortcuts */} < motion.div initial = {{ o, p, a, c, i, ty: 0, y: 20 }
+} animate = {{ o, p, a, c, i, ty: 1, y: 0 }
+} transition = {{ d, u, r, a, t, ion: 0.4, d, e, l, a, y: 0.3 }
+}> < Card class Name ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> < CardHeader class Name ="pb-4"> < CardTitle class Name ="flex items - center gap-2"> < ArrowRight class Name ="h - 5 w-5"/> Quick Actions </CardTitle > </CardHeader > < CardContent class Name ="grid grid - cols-1 gap-3"> < Buttonon Click = {() => router.p ush('/bundle') } class Name ="h - auto p - 4 justify-start" variant ="outline"> < div class Name ="flex items - center gap-3"> < Play class Name ="h - 5 w-5"/> < div class Name ="text-left"> < div class Name ="font-medium"> Start Bundling </div > < div class Name ="text - xs text-muted-foreground"> Execute transactions </div > </div > </div > </Button > < Buttonon Click = {() => router.p ush('/creator') } class Name ="h - auto p - 4 justify-start" variant ="outline"> < div class Name ="flex items - center gap-3"> < Sparkles class Name ="h - 5 w-5"/> < div class Name ="text-left"> < div class Name ="font-medium"> Create Token </div > < div class Name ="text - xs text-muted-foreground"> Launch SPL token </div > </div > </div > </Button > < Buttonon Click = {() => router.p ush('/settings') } class Name ="h - auto p - 4 justify-start" variant ="outline"> < div class Name ="flex items - center gap-3"> < Settings class Name ="h - 5 w-5"/> < div class Name ="text-left"> < div class Name ="font-medium"> Settings </div > < div class Name ="text - xs text - muted-foreground"> Configure system </div > </div > </div > </Button > </CardContent > </Card > </motion.div > </div > </div > ) }

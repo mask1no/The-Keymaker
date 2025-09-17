@@ -1,29 +1,22 @@
-import { NextResponse } from 'next/server';
-import { getTipFloor } from '@/lib/server/jitoService';
+import { NextResponse } from 'next/server'
+import { getTipFloor } from '@/lib/server/jitoService'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url);
-    const region = url.searchParams.get('region') || 'ffm';
-    const tipFloor = await getTipFloor(region);
+    const url = new URL(request.url)
+    const region = url.searchParams.get('region') || 'ffm'
+    const tipFloor = await getTipFloor(region)
     return NextResponse.json({
       p25: tipFloor.landed_tips_25th_percentile,
       p50: tipFloor.landed_tips_50th_percentile,
       p75: tipFloor.landed_tips_75th_percentile,
       ema_50th: tipFloor.ema_landed_tips_50th_percentile,
       region,
-    });
+    })
   } catch (error: any) {
-    console.error('Tip floor request failed:', error);
-    return NextResponse.json({
-      p25: 0,
-      p50: 0,
-      p75: 0,
-      ema_50th: 0,
-      region: 'ffm',
-      note: 'fallback',
-    });
+    console.error('Tip floor request failed:', error)
+    return NextResponse.json({ p25: 0, p50: 0, p75: 0, ema_50th: 0, region: 'ffm', note: 'fallback' })
   }
 }

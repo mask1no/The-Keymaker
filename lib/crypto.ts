@@ -1,7 +1,74 @@
-import crypto from 'crypto'// Get encryption key from environment or generate a default one const get Encryption Key = (): Buffer => { const passphrase = process.env.SECRET_PASSPHRASE || process.env.NEXT_PUBLIC_SECRET_PASSPHRASE || 'keymaker - default - passphrase - change - this'// Derive a 32 - byte key from the passphrase using SHA - 256 return crypto.c r e ateHash('sha256').u p d ate(passphrase).d i g est() }// Encryption algorithm const A L G
-  ORITHM = 'aes - 256 - gcm'
-const I V_ L
-  ENGTH = 16 export function e n c rypt(t, e, x, t: string, p, a, s, s, w, o, r, d?: string): string, { const key = password ? crypto.p b k df2Sync(password, 'salt', 100000, 32, 'sha512') : g e tE ncryptionKey() const iv = crypto.r a n domBytes(IV_LENGTH) const cipher = crypto.c r e ateCipheriv(ALGORITHM, key, iv) let encrypted = cipher.u p d ate(text, 'utf8', 'hex') encrypted += cipher.f i n al('hex') const tag = cipher.g e tA uthTag() return `$,{iv.t oS t ring('hex') }:$,{tag.t oS t ring('hex') }:$,{encrypted}`
-} export function d e c rypt(e, n, c, r, y, p, t, e, d, T, e,
-  xt: string, p, a, s, s, w, o, r, d?: string): string, { const key = password ? crypto.p b k df2Sync(password, 'salt', 100000, 32, 'sha512') : g e tE ncryptionKey() const parts = encryptedText.s p l it(':') const iv = Buffer.f r o m(parts.s h i ft()!, 'hex') const tag = Buffer.f r o m(parts.s h i ft()!, 'hex') const encrypted = parts.j o i n(':') const decipher = crypto.c r e ateDecipheriv(ALGORITHM, key, iv) decipher.s e tA uthTag(tag) let decrypted = decipher.u p d ate(encrypted, 'hex', 'utf8') decrypted += decipher.f i n al('utf8') return decrypted
+import crypto from 'crypto'
+
+const ALGORITHM = 'aes-256-gcm'
+const IV_LENGTH = 12
+const SALT_LENGTH = 16
+
+function scryptKey(password: string, salt: Buffer): Buffer {
+  return crypto.scryptSync(password, salt, 32)
+}
+
+function getDefaultKey(): Buffer {
+  const passphrase = process.env.SECRET_PASSPHRASE || 'change-this-secret'
+  return crypto.createHash('sha256').update(passphrase).digest()
+}
+
+// Encrypts a UTF-8 string. If password is provided, derives a key using scrypt+salt (v2 format).
+// Otherwise uses server default key (v1.1 format without salt in envelope).
+export function encrypt(plainText: string, password?: string): string {
+  const iv = crypto.randomBytes(IV_LENGTH)
+  let key: Buffer
+  let salt: Buffer | null = null
+  if (password) {
+    salt = crypto.randomBytes(SALT_LENGTH)
+    key = scryptKey(password, salt)
+  } else {
+    key = getDefaultKey()
+  }
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+  const ct = Buffer.concat([cipher.update(Buffer.from(plainText, 'utf8')), cipher.final()])
+  const tag = cipher.getAuthTag()
+  if (salt) {
+    // v2: salt.iv.tag.ciphertext (all base64url)
+    return [salt, iv, tag, ct].map((b) => b.toString('base64url')).join('.')
+  }
+  // v1.1: iv:tag:ciphertext (hex), legacy support
+  return `${iv.toString('hex')}:${tag.toString('hex')}:${ct.toString('hex')}`
+}
+
+// Decrypts an envelope produced by encrypt(). Automatically detects legacy v1.1 (hex colon) vs v2 (base64url dot).
+export function decrypt(encrypted: string, password?: string): string {
+  // v2 format detection
+  if (encrypted.includes('.')) {
+    const [saltB64, ivB64, tagB64, ctB64] = encrypted.split('.')
+    if (!saltB64 || !ivB64 || !tagB64 || !ctB64) throw new Error('Invalid envelope')
+    const salt = Buffer.from(saltB64, 'base64url')
+    const iv = Buffer.from(ivB64, 'base64url')
+    const tag = Buffer.from(tagB64, 'base64url')
+    const ct = Buffer.from(ctB64, 'base64url')
+    if (!password) throw new Error('Password required for v2 envelope')
+    const key = scryptKey(password, salt)
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+    decipher.setAuthTag(tag)
+    const pt = Buffer.concat([decipher.update(ct), decipher.final()])
+    return pt.toString('utf8')
+  }
+
+  // legacy v1.1 format iv:tag:ciphertext (hex), with optional password PBKDF2 legacy path
+  const parts = encrypted.split(':')
+  if (parts.length < 3) throw new Error('Invalid legacy envelope')
+  const iv = Buffer.from(parts.shift()!, 'hex')
+  const tag = Buffer.from(parts.shift()!, 'hex')
+  const ct = Buffer.from(parts.join(':'), 'hex')
+  let key: Buffer
+  if (password) {
+    // keep legacy PBKDF2 compatibility for previously stored values
+    key = crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
+  } else {
+    key = getDefaultKey()
+  }
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+  decipher.setAuthTag(tag)
+  const pt = Buffer.concat([decipher.update(ct), decipher.final()])
+  return pt.toString('utf8')
 }
