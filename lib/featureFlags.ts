@@ -1,9 +1,3 @@
-export const E
-N ABLE_PUMPFUN = process.env.E
-N ABLE_PUMPFUN === 'true'
-export const E
-N ABLE_DEV_TOKENS = process.env.E
-N ABLE_DEV_TOKENS === 'true'
-export const E
-N ABLE_SELL = process.env.E
-N ABLE_SELL === 'true'
+export const ENABLE_PUMPFUN = process.env.ENABLE_PUMPFUN === 'true'
+export const ENABLE_DEV_TOKENS = process.env.ENABLE_DEV_TOKENS === 'true'
+export const ENABLE_SELL = process.env.ENABLE_SELL === 'true'
