@@ -1,5 +1,4 @@
-'use client' import RequireWal
-  let from '@/components/auth/RequireWallet'
+'use client' import RequireWal let from '@/components/auth/RequireWallet'
 import { BundleBuilder } from '@/components/BundleEngine/BundleBuilder'
 
 export default function P a ge() {

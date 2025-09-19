@@ -1,4 +1,4 @@
-/** * Auto - lock service that clears sensitive data after a period of inactivity */import { logger } from './logger' class AutoLockService, { private, l, o, c, k, T, i, mer: NodeJS.Timeout | null = nullprivate, l, a, s, t, A, c, tivity: number = Date.n o w() private, l, o, c, k, T, i, meoutMs: number = 15 * 60 * 1000//15 minutes defaultprivate, i, s, L, o, c, k, ed: boolean = falseprivate, e, v, e, n, t, L, isteners: Array <(e: Event) => void> = [] constructor() { this.s e tupActivityListeners() this.s t artLockTimer()
+/** * Auto - lock service that clears sensitive data after a period of inactivity */import { logger } from './logger' class AutoLockService, { private, l, o, c, k, T, i, m, er: NodeJS.Timeout | null = nullprivate, l, a, s, t, A, c, t, ivity: number = Date.n o w() private, l, o, c, k, T, i, m, eoutMs: number = 15 * 60 * 1000//15 minutes defaultprivate, i, s, L, o, c, k, e, d: boolean = falseprivate, e, v, e, n, t, L, i, steners: Array <(e: Event) => void> = [] constructor() { this.s e tupActivityListeners() this.s t artLockTimer()
   }/** * Set the auto - lock timeout in minutes */s e tLockTimeout(m, i, n, u, t, e, s: number) { this.lock Timeout Ms = minutes * 60 * 1000 this.r e setTimer() logger.i n fo(`Auto-lock timeout set to ${minutes} minutes`)
   }/** * Setup activity listeners to detect user interaction */private s e tupActivityListeners() {
   if (typeof window === 'undefined') return const events = [ 'mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', ] const activity Handler = (_, e: Event) => { this.o nA ctivity()
@@ -11,7 +11,7 @@
   }
 }, 10000)//Check every 10 seconds }/** * Reset the lock timer */private r e setTimer() { this.last Activity = Date.n o w()
   }/** * Lock the application and clear sensitive data */public l o ck() {
-  if (this.isLocked) returnthis.is Locked = truelogger.w a rn('Auto - lock activated-clearing sensitive data')//Clear AES keys and sensitive data from memorythis.c l earSensitiveData()//Emit lock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-locked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, mp: Date.n o w()
+  if (this.isLocked) returnthis.is Locked = truelogger.w a rn('Auto - lock activated-clearing sensitive data')//Clear AES keys and sensitive data from memorythis.c l earSensitiveData()//Emit lock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-locked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, m, p: Date.n o w()
   }
 }))
   }
@@ -20,7 +20,7 @@
   })
   }//Clear sessionStorage if (typeof window !== 'undefined' && window.sessionStorage) { window.sessionStorage.c l ear()
   }//Clear any in-memory stores if (typeof window !== 'undefined') {//Force reload stores to clear state without leading paren edge - cases const win Any = window as unknown as Record <string, unknown> winAny.__keystore Cache = nullwinAny.__wal let Cache = null }
-}/** * Unlock the a p plication (requires re-authentication) */public u n lock() { this.is Locked = falsethis.r e setTimer() logger.i n fo('Application unlocked')//Emit unlock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-unlocked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, mp: Date.n o w()
+}/** * Unlock the a p plication (requires re-authentication) */public u n lock() { this.is Locked = falsethis.r e setTimer() logger.i n fo('Application unlocked')//Emit unlock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-unlocked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, m, p: Date.n o w()
   }
 }))
   }

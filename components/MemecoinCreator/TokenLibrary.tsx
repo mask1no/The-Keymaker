@@ -1,13 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/UI/input'
-import { Button } from '@/components/UI/button' type Token Meta = { n, a, m, e: string, s, y, m, b, o, l: string, d, e, c, i, m, a, ls: number i, m, a, g, e?: string w, e, b, s, i, te?: string t, w, i, t, t, er?: string d, e, s, c, r, iption?: string
+import { Button } from '@/components/UI/button' type Token Meta = { n, a, m, e: string, s, y, m, b, o, l: string, d, e, c, i, m, a, l, s: number i, m, a, g, e?: string w, e, b, s, i, t, e?: string t, w, i, t, t, e, r?: string d, e, s, c, r, i, ption?: string
 }
 export default function T o kenLibrary({ onPick }: { o, n, P, i, c, k: (t: TokenMeta) => void
 }) {
   const [q, setQ] = u s eState('') const [items, setItems] = useState <TokenMeta,[]>([]) u s eEffect(() => { import('@/data/token-library.json').t h en((m) => s e tItems(m.default as TokenMeta,[]))
   }, []) const list = items.f i lter((x) => (x.name + x.symbol).t oL owerCase().i n cludes(q.t oL owerCase())) return ( <div className ="rounded - 2xl border border - border bg - card p - 4 space - y-3"> <div className ="text - sm font-medium"> Token Library </div> <Input placeholder ="Search token…" value ={q} on Change ={(e) => s e tQ(e.target.value)
-  }/> <div className ="grid, md:grid - cols - 2 gap-3"> {list.map((t) => ( <divkey ={t.symbol} className ="rounded - xl border border - border p - 3 flex items - center justify-between"> <div> <div className ="font-medium"> {t.name} <span className ="opacity-70">({t.symbol})</span> </div> {t.website && ( <div className ="text - xs opacity-70">{t.website}</div> )
+  }/> <div className ="grid, m, d:grid - cols - 2 gap-3"> {list.map((t) => ( <divkey ={t.symbol} className ="rounded - xl border border - border p - 3 flex items - center justify-between"> <div> <div className ="font-medium"> {t.name} <span className ="opacity-70">({t.symbol})</span> </div> {t.website && ( <div className ="text - xs opacity-70">{t.website}</div> )
   } </div> <Button size ="sm" className ="rounded-xl" onClick ={() => o nP ick(t)
   }> Use </Button> </div> ))
   }, {list.length === 0 && ( <div className ="text - sm opacity-70"> No matches.</div> )

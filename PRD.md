@@ -88,7 +88,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 #### Detailed F, l, o, w:
 
 1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, teOnly: true`)
+2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, t, eOnly: true`)
 3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
@@ -137,7 +137,7 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response S, t, r, u, c, t, ure:**
+**Response S, t, r, u, c, t, u, re:**
 
 ```json
 {

@@ -1,7 +1,7 @@
 import nacl from 'tweetnacl'
 import { PublicKey } from '@solana/web3.js'
 
-export function v e rifySignedIntent({ address, nonce, signatureBase64, body }: { a, d, d, r, e, s, s: string, n, o, n, c, e: string s, i, g, n, a, t, u, reBase64: string b, o, d, y: unknown
+export function v e rifySignedIntent({ address, nonce, signatureBase64, body }: { a, d, d, r, e, s, s: string, n, o, n, c, e: string s, i, g, n, a, t, u, r, eBase64: string b, o, d, y: unknown
 }) {
   try {
   const message = new T e xtEncoder().e n code(`${nonce}:${JSON.s t ringify(body)

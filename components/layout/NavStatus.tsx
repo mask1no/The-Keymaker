@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Server, Radio, Zap } from 'lucide-react' const Chip = ({ ok, label, Icon }: { o, k: boolean label: string I, c, o, n: any
+import { Server, Radio, Zap } from 'lucide-react' const Chip = ({ ok, label, Icon }: { o, k: boolean l, abel: string I, c, o, n: any
 }) => ( <div className ="flex items - center gap - 2 rounded - xl border px - 2 py - 1 text - xs bg-card"> <Icon className ="h - 3.5 w - 3.5 opacity-90"/> <span className ={ok ? 'text-foreground' : 'text - muted-foreground'}> {label} </span> </div>
 ) export default function N a vStatus() {
   const [rpc, setRpc] = u s eState(false) const [ws, setWs] = u s eState(false) const [jito, setJito] = u s eState(false) const [net, setNet] = useState <'MAINNET' | 'DEVNET' | 'UNKNOWN'>('UNKNOWN') u s eEffect(() => {

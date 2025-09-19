@@ -6,13 +6,13 @@ import { NotificationCenter } from '@/components/Notifications/NotificationCente
 import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel'
 import { ControlCenter } from '@/components/ControlCenter/ControlCenter'
   const Dashboard Wrapper = () => {
-  return ( <motion.div initial = {{ opacity: 0, scale: 0.95 }
-} animate = {{ opacity: 1, scale: 1 }
-} transition = {{ duration: 0.3 }
-} className ="p - 4, sm:p - 6, md:p-8"> <div className ="grid grid - cols - 1, md:grid - cols - 3, lg:grid - cols - 4 gap - 4, sm:gap-6"> <motion.div whileHover = {{ y: - 5, scale: 1.02 }
-} className =", md:col - span - 2, lg:col - span - 3 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <ControlCenter/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, scale: 1.02 }
-} className =", lg:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <AnalyticsPanel/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, scale: 1.02 }
-} className =", md:col - span - 1, lg:col - span - 2 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <BundleBuilder/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, scale: 1.02 }
-} className =", md:col - span - 1, lg:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <CreatorForm/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, scale: 1.02 }
-} className =", md:col - span - 1, lg:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <NotificationCenter/> </Suspense> </motion.div> </div> </motion.div> )
+  return ( <motion.div initial = {{ o, pacity: 0, s, cale: 0.95 }
+} animate = {{ o, pacity: 1, s, cale: 1 }
+} transition = {{ d, uration: 0.3 }
+} className ="p - 4, s, m:p - 6, m, d:p-8"> <div className ="grid grid - cols - 1, m, d:grid - cols - 3, l, g:grid - cols - 4 gap - 4, s, m:gap-6"> <motion.div whileHover = {{ y: - 5, s, cale: 1.02 }
+} className =", m, d:col - span - 2, l, g:col - span - 3 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <ControlCenter/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, s, cale: 1.02 }
+} className =", l, g:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <AnalyticsPanel/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, s, cale: 1.02 }
+} className =", m, d:col - span - 1, l, g:col - span - 2 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <BundleBuilder/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, s, cale: 1.02 }
+} className =", m, d:col - span - 1, l, g:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <CreatorForm/> </Suspense> </motion.div> <motion.div whileHover = {{ y: - 5, s, cale: 1.02 }
+} className =", m, d:col - span - 1, l, g:col - span - 1 bento-card"> <Suspense fallback = {<Skeleton className ="h - full w-full"/>}> <NotificationCenter/> </Suspense> </motion.div> </div> </motion.div> )
   } export default DashboardWrapper

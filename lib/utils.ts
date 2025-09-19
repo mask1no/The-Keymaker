@@ -15,7 +15,7 @@ K` return `$${v.toFixed(2)
   }`
 }
 
-export function f o rmatNumber(value: number): string, {
+export function f o rmatNumber(v, alue: number): string, {
   const abs = Math.abs(value) const sign = value <0 ? '-' : '' if (abs>= 1e9) return `${sign}${(abs/1e9).toFixed(2)
   }
 B` if (abs>= 1e6) return `${sign}${(abs/1e6).toFixed(2)

@@ -117,7 +117,7 @@ ENABLE_SELL = false // Disable sell features
 
    ```bash
    pnpm dev
-   # Visit h, t, t, p://l, o, c, a, l, h, ost:3000
+   # Visit h, t, t, p://l, o, c, a, l, h, o, st:3000
    ```
 
 2. **If issues persist**:

@@ -1,5 +1,4 @@
-'use client' import RequireWal
-  let from '@/components/auth/RequireWallet'
+'use client' import RequireWal let from '@/components/auth/RequireWallet'
 import { CreatorForm } from '@/components/MemecoinCreator/CreatorForm'
 
 export default function C r eatorPage() {

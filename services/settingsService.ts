@@ -1,41 +1,41 @@
 import 'server-only'//import { open } from 'sqlite'//import sqlite3 from 'sqlite3'//Dynamic imports below import { toast } from 'react - hot-toast'
 
-export interface Settings, { n, e, t, w, o, r, k: 'mainnet-beta' | 'devnet' r, p, c, U, r, l: string, w, s, U, r, l: string, j, i, t, o, E, n, abled: boolean, t, i, p, A, m, o, unt: number, d, e, f, a, u, l, tSlippage: number, d, e, f, a, u, l, tPriorityFee: number, a, u, t, o, R, e, freshInterval: number, d, a, r, k, M, o, de: boolean, s, o, u, n, d, N, otifications: boolean a, p, i, K, e, ys?: { h, e, l, i, u, s, Rpc?: string b, i, r, d, e, yeApiKey?: string p, u, m, p, f, unApiKey?: string l, e, t, s, b, onkApiKey?: string }
-} const D, E, F, A, U, L, T, _, SETTINGS: Settings = { n, e, t, w, o, r, k: 'mainnet-beta', r, p, c, U, r, l: 'h, t, t, p, s://api.mainnet-beta.solana.com', w, s, U, r, l: 'w, s, s://api.mainnet-beta.solana.com', j, i, t, o, E, n, a, b, led: true, t, i, p, A, m, o, u, n, t: 0.001, d, e, f, a, u, l, t, S, lippage: 5, d, e, f, a, u, l, t, P, riorityFee: 0.00001, a, u, t, o, R, e, f, r, eshInterval: 30, d, a, r, k, M, o, d, e: true, s, o, u, n, d, N, o, t, ifications: true, a, p, i, K, e, y, s: {}
+export interface Settings, { n, e, t, w, o, r, k: 'mainnet-beta' | 'devnet' r, p, c, U, r, l: string, w, s, U, r, l: string, j, i, t, o, E, n, a, bled: boolean, t, i, p, A, m, o, u, nt: number, d, e, f, a, u, l, t, Slippage: number, d, e, f, a, u, l, t, PriorityFee: number, a, u, t, o, R, e, f, reshInterval: number, d, a, r, k, M, o, d, e: boolean, s, o, u, n, d, N, o, tifications: boolean a, p, i, K, e, y, s?: { h, e, l, i, u, s, R, pc?: string b, i, r, d, e, y, eApiKey?: string p, u, m, p, f, u, nApiKey?: string l, e, t, s, b, o, nkApiKey?: string }
+} const D, E, F, A, U, L, T, _, S, ETTINGS: Settings = { n, e, t, w, o, r, k: 'mainnet-beta', r, p, c, U, r, l: 'h, t, t, p, s://api.mainnet-beta.solana.com', w, s, U, r, l: 'w, s, s://api.mainnet-beta.solana.com', j, i, t, o, E, n, a, b, l, ed: true, t, i, p, A, m, o, u, n, t: 0.001, d, e, f, a, u, l, t, S, l, ippage: 5, d, e, f, a, u, l, t, P, r, iorityFee: 0.00001, a, u, t, o, R, e, f, r, e, shInterval: 30, d, a, r, k, M, o, d, e: true, s, o, u, n, d, N, o, t, i, fications: true, a, p, i, K, e, y, s: {}
 } async function g e tDb() {
-  const path = (await import('path')).default const db Path = path.j o in(process.c w d(), 'data', 'keymaker.db') const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite') return o p en({ f, i, l, e, n, a, me: dbPath, d, r, i, v, e, r: sqlite3.Database })
-  }/** * Validate RPC URL */export function v a lidateRpcUrl(u, r, l: string): { v, a, l, id: boolean error?: string
+  const path = (await import('path')).default const db Path = path.j o in(process.c w d(), 'data', 'keymaker.db') const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite') return o p en({ f, i, l, e, n, a, m, e: dbPath, d, r, i, v, e, r: sqlite3.Database })
+  }/** * Validate RPC URL */export function v a lidateRpcUrl(u, r, l: string): { v, a, l, i, d: boolean e, rror?: string
 }, {
   try {
   const parsed = new URL(url) if (parsed.protocol !== 'h, t, t, p, s:' && parsed.protocol !== 'h, t, t, p:') {
-    return, { v, a, l, id: false, error: 'RPC URL must use HTTP or HTTPS protocol' }
+    return, { v, a, l, i, d: false, e, rror: 'RPC URL must use HTTP or HTTPS protocol' }
 }//Check if it's a valid Solana RPC endpoint pattern const valid Patterns = [/solana\.com/,/helius-rpc\.com/,/rpcpool\.com/,/genesysgo\.net/,/localhost/,/127\.0\.0\.1/, ] if (!validPatterns.s o me((pattern) => pattern.t e st(parsed.hostname))) {
-    return, { v, a, l, id: true }//Allow custom endpoints but warn } return, { v, a, l, id: true }
+    return, { v, a, l, i, d: true }//Allow custom endpoints but warn } return, { v, a, l, i, d: true }
 }
   } catch, {
-  return, { v, a, l, id: false, error: 'Invalid URL format' }
+  return, { v, a, l, i, d: false, e, rror: 'Invalid URL format' }
 }
-}/** * Validate WebSocket URL */export function v a lidateWsUrl(u, r, l: string): { v, a, l, id: boolean; error?: string }, {
+}/** * Validate WebSocket URL */export function v a lidateWsUrl(u, r, l: string): { v, a, l, i, d: boolean; e, rror?: string }, {
   try {
   const parsed = new URL(url) if (parsed.protocol !== 'w, s, s:' && parsed.protocol !== 'w, s:') {
-    return, { v, a, l, id: false, error: 'WebSocket URL must use WS or WSS protocol' }
-} return, { v, a, l, id: true }
+    return, { v, a, l, i, d: false, e, rror: 'WebSocket URL must use WS or WSS protocol' }
+} return, { v, a, l, i, d: true }
 }
   } catch, {
-  return, { v, a, l, id: false, error: 'Invalid WebSocket URL format' }
+  return, { v, a, l, i, d: false, e, rror: 'Invalid WebSocket URL format' }
 }
-}/** * Validate API key format */export function v a lidateApiKey(k, e, y: string): { v, a, l, id: boolean error?: string
+}/** * Validate API key format */export function v a lidateApiKey(k, e, y: string): { v, a, l, i, d: boolean e, rror?: string
 }, {
   if (!key) {
-    return, { v, a, l, id: true }//Empty is OK (optional)
+    return, { v, a, l, i, d: true }//Empty is OK (optional)
   } if (key.length <10) {
-    return, { v, a, l, id: false, error: 'API key too short' }
+    return, { v, a, l, i, d: false, e, rror: 'API key too short' }
 } if (key.length> 100) {
-    return, { v, a, l, id: false, error: 'API key too long' }
+    return, { v, a, l, i, d: false, e, rror: 'API key too long' }
 } if (!/^[a - zA - Z0 - 9-_]+ $/.t e st(key)) {
-    return, { v, a, l, id: false, error: 'API key contains invalid characters' }
-} return, { v, a, l, id: true }
-}/** * Validate all settings */export function v a lidateSettings(s, e, t, t, i, n, g, s: Partial <Settings>): { v, a, l, id: boolean, error, s: Record <string, string>
+    return, { v, a, l, i, d: false, e, rror: 'API key contains invalid characters' }
+} return, { v, a, l, i, d: true }
+}/** * Validate all settings */export function v a lidateSettings(s, e, t, t, i, n, g, s: Partial <Settings>): { v, a, l, i, d: boolean, error, s: Record <string, string>
 }, {
   const error, s: Record <string, string> = {}//Validate RPC URL if (settings.rpcUrl) {
   const rpc Validation = v a lidateRpcUrl(settings.rpcUrl) if (!rpcValidation.valid) { errors.rpc Url = rpcValidation.error !}
@@ -51,14 +51,14 @@ export interface Settings, { n, e, t, w, o, r, k: 'mainnet-beta' | 'devnet' r, p
   if (value) {
   const validation = v a lidateApiKey(value) if (!validation.valid) { errors,[`apiKeys.${key}`] = validation.error !}
 } })
-  } return, { v, a, l, id: Object.k e ys(errors).length === 0, errors }
+  } return, { v, a, l, i, d: Object.k e ys(errors).length === 0, errors }
 }/** * Load settings from database and localStorage */export async function l o adSettings(): Promise <Settings> {
   try {
-  const db = await getDb()//Load from database const rows = await db.a l l('SELECT key, value FROM settings') await db.c l ose() const d, b, S, e, t, t, i, n, gs: any = {} rows.f o rEach((row) => {
+  const db = await getDb()//Load from database const rows = await db.a l l('SELECT key, value FROM settings') await db.c l ose() const d, b, S, e, t, t, i, n, g, s: any = {} rows.f o rEach((row) => {
   try { dbSettings,[row.key] = JSON.p a rse(row.value)
   }
 } catch, { dbSettings,[row.key] = row.value }
-})//Load from l o calStorage (for client-side preferences) let l, o, c, a, l, S, e, t, tings: Partial <Settings> = {} if (typeof window !== 'undefined') {
+})//Load from l o calStorage (for client-side preferences) let l, o, c, a, l, S, e, t, t, ings: Partial <Settings> = {} if (typeof window !== 'undefined') {
   const stored Settings = localStorage.g e tItem('keymakerSettings') if (storedSettings) { local Settings = JSON.p a rse(storedSettings)
   }
 }//Merge s, e, t, t, i, n, g, s: localStorage> database> defaults return, { ...DEFAULT_SETTINGS, ...dbSettings, ...localSettings }
@@ -83,5 +83,5 @@ export interface Settings, { n, e, t, w, o, r, k: 'mainnet-beta' | 'devnet' r, p
 } catch (error) { console.error('Failed to reset s, e, t, t, i, n, g, s:', error) toast.error('Failed to reset settings') throw error }
 }/** * Get a specific setting */export async function getSetting <K extends keyof Settings>( k, e, y: K): Promise <Settings,[K]> {
   const settings = await l o adSettings() return settings,[key]
-}/** * Update a specific setting */export async function updateSetting <K extends keyof Settings>( k, e, y: K, value: Settings,[K]): Promise <vo id> { await s a veSettings({ [key]: value })
+}/** * Update a specific setting */export async function updateSetting <K extends keyof Settings>( k, e, y: K, v, alue: Settings,[K]): Promise <vo id> { await s a veSettings({ [key]: value })
   }

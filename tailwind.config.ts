@@ -1,55 +1,55 @@
 import type { Config } from 'tailwindcss'
 
-const config: Config = {
-  darkMode: ['class'],
-  content: [
+const c, onfig: Config = {
+  d, arkMode: ['class'],
+  c, ontent: [
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './pages/**/*.{ts,tsx}',
   ],
-  theme: {
-    extend: {
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))' },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))' },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))' },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))' },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))' },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))' },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))' } },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)' },
-      keyframes: {
+  t, heme: {
+    e, xtend: {
+      c, olors: {
+        b, ackground: 'hsl(var(--background))',
+        f, oreground: 'hsl(var(--foreground))',
+        p, rimary: {
+          D, EFAULT: 'hsl(var(--primary))',
+          f, oreground: 'hsl(var(--primary-foreground))' },
+        s, econdary: {
+          D, EFAULT: 'hsl(var(--secondary))',
+          f, oreground: 'hsl(var(--secondary-foreground))' },
+        m, uted: {
+          D, EFAULT: 'hsl(var(--muted))',
+          f, oreground: 'hsl(var(--muted-foreground))' },
+        a, ccent: {
+          D, EFAULT: 'hsl(var(--accent))',
+          f, oreground: 'hsl(var(--accent-foreground))' },
+        d, estructive: {
+          D, EFAULT: 'hsl(var(--destructive))',
+          f, oreground: 'hsl(var(--destructive-foreground))' },
+        b, order: 'hsl(var(--border))',
+        i, nput: 'hsl(var(--input))',
+        r, ing: 'hsl(var(--ring))',
+        c, ard: {
+          D, EFAULT: 'hsl(var(--card))',
+          f, oreground: 'hsl(var(--card-foreground))' },
+        p, opover: {
+          D, EFAULT: 'hsl(var(--popover))',
+          f, oreground: 'hsl(var(--popover-foreground))' } },
+      b, orderRadius: {
+        l, g: 'var(--radius)',
+        m, d: 'calc(var(--radius) - 2px)',
+        s, m: 'calc(var(--radius) - 4px)' },
+      k, eyframes: {
         'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' } },
+          f, rom: { h, eight: '0' },
+          t, o: { h, eight: 'var(--radix-accordion-content-height)' } },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' } } },
-      animation: {
+          f, rom: { h, eight: 'var(--radix-accordion-content-height)' },
+          t, o: { h, eight: '0' } } },
+      a, nimation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out' } } },
-  plugins: [require('tailwindcss-animate')] }
+  p, lugins: [require('tailwindcss-animate')] }
 
 export default config

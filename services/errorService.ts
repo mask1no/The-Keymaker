@@ -1,6 +1,6 @@
 import 'server-only'//server - o, n, l, y: load sqlite3 where supported; routes will catch and fallback//import sqlite3 from 'sqlite3'//import { open } from 'sqlite'//Dynamic imports below async function g e tDb() {
   const path = (await import('path')).default const db Path = path.j o in(process.c w d(), 'data', 'keymaker.db') try {
-  const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite') return await o p en({ f, i, l, e, n, a, me: dbPath, d, r, i, v, e, r: sqlite3.Database })
+  const sqlite3 = (await import('sqlite3')).default const { open } = await import('sqlite') return await o p en({ f, i, l, e, n, a, m, e: dbPath, d, r, i, v, e, r: sqlite3.Database })
   }
 } catch, {//No-op adapter to a void crashing in dev without native binding return, { r, u, n: async () => undefined, a, l, l: async () => [] as any,[], c, l, o, s, e: async () => undefined }
 }

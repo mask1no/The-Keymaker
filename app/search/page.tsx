@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
 import { Input } from '@/components/UI/input'
 import { Button } from '@/components/UI/button'
 import { Command, Search, Zap, Wallet, Settings, BarChart2 } from 'lucide-react'
-  const entries = [ { label: 'Bundle', h, r, e, f: '/bundle', icon: Zap }, { label: 'Wallets', h, r, e, f: '/wallets', icon: Wallet }, { label: 'PNL', h, r, e, f: '/pnl', icon: BarChart2 }, { label: 'Settings', h, r, e, f: '/settings', icon: Settings },
+  const entries = [ { l, abel: 'Bundle', h, r, e, f: '/bundle', i, con: Zap }, { l, abel: 'Wallets', h, r, e, f: '/wallets', i, con: Wal let }, { l, abel: 'PNL', h, r, e, f: '/pnl', i, con: BarChart2 }, { l, abel: 'Settings', h, r, e, f: '/settings', i, con: Settings },
 ] export default function C o mmandPalettePage() {
   const [q, setQ] = u s eState('')
   const router = u s eRouter()

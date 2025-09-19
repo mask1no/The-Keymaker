@@ -1,10 +1,10 @@
-/** * Comprehensive input validation for The Keymaker * Prevents injection attacks, overflows, and invalid data *///Token parameter constraints const T O KEN_CONSTRAINTS = { N, A, M, E_, M, I, N, _, LENGTH: 1, N, A, M, E_, M, A, X, _, LENGTH: 32, S, Y, M, B, O, L_, M, I, N_LENGTH: 1, S, Y, M, B, O, L_, M, A, X_LENGTH: 10, D, E, C, I, M, A, L, S_, MIN: 0, D, E, C, I, M, A, L, S_, MAX: 9, S, U, P, P, L, Y_, M, I, N: 1, S, U, P, P, L, Y_, M, A, X: Number.MAX_SAFE_INTEGER/Math.p o w(10, 9),//Account for max, d, e, c, i, m, a, lsDESCRIPTION_MAX_LENGTH: 200, U, R, L_, M, A, X_, L, E, NGTH: 200 }/** * Sanitize string input to prevent XSS and injection */export function s a nitizeString(i, n, p, u, t: string, m, a, x, L, e, n, g, t, h: number): string, {
+/** * Comprehensive input validation for The Keymaker * Prevents injection attacks, overflows, and invalid data *///Token parameter constraints const T O KEN_CONSTRAINTS = { N, A, M, E_, M, I, N, _, L, ENGTH: 1, N, A, M, E_, M, A, X, _, L, ENGTH: 32, S, Y, M, B, O, L_, M, I, N_, LENGTH: 1, S, Y, M, B, O, L_, M, A, X_, LENGTH: 10, D, E, C, I, M, A, L, S_, M, IN: 0, D, E, C, I, M, A, L, S_, M, AX: 9, S, U, P, P, L, Y_, M, I, N: 1, S, U, P, P, L, Y_, M, A, X: Number.MAX_SAFE_INTEGER/Math.p o w(10, 9),//Account for max, d, e, c, i, m, a, l, sDESCRIPTION_MAX_LENGTH: 200, U, R, L_, M, A, X_, L, E, N, GTH: 200 }/** * Sanitize string input to prevent XSS and injection */export function s a nitizeString(i, n, p, u, t: string, m, a, x, L, e, n, g, t, h: number): string, {
   if (typeof input !== 'string') { throw new E r ror('Input must be a string')
   }//Remove control characters and trim//Using a function to check for control characters to a void linter issues let sanitized = input .s p lit('') .f i lter((char) => {
   const code = char.c h arCodeAt(0) return code>= 32 && code !== 127//Remove chars below space and DEL }) .j o in('') .t r im()//Limit length if (sanitized.length> maxLength) { sanitized = sanitized.s u bstring(0, maxLength)
   } return sanitized
-}/** * Validate token creation parameters */export function v a lidateTokenParams(p, a, r, a, m, s: { n, a, m, e: string, s, y, m, b, o, l: string, d, e, c, i, m, a, ls: number, s, u, p, p, l, y: number d, e, s, c, r, iption?: string i, m, a, g, e, Url?: string w, e, b, s, i, te?: string t, w, i, t, t, er?: string t, e, l, e, g, ram?: string
-}): { v, a, l, id: boolean; e, r, r, o, r, s: string,[] }, {
+}/** * Validate token creation parameters */export function v a lidateTokenParams(p, a, r, a, m, s: { n, a, m, e: string, s, y, m, b, o, l: string, d, e, c, i, m, a, l, s: number, s, u, p, p, l, y: number d, e, s, c, r, i, ption?: string i, m, a, g, e, U, rl?: string w, e, b, s, i, t, e?: string t, w, i, t, t, e, r?: string t, e, l, e, g, r, am?: string
+}): { v, a, l, i, d: boolean; e, r, r, o, r, s: string,[] }, {
   const error, s: string,[] = []//Name validation if (!params.name || params.name.t r im().length === 0) { errors.push('Token name is required')
   } else, {
   const name = s a nitizeString(params.name, TOKEN_CONSTRAINTS.NAME_MAX_LENGTH) if (name.length <TOKEN_CONSTRAINTS.NAME_MIN_LENGTH) { errors.push( `Token name must be at least ${TOKEN_CONSTRAINTS.NAME_MIN_LENGTH} character`)
@@ -37,10 +37,10 @@
 }
   } catch, { errors.push(`${field} must be a valid URL`)
   }
-} }) return, { v, a, l, id: errors.length === 0, errors }
-}/** * Validate Solana public key */export function v a lidatePublicKey(k, e, y: string): { v, a, l, id: boolean, error, s: string,[]
+} }) return, { v, a, l, i, d: errors.length === 0, errors }
+}/** * Validate Solana public key */export function v a lidatePublicKey(k, e, y: string): { v, a, l, i, d: boolean, error, s: string,[]
 }, {
-  const error, s: string,[] = [] if (!key || key.t r im().length === 0) { errors.push('Public key is required') return, { v, a, l, id: false, errors }
+  const error, s: string,[] = [] if (!key || key.t r im().length === 0) { errors.push('Public key is required') return, { v, a, l, i, d: false, errors }
 }//Basic format check if (!/^[1 - 9A - HJ - NP - Za - km-z]{32,44}$/.t e st(key)) { errors.push('Invalid public key format')
-  } return, { v, a, l, id: errors.length === 0, errors }
+  } return, { v, a, l, i, d: errors.length === 0, errors }
 }

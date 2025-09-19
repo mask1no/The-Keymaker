@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card'
-import { TrendingUp, TrendingDown, DollarSign, Activity, Users, Volume2 } from 'lucide-react' interface MarketCapData, { m, i, n, t: string, m, a, r, k, e, t, Cap: number, p, r, i, c, e: number, v, o, l, u, m, e24, h: number, p, r, i, c, e, C, hange24h: number, f, d, v: number l, i, q, u, i, dityUSD?: number h, o, l, d, e, rs?: number, l, a, s, t, U, p, dated: string
-} interface MarketCapCardProps, { m, i, n, t, A, d, d, r, ess: string t, o, k, e, n, Name?: string t, o, k, e, n, Symbol?: string
+import { TrendingUp, TrendingDown, DollarSign, Activity, Users, Volume2 } from 'lucide-react' interface MarketCapData, { m, i, n, t: string, m, a, r, k, e, t, C, ap: number, p, r, i, c, e: number, v, o, l, u, m, e24, h: number, p, r, i, c, e, C, h, ange24h: number, f, d, v: number l, i, q, u, i, d, ityUSD?: number h, o, l, d, e, r, s?: number, l, a, s, t, U, p, d, ated: string
+} interface MarketCapCardProps, { m, i, n, t, A, d, d, r, e, ss: string t, o, k, e, n, N, ame?: string t, o, k, e, n, S, ymbol?: string
 }
 
 export function M a rketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketCapCardProps) {
@@ -15,7 +15,7 @@ export function M a rketCapCard({ mintAddress, tokenName, tokenSymbol }: MarketC
   } finally, { s e tLoading(false)
   }
 } u s eEffect(() => { f e tchMarketCap()//Refresh every 30 seconds const interval = s e tInterval(fetchMarketCap, 30000) return () => c l earInterval(interval)
-  }, [mintAddress]) const format Currency = (value: number) => {
+  }, [mintAddress]) const format Currency = (v, alue: number) => {
   if (value>= 1e9) return `$${(value/1e9).toFixed(2)
   }
 B` if (value>= 1e6) return `$${(value/1e6).toFixed(2)
@@ -30,7 +30,7 @@ K` return `$${value.toFixed(4)
   }` } if (loading && !data) {
     return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h - 5 w-5"/> Market Data </CardTitle> </CardHeader> <CardContent> <div className ="animate - pulse space - y-3"> <div className ="h - 4 bg - muted rounded w-3/4"></div> <div className ="h - 4 bg - muted rounded w-1/2"></div> <div className ="h - 4 bg - muted rounded w-2/3"></div> </div> </CardContent> </Card> )
   } if (error || !data) {
-    return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h - 5 w-5"/> Market Data </CardTitle> </CardHeader> <CardContent> <div className ="text - center py-4"> <p className ="text - sm text-muted-foreground"> {error || 'Market data not available'} </p> <buttonon Click ={fetchMarketCap} className ="text - xs text - primary hover:underline mt-2"> Try again </button> </div> </CardContent> </Card> )
+    return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h - 5 w-5"/> Market Data </CardTitle> </CardHeader> <CardContent> <div className ="text - center py-4"> <p className ="text - sm text-muted-foreground"> {error || 'Market data not available'} </p> <buttonon Click ={fetchMarketCap} className ="text - xs text - primary h, over:underline mt-2"> Try again </button> </div> </CardContent> </Card> )
   } return ( <Card className ="rounded - 2xl border border - border bg - card/50 backdrop - blur - sm shadow-sm"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Activity className ="h-5 w-5"/> {tokenName && tokenSymbol ? `${tokenName} (${tokenSymbol})` : 'Market Data'} </CardTitle> </CardHeader> <CardContent className ="space - y-4"> {/* Price */} <div className ="flex items - center justify-between"> <div className ="flex items - center gap-2"> <DollarSign className ="h - 4 w - 4 text - muted-foreground"/> <span className ="text - sm text - muted-foreground"> Price </span> </div> <div className ="text-right"> <div className ="text - lg font-semibold"> {f o rmatPrice(data.price)
   } </div> <div className ={`text - xs flex items - center gap-1 ${ data.priceChange24h>= 0 ? 'text - green - 400' : 'text - red-400' }`}> {data.priceChange24h>= 0 ? ( <TrendingUp className ="h - 3 w-3"/> ) : ( <TrendingDown className ="h - 3 w-3"/> )
   }, {data.priceChange24h>= 0 ? '+' : ''}, {data.priceChange24h.toFixed(2)

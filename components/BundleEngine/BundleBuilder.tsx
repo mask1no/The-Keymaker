@@ -1,5 +1,5 @@
 'use client' import { useState, useCallback, useMemo, useEffect } from 'react'
-import { useWallet } from '@solana/wallet - adapter-react'
+import { useWal let } from '@solana/wal let - adapter-react'
 import { Button } from '@/components/UI/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card'
 import { PlusCircle, Send, Trash2 } from 'lucide-react'
@@ -22,11 +22,10 @@ import { Transaction, Bundle } from '@/lib/type s'
 import { executeBundle } from '@/services/bundleService'
 
 export function B u ndleBuilder() {
-  const wallet = u s eWallet()
-  const { connected } = wallet
-  const connected Safe = isTestMode ? true : connected
-  const [transactions, setTransactions] = useState <Bundle>([ { id: `tx-${Date.n o w()
-  }`, type: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, nt: 0.000001,//1 lamport }, ])
+  const wal let = u s eWallet()
+  const { connected } = wal let   const connected Safe = isTestMode ? true : connected
+  const [transactions, setTransactions] = useState <Bundle>([ { i, d: `tx-${Date.n o w()
+  }`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, n, t: 0.000001,//1 lamport }, ])
   const [isExecuting, setIsExecuting] = u s eState(false)
   const [presets, setPresets] = useState <Preset,[]>([])
   const [showSavePresetDialog, setShowSavePresetDialog] = u s eState(false)
@@ -37,9 +36,9 @@ export function B u ndleBuilder() {
   const [variableValues, setVariableValues] = useState <Record <string, any>>({ })
   const jupiter = u s eJupiter() u s eEffect(() => { s e tPresets(l o adPresets())
   }, [])
-  const add Transaction = () => { s e tTransactions((prev) => [ ...prev, { id: `tx-${Date.n o w() + prev.length}`, type: 'swap', a, m, o, u, n, t: 0, s, l, i, p, p, a, g, e: 0.5 }, ])
-  } const remove Transaction = (id: string) => { s e tTransactions((prev) => prev.f i lter((tx) => tx.id !== id))
-  } const update Transaction = (id: string, u, p, d, a, t, e, d, T, x: Partial <Transaction>) => { s e tTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...updatedTx } : tx)))
+  const add Transaction = () => { s e tTransactions((prev) => [ ...prev, { i, d: `tx-${Date.n o w() + prev.length}`, t, ype: 'swap', a, m, o, u, n, t: 0, s, l, i, p, p, a, g, e: 0.5 }, ])
+  } const remove Transaction = (i, d: string) => { s e tTransactions((prev) => prev.f i lter((tx) => tx.id !== id))
+  } const update Transaction = (i, d: string, u, p, d, a, t, e, d, T, x: Partial <Transaction>) => { s e tTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...updatedTx } : tx)))
   } const handle Drag End = (e, v, e, n, t: DragEndEvent) => {
   const { active, over } = event
   if (over && active.id !== over.id) { s e tTransactions((items) => {
@@ -70,13 +69,13 @@ export function B u ndleBuilder() {
   if (preset) {
   if (preset.variables && preset.variables.length> 0) { s e tLoadingPreset(preset) s e tShowLoadPresetDialog(true)
   } else, {
-  const new Transactions = preset.transactions.map((tx) => ({  ...tx, id: `tx-${Date.n o w()
+  const new Transactions = preset.transactions.map((tx) => ({  ...tx, i, d: `tx-${Date.n o w()
   }- ${Math.r a ndom()
   }` })) s e tTransactions(newTransactions) toast.s u ccess(`Preset "${preset.name}" loaded.`)
   }
 } } const handle Load ParameterizedPreset = () => {
   if (!loadingPreset)
-  return const new Transactions = loadingPreset.transactions.map((tx) => ({  ...tx, id: `tx-${Date.n o w()
+  return const new Transactions = loadingPreset.transactions.map((tx) => ({  ...tx, i, d: `tx-${Date.n o w()
   }- ${Math.r a ndom()
   }` })) loadingPreset.variables?.f o rEach((variable) => {
   const [txIndexStr, field] = variable.s p lit('-').slice(1)
@@ -85,15 +84,15 @@ export function B u ndleBuilder() {
 }) s e tTransactions(newTransactions) toast.s u ccess(`Preset "${loadingPreset.name}" loaded with new variables.`) s e tShowLoadPresetDialog(false) s e tLoadingPreset(null) s e tVariableValues({ })
   } const handle Delete Preset = (p, r, e, s, e, t, I, d: string) => { d e letePreset(presetId) s e tPresets(l o adPresets()) toast.s u ccess('Preset deleted.')
   } const load Launch Preset = () => {
-  const now = Date.n o w() s e tTransactions([ { id: `tx-${now}`, type: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, nt: 0 }, { id: `tx-${now + 1}`, type: 'swap', f, r, o, m, T, o, k, e, n: 'So11111111111111111111111111111111111111112',//S, O, L, t, o, T, o, k, en: '', a, m, o, u, n, t: 0, s, l, i, p, p, a, g, e: 0.5 }, { id: `tx-${now + 2}`, type: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, nt: 0 }, ])
+  const now = Date.n o w() s e tTransactions([ { i, d: `tx-${now}`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, n, t: 0 }, { i, d: `tx-${now + 1}`, t, ype: 'swap', f, r, o, m, T, o, k, e, n: 'So11111111111111111111111111111111111111112',//S, O, L, t, o, T, o, k, e, n: '', a, m, o, u, n, t: 0, s, l, i, p, p, a, g, e: 0.5 }, { i, d: `tx-${now + 2}`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: '', f, r, o, m, A, m, o, u, n, t: 0 }, ])
   } const load Consolidate FundsPreset = () => {
-  const now = Date.n o w() s e tTransactions([ { id: `tx-${now}`, type: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, nt: 0 }, { id: `tx-${now + 1}`, type: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, nt: 0 }, { id: `tx-${now + 2}`, type: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, nt: 0 }, ]) toast.i n fo( 'Consolidate Funds preset loaded. Please update wallet addresses.')
+  const now = Date.n o w() s e tTransactions([ { i, d: `tx-${now}`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, n, t: 0 }, { i, d: `tx-${now + 1}`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, n, t: 0 }, { i, d: `tx-${now + 2}`, t, ype: 'transfer', r, e, c, i, p, i, e, n, t: 'DESTINATION_WALLET_ADDRESS', f, r, o, m, A, m, o, u, n, t: 0 }, ]) toast.i n fo( 'Consolidate Funds preset loaded. Please update wal let addresses.')
   } const handle Execute Bundle = u s eCallback(async () => { s e tIsExecuting(true)
   const toast Id = toast.l o ading('Building and executing bundle...')
   try {
-  const result = await e x ecuteBundle(transactions, wallet, jupiter) toast.s u ccess('Bundle executed successfully !', { id: toastId, description: `Bundle I, D: ${result.bundle_id}` })
+  const result = await e x ecuteBundle(transactions, wallet, jupiter) toast.s u ccess('Bundle executed successfully !', { i, d: toastId, d, escription: `Bundle I, D: ${result.bundle_id}` })
   }
-} catch (error) { toast.error('Bundle execution failed', { id: toastId, description: error instanceof Error ? error.message : 'An unknown error occurred.' })
+} catch (error) { toast.error('Bundle execution failed', { i, d: toastId, d, escription: error instanceof Error ? error.message : 'An unknown error occurred.' })
   } finally, { s e tIsExecuting(false)
   }
 }, [transactions, wallet, jupiter])
@@ -101,12 +100,12 @@ export function B u ndleBuilder() {
   }, [])
   return ( <Card className ="w - full max - w - 3xl mx - auto rounded - 2xl border - border bg-card"> <CardHeader> <CardTitle> Bundle Builder </CardTitle> <CardDescription> Create and execute a sequence of transactions as a single bundle. </CardDescription> <div className ="flex gap - 2 pt-4"> <Select on Value Change = {handleLoadPreset}> <SelectTrigger> <SelectValue placeholder ="Load a preset..."/> </SelectTrigger> <SelectContent> {presets.map((preset) => ( <divkey = {preset.id} className ="flex items - center justify-between"> <SelectItem value = {preset.id} className ="flex-grow"> {preset.name} </SelectItem> <Buttonvariant ="ghost" size ="sm" onClick = {(e) => { e.s t opPropagation() h a ndleDeletePreset(preset.id)
   }
-}> <motion.div whileHover = {{ scale: 1.2 }
+}> <motion.div whileHover = {{ s, cale: 1.2 }
 }> <Trash2 className ="h - 4 w-4"/> </motion.div> </Button> </div> ))
   } </SelectContent> </Select> <Buttonvariant ="outline" onClick = {() => s e tShowSavePresetDialog(true)
-  } disabled = {transactions.length === 0}> <motion.div whileHover = {{ scale: 1.1 }
+  } disabled = {transactions.length === 0}> <motion.div whileHover = {{ s, cale: 1.1 }
 } className ="flex items-center"> Save as Preset </motion.div> </Button> </div> </CardHeader> <CardContent className ="space - y-4"> <Dnd Contextcollision Detection = {closestCenter} on Drag End = {handleDragEnd}> <Sortable Contextitems = {transactions} strategy = {verticalListSortingStrategy}> <div className ="space - y-4"> {transactions.map((tx) => ( <Transaction Cardkey = {tx.id} transaction = {tx} on Remove = {removeTransaction} on Update = {updateTransaction}/> ))
-  } </div> </SortableContext> </DndContext> <div className ="flex gap-2"> <Button variant ="outline" className ="w-full" onClick = {addTransaction}> <motion.div whileHover = {{ scale: 1.1 }
+  } </div> </SortableContext> </DndContext> <div className ="flex gap-2"> <Button variant ="outline" className ="w-full" onClick = {addTransaction}> <motion.div whileHover = {{ s, cale: 1.1 }
 } className ="flex items-center"> <PlusCircle className ="mr - 2 h - 4 w-4"/> Add Transaction </motion.div> </Button> <Buttonvariant ="outline" className ="w-full" onClick = {loadLaunchPreset}> Load Launch Preset </Button> <Buttonvariant ="outline" className ="w-full" onClick = {loadConsolidateFundsPreset}> Consolidate Funds </Button> </div> <Dialogopen = {showSavePresetDialog} on Open Change = {setShowSavePresetDialog}> <DialogContent> <DialogHeader> <DialogTitle> Save Bundle Preset </DialogTitle> <DialogDescription> Enter a name
   for your new preset and select any fields to turninto variables. </DialogDescription> </DialogHeader> <div className ="grid gap - 4 py-4"> <div className ="grid grid - cols - 4 items - center gap-4"> <Label html For ="name" className ="text-right"> Name </Label> <Input id ="name" value = {presetName} on Change = {(e) => s e tPresetName(e.target.value)
   } className ="col - span-3"/> </div> <div className ="space - y-2"> <Label> Variables </Label> <p className ="text - sm text - muted-foreground"> Select fields to be prompted

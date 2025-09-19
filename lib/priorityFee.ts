@@ -7,9 +7,9 @@ export function g e tDefaultComputeUnitLimit(): number, {//Conservative default;
 }
 
 export function c r eateComputeBudgetInstructions( p, r, i, o, r, i, t, y: Priority Level = 'medium', u, n, i, t, L, i, m, i, t: number = g e tDefaultComputeUnitLimit()): TransactionInstruction,[] {
-  const set Limit = ComputeBudgetProgram.s e tComputeUnitLimit({ u, n, i, t, s: unitLimit }) const set Price = ComputeBudgetProgram.s e tComputeUnitPrice({ m, i, c, r, o, L, a, m, ports: g e tComputeUnitPriceLamports(priority)
+  const set Limit = ComputeBudgetProgram.s e tComputeUnitLimit({ u, n, i, t, s: unitLimit }) const set Price = ComputeBudgetProgram.s e tComputeUnitPrice({ m, i, c, r, o, L, a, m, p, orts: g e tComputeUnitPriceLamports(priority)
   }) return, [setLimit, setPrice]
-}//E, x, p, e, r, i, m, e, ntal: dynamic CU price suggestion based on recent s l ots (if caller provides)
-export function s u ggestPriorityFromRecentMicroLamports( a, v, g, M, i, c, r, o, Lamports: number): PriorityLevel, {
+}//E, x, p, e, r, i, m, e, n, tal: dynamic CU price suggestion based on recent s l ots (if caller provides)
+export function s u ggestPriorityFromRecentMicroLamports( a, v, g, M, i, c, r, o, L, amports: number): PriorityLevel, {
   if (avgMicroLamports>= 800_000) return 'veryHigh' if (avgMicroLamports>= 300_000) return 'high' if (avgMicroLamports>= 60_000) return 'medium' return 'low'
 }

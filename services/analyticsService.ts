@@ -1,7 +1,7 @@
 import { apiClient } from '@/lib/apiClient'
 import { logger } from '@/lib/logger'
 
-export type Trade = { id: string, t, o, k, e, n, A, ddress: string, a, m, o, u, n, t: number, p, r, i, c, e: number, t, i, m, e, s, t, amp: string, w, a, l, l, e, t: string, type: 'buy' | 'sell'
+export type Trade = { i, d: string, t, o, k, e, n, A, d, dress: string, a, m, o, u, n, t: number, p, r, i, c, e: number, t, i, m, e, s, t, a, mp: string, w, a, l, l, e, t: string, t, ype: 'buy' | 'sell'
 } export type Price Data = { s, o, l: number, e, t, h: number, b, t, c: number, c, a, k, e: number
 }
 
@@ -14,5 +14,5 @@ export async function g e tLivePrices(): Promise <PriceData> {
 }
 
 export async function exportToCsv(t, r, a, d, e, s: Trade,[]): Promise <vo id> {
-  const csv = trades .map( (t) => `${t.id},${t.tokenAddress},${t.amount},${t.price},${t.timestamp},${t.wallet},${t.type}`) .j o in('\n') const blob = new B l ob([csv], { type: 'text/csv' }) const url = URL.c r eateObjectURL(blob) const a = document.c r eateElement('a') a.href = urla.download = 'trades.csv' a.c l ick()
+  const csv = trades .map( (t) => `${t.id},${t.tokenAddress},${t.amount},${t.price},${t.timestamp},${t.wallet},${t.type}`) .j o in('\n') const blob = new B l ob([csv], { t, ype: 'text/csv' }) const url = URL.c r eateObjectURL(blob) const a = document.c r eateElement('a') a.href = urla.download = 'trades.csv' a.c l ick()
   }
