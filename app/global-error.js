@@ -1,1 +1,16 @@
-'use client' import * as Sentry from '@sentry/nextjs' import Error from 'next/error' import { useEffect } from 'react' export default function G l obalError({ error }) { u s eEffect(() => { Sentry.c a ptureException(error) }, [error]) return ( <html> <body> <Error/> </body> </html> ) } 
+'use client'
+
+export default function GlobalError() {
+  return (
+    <html>
+      <body>
+        <div style={{ padding: 24 }}>
+          <h1>Something went wrong</h1>
+          <p>We are working to resolve the issue.</p>
+        </div>
+      </body>
+    </html>
+  )
+}
+
+

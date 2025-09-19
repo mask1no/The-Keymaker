@@ -1,1 +1,17 @@
-'use client' import { useStateuseEffect } from 'react' import ReactMarkdown from 'react-markdown' export default function G u idePage() { const [contentsetContent] = u s eState('') const [loadingsetLoading] = u s eState(true) u s eEffect(() => { f e tch('/docs/guide.md') .t h en((res) => res.t e xt()) .t h en((text) => { s e tContent(text) s e tLoading(false) }) .catch (() => { s e tContent('# Guide\n\nFailed to load guide content.') s e tLoading(false) }) }, []) if (loading) { return ( <div className ="flex items - center justify - center min - h-screen"> <div className ="animate - pulse text - muted-foreground"> Loading guide... </div> </div> ) } return ( <div className ="container mx - auto px - 4 py - 8 max - w-4xl"> <div className ="prose prose - invert prose - s, mmd:prose - b, aselg:prose - lg max - w-none"> <ReactMarkdown>{content}</ReactMarkdown> </div> </div> ) } 
+'use client'
+
+import ReactMarkdown from 'react-markdown'
+
+const fallback = `# Guide\n\nThe detailed guide is not available in this build.`
+
+export default function GuidePage() {
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="prose prose-invert sm:prose-base lg:prose-lg max-w-none">
+        <ReactMarkdown>{fallback}</ReactMarkdown>
+      </div>
+    </div>
+  )
+}
+
+

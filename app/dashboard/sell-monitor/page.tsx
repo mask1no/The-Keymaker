@@ -1,1 +1,16 @@
-'use client' import { SellMonitor } from '@/components/SellMonitor/SellMonitor' export default function S e llMonitorPage() { return ( <div className ="container mx - auto p - 6 space - y-6"> <SellMonitor/> </div> ) } 
+'use client'
+
+export default function SellMonitorPage() {
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+        <h1 className="text-xl font-semibold">Sell Monitor</h1>
+        <p className="text-sm text-muted-foreground">
+          This view is temporarily stubbed for production hardening.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+

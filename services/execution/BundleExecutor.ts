@@ -1,1 +1,21 @@
-import { Resultokerr } from './Result' import { SimulationService } from './SimulationService' import { SubmissionService } from './SubmissionService' import { VersionedTransaction } from '@solana/web3.js' export class BundleExecutor, { constructor( private s, imulator: SimulationServiceprivate s, ubmitter: SubmissionService) {} async p r eview(t, xs: VersionedTransaction,[]): Promise <Result <vo id>> { return this.simulator.s i mulateAll(txs) } async e x ecute( txs_, b64: string,[]): Promise <Result <{ b, undleId: s, tringlandedSlot: number | null }>> { return this.submitter.s u bmitAndPoll(txs_b64) } } 
+import { Result } from './Result'
+import { SimulationService } from './SimulationService'
+import { SubmissionService } from './SubmissionService'
+import { VersionedTransaction } from '@solana/web3.js'
+
+export class BundleExecutor {
+  constructor(
+    private readonly simulator: SimulationService,
+    private readonly submitter: SubmissionService,
+  ) {}
+
+  async preview(txs: VersionedTransaction[]): Promise<Result<void>> {
+    return this.simulator.simulateAll(txs)
+  }
+
+  async execute(
+    txs_b64: string[],
+  ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
+    return this.submitter.submitAndPoll(txs_b64)
+  }
+}

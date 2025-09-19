@@ -1,1 +1,6 @@
-module.exports = { p, lugins: { t, ailwindcss: {}, a, utoprefixer: {} } };
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};

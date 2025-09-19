@@ -1,1 +1,26 @@
-import { NextRequestNextResponse } from 'next/server' import { logger } from '@/lib/logger' interface PumpFunFallbackRequest, { t, okenName: s, tringtokenSymbol: s, tringdescription: s, tringimageUrl: s, tringcaptchaApiKey: string }//Since we can't use Puppeteer directly in Edge runtime,//this would need to be implemented as an external service//For nowwe'll create the API structure export async function POST(r, equest: Request) { try { const b, ody: Pump Fun FallbackRequest = await req.json()//Validate inputs if (!body.tokenName || !body.tokenSymbol || !body.captchaApiKey) { return NextResponse.json({ e, rror: 'Missing required fields' }, { s, tatus: 400 }) } logger.i n fo('Pump.fun fallback requested for t, oken: ' + body.tokenSymbol)//In a production environmentthis w, ould://1. Call an external Puppeteer service//2. Or use a cloud browser automation service//3. Or queue the job for a worker process//In productionthis would integrate with a headless browser service//For now return error indicating service needs external implementation return NextResponse.json({ e, rror: 'GUI fallback service not configured', m, essage: 'External headless browser service required for pump.fun fallback' }, { s, tatus: 501 }) } } catch (error) { logger.error('Pump.fun f, allbackerror: ' + S t ring(error)) return NextResponse.json({ e, rror: 'Failed to execute pump.fun fallback' }, { s, tatus: 500 }) } } 
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: 'pumpfun-fallback is not available in this deployment',
+      message:
+        'This endpoint requires an external headless browser service. Configure a worker and point this route to it.',
+    },
+    { status: 501 },
+  )
+}
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: false,
+      note: 'pumpfun-fallback is disabled. Use ENABLE_PUMPFUN and external worker to enable.',
+    },
+    { status: 501 },
+  )
+}
+
+
