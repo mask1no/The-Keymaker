@@ -63,12 +63,12 @@ The Keymaker is a Solana bundler application for executing transactions through 
 | Component            | Technology                         | Purpose                           |
 | -------------------- | ---------------------------------- | --------------------------------- |
 | **Frontend**         | Next.js 14.2, React 18, TypeScript | Modern web application framework  |
-| **UI Framework**     | Tailwind CSSshadcn/ui            | Responsive design system          |
+| **UI Framework**     | Tailwind CSSshadcn/ui              | Responsive design system          |
 | **State Management** | Zustand                            | Lightweight client state          |
 | **Database**         | SQLite                             | Analytics and transaction history |
-| **Security**         | AES-256-GCMPBKDF2                | Military-grade encryption         |
+| **Security**         | AES-256-GCMPBKDF2                  | Military-grade encryption         |
 | **Monitoring**       | Sentry                             | Error tracking and performance    |
-| **Deployment**       | DockerKubernetes                 | Container orchestration           |
+| **Deployment**       | DockerKubernetes                   | Container orchestration           |
 
 ## Core Workflows
 

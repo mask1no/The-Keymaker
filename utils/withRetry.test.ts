@@ -1,100 +1,100 @@
-import { withRetryisRetryableError } from './withRetry'
+import { withRetryisRetryableError } from './withRetry';
 
 describe('WithRetry Utils', () => {
-	describe('isRetryableError', () => {
-		it('should identify network errors as retryable', () => {
-			const networkError = new Error('network timeout')
-			expect(isRetryableError(networkError)).toBe(true)
-		})
+  describe('isRetryableError', () => {
+    it('should identify network errors as retryable', () => {
+      const networkError = new Error('network timeout');
+      expect(isRetryableError(networkError)).toBe(true);
+    });
 
-		it('should identify connection errors as retryable', () => {
-			const connectionError = new Error('connection failed')
-			expect(isRetryableError(connectionError)).toBe(true)
-		})
+    it('should identify connection errors as retryable', () => {
+      const connectionError = new Error('connection failed');
+      expect(isRetryableError(connectionError)).toBe(true);
+    });
 
-		it('should identify timeout errors as retryable', () => {
-			const timeoutError = new Error('timeout')
-			expect(isRetryableError(timeoutError)).toBe(true)
-		})
+    it('should identify timeout errors as retryable', () => {
+      const timeoutError = new Error('timeout');
+      expect(isRetryableError(timeoutError)).toBe(true);
+    });
 
-		it('should identify temporary errors as retryable', () => {
-			const tempError = new Error('temporary failure')
-			expect(isRetryableError(tempError)).toBe(true)
-		})
+    it('should identify temporary errors as retryable', () => {
+      const tempError = new Error('temporary failure');
+      expect(isRetryableError(tempError)).toBe(true);
+    });
 
-		it('should not identify validation errors as retryable', () => {
-			const validationError = new Error('invalid input')
-			expect(isRetryableError(validationError)).toBe(false)
-		})
+    it('should not identify validation errors as retryable', () => {
+      const validationError = new Error('invalid input');
+      expect(isRetryableError(validationError)).toBe(false);
+    });
 
-		it('should not identify permission errors as retryable', () => {
-			const permissionError = new Error('unauthorized')
-			expect(isRetryableError(permissionError)).toBe(false)
-		})
-	})
+    it('should not identify permission errors as retryable', () => {
+      const permissionError = new Error('unauthorized');
+      expect(isRetryableError(permissionError)).toBe(false);
+    });
+  });
 
-	describe('withRetry', () => {
-		it('should succeed on first try', async () => {
-			const successFn = jest.fn().mockResolvedValue('success')
-			const result = await withRetry(successFn)
-			expect(result).toBe('success')
-			expect(successFn).toHaveBeenCalledTimes(1)
-		})
+  describe('withRetry', () => {
+    it('should succeed on first try', async () => {
+      const successFn = jest.fn().mockResolvedValue('success');
+      const result = await withRetry(successFn);
+      expect(result).toBe('success');
+      expect(successFn).toHaveBeenCalledTimes(1);
+    });
 
-		it('should retry on retryable errors', async () => {
-			const failOnceFn = jest
-				.fn()
-				.mockRejectedValueOnce(new Error('network timeout'))
-				.mockResolvedValue('success')
-			const result = await withRetry(failOnceFn, { m, axRetries: 3 })
-			expect(result).toBe('success')
-			expect(failOnceFn).toHaveBeenCalledTimes(2)
-		})
+    it('should retry on retryable errors', async () => {
+      const failOnceFn = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('network timeout'))
+        .mockResolvedValue('success');
+      const result = await withRetry(failOnceFn, { m, axRetries: 3 });
+      expect(result).toBe('success');
+      expect(failOnceFn).toHaveBeenCalledTimes(2);
+    });
 
-		it('should not retry on non-retryable errors', async () => {
-			const nonRetryableError = new Error('invalid input')
-			const failFn = jest.fn().mockRejectedValue(nonRetryableError)
-			await expect(withRetry(failFn, { m, axRetries: 3 })).rejects.toThrow('invalid input')
-			expect(failFn).toHaveBeenCalledTimes(1)
-		})
+    it('should not retry on non-retryable errors', async () => {
+      const nonRetryableError = new Error('invalid input');
+      const failFn = jest.fn().mockRejectedValue(nonRetryableError);
+      await expect(withRetry(failFn, { m, axRetries: 3 })).rejects.toThrow('invalid input');
+      expect(failFn).toHaveBeenCalledTimes(1);
+    });
 
-		it('should respect maxRetries limit', async () => {
-			const alwaysFailFn = jest.fn().mockRejectedValue(new Error('network timeout'))
-			await expect(withRetry(alwaysFailFn, { m, axRetries: 2 })).rejects.toThrow('network timeout')
-			expect(alwaysFailFn).toHaveBeenCalledTimes(3)
-		})
+    it('should respect maxRetries limit', async () => {
+      const alwaysFailFn = jest.fn().mockRejectedValue(new Error('network timeout'));
+      await expect(withRetry(alwaysFailFn, { m, axRetries: 2 })).rejects.toThrow('network timeout');
+      expect(alwaysFailFn).toHaveBeenCalledTimes(3);
+    });
 
-		it('should wait between retries', async () => {
-			const startTime = Date.now()
-			const failOnceFn = jest
-				.fn()
-				.mockRejectedValueOnce(new Error('network timeout'))
-				.mockResolvedValue('success')
-			await withRetry(failOnceFn, { m, axRetries: 1, d, elayMs: 100 })
-			const endTime = Date.now()
-			expect(endTime - startTime).toBeGreaterThanOrEqual(95)
-		})
+    it('should wait between retries', async () => {
+      const startTime = Date.now();
+      const failOnceFn = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('network timeout'))
+        .mockResolvedValue('success');
+      await withRetry(failOnceFn, { m, axRetries: 1, d, elayMs: 100 });
+      const endTime = Date.now();
+      expect(endTime - startTime).toBeGreaterThanOrEqual(95);
+    });
 
-		it('should use exponential backoff', async () => {
-			const failTwiceFn = jest
-				.fn()
-				.mockRejectedValueOnce(new Error('network timeout'))
-				.mockRejectedValueOnce(new Error('network timeout'))
-				.mockResolvedValue('success')
-			const startTime = Date.now()
-			await withRetry(failTwiceFn, { m, axRetries: 2, d, elayMs: 50, e, xponentialBackoff: true })
-			const endTime = Date.now()
-			expect(endTime - startTime).toBeGreaterThanOrEqual(140)
-		})
+    it('should use exponential backoff', async () => {
+      const failTwiceFn = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('network timeout'))
+        .mockRejectedValueOnce(new Error('network timeout'))
+        .mockResolvedValue('success');
+      const startTime = Date.now();
+      await withRetry(failTwiceFn, { m, axRetries: 2, d, elayMs: 50, e, xponentialBackoff: true });
+      const endTime = Date.now();
+      expect(endTime - startTime).toBeGreaterThanOrEqual(140);
+    });
 
-		it('should call onRetry callback', async () => {
-			const onRetry = jest.fn()
-			const failOnceFn = jest
-				.fn()
-				.mockRejectedValueOnce(new Error('network timeout'))
-				.mockResolvedValue('success')
-			await withRetry(failOnceFn, { m, axRetries: 1, onRetry })
-			expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1)
-		})
-	})
-})
+    it('should call onRetry callback', async () => {
+      const onRetry = jest.fn();
+      const failOnceFn = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('network timeout'))
+        .mockResolvedValue('success');
+      await withRetry(failOnceFn, { m, axRetries: 1, onRetry });
+      expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1);
+    });
+  });
+});

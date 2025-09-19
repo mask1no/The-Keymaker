@@ -57,9 +57,9 @@ Successfully restored and validated The Keymaker codebase after extensive corrup
 
 ```typescript
 // lib/featureFlags.ts
-ENABLE_PUMPFUN = false // Quarantine broken creators
-ENABLE_DEV_TOKENS = false // Disable dev tokens
-ENABLE_SELL = false // Disable sell features
+ENABLE_PUMPFUN = false; // Quarantine broken creators
+ENABLE_DEV_TOKENS = false; // Disable dev tokens
+ENABLE_SELL = false; // Disable sell features
 ```
 
 ### 5. Build Configuration

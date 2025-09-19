@@ -222,8 +222,8 @@ pnpm hygiene      # Check code hygiene
 
 | Scenario          | Behavior                              |
 | ----------------- | ------------------------------------- |
-| RPC Failure       | Error returnedno retry              |
-| Jito Failure      | Error returnedmanual retry          |
+| RPC Failure       | Error returnedno retry                |
+| Jito Failure      | Error returnedmanual retry            |
 | WebSocket Failure | Status shows disconnected             |
 | Bundle Timeout    | Returns bundle_id with timeout status |
 | Invalid Tip       | Validation error before submission    |
