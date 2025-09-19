@@ -1,38 +1,79 @@
 import { VersionedTransaction } from '@solana/web3.js'
+import { JITO_TIP_ACCOUNTS } from '@/constants'
 
-export interface JitoRegion, { n, a, m, e: string e, n, d, p, o, i, n, t: string
-} export const J, I, T, O_, R, E, G, I, O, NS: Record <string, JitoRegion> = { f, f, m: { n, a, m, e: 'Frankfurt', e, n, d, p, o, i, n, t: 'h, t, t, p, s://frankfurt.mainnet.block-engine.jito.wtf' }, a, m, s: { n, a, m, e: 'Amsterdam', e, n, d, p, o, i, n, t: 'h, t, t, p, s://amsterdam.mainnet.block-engine.jito.wtf' }, n, y, c: { n, a, m, e: 'New York', e, n, d, p, o, i, n, t: 'h, t, t, p, s://ny.mainnet.block-engine.jito.wtf' }, t, o, k, y, o: { n, a, m, e: 'Tokyo', e, n, d, p, o, i, n, t: 'h, t, t, p, s://tokyo.mainnet.block-engine.jito.wtf' }
-} export interface TipFloorResponse, { l, a, n, d, e, d, _, t, ips_25th_percentile: number l, a, n, d, e, d, _, t, ips_50th_percentile: number l, a, n, d, e, d, _, t, ips_75th_percentile: number e, m, a_, l, a, n, d, e, d_tips_50th_percentile: number
-} export interface BundleStatus, { b, u, n, d, l, e, _, i, d: string, t, r, a, n, s, a, c, tions: Array <{ s, i, g, n, a, t, u, r, e: string c, o, n, f, i, r, m, a, tion_status: 'processed' | 'confirmed' | 'finalized' }> s l, o, t?: number c, o, n, f, i, r, m, a, tion_status: 'pending' | 'landed' | 'failed'
+export type RegionKey = 'ffm' | 'ams' | 'ny' | 'tokyo'
+
+export interface JitoRegion { name: string; endpoint: string }
+
+export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
+  ffm: { name: 'Frankfurt', endpoint: 'https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles' },
+  ams: { name: 'Amsterdam', endpoint: 'https://amsterdam.mainnet.block-engine.jito.wtf/api/v1/bundles' },
+  ny: { name: 'New York', endpoint: 'https://ny.mainnet.block-engine.jito.wtf/api/v1/bundles' },
+  tokyo: { name: 'Tokyo', endpoint: 'https://tokyo.mainnet.block-engine.jito.wtf/api/v1/bundles' },
 }
 
-export async function g e tTipFloor( r, e, g, i, o, n: string = 'ffm'): Promise <TipFloorResponse> {
-  const region Config = JITO_REGIONS,[region] if (!regionConfig) { throw new E r ror(`Invalid, r, e, g, i, o, n: ${region}`)
-  } const response = await fetch( `${regionConfig.endpoint}/api/v1/bundles/tipfloor`, { m, e, t, h, o, d: 'GET', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }
-}) if (!response.ok) { throw new E r ror( `Tip floor request, f, a, i, l, e, d: ${response.status} ${response.statusText}`)
-  } return response.json()
+export function getJitoApiUrl(region: RegionKey): string {
+  return JITO_REGIONS[region].endpoint
+}
+
+export interface TipFloorResponse {
+  landed_tips_25th_percentile: number
+  landed_tips_50th_percentile: number
+  landed_tips_75th_percentile: number
+  ema_landed_tips_50th_percentile: number
+}
+
+export interface BundleStatus {
+  bundle_id: string
+  transactions?: Array<{ signature: string; confirmation_status: 'processed' | 'confirmed' | 'finalized' }>
+  slot?: number
+  confirmation_status: 'pending' | 'landed' | 'failed' | 'invalid'
+}
+
+async function jrpc<T>(region: RegionKey, method: string, params: any, timeoutMs = 10000): Promise<T> {
+  const res = await fetch(getJitoApiUrl(region), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
+    signal: AbortSignal.timeout(timeoutMs),
+  })
+  if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`)
+  const json = await res.json()
+  if (json?.error) throw new Error(json.error?.message || `Jito ${method} error`)
+  return json.result as T
+}
+
+export async function getTipFloor(region: RegionKey = 'ffm'): Promise<TipFloorResponse> {
+  const res = await fetch(`${getJitoApiUrl(region)}/tipfloor`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) throw new Error(`Tip floor request failed: ${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function sendBundle(region: RegionKey, encodedTransactions: string[]): Promise<{ bundle_id: string }> {
+  const result = await jrpc<string>(region, 'sendBundle', { encodedTransactions, bundleOnly: true })
+  return { bundle_id: result }
+}
+
+export async function getBundleStatuses(region: RegionKey, bundleIds: string[]): Promise<BundleStatus[]> {
+  return await jrpc<BundleStatus[]>(region, 'getBundleStatuses', bundleIds)
+}
+
+export function validateTipAccount(transaction: VersionedTransaction): boolean {
+  try {
+    const message = transaction.message
+    const instructions = message.compiledInstructions
+    if (instructions.length === 0) return false
+    const lastInstruction = instructions[instructions.length - 1]
+    if (lastInstruction.accountKeyIndexes.length < 2) return false
+    const accounts = message.staticAccountKeys
+    const recipientIndex = lastInstruction.accountKeyIndexes[1]
+    if (recipientIndex >= accounts.length) return false
+    const recipientKey = accounts[recipientIndex].toBase58()
+    return JITO_TIP_ACCOUNTS.includes(recipientKey)
+  } catch {
+    return false
   }
-
-export async function s e ndBundle( r, e, g, i, o, n: string, e, n, c, o, d, e, d, T, ransactions: string,[]): Promise <{ b; u, n, d, l, e_, i, d: string }> {
-  const region Config = JITO_REGIONS,[region] if (!regionConfig) { throw new E r ror(`Invalid, r, e, g, i, o, n: ${region}`)
-  } const response = await fetch(`${regionConfig.endpoint}/api/v1/bundles`, { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', i, d: 1, m, e, t, h, o, d: 'sendBundle', p, a, r, a, m, s: { encodedTransactions, b, u, n, d, l, e, O, n, l, y: true }
-})
-  }) if (!response.ok) { throw new E r ror( `Bundle submission, f, a, i, l, e, d: ${response.status} ${response.statusText}`)
-  } const data = await response.json() if (data.error) { throw new E r ror(`Bundle submission, e, rror: ${data.error.message}`)
-  } return, { b, u, n, d, l, e, _, i, d: data.result }
-}
-
-export async function g e tBundleStatuses( r, e, g, i, o, n: string, b, u, n, d, l, e, I, d, s: string,[]): Promise <BundleStatus,[]> {
-  const region Config = JITO_REGIONS,[region] if (!regionConfig) { throw new E r ror(`Invalid, r, e, g, i, o, n: ${region}`)
-  } const response = await fetch(`${regionConfig.endpoint}/api/v1/bundles`, { m, e, t, h, o, d: 'POST', h, e, a, d, e, r, s: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.s t ringify({ j, s, o, n, r, p, c: '2.0', i, d: 1, m, e, t, h, o, d: 'getBundleStatuses', p, a, r, a, m, s: bundleIds })
-  }) if (!response.ok) { throw new E r ror( `Bundle status request, f, a, i, l, e, d: ${response.status} ${response.statusText}`)
-  } const data = await response.json() if (data.error) { throw new E r ror(`Bundle status, e, rror: ${data.error.message}`)
-  } return data.result || []
-}
-
-export function v a lidateTipAccount(t, r, a, n, s, a, c, t, ion: VersionedTransaction): boolean, {
-  try {//Check if the last instruction is a tip transfer to a static JITO tip account const message = transaction.message const instructions = message.compiledInstructions if (instructions.length === 0) return false const last Instruction = instructions,[instructions.length-1] const accounts = message.staticAccountKeys//JITO tip a c counts (static keys) const J I TO_TIP_ACCOUNTS = [ 'T1pyyaTNZsKv2WcRAl8oAXnRXReiWW31vchoPNzSA6h', 'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh', 'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt', 'DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL', '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT', 'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe', 'Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY', 'ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49', ] if (lastInstruction.accountKeyIndexes.length <2) return false const recipient Index = lastInstruction.accountKeyIndexes,[1] if (recipientIndex>= accounts.length) return false const recipient Key = accounts,[recipientIndex].t oB ase58() return JITO_TIP_ACCOUNTS.i n cludes(recipientKey)
-  }
-} catch (error) {
-    return false }
 }
