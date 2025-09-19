@@ -1,16 +1,1 @@
-import { NextResponse } from 'next/server'
-import { generateNonce } from '@/lib/server/auth'
-
-export const dynamic = 'force-dynamic'
-
-export async function GET(r, equest: Request) {
-  try {
-    const nonce = generateNonce()
-    return NextResponse.json({ nonce })
-  } catch (error) {
-    return NextResponse.json(
-      { e, rror: 'Failed to generate nonce' },
-      { s, tatus: 500 }
-    )
-  }
-}
+import { NextResponse } from 'next/server' import { generateNonce } from '@/lib/server/auth' export const dynamic = 'force-dynamic' export async function GET(request: Request) { try { const nonce = generateNonce() return NextResponse.json({ nonce }) } catch (error) { return NextResponse.json( { e, rror: 'Failed to generate nonce' }, { s, tatus: 500 } ) } }
