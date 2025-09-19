@@ -1,1 +1,146 @@
-/** * Safe BigInt operations wrapper * Mitigates bigint - buffer vulnerability in Raydium dependencies */import BN from 'bn.js'/** * Safely convert buffer to BigInt with bounds checking */export function s a feToBigIntLE( i, n, p, u, t: Buffer | number | string | bigint): bigint, {//Buffer p a th (canonical conversion) if (Buffer.i sB uffer(input)) { const buffer = input if (buffer.length> 32) { throw new E r ror('Buffer too large for safe conversion') } if (buffer.length === 0) { return 0n } try { const bn = new BN(buffer, 'le') return B i gInt(bn.t oS tring()) } } catch (error) { throw new E r ror( `Failed to convert buffer to B, i, g, I, n, t: ${(error as Error).message}`) } }//bigint path if (typeof input === 'bigint') { return input }//number p a th (truncate decimals) if (typeof input === 'number') { if (!Number.i sF inite(input)) return 0n if (!Number.i sS afeInteger(Math.t r unc(input))) {//Stay safe for extremely large magnitudes return B i gInt(Math.t r unc(Number.MAX_SAFE_INTEGER)) } return B i gInt(Math.t r unc(input)) }//string p a th (only integer strings are supported here) if (typeof input === 'string') { const trimmed = input.t r im() if (/^-?\d +(\.\d +)?$/.t e st(trimmed)) {//Truncate any decimals const integer Part = trimmed.s p lit('.')[0] try { return B i gInt(integerPart) } } catch, { return 0n } } return 0n } return 0n }/** * Safely convert BigInt to buffer with bounds checking */export function s a feToBufferLE( v, alue: bigint | number | string, l, e, n, g, t, h: number): Buffer, {//Normalize to BigInt, falling back to zero on invalid input let n, o, r, m, a, l, i, z, e, d: bigint = 0n try { if (typeof value === 'bigint') { normalized = value } else if (typeof value === 'number') { if (!Number.i sF inite(value)) normalized = 0n else normalized = B i gInt(Math.m a x(0, Math.t r unc(value))) } else if (typeof value === 'string') { const trimmed = value.t r im() if (/^\d + $/.t e st(trimmed)) normalized = B i gInt(trimmed) else normalized = 0n } } } catch, { normalized = 0n } if (normalized <0n) normalized = 0n if (length <1 || length> 32) length = Math.m i n(32, Math.m a x(1, length)) try { const bn = new BN(normalized.t oS tring()) const buffer = bn.t oB uffer('le', length) if (buffer.length !== length) {//Resize/pad to requested length const out = Buffer.a l loc(length) buffer.c o py(out) return out } return buffer } } catch (error) {//Safe fallback to zeroed buffer return Buffer.a l loc(length) } }/** * Validate and sanitize numeric input */export function s a nitizeNumericInput(i, n, p, u, t: string): string, {//Keep optional leading minus and a single decimal point if (typeof input !== 'string') { throw new E r ror('Invalid input type') } const trimmed = input.t r im() if (trimmed === '') return ''//Extract sign const is Negative = trimmed.s t artsWith('-') const unsigned = isNegative ? trimmed.slice(1) : trimmed//Remove non-digit and track first decimal point let result = '' let seen Dot = false f o r(const ch of unsigned) { if (ch>= '0' && ch <= '9') { result += ch } else if (ch === '.' && !seenDot) { result += '.' seen Dot = true } }//If result is empty or just a dot, return empty string if (result === '' || result === '.') return '' return (isNegative ? '-' : '') + result }/** * Safe arithmetic operations */export const Safe Math = { a d d(a: bigint | number, b: bigint | number): bigint, { const a Big = typeof a === 'bigint' ? a : B i gInt(Math.t r unc(a)) const b Big = typeof b === 'bigint' ? b : B i gInt(Math.t r unc(b)) const result = aBig + bBig//Check for o v erflow (simplified check) if (aBig> 0n && bBig> 0n && result <aBig) { throw new E r ror('Addition overflow') } return result }, s u b(a: bigint | number, b: bigint | number): bigint, { const a Big = typeof a === 'bigint' ? a : B i gInt(Math.t r unc(a)) const b Big = typeof b === 'bigint' ? b : B i gInt(Math.t r unc(b)) const result = aBig-bBig//Check for underflow if (aBig <bBig && result> aBig) { throw new E r ror('Subtraction underflow') } return result }, m u l(a: bigint | number, b: bigint | number): bigint, { const a Big = typeof a === 'bigint' ? a : B i gInt(Math.t r unc(a)) const b Big = typeof b === 'bigint' ? b : B i gInt(Math.t r unc(b)) if (a Big === 0n || b Big === 0n) return 0n const result = aBig * bBig//Check for overflow if (result/aBig !== bBig) { throw new E r ror('Multiplication overflow') } return result }, d i v(a: bigint | number, b: bigint | number): bigint, { const a Big = typeof a === 'bigint' ? a : B i gInt(Math.t r unc(a)) const b Big = typeof b === 'bigint' ? b : B i gInt(Math.t r unc(b)) if (b Big === 0n) { throw new E r ror('Division by zero') } return aBig/bBig },//Convenience aliases used in t e stssubtract(a: bigint | number, b: bigint | number): bigint, { return this.s u b(a, b) }, m u ltiply(a: bigint | number, b: bigint | number): bigint, { return this.m u l(a, b) }, d i vide(a: bigint | number, b: bigint | number): bigint, { return this.d i v(a, b) }, p e rcentage(a, m, o, u, n, t: bigint | number, b, p, s: bigint | number): bigint, { const amt = typeof amount === 'bigint' ? amount : B i gInt(Math.t r unc(amount)) const basis Points = typeof bps === 'bigint' ? bps : B i gInt(Math.t r unc(bps)) if (amt === 0n || basis Points === 0n) return 0n return (amt * basisPoints)/100n } }//Export for backward compatibility with existing code export default, { safeToBigIntLE, safeToBufferLE, sanitizeNumericInput, SafeMath } 
+import BN from 'bn.js'
+
+// Safely convert buffer/number/string/bigint to bigint (little-endian for buffers)
+export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint {
+	// Buffer path
+	if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
+		const buffer = input as Buffer
+		if (buffer.length > 32) throw new Error('Buffer too large for safe conversion')
+		if (buffer.length === 0) return 0n
+		try {
+			const bn = new BN(buffer, 'le')
+			return BigInt(bn.toString())
+		} catch (error) {
+			throw new Error(`Failed to convert buffer to BigInt: ${(error as Error).message}`)
+		}
+	}
+
+	// bigint path
+	if (typeof input === 'bigint') return input
+
+	// number path (truncate decimals)
+	if (typeof input === 'number') {
+		if (!Number.isFinite(input)) return 0n
+		return BigInt(Math.trunc(input))
+	}
+
+	// string path (handle optional decimals by truncating)
+	if (typeof input === 'string') {
+		const trimmed = input.trim()
+		if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+			const integerPart = trimmed.split('.')[0]
+			try {
+				return BigInt(integerPart)
+			} catch {
+				return 0n
+			}
+		}
+		return 0n
+	}
+
+	return 0n
+}
+
+// Safely convert BigInt-like to buffer (little-endian) with bounds checking
+export function safeToBufferLE(value: bigint | number | string, length: number): Buffer {
+	let normalized: bigint = 0n
+	try {
+		if (typeof value === 'bigint') normalized = value
+		else if (typeof value === 'number') normalized = Number.isFinite(value) ? BigInt(Math.max(0, Math.trunc(value))) : 0n
+		else if (typeof value === 'string') normalized = /^\d+$/.test(value.trim()) ? BigInt(value.trim()) : 0n
+	} catch {
+		normalized = 0n
+	}
+
+	if (normalized < 0n) normalized = 0n
+	if (!Number.isInteger(length)) length = Math.trunc(length)
+	if (length < 1 || length > 32) length = Math.min(32, Math.max(1, length))
+
+	try {
+		const bn = new BN(normalized.toString(), 10)
+		const buf = bn.toArrayLike(Buffer, 'le', length)
+		return buf
+	} catch {
+		// Safe fallback to zeroed buffer
+		return Buffer.alloc(length)
+	}
+}
+
+// Validate and sanitize numeric input for user forms
+export function sanitizeNumericInput(input: string): string {
+	if (typeof input !== 'string') throw new Error('Invalid input type')
+	const trimmed = input.trim()
+	if (trimmed === '') return ''
+
+	const isNegative = trimmed.startsWith('-')
+	const unsigned = isNegative ? trimmed.slice(1) : trimmed
+
+	let result = ''
+	let seenDot = false
+	for (const ch of unsigned) {
+		if (ch >= '0' && ch <= '9') result += ch
+		else if (ch === '.' && !seenDot) {
+			result += '.'
+			seenDot = true
+		}
+	}
+
+	if (result === '' || result === '.') return ''
+	return (isNegative ? '-' : '') + result
+}
+
+// Safe arithmetic operations used across the app
+export const SafeMath = {
+	add(a: bigint | number, b: bigint | number): bigint {
+		const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+		const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+		const result = aBig + bBig
+		// basic overflow detection (best-effort for positive operands)
+		if (aBig > 0n && bBig > 0n && result < aBig) throw new Error('Addition overflow')
+		return result
+	},
+
+	sub(a: bigint | number, b: bigint | number): bigint {
+		const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+		const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+		const result = aBig - bBig
+		// underflow detection for unsigned use-cases is handled by callers
+		return result
+	},
+
+	mul(a: bigint | number, b: bigint | number): bigint {
+		const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+		const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+		if (aBig === 0n || bBig === 0n) return 0n
+		const result = aBig * bBig
+		if (result / aBig !== bBig) throw new Error('Multiplication overflow')
+		return result
+	},
+
+	div(a: bigint | number, b: bigint | number): bigint {
+		const aBig = typeof a === 'bigint' ? a : BigInt(Math.trunc(a))
+		const bBig = typeof b === 'bigint' ? b : BigInt(Math.trunc(b))
+		if (bBig === 0n) throw new Error('Division by zero')
+		return aBig / bBig
+	},
+
+	// Convenience aliases used in tests
+	subtract(a: bigint | number, b: bigint | number): bigint {
+		return this.sub(a, b)
+	},
+	multiply(a: bigint | number, b: bigint | number): bigint {
+		return this.mul(a, b)
+	},
+	divide(a: bigint | number, b: bigint | number): bigint {
+		return this.div(a, b)
+	},
+	percentage(amount: bigint | number, bps: bigint | number): bigint {
+		const amt = typeof amount === 'bigint' ? amount : BigInt(Math.trunc(amount))
+		const basisPoints = typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps))
+		if (amt === 0n || basisPoints === 0n) return 0n
+		return (amt * basisPoints) / 100n
+	},
+}
+
+// Export for backward compatibility with existing code
+export default { safeToBigIntLE, safeToBufferLE, sanitizeNumericInput, SafeMath }

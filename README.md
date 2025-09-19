@@ -1,8 +1,8 @@
 # The Keymaker - Solana Bundler
 
-![Solana](h, t, t, p, s://img.shields.io/badge/Solana-Mainnet-blue)
-![License](h, t, t, p, s://img.shields.io/badge/license-MIT-green)
-![Version](h, t, t, p, s://img.shields.io/badge/version-1.5.2-orange)
+![Solana](h, ttps://img.shields.io/badge/Solana-Mainnet-blue)
+![License](h, ttps://img.shields.io/badge/license-MIT-green)
+![Version](h, ttps://img.shields.io/badge/version-1.5.2-orange)
 
 ## Overview
 
@@ -12,10 +12,10 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 - ✅ **Jito Hot Path**: Preview → Execute → Poll (requires env and wallet)
 - ✅ **Wal let Login Gate**: Phantom/Backpack/Solflare integration
-- ✅ **Neutral UI**: Dark theme with rounded "bento" cards, no neon
+- ✅ **Neutral UI**: Dark theme with rounded "bento" cardsno neon
 - ⚠️ **Token Creators**: Disabled by default (ENABLE_PUMPFUN=false)
 - ⚠️ **Signed-Intent Auth**: Present but optional for testing
-- ❌ **Not Production-Hardened**: No leader-schedule awareness, SQLite by default
+- ❌ **Not Production-Hardened**: No leader-schedule awarenessSQLite by default
 
 ## Non-Custodial Guarantees
 
@@ -36,7 +36,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Wal let Integration
 
-- Phantom, Backpack, and Solflare wal let adapters
+- PhantomBackpackand Solflare wal let adapters
 - Login gate protecting all routes
 - Client-side transaction signing only
 
@@ -57,18 +57,18 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Environment Setup
 
-1. Copy environment t, e, m, p, l, a, t, e:
+1. Copy environment t, emplate:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC e, n, d, p, o, i, n, ts:
+2. Configure your RPC e, ndpoints:
 
 ```env
-NEXT_PUBLIC_HELIUS_RPC=h, t, t, p, s://your-helius-rpc-url
-NEXT_PUBLIC_HELIUS_WS=w, s, s://your-helius-ws-url
-NEXT_PUBLIC_JITO_ENDPOINT=h, t, t, p, s://frankfurt.mainnet.block-engine.jito.wtf
+NEXT_PUBLIC_HELIUS_RPC=h, ttps://your-helius-rpc-url
+NEXT_PUBLIC_HELIUS_WS=w, ss://your-helius-ws-url
+NEXT_PUBLIC_JITO_ENDPOINT=h, ttps://frankfurt.mainnet.block-engine.jito.wtf
 
 # Feature flags (disabled by default)
 ENABLE_PUMPFUN=false
@@ -78,45 +78,45 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install d, e, p, e, n, d, e, ncies:
+1. Install d, ependencies:
 
 ```bash
 pnpm install
 ```
 
-2. Run hygiene c, h, e, c, k, s:
+2. Run hygiene c, hecks:
 
 ```bash
-pnpm f, i, x:splits && pnpm hygiene
+pnpm f, ix:splits && pnpm hygiene
 ```
 
-3. Start development s, e, r, v, e, r:
+3. Start development s, erver:
 
 ```bash
 pnpm dev
 ```
 
-4. Open h, t, t, p://l, o, c, a, l, h, o, st:3000
+4. Open h, ttp://l, ocalhost:3000
 
 ### Verification Checklist
 
-After setup, verify these w, o, r, k:
+After setupverify these w, ork:
 
 - [ ] Header "Login" button opens wal let modal
 - [ ] Login gate shows on protected routes
-- [ ] Sidebar status chips s, h, o, w: RPC / WebSocket / JITO / MAINNET
+- [ ] Sidebar status chips s, how: RPC / WebSocket / JITO / MAINNET
 - [ ] `/api/jito/tipfloor` returns `{p25, p50, p75, ema_50th}`
 - [ ] Bundle "Preview" simulates successfully
-- [ ] Bundle "Execute" returns `{bundle_id, signatures, slot}`
+- [ ] Bundle "Execute" returns `{bundle_idsignaturesslot}`
 - [ ] Token creators return 501 unless flags enabled
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix c, o, r, r, u, p, t, ion:
+The codebase includes automated hygiene scripts to fix c, orruption:
 
 ```bash
 # Fix split identifiers and merged statements
-pnpm f, i, x:splits
+pnpm f, ix:splits
 
 # Verify no corruption remains
 pnpm hygiene
@@ -186,7 +186,7 @@ GET /api/jito/tipfloor?region=ffm
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm test         # Run unit tests
-pnpm t, e, s, t:e2e     # Run E2E tests
+pnpm t, est:e2e     # Run E2E tests
 pnpm lint         # Lint code
 pnpm format       # Format code
 pnpm hygiene      # Check code hygiene
@@ -222,18 +222,18 @@ pnpm hygiene      # Check code hygiene
 
 | Scenario          | Behavior                              |
 | ----------------- | ------------------------------------- |
-| RPC Failure       | Error returned, no retry              |
-| Jito Failure      | Error returned, manual retry          |
+| RPC Failure       | Error returnedno retry              |
+| Jito Failure      | Error returnedmanual retry          |
 | WebSocket Failure | Status shows disconnected             |
 | Bundle Timeout    | Returns bundle_id with timeout status |
 | Invalid Tip       | Validation error before submission    |
 
 ## SLO Targets
 
-- Bundle s, u, b, m, i, s, s, ion: < 2s response time
-- Tip floor l, o, o, k, u, p: < 1s response time
-- UI r, e, s, p, o, n, s, iveness: < 100ms interactions
-- U, p, t, i, m, e: Best effort (no SLA)
+- Bundle s, ubmission: < 2s response time
+- Tip floor l, ookup: < 1s response time
+- UI r, esponsiveness: < 100ms interactions
+- U, ptime: Best effort (no SLA)
 
 ## Contributing
 

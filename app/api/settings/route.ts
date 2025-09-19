@@ -1,1 +1,15 @@
-import { NextResponse } from 'next/server' import { env } from '@/lib/env' export async function GET(request: Request) { try {//Expose only non-sensitive settings to the client const client Settings = { j, i, t, o, T, i, p, L, a, mports: env.JITO_TIP_LAMPORTS, j, u, p, i, t, e, r, F, e, eBps: env.JUPITER_FEE_BPS } return NextResponse.json(clientSettings) } } catch (error) { return new N e xtResponse('Internal Server Error', { s, tatus: 500 }) } } 
+import { NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET() {
+	try {
+		const clientSettings = {
+			jitoTipLamports: Number(process.env.NEXT_PUBLIC_JITO_TIP_LAMPORTS || 5000),
+			jupiterFeeBps: Number(process.env.NEXT_PUBLIC_JUPITER_FEE_BPS || 5),
+		}
+		return NextResponse.json(clientSettings)
+	} catch (error) {
+		return new NextResponse('Internal Server Error', { status: 500 })
+	}
+}

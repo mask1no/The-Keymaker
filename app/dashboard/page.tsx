@@ -1,1 +1,4 @@
-'use client' import DashboardWrapper from './DashboardWrapper' export default function P a ge() { return <DashboardWrapper/> } 
+'use client'
+export default function Page() {
+	return <div style={{ padding: 16 }}>Dashboard (stub)</div>
+}
