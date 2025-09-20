@@ -1,8 +1,8 @@
-'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Boxes, Wallet, Coins, Clock, LineChart, Settings, BookOpen } from 'lucide-react'
-import StatusCluster from './StatusCluster'
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Boxes, Wallet, Coins, Clock, LineChart, Settings, BookOpen } from 'lucide-react';
+import StatusCluster from './StatusCluster';
 
 const NAV = [
   { name: 'Bundler', href: '/bundle', icon: Boxes },
@@ -12,16 +12,16 @@ const NAV = [
   { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Guide', href: '/guide', icon: BookOpen },
-]
+];
 
 export default function AppSideNav() {
-  const pathname = usePathname()
+  const pathname = usePathname();
   return (
     <aside className="w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
       <nav className="flex flex-col gap-1 text-sm">
         {NAV.map((x) => {
-          const active = pathname === x.href
-          const Icon = x.icon
+          const active = pathname === x.href;
+          const Icon = x.icon;
           return (
             <Link
               key={x.name}
@@ -36,14 +36,12 @@ export default function AppSideNav() {
               <Icon className="h-4 w-4" />
               <span>{x.name}</span>
             </Link>
-          )
+          );
         })}
       </nav>
       <div className="mt-6">
         <StatusCluster />
       </div>
     </aside>
-  )
+  );
 }
-
-

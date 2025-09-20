@@ -64,5 +64,6 @@ This doc tracks what’s left to make the bundler production‑ready.
 - [ ] Commit and tag `gate-1`
 
 ## Next (Mainnet Smoke)
+
 - Provide `SMOKE_SECRET` and `RPC_URL`
 - Run `pnpm smoke` → expect simulate→execute→status to progress beyond `pending`

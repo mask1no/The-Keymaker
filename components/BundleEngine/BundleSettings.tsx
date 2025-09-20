@@ -1,15 +1,28 @@
-'use client'
-import React, { useState } from 'react'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/UI/Sheet'
-import { Button } from '@/components/UI/button'
-import { Input } from '@/components/UI/input'
-import { Label } from '@/components/UI/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select'
-import { Settings } from 'lucide-react'
+'use client';
+import React, { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/UI/Sheet';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select';
+import { Settings } from 'lucide-react';
 
 export function BundleSettings() {
-  const [jitoRegion, setJitoRegion] = useState('ffm')
-  const [jitoTip, setJitoTip] = useState(0.0001)
+  const [jitoRegion, setJitoRegion] = useState('ffm');
+  const [jitoTip, setJitoTip] = useState(0.0001);
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -24,7 +37,9 @@ export function BundleSettings() {
         </SheetHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jito-region" className="text-right">Jito Region</Label>
+            <Label htmlFor="jito-region" className="text-right">
+              Jito Region
+            </Label>
             <Select defaultValue={jitoRegion} onValueChange={setJitoRegion}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select a region" />
@@ -38,11 +53,19 @@ export function BundleSettings() {
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="jito-tip" className="text-right">Jito Tip (SOL)</Label>
-            <Input id="jito-tip" type="number" value={jitoTip} onChange={(e) => setJitoTip(parseFloat(e.target.value))} className="col-span-3" />
+            <Label htmlFor="jito-tip" className="text-right">
+              Jito Tip (SOL)
+            </Label>
+            <Input
+              id="jito-tip"
+              type="number"
+              value={jitoTip}
+              onChange={(e) => setJitoTip(parseFloat(e.target.value))}
+              className="col-span-3"
+            />
           </div>
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

@@ -6,10 +6,10 @@ import { isTestMode } from '@/lib/testMode';
 import { rateLimit, getRateConfig } from '@/app/api/rate-limit';
 import { readJsonSafe, getEnvInt } from '@/lib/server/request';
 import * as Sentry from '@sentry/nextjs';
-import { getNextLeaders } from '@/lib/server/leaderSchedule'
-import { db } from '@/lib/db'
-import { getPrisma } from '@/lib/server/prisma'
-import { ENABLE_SLOT_TARGETING } from '@/lib/featureFlags'
+import { getNextLeaders } from '@/lib/server/leaderSchedule';
+import { db } from '@/lib/db';
+import { getPrisma } from '@/lib/server/prisma';
+import { ENABLE_SLOT_TARGETING } from '@/lib/featureFlags';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,19 +30,24 @@ export async function POST(request: Request) {
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0] || 'anon';
     const cfg = getRateConfig('submit');
     // Per-IP + optional per-wallet rate-limiting key
-    const wallet = request.headers.get('x-wallet') || 'no-wallet'
+    const wallet = request.headers.get('x-wallet') || 'no-wallet';
     const rl = rateLimit(`submit:${ip}:${wallet}`, cfg.limit, cfg.windowMs);
     if (!rl.ok) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 
-    const minTxs = isTestMode() ? 0 : 1
+    const minTxs = isTestMode() ? 0 : 1;
     const bodySchema = z.object({
       region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
       txs_b64: z.array(z.string().min(4)).min(minTxs).max(getEnvInt('SUBMIT_MAX_TXS', 5)),
       simulateOnly: z.boolean().optional(),
       mode: z.enum(['regular', 'instant', 'delayed']).optional(),
-      delay_seconds: z.number().int().min(0).max(getEnvInt('SUBMIT_MAX_DELAY_SECONDS', 120)).optional(),
+      delay_seconds: z
+        .number()
+        .int()
+        .min(0)
+        .max(getEnvInt('SUBMIT_MAX_DELAY_SECONDS', 120))
+        .optional(),
       target_slot: z.number().int().positive().optional(),
     });
 
@@ -64,11 +69,11 @@ export async function POST(request: Request) {
       message: 'Bundle submit received',
       level: 'info',
       data: { region, simulateOnly, mode, delay_seconds, tx_count: txs_b64?.length || 0 },
-    })
+    });
 
     let transactions: VersionedTransaction[];
-    const subtle = (globalThis as any).crypto?.subtle || (require('crypto').webcrypto?.subtle)
-    if (!subtle) throw new Error('WebCrypto not available')
+    const subtle = (globalThis as any).crypto?.subtle || require('crypto').webcrypto?.subtle;
+    if (!subtle) throw new Error('WebCrypto not available');
     const originalHash = await subtle.digest(
       'SHA-256',
       new TextEncoder().encode(JSON.stringify(txs_b64)),
@@ -93,7 +98,11 @@ export async function POST(request: Request) {
     if (simulateOnly) {
       // In test mode, skip RPC simulation and return a stubbed success
       if (isTestMode()) {
-        Sentry.addBreadcrumb({ category: 'bundles', message: 'Simulation stub (test mode)', level: 'info' })
+        Sentry.addBreadcrumb({
+          category: 'bundles',
+          message: 'Simulation stub (test mode)',
+          level: 'info',
+        });
         return NextResponse.json({
           success: true,
           payloadHash,
@@ -107,10 +116,10 @@ export async function POST(request: Request) {
       const connection = new Connection(SERVER_RPC);
       // Blockhash freshness: ensure remaining blocks > 0
       try {
-        const { lastValidBlockHeight } = await connection.getLatestBlockhash('processed')
-        const bh = await connection.getBlockHeight('processed')
+        const { lastValidBlockHeight } = await connection.getLatestBlockhash('processed');
+        const bh = await connection.getBlockHeight('processed');
         if (lastValidBlockHeight - bh <= 0) {
-          return NextResponse.json({ error: 'Stale blockhash' }, { status: 400 })
+          return NextResponse.json({ error: 'Stale blockhash' }, { status: 400 });
         }
       } catch {}
       try {
@@ -123,14 +132,18 @@ export async function POST(request: Request) {
             Sentry.captureMessage('Simulation failed', {
               level: 'warning',
               extra: { error: result.value.err },
-            })
+            });
             return NextResponse.json(
               { error: `Transaction simulation failed: ${JSON.stringify(result.value.err)}` },
               { status: 400 },
             );
           }
         }
-        Sentry.addBreadcrumb({ category: 'bundles', message: 'Simulation succeeded', level: 'info' })
+        Sentry.addBreadcrumb({
+          category: 'bundles',
+          message: 'Simulation succeeded',
+          level: 'info',
+        });
         return NextResponse.json({
           success: true,
           payloadHash,
@@ -140,7 +153,7 @@ export async function POST(request: Request) {
           }),
         });
       } catch (error: any) {
-        Sentry.captureException(error)
+        Sentry.captureException(error);
         return NextResponse.json({ error: `Simulation error: ${error.message}` }, { status: 500 });
       }
     }
@@ -157,8 +170,13 @@ export async function POST(request: Request) {
 
     // In test mode, do not send real bundle; return a fake landed response
     if (isTestMode()) {
-      const bundle_id = `TEST-${Date.now()}`
-      Sentry.addBreadcrumb({ category: 'bundles', message: 'Send stub (test mode)', level: 'info', data: { region } })
+      const bundle_id = `TEST-${Date.now()}`;
+      Sentry.addBreadcrumb({
+        category: 'bundles',
+        message: 'Send stub (test mode)',
+        level: 'info',
+        data: { region },
+      });
       return NextResponse.json({
         bundle_id,
         signatures: transactions.map((tx) => {
@@ -169,21 +187,37 @@ export async function POST(request: Request) {
         status: 'landed',
         attempts: 1,
         payloadHash,
-      })
+      });
     }
 
     // Breadcrumb next leaders and remaining blockhash life
     try {
-      const SERVER_RPC = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
-      const connection = new Connection(SERVER_RPC)
-      const leaders = await getNextLeaders(connection, 16)
-      const { lastValidBlockHeight } = await connection.getLatestBlockhash('processed')
-      const bh = await connection.getBlockHeight('processed')
-      const remainingBlocks = lastValidBlockHeight - bh
-      const slotTargeting = ENABLE_SLOT_TARGETING && typeof target_slot === 'number'
-      Sentry.addBreadcrumb({ category: 'bundles', message: 'Sending bundle', level: 'info', data: { region, nextLeaders: leaders.nextLeaders.slice(0, 3), remainingBlocks, slotTargeting, target_slot } })
+      const SERVER_RPC = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
+      const connection = new Connection(SERVER_RPC);
+      const leaders = await getNextLeaders(connection, 16);
+      const { lastValidBlockHeight } = await connection.getLatestBlockhash('processed');
+      const bh = await connection.getBlockHeight('processed');
+      const remainingBlocks = lastValidBlockHeight - bh;
+      const slotTargeting = ENABLE_SLOT_TARGETING && typeof target_slot === 'number';
+      Sentry.addBreadcrumb({
+        category: 'bundles',
+        message: 'Sending bundle',
+        level: 'info',
+        data: {
+          region,
+          nextLeaders: leaders.nextLeaders.slice(0, 3),
+          remainingBlocks,
+          slotTargeting,
+          target_slot,
+        },
+      });
     } catch {
-      Sentry.addBreadcrumb({ category: 'bundles', message: 'Sending bundle', level: 'info', data: { region } })
+      Sentry.addBreadcrumb({
+        category: 'bundles',
+        message: 'Sending bundle',
+        level: 'info',
+        data: { region },
+      });
     }
     const { bundle_id } = await sendBundle(region, txs_b64);
     let attempts = 0;
@@ -196,18 +230,27 @@ export async function POST(request: Request) {
         const statuses = await getBundleStatuses(region, [bundle_id]);
         const status = (statuses as any)?.[0];
         if (status && status.confirmation_status !== 'pending') {
-          Sentry.captureMessage('Bundle finalized', { level: 'info', extra: { bundle_id, status: status.confirmation_status, slot: status.slot, attempts } })
+          Sentry.captureMessage('Bundle finalized', {
+            level: 'info',
+            extra: { bundle_id, status: status.confirmation_status, slot: status.slot, attempts },
+          });
           try {
-            const prisma = getPrisma()
+            const prisma = getPrisma();
             if (prisma) {
-              await prisma.bundle.create({ data: { status: status.confirmation_status, fees: null, outcomes: { bundle_id, slot: status.slot, attempts } } })
+              await prisma.bundle.create({
+                data: {
+                  status: status.confirmation_status,
+                  fees: null,
+                  outcomes: { bundle_id, slot: status.slot, attempts },
+                },
+              });
             } else {
-              const conn = await db
+              const conn = await db;
               await conn.run('INSERT INTO bundles (status, fees, outcomes) VALUES (?, ?, ?)', [
                 status.confirmation_status,
                 null,
                 JSON.stringify({ bundle_id, slot: status.slot, attempts }),
-              ])
+              ]);
             }
           } catch {}
           return NextResponse.json({
@@ -220,23 +263,30 @@ export async function POST(request: Request) {
           });
         }
       } catch (error) {
-        Sentry.addBreadcrumb({ category: 'bundles', message: 'Poll error', level: 'warning', data: { error: (error as Error).message } })
+        Sentry.addBreadcrumb({
+          category: 'bundles',
+          message: 'Poll error',
+          level: 'warning',
+          data: { error: (error as Error).message },
+        });
         // continue polling on errors
       }
     }
 
-    Sentry.captureMessage('Bundle timeout', { level: 'warning', extra: { bundle_id, attempts } })
+    Sentry.captureMessage('Bundle timeout', { level: 'warning', extra: { bundle_id, attempts } });
     try {
-      const prisma = getPrisma()
+      const prisma = getPrisma();
       if (prisma) {
-        await prisma.bundle.create({ data: { status: 'timeout', fees: null, outcomes: { bundle_id, attempts } } })
+        await prisma.bundle.create({
+          data: { status: 'timeout', fees: null, outcomes: { bundle_id, attempts } },
+        });
       } else {
-        const conn = await db
+        const conn = await db;
         await conn.run('INSERT INTO bundles (status, fees, outcomes) VALUES (?, ?, ?)', [
           'timeout',
           null,
           JSON.stringify({ bundle_id, attempts }),
-        ])
+        ]);
       }
     } catch {}
     return NextResponse.json({
@@ -251,7 +301,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Bundle submission error:', error);
-    Sentry.captureException(error)
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: error.message || 'Bundle submission failed' },
       { status: 500 },

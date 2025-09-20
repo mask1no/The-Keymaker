@@ -8,6 +8,12 @@ describe('GET /api/jito/tipfloor', () => {
     const res = await getTipfloor(req as any);
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json).toMatchObject({ p25: expect.any(Number), p50: expect.any(Number), p75: expect.any(Number), ema_50th: expect.any(Number), region: 'ffm' });
+    expect(json).toMatchObject({
+      p25: expect.any(Number),
+      p50: expect.any(Number),
+      p75: expect.any(Number),
+      ema_50th: expect.any(Number),
+      region: 'ffm',
+    });
   });
 });

@@ -21,10 +21,16 @@ async function derive(p, a, ssword: string, s, a, lt: Uint8Array): Promise<Crypt
   ]);
   return crypto.subtle.deriveKey(
     {
-      n, a, me: 'PBKDF2',
+      n,
+      a,
+      me: 'PBKDF2',
       salt,
-      i, t, erations: 100_000,
-      h, a, sh: 'SHA-256',
+      i,
+      t,
+      erations: 100_000,
+      h,
+      a,
+      sh: 'SHA-256',
     },
     baseKey,
     { n, a, me: 'AES-GCM', l, e, ngth: 256 },

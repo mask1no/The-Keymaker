@@ -157,4 +157,4 @@ describe('SafeBigInt Utils', () => {
       });
     });
   });
-}); 
+});

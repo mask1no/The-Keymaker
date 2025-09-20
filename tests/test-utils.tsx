@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Toaster } from 'sonner';
 
-function Providers({ children }: { c, h, ildren: React.ReactNode }) {
+function Providers({ children }: { c; h; ildren: React.ReactNode }) {
   return (
     <>
       <Toaster />

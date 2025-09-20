@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function SimpleDashboard() {
   return (
@@ -17,15 +17,23 @@ export default function SimpleDashboard() {
           <div className="p-6 rounded-2xl border bg-card">
             <h2 className="text-xl font-semibold mb-2">Quick Links</h2>
             <div className="space-y-2">
-              <a href="/bundle" className="block text-primary hover:underline">Bundle Engine</a>
-              <a href="/settings" className="block text-primary hover:underline">Settings</a>
-              <a href="/guide" className="block text-primary hover:underline">Guide</a>
+              <a href="/bundle" className="block text-primary hover:underline">
+                Bundle Engine
+              </a>
+              <a href="/settings" className="block text-primary hover:underline">
+                Settings
+              </a>
+              <a href="/guide" className="block text-primary hover:underline">
+                Guide
+              </a>
             </div>
           </div>
         </div>
         <div className="mt-8 p-6 rounded-2xl border bg-card">
           <h2 className="text-xl font-semibold mb-4">Welcome to The Keymaker</h2>
-          <p className="text-muted-foreground">Your production-ready Solana bundler for MEV and memecoin trading.</p>
+          <p className="text-muted-foreground">
+            Your production-ready Solana bundler for MEV and memecoin trading.
+          </p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
             <li>✅ Corruption issues fixed</li>
             <li>✅ UI components restored</li>
@@ -35,5 +43,5 @@ export default function SimpleDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

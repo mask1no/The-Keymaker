@@ -1,21 +1,43 @@
-'use client'
-import { useMemo } from 'react'
+'use client';
+import { useMemo } from 'react';
 
 type Preset = {
-  id: string
-  name: string
-  description: string
-  mode: 'regular' | 'instant' | 'delayed'
-  tipMultiplier: number
-  delaySec?: number
-}
+  id: string;
+  name: string;
+  description: string;
+  mode: 'regular' | 'instant' | 'delayed';
+  tipMultiplier: number;
+  delaySec?: number;
+};
 
 export default function BundlePresets({ onApply }: { onApply: (p: Preset) => void }) {
-  const presets = useMemo<Preset[]>(() => [
-    { id: 'regular-12', name: 'Regular ×1.2', description: 'Balanced success/cost', mode: 'regular', tipMultiplier: 1.2 },
-    { id: 'instant-125', name: 'Instant ×1.25', description: 'Faster landing', mode: 'instant', tipMultiplier: 1.25 },
-    { id: 'delayed-12-30', name: 'Delayed 30s ×1.2', description: 'Arm and submit after 30s', mode: 'delayed', tipMultiplier: 1.2, delaySec: 30 },
-  ], [])
+  const presets = useMemo<Preset[]>(
+    () => [
+      {
+        id: 'regular-12',
+        name: 'Regular ×1.2',
+        description: 'Balanced success/cost',
+        mode: 'regular',
+        tipMultiplier: 1.2,
+      },
+      {
+        id: 'instant-125',
+        name: 'Instant ×1.25',
+        description: 'Faster landing',
+        mode: 'instant',
+        tipMultiplier: 1.25,
+      },
+      {
+        id: 'delayed-12-30',
+        name: 'Delayed 30s ×1.2',
+        description: 'Arm and submit after 30s',
+        mode: 'delayed',
+        tipMultiplier: 1.2,
+        delaySec: 30,
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -31,7 +53,5 @@ export default function BundlePresets({ onApply }: { onApply: (p: Preset) => voi
         </button>
       ))}
     </div>
-  )
+  );
 }
-
-

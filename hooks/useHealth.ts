@@ -1,32 +1,38 @@
-'use client'
-import useSWR from 'swr'
+'use client';
+import useSWR from 'swr';
 
-type HealthStatus = 'healthy' | 'degraded' | 'down'
+type HealthStatus = 'healthy' | 'degraded' | 'down';
 
 export interface HealthResponse {
-  ok: boolean
-  version: string
-  timestamp: string
+  ok: boolean;
+  version: string;
+  timestamp: string;
   checks: {
-    rpc: { status: HealthStatus; latency_ms: number; endpoint?: string; last_check?: string }
-    jito: { status: HealthStatus; latency_ms: number; region?: string; endpoint?: string; last_check?: string }
-    database?: { status: HealthStatus }
-    puppeteer?: { status: HealthStatus }
-  }
-  duration_ms?: number
+    rpc: { status: HealthStatus; latency_ms: number; endpoint?: string; last_check?: string };
+    jito: {
+      status: HealthStatus;
+      latency_ms: number;
+      region?: string;
+      endpoint?: string;
+      last_check?: string;
+    };
+    database?: { status: HealthStatus };
+    puppeteer?: { status: HealthStatus };
+  };
+  duration_ms?: number;
 }
 
 async function fetcher(url: string): Promise<HealthResponse> {
-  const res = await fetch(url, { cache: 'no-store' })
-  if (!res.ok) throw new Error('Failed to fetch health')
-  return res.json()
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch health');
+  return res.json();
 }
 
 export function useHealth() {
   const { data, error, isLoading, mutate } = useSWR<HealthResponse>('/api/health', fetcher, {
     refreshInterval: 10000,
     revalidateOnFocus: false,
-  })
+  });
   return {
     health: data,
     healthy: !!data?.ok,
@@ -35,7 +41,5 @@ export function useHealth() {
     loading: isLoading,
     error,
     refresh: mutate,
-  }
+  };
 }
-
-

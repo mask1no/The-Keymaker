@@ -1,5 +1,5 @@
 export function isRugServiceEnabled(): boolean {
-  return false
+  return false;
 }
 
-export default { isRugServiceEnabled }
+export default { isRugServiceEnabled };

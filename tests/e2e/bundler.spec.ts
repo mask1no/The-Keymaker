@@ -68,7 +68,11 @@ test.describe('Bundler Application', () => {
   });
 
   test('bundle submit requires proper format', async ({ page }) => {
-    const response = await page.request.post('/api/bundles/submit', { d, a, ta: { t, x, s_b64: [] } });
+    const response = await page.request.post('/api/bundles/submit', {
+      d,
+      a,
+      ta: { t, x, s_b64: [] },
+    });
     expect(response.status()).toBe(400);
     const body = await response.json();
     expect(body.error).toContain('Invalid txs_b64');

@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import React from 'react'
-import useSWR from 'swr'
+import React from 'react';
+import useSWR from 'swr';
 
 type Trade = {
-  id: number
-  token_address: string
-  tx_ids: string[]
-  wallets: string[]
-  sol_in: number
-  sol_out: number
-  pnl: number
-  executed_at?: string
-}
+  id: number;
+  token_address: string;
+  tx_ids: string[];
+  wallets: string[];
+  sol_in: number;
+  sol_out: number;
+  pnl: number;
+  executed_at?: string;
+};
 
-const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then((r) => r.json())
+const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then((r) => r.json());
 
 export default function HistoryPage() {
-  const { data, error, isLoading } = useSWR<{ trades: Trade[] }>('/api/trades?limit=50', fetcher)
+  const { data, error, isLoading } = useSWR<{ trades: Trade[] }>('/api/trades?limit=50', fetcher);
   return (
     <div className="container mx-auto p-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
@@ -67,5 +67,5 @@ export default function HistoryPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

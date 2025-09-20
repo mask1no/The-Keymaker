@@ -8,7 +8,12 @@ import MetricsPanel from '@/components/Dashboard/MetricsPanel';
 import RecentRunsPanel from '@/components/Dashboard/RecentRunsPanel';
 import BundlePresets from '@/components/BundleEngine/BundlePresets';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { VersionedTransaction, ComputeBudgetProgram, SystemProgram, PublicKey } from '@solana/web3.js';
+import {
+  VersionedTransaction,
+  ComputeBudgetProgram,
+  SystemProgram,
+  PublicKey,
+} from '@solana/web3.js';
 import { JITO_TIP_ACCOUNTS } from '@/constants';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -79,12 +84,16 @@ export default function Page() {
         const res = await fetch('/api/bundles/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ region, txs_b64: [txs_b64[txs_b64.length - 1]], simulateOnly: true }),
-        })
-        if (!res.ok) setTipPresentOk(false)
-        else setTipPresentOk(true)
+          body: JSON.stringify({
+            region,
+            txs_b64: [txs_b64[txs_b64.length - 1]],
+            simulateOnly: true,
+          }),
+        });
+        if (!res.ok) setTipPresentOk(false);
+        else setTipPresentOk(true);
       } catch {
-        setTipPresentOk(null)
+        setTipPresentOk(null);
       }
       const data = await submitBundle({ region, txs_b64, simulateOnly: true, mode });
       setOut(data);
@@ -117,13 +126,23 @@ export default function Page() {
       const res = await fetch('/api/bundles/submit', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ region, txs_b64, simulateOnly: false, mode, delay_seconds: mode === 'delayed' ? delaySec : 0 }),
+        body: JSON.stringify({
+          region,
+          txs_b64,
+          simulateOnly: false,
+          mode,
+          delay_seconds: mode === 'delayed' ? delaySec : 0,
+        }),
       });
       const data = await res.json();
       setOut(data);
       if (data?.bundle_id) {
         setBundleId(data.bundle_id);
-        setStatus({ confirmation_status: data.status || 'pending', slot: data.slot, attempts: data.attempts || 0 });
+        setStatus({
+          confirmation_status: data.status || 'pending',
+          slot: data.slot,
+          attempts: data.attempts || 0,
+        });
       }
     } catch (e: any) {
       setError(e?.message || 'Execution failed');
@@ -133,77 +152,79 @@ export default function Page() {
   };
 
   React.useEffect(() => {
-    let es: EventSource | null = null
-    let timeout: any
+    let es: EventSource | null = null;
+    let timeout: any;
     async function start() {
-      if (!bundleId) return
+      if (!bundleId) return;
       try {
-        es = new EventSource(`/api/bundles/status/stream?region=${region}&ids=${bundleId}`)
+        es = new EventSource(`/api/bundles/status/stream?region=${region}&ids=${bundleId}`);
         es.onmessage = (ev) => {
           try {
-            const json = JSON.parse(ev.data)
-            const s = json?.statuses?.[0]
+            const json = JSON.parse(ev.data);
+            const s = json?.statuses?.[0];
             if (s) {
-              setStatus(s)
+              setStatus(s);
               if (s.confirmation_status === 'landed') {
-                toast.success('Bundle landed', { description: `Slot ${s.slot ?? 'n/a'}` })
+                toast.success('Bundle landed', { description: `Slot ${s.slot ?? 'n/a'}` });
               } else if (s.confirmation_status === 'failed') {
-                toast.error('Bundle failed')
+                toast.error('Bundle failed');
               }
             }
           } catch {}
-        }
+        };
         es.onerror = () => {
           // Fallback to polling after short delay
-          es?.close()
-          timeout = setTimeout(pollFallback, 1500)
-        }
+          es?.close();
+          timeout = setTimeout(pollFallback, 1500);
+        };
       } catch {
-        timeout = setTimeout(pollFallback, 1500)
+        timeout = setTimeout(pollFallback, 1500);
       }
     }
     async function pollFallback() {
-      let t: any
+      let t: any;
       async function poll() {
-        if (!bundleId) return
+        if (!bundleId) return;
         try {
           const res = await fetch('/api/bundles/status/batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ region, bundle_ids: [bundleId] }),
-          })
+          });
           if (res.ok) {
-            const json = await res.json()
-            const s = json?.statuses?.[0]
-            if (s) setStatus(s)
+            const json = await res.json();
+            const s = json?.statuses?.[0];
+            if (s) setStatus(s);
           }
         } catch {}
-        t = setTimeout(poll, 1500)
+        t = setTimeout(poll, 1500);
       }
-      poll()
-      return () => t && clearTimeout(t)
+      poll();
+      return () => t && clearTimeout(t);
     }
-    start()
+    start();
     return () => {
-      if (es) es.close()
-      if (timeout) clearTimeout(timeout)
-    }
+      if (es) es.close();
+      if (timeout) clearTimeout(timeout);
+    };
   }, [bundleId, region]);
 
   React.useEffect(() => {
     // Very light compute budget presence check: require tx count > 0 and assume server sim validates; mark unknown otherwise
-    const count = parseTxs().length
-    if (count === 0) return setComputeBudgetOk(null)
+    const count = parseTxs().length;
+    if (count === 0) return setComputeBudgetOk(null);
     // Heuristic: when simulated payload hash exists → assume compute budget presence passed server-side sim
-    setComputeBudgetOk(!!payloadHash)
-  }, [txsText, payloadHash])
+    setComputeBudgetOk(!!payloadHash);
+  }, [txsText, payloadHash]);
 
   React.useEffect(() => {
     // Basic balance check: ensure user has enough SOL for conservative tip + fees (~5k lamports per tx heuristic)
     async function checkBalance() {
       try {
         if (!publicKey) return setBalanceOk(null);
-        const lamports = await connection.getBalance(publicKey as PublicKey, { commitment: 'processed' as any });
+        const lamports = await connection.getBalance(publicKey as PublicKey, {
+          commitment: 'processed' as any,
+        });
         const txCount = parseTxs().length || 1;
         const needLamports = Math.max(10000, (tipSuggestion?.conservative || 0) + 5000 * txCount);
         setBalanceOk(lamports >= needLamports);
@@ -224,7 +245,9 @@ export default function Page() {
           setTipPresentOk(null);
           return;
         }
-        const decoded = txs.map((b64) => VersionedTransaction.deserialize(Buffer.from(b64, 'base64')));
+        const decoded = txs.map((b64) =>
+          VersionedTransaction.deserialize(Buffer.from(b64, 'base64')),
+        );
         // Compute budget: ensure first instruction program is ComputeBudget for all txs
         const allHaveCompute = decoded.every((tx) => {
           const msg: any = tx.message as any;
@@ -240,7 +263,8 @@ export default function Page() {
         const lastInstr = msg.compiledInstructions?.[msg.compiledInstructions.length - 1];
         if (!lastInstr) return setTipPresentOk(false);
         const programKey = msg.staticAccountKeys?.[lastInstr.programIdIndex];
-        if (programKey?.toBase58?.() !== SystemProgram.programId.toBase58()) return setTipPresentOk(false);
+        if (programKey?.toBase58?.() !== SystemProgram.programId.toBase58())
+          return setTipPresentOk(false);
         const recipientIndex = lastInstr.accountKeyIndexes?.[1];
         if (typeof recipientIndex !== 'number') return setTipPresentOk(false);
         const recipientKey = msg.staticAccountKeys?.[recipientIndex]?.toBase58?.();
@@ -265,22 +289,49 @@ export default function Page() {
   }, [tip]);
 
   // Hotkeys
-  useHotkeys('mod+p', (e) => { e.preventDefault(); onSimulate(); }, { enableOnFormTags: true }, [onSimulate]);
-  useHotkeys('mod+enter', (e) => { e.preventDefault(); onExecute(); }, { enableOnFormTags: true }, [onExecute]);
-  useHotkeys('r', (e) => { e.preventDefault(); onTip(); }, { enableOnFormTags: true }, [onTip]);
+  useHotkeys(
+    'mod+p',
+    (e) => {
+      e.preventDefault();
+      onSimulate();
+    },
+    { enableOnFormTags: true },
+    [onSimulate],
+  );
+  useHotkeys(
+    'mod+enter',
+    (e) => {
+      e.preventDefault();
+      onExecute();
+    },
+    { enableOnFormTags: true },
+    [onExecute],
+  );
+  useHotkeys(
+    'r',
+    (e) => {
+      e.preventDefault();
+      onTip();
+    },
+    { enableOnFormTags: true },
+    [onTip],
+  );
 
   return (
     <div className="mx-auto max-w-7xl space-y-4">
       {health && !healthy && (
         <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/40 p-3 text-sm">
-          System degraded: RPC {health.checks.rpc.status}, JITO {health.checks.jito.status}. Execution may be disabled.
+          System degraded: RPC {health.checks.rpc.status}, JITO {health.checks.jito.status}.
+          Execution may be disabled.
         </div>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 lg:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-semibold">Bundle Engine</h1>
-            <div className="text-xs text-zinc-400">{connected ? 'Wallet connected' : 'Connect wallet to execute'}</div>
+            <div className="text-xs text-zinc-400">
+              {connected ? 'Wallet connected' : 'Connect wallet to execute'}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <label className="text-sm">Region</label>
@@ -324,18 +375,21 @@ export default function Page() {
             </button>
           </div>
           {tip && (
-            <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">{JSON.stringify(tip, null, 2)}</pre>
+            <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">
+              {JSON.stringify(tip, null, 2)}
+            </pre>
           )}
           {tipSuggestion && (
             <div className="mt-2 text-xs text-zinc-400">
-              Tip suggestions (lamports): conservative {tipSuggestion.conservative} • aggressive {tipSuggestion.aggressive}
+              Tip suggestions (lamports): conservative {tipSuggestion.conservative} • aggressive{' '}
+              {tipSuggestion.aggressive}
             </div>
           )}
           <div className="mt-3">
             <BundlePresets
               onApply={(p) => {
-                setMode(p.mode)
-                if (p.mode === 'delayed') setDelaySec(p.delaySec || 30)
+                setMode(p.mode);
+                if (p.mode === 'delayed') setDelaySec(p.delaySec || 30);
                 // Adjust conservative suggestion by multiplier visually
                 // Not changing server enforcement; user still edits txs independently
               }}
@@ -384,28 +438,30 @@ export default function Page() {
             </div>
             {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
             {out && (
-              <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">{JSON.stringify(out, null, 2)}</pre>
+              <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">
+                {JSON.stringify(out, null, 2)}
+              </pre>
             )}
-          {status && (
-            <div className="mt-3 text-sm text-zinc-300" role="status" aria-live="polite">
-              <div className="flex items-center gap-2">
-                <span>Status: {status.confirmation_status || 'pending'}</span>
-                {out?.bundle_id && (
-                  <button
-                    className="rounded-md border border-zinc-700 px-2 py-0.5 text-xs hover:bg-zinc-800"
-                    onClick={() => out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)}
-                    aria-label="Copy bundle ID"
-                  >
-                    Copy ID
-                  </button>
-                )}
+            {status && (
+              <div className="mt-3 text-sm text-zinc-300" role="status" aria-live="polite">
+                <div className="flex items-center gap-2">
+                  <span>Status: {status.confirmation_status || 'pending'}</span>
+                  {out?.bundle_id && (
+                    <button
+                      className="rounded-md border border-zinc-700 px-2 py-0.5 text-xs hover:bg-zinc-800"
+                      onClick={() => out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)}
+                      aria-label="Copy bundle ID"
+                    >
+                      Copy ID
+                    </button>
+                  )}
+                </div>
+                {typeof status.slot !== 'undefined' && <div>Landed slot: {status.slot}</div>}
               </div>
-              {typeof status.slot !== 'undefined' && <div>Landed slot: {status.slot}</div>}
-            </div>
-          )}
-          {mode === 'delayed' && loading === 'execute' && armCountdown > 0 && (
-            <div className="mt-3 text-xs text-zinc-400">Arming… T-{armCountdown}s</div>
-          )}
+            )}
+            {mode === 'delayed' && loading === 'execute' && armCountdown > 0 && (
+              <div className="mt-3 text-xs text-zinc-400">Arming… T-{armCountdown}s</div>
+            )}
           </div>
         </section>
         <section className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
@@ -413,11 +469,19 @@ export default function Page() {
           <ul className="space-y-2 text-sm">
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">Wallet connected</span>
-              <span className={connected ? 'text-emerald-400' : 'text-red-400'}>{connected ? 'ok' : 'missing'}</span>
+              <span className={connected ? 'text-emerald-400' : 'text-red-400'}>
+                {connected ? 'ok' : 'missing'}
+              </span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">≤ 5 transactions</span>
-              <span className={(txsText.split('\n').filter(Boolean).length <= 5) ? 'text-emerald-400' : 'text-red-400'}>
+              <span
+                className={
+                  txsText.split('\n').filter(Boolean).length <= 5
+                    ? 'text-emerald-400'
+                    : 'text-red-400'
+                }
+              >
                 {txsText.split('\n').filter(Boolean).length}
               </span>
             </li>
@@ -429,27 +493,55 @@ export default function Page() {
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">Tipfloor fetched</span>
-              <span className={tip ? 'text-emerald-400' : 'text-yellow-400'}>{tip ? 'ok' : 'pending'}</span>
+              <span className={tip ? 'text-emerald-400' : 'text-yellow-400'}>
+                {tip ? 'ok' : 'pending'}
+              </span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">Simulated payload</span>
-              <span className={payloadHash ? 'text-emerald-400' : 'text-yellow-400'}>{payloadHash ? 'ok' : 'pending'}</span>
+              <span className={payloadHash ? 'text-emerald-400' : 'text-yellow-400'}>
+                {payloadHash ? 'ok' : 'pending'}
+              </span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">Compute budget present</span>
-              <span className={computeBudgetOk ? 'text-emerald-400' : computeBudgetOk === false ? 'text-red-400' : 'text-yellow-400'}>
+              <span
+                className={
+                  computeBudgetOk
+                    ? 'text-emerald-400'
+                    : computeBudgetOk === false
+                      ? 'text-red-400'
+                      : 'text-yellow-400'
+                }
+              >
                 {computeBudgetOk ? 'ok' : computeBudgetOk === false ? 'missing' : 'unknown'}
               </span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">JITO tip in last tx</span>
-              <span className={tipPresentOk ? 'text-emerald-400' : tipPresentOk === false ? 'text-red-400' : 'text-yellow-400'}>
+              <span
+                className={
+                  tipPresentOk
+                    ? 'text-emerald-400'
+                    : tipPresentOk === false
+                      ? 'text-red-400'
+                      : 'text-yellow-400'
+                }
+              >
                 {tipPresentOk ? 'ok' : tipPresentOk === false ? 'missing' : 'unknown'}
               </span>
             </li>
             <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
               <span className="text-zinc-400">Balance sufficient</span>
-              <span className={balanceOk ? 'text-emerald-400' : balanceOk === false ? 'text-red-400' : 'text-yellow-400'}>
+              <span
+                className={
+                  balanceOk
+                    ? 'text-emerald-400'
+                    : balanceOk === false
+                      ? 'text-red-400'
+                      : 'text-yellow-400'
+                }
+              >
                 {balanceOk ? 'ok' : balanceOk === false ? 'insufficient' : 'unknown'}
               </span>
             </li>

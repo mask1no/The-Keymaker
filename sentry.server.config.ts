@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from '@sentry/nextjs';
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -9,12 +9,14 @@ if (process.env.SENTRY_DSN) {
     debug: false,
     beforeSend(event: Sentry.ErrorEvent, _hint?: Sentry.EventHint) {
       if (event.request?.headers) {
-        const headers: Record<string, unknown> = { ...(event.request.headers as Record<string, unknown>) }
-        delete headers['authorization']
-        delete headers['cookie']
-        ;(event.request as unknown as { headers?: Record<string, unknown> }).headers = headers
+        const headers: Record<string, unknown> = {
+          ...(event.request.headers as Record<string, unknown>),
+        };
+        delete headers['authorization'];
+        delete headers['cookie'];
+        (event.request as unknown as { headers?: Record<string, unknown> }).headers = headers;
       }
-      return event
+      return event;
     },
-  })
+  });
 }

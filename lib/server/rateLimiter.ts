@@ -1,9 +1,17 @@
 // Simple token bucket rate limiter
 interface TokenBucket {
-  t, o, kens: number;
-  l, a, stRefill: number;
-  c, a, pacity: number;
-  r, e, fillRate: number;
+  t;
+  o;
+  kens: number;
+  l;
+  a;
+  stRefill: number;
+  c;
+  a;
+  pacity: number;
+  r;
+  e;
+  fillRate: number;
 }
 const buckets = new Map<string, TokenBucket>();
 

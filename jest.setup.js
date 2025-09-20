@@ -16,8 +16,8 @@ global.__TEST_MODE__ = true;
 
 // Ensure Response.json static exists for NextResponse.json usage
 // Some environments (jsdom) don't provide Response.json static helper
-if (typeof Response !== 'undefined' && !(/** @type any */ (Response)).json) {
-  (/** @type any */ (Response)).json = (body, init) =>
+if (typeof Response !== 'undefined' && !/** @type any */ (Response).json) {
+  /** @type any */ (Response).json = (body, init) =>
     new Response(JSON.stringify(body), {
       headers: { 'content-type': 'application/json', ...(init?.headers || {}) },
       ...init,

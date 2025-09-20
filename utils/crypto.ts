@@ -7,10 +7,17 @@ const TAG_LENGTH = 16;
 const ALGORITHM = 'aes-256-gcm';
 
 export interface EncryptedData {
-  e, n, crypted: string;
-  s, a, lt: string;
-  i, v: string;
-  t, a, g: string;
+  e;
+  n;
+  crypted: string;
+  s;
+  a;
+  lt: string;
+  i;
+  v: string;
+  t;
+  a;
+  g: string;
 }
 
 function deriveKey(p, a, ssword: string, s, a, lt: Buffer): Buffer {
@@ -45,7 +52,14 @@ export function decryptAES256(e, n, cryptedData: string, p, a, ssword: string): 
   }
 }
 
-export async function decryptAES256ToKeypair(e, n, cryptedBase64: string, p, a, ssword: string): Promise<Keypair> {
+export async function decryptAES256ToKeypair(
+  e,
+  n,
+  cryptedBase64: string,
+  p,
+  a,
+  ssword: string,
+): Promise<Keypair> {
   const decrypted = decryptAES256(encryptedBase64, password);
   try {
     if (decrypted.startsWith('[')) {
@@ -70,7 +84,8 @@ export function isValidEncryptedData(d, a, ta: string): boolean {
 }
 
 export function generateSecurePassword(length = 16): string {
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+  const charset =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
   const randomBytes = crypto.randomBytes(length);
   let password = '';
   for (let i = 0; i < length; i++) {

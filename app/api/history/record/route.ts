@@ -10,9 +10,16 @@ export async function POST(request: Request) {
       bundle_id: z.string().min(1),
       status: z.enum(['success', 'failed', 'partial']).optional(),
       slot: z.number().int().nonnegative().optional(),
-      signatures: z.array(z.string().min(44)).min(1).max(getEnvInt('RECORD_MAX_SIGS', 20)).optional(),
+      signatures: z
+        .array(z.string().min(44))
+        .min(1)
+        .max(getEnvInt('RECORD_MAX_SIGS', 20))
+        .optional(),
     });
-    await readJsonSafe(request, { maxBytes: getEnvInt('PAYLOAD_LIMIT_RECORD_BYTES', 16 * 1024), schema });
+    await readJsonSafe(request, {
+      maxBytes: getEnvInt('PAYLOAD_LIMIT_RECORD_BYTES', 16 * 1024),
+      schema,
+    });
     return NextResponse.json({ ok: true, received: true });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed to record bundle' }, { status: 500 });

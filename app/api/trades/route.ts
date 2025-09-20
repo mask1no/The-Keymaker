@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server'
-import 'server-only'
-import path from 'path'
-import { z } from 'zod'
-import { readJsonSafe, getEnvInt } from '@/lib/server/request'
+import { NextResponse } from 'next/server';
+import 'server-only';
+import path from 'path';
+import { z } from 'zod';
+import { readJsonSafe, getEnvInt } from '@/lib/server/request';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    const db = await open({ filename: dbPath, driver: sqlite3.Database })
-    const trades = await db.all('SELECT * FROM trades ORDER BY executed_at DESC LIMIT ?', [limit])
-    await db.close()
-    return NextResponse.json({ trades })
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const dbPath = path.join(process.cwd(), 'data', 'keymaker.db');
+    const sqlite3 = (await import('sqlite3')).default;
+    const { open } = await import('sqlite');
+    const db = await open({ filename: dbPath, driver: sqlite3.Database });
+    const trades = await db.all('SELECT * FROM trades ORDER BY executed_at DESC LIMIT ?', [limit]);
+    await db.close();
+    return NextResponse.json({ trades });
   } catch (error) {
-    console.error('Failed to fetch trades:', error)
-    return NextResponse.json({ error: 'Failed to fetch trades from database' }, { status: 500 })
+    console.error('Failed to fetch trades:', error);
+    return NextResponse.json({ error: 'Failed to fetch trades from database' }, { status: 500 });
   }
 }
 
@@ -33,13 +33,26 @@ export async function POST(request: Request) {
       fees: z.number().finite().nonnegative().optional().default(0),
       gas_fee: z.number().finite().nonnegative().optional().default(0),
       jito_tip: z.number().finite().nonnegative().optional().default(0),
-    })
-    const body = await readJsonSafe(request, { maxBytes: getEnvInt('PAYLOAD_LIMIT_TRADES_BYTES', 32 * 1024), schema })
-    const { token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees = 0, gas_fee = 0, jito_tip = 0 } = body as any
-    const dbPath = path.join(process.cwd(), 'data', 'keymaker.db')
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    const db = await open({ filename: dbPath, driver: sqlite3.Database })
+    });
+    const body = await readJsonSafe(request, {
+      maxBytes: getEnvInt('PAYLOAD_LIMIT_TRADES_BYTES', 32 * 1024),
+      schema,
+    });
+    const {
+      token_address,
+      tx_ids,
+      wallets,
+      sol_in,
+      sol_out,
+      pnl,
+      fees = 0,
+      gas_fee = 0,
+      jito_tip = 0,
+    } = body as any;
+    const dbPath = path.join(process.cwd(), 'data', 'keymaker.db');
+    const sqlite3 = (await import('sqlite3')).default;
+    const { open } = await import('sqlite');
+    const db = await open({ filename: dbPath, driver: sqlite3.Database });
     const result = await db.run(
       `INSERT INTO trades (token_address, tx_ids, wallets, sol_in, sol_out, pnl, fees, gas_fee, jito_tip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -53,11 +66,11 @@ export async function POST(request: Request) {
         Number(gas_fee) || 0,
         Number(jito_tip) || 0,
       ],
-    )
-    await db.close()
-    return NextResponse.json({ success: true, tradeId: (result as any).lastID })
+    );
+    await db.close();
+    return NextResponse.json({ success: true, tradeId: (result as any).lastID });
   } catch (error) {
-    console.error('Failed to save trade:', error)
-    return NextResponse.json({ error: 'Failed to save trade to database' }, { status: 500 })
+    console.error('Failed to save trade:', error);
+    return NextResponse.json({ error: 'Failed to save trade to database' }, { status: 500 });
   }
 }

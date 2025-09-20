@@ -11,9 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppHeader />
           <div className="flex min-h-[calc(100vh-56px)]">
             <AppSideNav />
-            <main className="flex-1 p-4 md:p-6">
-              {children}
-            </main>
+            <main className="flex-1 p-4 md:p-6">{children}</main>
           </div>
         </Providers>
       </body>

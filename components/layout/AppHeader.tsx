@@ -1,6 +1,6 @@
-'use client'
-import Link from 'next/link'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+'use client';
+import Link from 'next/link';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function AppHeader() {
   return (
@@ -14,7 +14,5 @@ export default function AppHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-
-

@@ -4,5 +4,5 @@ export default function SellMonitorPage() {
       <h1>Sell Monitor</h1>
       <p>This feature is temporarily disabled while core bundler paths are stabilized.</p>
     </div>
-  )
+  );
 }

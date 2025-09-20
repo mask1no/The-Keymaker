@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
-import { Connection } from '@solana/web3.js'
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
-import { getTipFloor } from '@/lib/server/jitoService'
-import { db } from '@/lib/db'
-import { isTestMode } from '@/lib/testMode'
+import { Connection } from '@solana/web3.js';
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
+import { getTipFloor } from '@/lib/server/jitoService';
+import { db } from '@/lib/db';
+import { isTestMode } from '@/lib/testMode';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const started = Date.now()
-  let rpcLatency = -1
-  let jitoLatency = -1
-  let dbOk = false
+  const started = Date.now();
+  let rpcLatency = -1;
+  let jitoLatency = -1;
+  let dbOk = false;
   if (isTestMode()) {
     return NextResponse.json({
       ok: true,
@@ -23,31 +23,31 @@ export async function GET() {
         database: { status: 'healthy' },
       },
       duration_ms: Date.now() - started,
-    })
+    });
   }
-  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
   try {
-    const t0 = Date.now()
-    await connection.getSlot()
-    rpcLatency = Date.now() - t0
+    const t0 = Date.now();
+    await connection.getSlot();
+    rpcLatency = Date.now() - t0;
   } catch (e) {
-    rpcLatency = -1
-  }
-
-  try {
-    const t1 = Date.now()
-    await getTipFloor('ffm')
-    jitoLatency = Date.now() - t1
-  } catch (e) {
-    jitoLatency = -1
+    rpcLatency = -1;
   }
 
   try {
-    const conn = await db
-    await conn.exec('/* ping */')
-    dbOk = true
+    const t1 = Date.now();
+    await getTipFloor('ffm');
+    jitoLatency = Date.now() - t1;
   } catch (e) {
-    dbOk = false
+    jitoLatency = -1;
+  }
+
+  try {
+    const conn = await db;
+    await conn.exec('/* ping */');
+    dbOk = true;
+  } catch (e) {
+    dbOk = false;
   }
 
   return NextResponse.json({
@@ -56,9 +56,13 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     checks: {
       rpc: { status: rpcLatency >= 0 ? 'healthy' : 'down', latency_ms: rpcLatency },
-      jito: { status: jitoLatency >= 0 ? 'healthy' : 'down', latency_ms: jitoLatency, region: 'ffm' },
+      jito: {
+        status: jitoLatency >= 0 ? 'healthy' : 'down',
+        latency_ms: jitoLatency,
+        region: 'ffm',
+      },
       database: { status: dbOk ? 'healthy' : 'down' },
     },
     duration_ms: Date.now() - started,
-  })
+  });
 }
