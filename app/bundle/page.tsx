@@ -17,8 +17,10 @@ import {
 import { JITO_TIP_ACCOUNTS } from '@/constants';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Button } from '@/components/UI/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card'
+import { Button } from '@/components/UI/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/UI/select'
+import { Textarea } from '@/components/UI/Textarea'
 
 async function fetchTipfloor(region?: string) {
   const q = region ? `?region=${region}` : '';
@@ -341,26 +343,32 @@ export default function Page() {
           <CardContent>
             <div className="flex flex-wrap items-center gap-2">
               <label className="text-sm">Region</label>
-              <select
-                className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-              >
-                <option value="ffm">Frankfurt</option>
-                <option value="ams">Amsterdam</option>
-                <option value="ny">New York</option>
-                <option value="tokyo">Tokyo</option>
-              </select>
+              <div className="min-w-[160px]">
+                <Select value={region} onValueChange={(v) => setRegion(v)}>
+                  <SelectTrigger aria-label="Region">
+                    <SelectValue placeholder="Region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ffm">Frankfurt</SelectItem>
+                    <SelectItem value="ams">Amsterdam</SelectItem>
+                    <SelectItem value="ny">New York</SelectItem>
+                    <SelectItem value="tokyo">Tokyo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <label className="ml-2 text-sm">Mode</label>
-              <select
-                className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm"
-                value={mode}
-                onChange={(e) => setMode(e.target.value as any)}
-              >
-                <option value="regular">Regular</option>
-                <option value="instant">Instant</option>
-                <option value="delayed">Delayed</option>
-              </select>
+              <div className="min-w-[140px]">
+                <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+                  <SelectTrigger aria-label="Mode">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="regular">Regular</SelectItem>
+                    <SelectItem value="instant">Instant</SelectItem>
+                    <SelectItem value="delayed">Delayed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {mode === 'delayed' && (
                 <input
                   type="number"
@@ -397,9 +405,9 @@ export default function Page() {
             </div>
             <div className="mt-4">
               <h3 className="text-sm font-medium mb-2">Transactions (base64, one per line)</h3>
-              <textarea
+              <Textarea
                 rows={8}
-                className="w-full rounded-xl border border-zinc-800 bg-black/40 p-3 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                className="w-full font-mono text-xs"
                 value={txsText}
                 onChange={(e) => setTxsText(e.target.value)}
                 placeholder="base64 tx v0..."
@@ -442,7 +450,9 @@ export default function Page() {
                       <Button
                         variant="outline"
                         className="h-7 px-2 py-0.5 text-xs"
-                        onClick={() => out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)}
+                        onClick={() =>
+                          out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)
+                        }
                         aria-label="Copy bundle ID"
                       >
                         Copy ID
@@ -485,7 +495,9 @@ export default function Page() {
               </li>
               <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
                 <span className="text-zinc-400">Health: RPC/JITO</span>
-                <span className={rpcHealthy && jitoHealthy ? 'text-emerald-400' : 'text-yellow-400'}>
+                <span
+                  className={rpcHealthy && jitoHealthy ? 'text-emerald-400' : 'text-yellow-400'}
+                >
                   {rpcHealthy && jitoHealthy ? 'ok' : 'degraded'}
                 </span>
               </li>
@@ -508,8 +520,8 @@ export default function Page() {
                     computeBudgetOk
                       ? 'text-emerald-400'
                       : computeBudgetOk === false
-                      ? 'text-red-400'
-                      : 'text-yellow-400'
+                        ? 'text-red-400'
+                        : 'text-yellow-400'
                   }
                 >
                   {computeBudgetOk ? 'ok' : computeBudgetOk === false ? 'missing' : 'unknown'}
@@ -522,8 +534,8 @@ export default function Page() {
                     tipPresentOk
                       ? 'text-emerald-400'
                       : tipPresentOk === false
-                      ? 'text-red-400'
-                      : 'text-yellow-400'
+                        ? 'text-red-400'
+                        : 'text-yellow-400'
                   }
                 >
                   {tipPresentOk ? 'ok' : tipPresentOk === false ? 'missing' : 'unknown'}
@@ -536,15 +548,17 @@ export default function Page() {
                     balanceOk
                       ? 'text-emerald-400'
                       : balanceOk === false
-                      ? 'text-red-400'
-                      : 'text-yellow-400'
+                        ? 'text-red-400'
+                        : 'text-yellow-400'
                   }
                 >
                   {balanceOk ? 'ok' : balanceOk === false ? 'insufficient' : 'unknown'}
                 </span>
               </li>
             </ul>
-            <div className="text-xs text-zinc-500 mt-3">All guardrails must pass before execution.</div>
+            <div className="text-xs text-zinc-500 mt-3">
+              All guardrails must pass before execution.
+            </div>
           </CardContent>
         </Card>
 
