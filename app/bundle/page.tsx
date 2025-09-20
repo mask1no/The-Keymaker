@@ -53,6 +53,17 @@ export default function Page() {
   const [tipPresentOk, setTipPresentOk] = React.useState<boolean | null>(null);
   const [armCountdown, setArmCountdown] = React.useState<number>(0);
 
+  const tipSuggestion = React.useMemo(() => {
+    if (!tip) return null;
+    const p50 = tip.p50 || 0;
+    const p75 = tip.p75 || 0;
+    const ema = tip.ema_50th || 0;
+    return {
+      conservative: Math.floor(Math.max(ema, p50)),
+      aggressive: Math.floor(Math.max(p75, ema * 1.1)),
+    };
+  }, [tip]);
+
   const onTip = async () => {
     setLoading('tip');
     setError(null);
@@ -226,14 +237,15 @@ export default function Page() {
           commitment: 'processed' as any,
         });
         const txCount = parseTxs().length || 1;
-        const needLamports = Math.max(10000, (tipSuggestion?.conservative || 0) + 5000 * txCount);
+        const conservative = tipSuggestion?.conservative || 0;
+        const needLamports = Math.max(10000, conservative + 5000 * txCount);
         setBalanceOk(lamports >= needLamports);
       } catch {
         setBalanceOk(null);
       }
     }
     checkBalance();
-  }, [tipSuggestion, publicKey, connection, txsText]);
+  }, [tipSuggestion?.conservative, publicKey, connection, txsText]);
 
   React.useEffect(() => {
     // Client-side checks for compute budget and JITO tip in last tx
@@ -276,17 +288,6 @@ export default function Page() {
     }
     checkClientGuards();
   }, [txsText]);
-
-  const tipSuggestion = React.useMemo(() => {
-    if (!tip) return null;
-    const p50 = tip.p50 || 0;
-    const p75 = tip.p75 || 0;
-    const ema = tip.ema_50th || 0;
-    return {
-      conservative: Math.floor(Math.max(ema, p50)),
-      aggressive: Math.floor(Math.max(p75, ema * 1.1)),
-    };
-  }, [tip]);
 
   // Hotkeys
   useHotkeys(
