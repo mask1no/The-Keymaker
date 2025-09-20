@@ -1,5 +1,6 @@
 'use client';
 import { useMemo } from 'react';
+import { Button } from '@/components/UI/button';
 
 type Preset = {
   id: string;
@@ -42,15 +43,18 @@ export default function BundlePresets({ onApply }: { onApply: (p: Preset) => voi
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
       {presets.map((p) => (
-        <button
+        <Button
           key={p.id}
+          variant="outline"
+          className="justify-start px-3 py-2 h-auto rounded-xl"
           onClick={() => onApply(p)}
-          className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-left hover:bg-zinc-800"
-          aria-label={`Preset ${p.name}`}
+          aria-label={`Apply preset ${p.name}`}
         >
-          <div className="text-sm font-medium">{p.name}</div>
-          <div className="text-xs text-zinc-400">{p.description}</div>
-        </button>
+          <div className="text-left">
+            <div className="text-sm font-medium">{p.name}</div>
+            <div className="text-xs text-zinc-400">{p.description}</div>
+          </div>
+        </Button>
       ))}
     </div>
   );
