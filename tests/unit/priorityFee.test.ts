@@ -1,1 +1,20 @@
-import { getComputeUnitPriceLamportscreateComputeBudgetInstructions } from '../../lib/priorityFee' d e scribe('priorityFee', () => { t e st('price table', () => { e x pect(g e tComputeUnitPriceLamports('low')).t oB e(10_000) e x pect(g e tComputeUnitPriceLamports('medium')).t oB e(100_000) e x pect(g e tComputeUnitPriceLamports('high')).t oB e(500_000) e x pect(g e tComputeUnitPriceLamports('veryHigh')).t oB e(1_000_000) }) t e st('instructions exist', () => { const ix = c r eateComputeBudgetInstructions('high') e x pect(ix.length).t oB e(2) }) }) 
+/** @jest-environment node */
+import { getComputeUnitPriceLamports, createComputeBudgetInstructions } from '../../lib/priorityFee'
+import { ComputeBudgetProgram } from '@solana/web3.js'
+
+describe('priorityFee', () => {
+  test('price table', () => {
+    expect(getComputeUnitPriceLamports('low')).toBe(10_000)
+    expect(getComputeUnitPriceLamports('medium')).toBe(100_000)
+    expect(getComputeUnitPriceLamports('high')).toBe(500_000)
+    expect(getComputeUnitPriceLamports('veryHigh')).toBe(1_000_000)
+  })
+
+  test('instructions exist', () => {
+    const ix = createComputeBudgetInstructions('high')
+    expect(ix.length).toBe(2)
+    // Basic sanity: both are ComputeBudgetProgram instructions
+    expect(ix[0].programId.toBase58()).toBe(ComputeBudgetProgram.programId.toBase58())
+    expect(ix[1].programId.toBase58()).toBe(ComputeBudgetProgram.programId.toBase58())
+  })
+})

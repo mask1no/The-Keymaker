@@ -2,8 +2,8 @@
 
 ## ✅ RESTORATION COMPLETED
 
-D, ate: September 16, 2025
-V, ersion: v31 (DE-CORRUPT + UX POLISH + JITO HOT PATH)
+D, a, t, e: September 16, 2025
+V, e, r, sion: v31 (DE-CORRUPT + UX POLISH + JITO HOT PATH)
 
 ## Summary
 
@@ -66,7 +66,7 @@ ENABLE_SELL = false; // Disable sell features
 
 - ✅ Fixed `next.config.js` syntax errors
 - ✅ Installed missing `react-markdown` dependency
-- ✅ Added npm s, cripts: `f, ix:splits`, `hygiene`
+- ✅ Added npm s, c, r, ipts: `f, i, x:splits`, `hygiene`
 
 ## Files Modified
 
@@ -117,13 +117,13 @@ ENABLE_SELL = false; // Disable sell features
 
    ```bash
    pnpm dev
-   # Visit h, ttp://l, ocalhost:3000
+   # Visit h, t, t, p://l, o, c, alhost:3000
    ```
 
 2. **If issues persist**:
 
    ```bash
-   pnpm f, ix:splits    # Run corruption fixer again
+   pnpm f, i, x:splits    # Run corruption fixer again
    pnpm hygiene       # Check for remaining corruption
    pnpm lint --fix    # Fix linting issues
    ```
@@ -139,7 +139,7 @@ ENABLE_SELL = false; // Disable sell features
 pnpm hygiene
 
 # Fix any remaining issues
-pnpm f, ix:splits
+pnpm f, i, x:splits
 
 # Build for production
 pnpm build

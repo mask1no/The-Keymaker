@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function SearchStub() {
   return (
@@ -8,5 +8,5 @@ export default function SearchStub() {
         <p className="text-sm text-muted-foreground">This page is temporarily simplified.</p>
       </div>
     </div>
-  )
+  );
 }

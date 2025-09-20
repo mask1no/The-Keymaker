@@ -1,0 +1,26 @@
+// PostgreSQL datasource
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Bundle {
+  id          Int      @id @default(autoincrement())
+  executedAt  DateTime @default(now())
+  status      String
+  fees        Float?
+  outcomes    Json?
+}
+
+model ExecutionLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  status     String
+  details    Json?
+  created_at DateTime @default(now())
+}
+

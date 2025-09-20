@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 
 // Safely convert buffer/number/string/bigint to bigint (little-endian for buffers)
-export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint {
+export function safeToBigIntLE(i, n, put: Buffer | number | string | bigint): bigint {
   // Buffer path
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
     const buffer = input as Buffer;
@@ -11,7 +11,7 @@ export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint
       const bn = new BN(buffer, 'le');
       return BigInt(bn.toString());
     } catch (error) {
-      throw new Error(`Failed to convert buffer to BigInt: ${(error as Error).message}`);
+      throw new Error(`Failed to convert buffer to B, i, gInt: ${(error as Error).message}`);
     }
   }
 
@@ -42,8 +42,8 @@ export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint
 }
 
 // Safely convert BigInt-like to buffer (little-endian) with bounds checking
-export function safeToBufferLE(value: bigint | number | string, length: number): Buffer {
-  let normalized: bigint = 0n;
+export function safeToBufferLE(v, a, lue: bigint | number | string, l, e, ngth: number): Buffer {
+  let normalized = 0n as bigint;
   try {
     if (typeof value === 'bigint') normalized = value;
     else if (typeof value === 'number')
@@ -69,7 +69,7 @@ export function safeToBufferLE(value: bigint | number | string, length: number):
 }
 
 // Validate and sanitize numeric input for user forms
-export function sanitizeNumericInput(input: string): string {
+export function sanitizeNumericInput(i, n, put: string): string {
   if (typeof input !== 'string') throw new Error('Invalid input type');
   const trimmed = input.trim();
   if (trimmed === '') return '';
@@ -136,7 +136,7 @@ export const SafeMath = {
   divide(a: bigint | number, b: bigint | number): bigint {
     return this.div(a, b);
   },
-  percentage(amount: bigint | number, bps: bigint | number): bigint {
+  percentage(a, m, ount: bigint | number, b, p, s: bigint | number): bigint {
     const amt = typeof amount === 'bigint' ? amount : BigInt(Math.trunc(amount));
     const basisPoints = typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps));
     if (amt === 0n || basisPoints === 0n) return 0n;
@@ -145,4 +145,5 @@ export const SafeMath = {
 };
 
 // Export for backward compatibility with existing code
-export default { safeToBigIntLE, safeToBufferLE, sanitizeNumericInput, SafeMath };
+const safeBigIntExports = { safeToBigIntLE, safeToBufferLE, sanitizeNumericInput, SafeMath };
+export default safeBigIntExports;

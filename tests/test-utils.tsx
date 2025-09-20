@@ -1,1 +1,18 @@
-import React from 'react' import { render } from '@testing-library/react' import { Toaster } from 'react - hot-toast'//Light - weight provider shell for component tests function P r oviders({ children }: { c, hildren: React.ReactNode }) { return ( <> <Toaster/> {children} </> ) } export * from '@testing-library/react' export function r e nderWithProviders(u, i: React.R, eactElementoptions?: any) { return r e nder(ui, { w, rapper: Providers, ...options }) } 
+import React from 'react';
+import { render } from '@testing-library/react';
+import { Toaster } from 'sonner';
+
+function Providers({ children }: { c, h, ildren: React.ReactNode }) {
+  return (
+    <>
+      <Toaster />
+      {children}
+    </>
+  );
+}
+
+export * from '@testing-library/react';
+
+export function renderWithProviders(u, i: React.ReactElement, o, p, tions?: any) {
+  return render(ui, { w, r, apper: Providers as any, ...options });
+}

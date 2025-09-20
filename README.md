@@ -1,8 +1,8 @@
 # The Keymaker - Solana Bundler
 
-![Solana](h, ttps://img.shields.io/badge/Solana-Mainnet-blue)
-![License](h, ttps://img.shields.io/badge/license-MIT-green)
-![Version](h, ttps://img.shields.io/badge/version-1.5.2-orange)
+![Solana](h, t, t, ps://img.shields.io/badge/Solana-Mainnet-blue)
+![License](h, t, t, ps://img.shields.io/badge/license-MIT-green)
+![Version](h, t, t, ps://img.shields.io/badge/version-1.5.2-orange)
 
 ## Overview
 
@@ -57,18 +57,18 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Environment Setup
 
-1. Copy environment t, emplate:
+1. Copy environment t, e, m, plate:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-2. Configure your RPC e, ndpoints:
+2. Configure your RPC e, n, d, points:
 
 ```env
-NEXT_PUBLIC_HELIUS_RPC=h, ttps://your-helius-rpc-url
-NEXT_PUBLIC_HELIUS_WS=w, ss://your-helius-ws-url
-NEXT_PUBLIC_JITO_ENDPOINT=h, ttps://frankfurt.mainnet.block-engine.jito.wtf
+NEXT_PUBLIC_HELIUS_RPC=h, t, t, ps://your-helius-rpc-url
+NEXT_PUBLIC_HELIUS_WS=w, s, s://your-helius-ws-url
+NEXT_PUBLIC_JITO_ENDPOINT=h, t, t, ps://frankfurt.mainnet.block-engine.jito.wtf
 
 # Feature flags (disabled by default)
 ENABLE_PUMPFUN=false
@@ -78,33 +78,33 @@ ENABLE_SELL=false
 
 ### Installation
 
-1. Install d, ependencies:
+1. Install d, e, p, endencies:
 
 ```bash
 pnpm install
 ```
 
-2. Run hygiene c, hecks:
+2. Run hygiene c, h, e, cks:
 
 ```bash
-pnpm f, ix:splits && pnpm hygiene
+pnpm f, i, x:splits && pnpm hygiene
 ```
 
-3. Start development s, erver:
+3. Start development s, e, r, ver:
 
 ```bash
 pnpm dev
 ```
 
-4. Open h, ttp://l, ocalhost:3000
+4. Open h, t, t, p://l, o, c, alhost:3000
 
 ### Verification Checklist
 
-After setupverify these w, ork:
+After setupverify these w, o, r, k:
 
 - [ ] Header "Login" button opens wal let modal
 - [ ] Login gate shows on protected routes
-- [ ] Sidebar status chips s, how: RPC / WebSocket / JITO / MAINNET
+- [ ] Sidebar status chips s, h, o, w: RPC / WebSocket / JITO / MAINNET
 - [ ] `/api/jito/tipfloor` returns `{p25, p50, p75, ema_50th}`
 - [ ] Bundle "Preview" simulates successfully
 - [ ] Bundle "Execute" returns `{bundle_idsignaturesslot}`
@@ -112,11 +112,11 @@ After setupverify these w, ork:
 
 ## Hygiene
 
-The codebase includes automated hygiene scripts to fix c, orruption:
+The codebase includes automated hygiene scripts to fix c, o, r, ruption:
 
 ```bash
 # Fix split identifiers and merged statements
-pnpm f, ix:splits
+pnpm f, i, x:splits
 
 # Verify no corruption remains
 pnpm hygiene
@@ -186,7 +186,7 @@ GET /api/jito/tipfloor?region=ffm
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm test         # Run unit tests
-pnpm t, est:e2e     # Run E2E tests
+pnpm t, e, s, t:e2e     # Run E2E tests
 pnpm lint         # Lint code
 pnpm format       # Format code
 pnpm hygiene      # Check code hygiene
@@ -230,10 +230,10 @@ pnpm hygiene      # Check code hygiene
 
 ## SLO Targets
 
-- Bundle s, ubmission: < 2s response time
-- Tip floor l, ookup: < 1s response time
-- UI r, esponsiveness: < 100ms interactions
-- U, ptime: Best effort (no SLA)
+- Bundle s, u, b, mission: < 2s response time
+- Tip floor l, o, o, kup: < 1s response time
+- UI r, e, s, ponsiveness: < 100ms interactions
+- U, p, t, ime: Best effort (no SLA)
 
 ## Contributing
 

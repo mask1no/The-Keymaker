@@ -1,16 +1,8 @@
-'use client'
-
 export default function SellMonitorPage() {
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
-        <h1 className="text-xl font-semibold">Sell Monitor</h1>
-        <p className="text-sm text-muted-foreground">
-          This view is temporarily stubbed for production hardening.
-        </p>
-      </div>
+    <div style={{ padding: 24 }}>
+      <h1>Sell Monitor</h1>
+      <p>This feature is temporarily disabled while core bundler paths are stabilized.</p>
     </div>
   )
 }
-
-

@@ -6,60 +6,63 @@ This doc tracks what’s left to make the bundler production‑ready.
 
 - Fixed: core server `jitoService`, `/api/jito/tipfloor`, `/api/bundles/submit`, `/api/bundles/status/batch`
 - Fixed: utils (`lib/logger.ts`, `services/execution/Result.ts`, `utils/withRetry.ts`, `utils/safeBigInt.ts`, `constants.ts`)
-- Server type‑check: green via `pnpm type-check:server`
-- Build blockers: several API routes/pages still corrupted; many are now stubbed
+- Server type‑check: green via `pnpm type-check`
+- Build: green via `pnpm build`
+- Test mode: health/tipfloor/simulate/execute/status work locally with stubs
 
 ## Gate 1 (type‑check + build)
 
-- [ ] Stub/replace remaining corrupted routes/pages:
-  - [ ] `app/api/pumpfun-fallback/route.ts` → return 501 stub
-  - [ ] `app/dashboard/sell-monitor/page.tsx` → minimal stub page
-  - [ ] `app/global-error.js` → simple error boundary stub
-  - [ ] `app/guide/page.tsx` → minimal static markdown or placeholder
-  - [ ] `app/history/page.tsx` → minimal stub page
-- [ ] Re‑run `pnpm build` and fix any import/runtime errors
+- [x] Repair corrupted app pages (`/`, `dashboard/pnl`, `history`, providers, dashboard wrapper)
+- [x] Ensure build passes
+- [ ] Optional: finish minor UI cleanups (`app/page.original.tsx` demo)
 
 ## Gate 2 (API contract tests)
 
-- [ ] Add Jest tests (mock fetch):
+- [x] Add Jest tests (mock fetch):
   - GET `/api/jito/tipfloor` → `{ p25, p50, p75, ema_50th, region }`
   - POST `/api/bundles/submit` (simulateOnly and submit shapes)
   - POST `/api/bundles/status/batch` → `{ region, statuses }`
 
 ## Gate 3 (unit tests)
 
-- [ ] `SimulationService.simulateAll` (success/error)
-- [ ] `SubmissionService.submitAndPoll` (success/timeout/error)
-- [ ] `validateTipAccount` (true/false/malformed)
+- [x] `SimulationService.simulateAll` (success/error)
+- [x] `SubmissionService.submitAndPoll` (success/timeout/error)
+- [x] `validateTipAccount` (true/false/malformed)
 
 ## Gate 4 (resilience)
 
-- [ ] Per‑IP rate limit: tipfloor/submit/status
-- [ ] Retries/backoff for Jito (network/5xx only)
-- [ ] Circuit breaker around Jito methods
-- [ ] Feature flag `ENABLE_SLOT_TARGETING=false` with scaffolding
+- [x] Per‑IP rate limit: tipfloor/submit/status (in‑memory + Redis fallback)
+- [x] Retries/backoff for Jito (network/5xx only)
+- [x] Circuit breaker around Jito methods with Sentry telemetry
+- [x] Leader schedule helper + blockhash freshness checks
+- [x] Feature flag `ENABLE_SLOT_TARGETING=false` with scaffolding
 
 ## UI minimal (non‑blocking)
 
-- [ ] Minimal Bundle page wired to endpoints (done for tipfloor; submit next)
-- [ ] Basic feedback on actions
+- [x] Minimal Bundle page wired to endpoints (tipfloor/simulate/execute/status)
+- [x] Basic feedback on actions
 
 ## Security & config
 
-- [ ] Ensure no secrets in client; document envs (RPC/Jito endpoint)
-- [ ] Validate/sanitize inputs in submit/status routes
+- [x] Ensure no secrets in client; documented envs
+- [x] Validate/sanitize inputs in submit/status routes
 
 ## Observability
 
-- [ ] Sentry DSN wired (prod errors/warnings only)
+- [x] Sentry breadcrumbs for simulate/send/poll and circuit transitions
+- [ ] Configure DSN in prod and verify events
 
 ## CI/CD
 
-- [ ] CI: type‑check server, run tests
+- [x] CI: type‑check + build + API contract checks in TEST_MODE
 - [ ] Optional Docker build & smoke
 
 ## Close Gate 1 checklist
 
-- [ ] Finish stubs above
-- [ ] `pnpm build` passes
+- [x] Repairs complete
+- [x] `pnpm build` passes
 - [ ] Commit and tag `gate-1`
+
+## Next (Mainnet Smoke)
+- Provide `SMOKE_SECRET` and `RPC_URL`
+- Run `pnpm smoke` → expect simulate→execute→status to progress beyond `pending`

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function PnLPage() {
   return (
@@ -8,5 +8,5 @@ export default function PnLPage() {
         <p className="text-sm text-muted-foreground">PnL view temporarily disabled.</p>
       </div>
     </div>
-  )
+  );
 }

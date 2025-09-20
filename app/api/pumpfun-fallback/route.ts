@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function POST() {
   return NextResponse.json(
@@ -10,7 +10,7 @@ export async function POST() {
         'This endpoint requires an external headless browser service. Configure a worker and point this route to it.',
     },
     { status: 501 },
-  )
+  );
 }
 
 export async function GET() {
@@ -20,7 +20,5 @@ export async function GET() {
       note: 'pumpfun-fallback is disabled. Use ENABLE_PUMPFUN and external worker to enable.',
     },
     { status: 501 },
-  )
+  );
 }
-
-

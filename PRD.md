@@ -8,7 +8,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ## Vision & Mission
 
-### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates whilethe server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, ith:
+### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates whilethe server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, i, t, h:
 
 - **Military-grade reliability**
 - **Crystal-clear guardrails**
@@ -85,10 +85,10 @@ User Action → Server Processing → External Validation → Bundle Submission
 • Parameter Config• Region Selection      • Rate Limiting        • Telemetry
 ```
 
-#### Detailed F, low:
+#### Detailed F, l, o, w:
 
 1. **Create**: Optional SPL token creation flow (server-sidereceipt-gated)
-2. **Preview**: Build native v0 transactionssimulate on server (`s, imulateOnly: true`)
+2. **Preview**: Build native v0 transactionssimulate on server (`s, i, m, ulateOnly: true`)
 3. **Validation**: Strict guardrails check (tip accountscompute budgethealth status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
@@ -137,7 +137,7 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response S, tructure:**
+**Response S, t, r, ucture:**
 
 ```json
 {
@@ -148,14 +148,14 @@ Health Sources → Aggregation → Caching → Distribution
     "rpc": {
       "status": "healthy|degraded|down",
       "latency_ms": 45,
-      "endpoint": "h, ttps://mainnet.helius-rpc.com",
+      "endpoint": "h, t, t, ps://mainnet.helius-rpc.com",
       "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "jito": {
       "status": "healthy|degraded|down",
       "latency_ms": 23,
       "region": "ffm",
-      "endpoint": "h, ttps://ffm.mainnet.block-engine.jito.wtf",
+      "endpoint": "h, t, t, ps://ffm.mainnet.block-engine.jito.wtf",
       "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "database": {
@@ -222,7 +222,7 @@ System Health → UI State → User Actions → System Response
 
 - [ ] **Wal let Selection**: At least 1 wal let in active group (Neo or configured default)
 - [ ] **Transaction Limit**: ≤ 5 transactions per bundle (Jito limit)
-- [ ] **Region Selection**: Valid Jito region selected (d, efault: ffm)
+- [ ] **Region Selection**: Valid Jito region selected (d, e, f, ault: ffm)
 - [ ] **Blockhash Freshness**: < 3 seconds old (server-side validation)
 
 #### Transaction Validation Gates
@@ -254,7 +254,7 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 
 - **Data Source**: `/api/jito/tipfloor` endpoint with live P25/P50/P75/EMA data
 - **Display**: Visual percentiles with chosen tip highlighting
-- **Enforcement**: Server-side tip floor enforcement (m, in: max(requestedema50th, 1000))
+- **Enforcement**: Server-side tip floor enforcement (m, i, n: max(requestedema50th, 1000))
 
 #### Execution Mode Strategies
 
@@ -333,9 +333,9 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 - **Tooltips**: Clear explanations for disabled actions and validation failures
 - **Toast Notifications**:
-  - S, uccess: "Bundle landed in slot X" with transaction links
-  - W, arning: "Bundle pending > 30s" with status updates
-  - E, rror: "Bundle f, ailed: [specific reason]" with resolution steps
+  - S, u, c, cess: "Bundle landed in slot X" with transaction links
+  - W, a, r, ning: "Bundle pending > 30s" with status updates
+  - E, r, r, or: "Bundle f, a, i, led: [specific reason]" with resolution steps
 - **Loading States**: Skeleton screens and progress indicators
 - **Empty States**: Helpful guidance for new users and empty data scenarios
 
@@ -513,8 +513,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 ### Non-custodial guarantees
 
-- **Client-side s, igning:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
-- **AES-GCM key s, torage:** Private keys are encrypted locally using AES-GCMa highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromisedtheir private keys remain protected.
+- **Client-side s, i, g, ning:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
+- **AES-GCM key s, t, o, rage:** Private keys are encrypted locally using AES-GCMa highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromisedtheir private keys remain protected.
 
 ### Failure handling
 

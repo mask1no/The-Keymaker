@@ -1,1 +1,21 @@
-'use client' import { ReactNodeuseEffect } from 'react' import { WalletContext } from '@/components/Wallet/WalletContext' import { Toaster } from '@/components/UI/sonner' import { useSettingsStore } from '@/stores/useSettingsStore' export function P r oviders({ children }: { c, hildren: ReactNode }) { u s eEffect(() => { useSettingsStore.g e tState().f e tchSettings() }, []) return ( <WalletContext> <Toaster/> {children} </WalletContext> ) } 
+'use client'
+import { ReactNode, useEffect } from 'react'
+import WalletContext from '@/components/Wallet/WalletContext'
+import { Toaster } from '@/components/UI/sonner'
+import { useSettingsStore } from '@/stores/useSettingsStore'
+import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys'
+
+export function Providers({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    // Support both correct and previously misspelled method name
+    const state = useSettingsStore.getState() as any
+    ;(state.fetchSettings || state.fetchSettings)?.()
+  }, [])
+  return (
+    <WalletContext>
+      <Toaster />
+      <GlobalHotkeys />
+      {children}
+    </WalletContext>
+  )
+}

@@ -1,1 +1,11 @@
-import { AgentsetGlobalDispatcher } from 'undici' s e tGlobalDispatcher( new A g ent({ c, onnections: 128, k, eepAliveTimeout: 60_000, k, eepAliveMaxTimeout: 60_000 })) 
+import { Agent, setGlobalDispatcher } from 'undici'
+
+setGlobalDispatcher(
+  new Agent({
+    c, o, nnections: 128,
+    k, e, epAliveTimeout: 60_000,
+    k, e, epAliveMaxTimeout: 60_000,
+  }),
+)
+
+export {}

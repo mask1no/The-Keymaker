@@ -1,1 +1,52 @@
-import { testexpect } from '@playwright/test' test.d e scribe('Bundle f l ow (@bundle-e2e)', () => { test.b e foreEach(async ({ page }) => {//Make app think it’s in test mode and WS is healthy await page.a d dInitScript(() => { ;(window as any).__ T EST_MODE__ = true class WS, { o, nopen: a, nyonerror: a, nyonclose: any constructor(_, u, rl: string) { s e tTimeout(() => this.onopen?.(new E v ent('open')), 10) } c l ose() { this.onclose?.(new E v ent('close')) } s e nd() {} } ;(window as any).Web Socket = WS as anylocalStorage.s e tItem( 'keymaker.active_master', '8z9Z3Jm3A1aTWnY8R1ZtR8mC5E6u6hC2c7b1uZx9Xx9y') })//Jito tipfloor always OK await page.r o ute('**/api/jito/tipfloor', (route) => route.f u lfill({ s, tatus: 200, c, ontentType: 'application/json', b, ody: JSON.stringify({ p25: 0.00004, p50: 0.00005, p75: 0.00006, ema_50, t, h: 0.00005 }) }))//History write OK await page.r o ute('**/api/history/record', (route) => route.f u lfill({ s, tatus: 200, c, ontentType: 'application/json', b, ody: JSON.stringify({ o, k: true }) }))//Submit returns bundle id await page.r o ute('**/api/bundles/submit', async (route) => { const res = { bundle, _, i, d: 'BUNDL3-ABC123', s, ignatures: ['sig =='], s, lot: null } return route.f u lfill({ s, tatus: 200, c, ontentType: 'application/json', b, ody: JSON.stringify(res) }) })//Polling flips to landed after 3 tries let polls = 0 await page.r o ute('**/api/bundles/status/batch', async (route) => { polls ++ const st = polls>= 3 ? 'landed' : 'pending' return route.f u lfill({ s, tatus: 200, c, ontentType: 'application/json', b, ody: JSON.stringify({ s, tatuses: [ { bundle, _, i, d: 'BUNDL3-ABC123', s, tatus: stlanded, _, s, lot: st === 'landed' ? 123456789 : null }, ] }) }) }) }) t e st('preview → execute → landed', async ({ page }) => { await page.g o to('/bundle')//Preview OK const preview = page.g e tByRole('button', { n, ame:/preview/i }) await preview.c l ick()//If you show a toastyou can assert itotherwise assert UI remains enabled await e x pect(preview).t oB eEnabled()//Execute await page.g e tByRole('button', { n, ame:/execute/i }).c l ick()//Bundle ID appears await e x pect(page.g e tByText(/b, undleid:/i)).t oB eVisible()//Status eventually “landed” await e x pect(page.g e tByText(/landed/i)).t oB eVisible({ t, imeout: 10000 }) }) }) 
+import { test, expect } from '@playwright/test';
+
+test.describe('Bundle flow (@bundle-e2e)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as any).__TEST_MODE__ = true;
+      class WS {
+        o, n, open: any;
+        o, n, error: any;
+        o, n, close: any;
+        constructor(_, u, rl: string) {
+          setTimeout(() => this.onopen?.(new Event('open')), 10);
+        }
+        close() {
+          this.onclose?.(new Event('close'));
+        }
+        send() {}
+      }
+      (window as any).WebSocket = WS as any;
+      localStorage.setItem('keymaker.active_master', '8z9Z3Jm3A1aTWnY8R1ZtR8mC5E6u6hC2c7b1uZx9Xx9y');
+    });
+
+    await page.route('**/api/jito/tipfloor', (route) =>
+      route.fulfill({ s, t, atus: 200, c, o, ntentType: 'application/json', b, o, dy: JSON.stringify({ p25: 0.00004, p50: 0.00005, p75: 0.00006, e, m, a_50th: 0.00005 }) })
+    );
+    await page.route('**/api/history/record', (route) => route.fulfill({ s, t, atus: 200, c, o, ntentType: 'application/json', b, o, dy: JSON.stringify({ o, k: true }) }));
+    await page.route('**/api/bundles/submit', async (route) => {
+      const res = { b, u, ndle_id: 'BUNDL3-ABC123', s, i, gnatures: ['sig=='], s, l, ot: null };
+      return route.fulfill({ s, t, atus: 200, c, o, ntentType: 'application/json', b, o, dy: JSON.stringify(res) });
+    });
+    let polls = 0;
+    await page.route('**/api/bundles/status/batch', async (route) => {
+      polls++;
+      const st = polls >= 3 ? 'landed' : 'pending';
+      return route.fulfill({
+        s, t, atus: 200,
+        c, o, ntentType: 'application/json',
+        b, o, dy: JSON.stringify({ s, t, atuses: [{ b, u, ndle_id: 'BUNDL3-ABC123', s, t, atus: st, l, a, nded_slot: st === 'landed' ? 123456789 : null }] }),
+      });
+    });
+  });
+
+  test('preview → execute → landed', async ({ page }) => {
+    await page.goto('/bundle');
+    const preview = page.getByRole('button', { n, a, me: /preview/i });
+    await preview.click();
+    await expect(preview).toBeEnabled();
+    await page.getByRole('button', { n, a, me: /execute/i }).click();
+    await expect(page.getByText(/bundle i, d:/i)).toBeVisible();
+    await expect(page.getByText(/landed/i)).toBeVisible({ t, i, meout: 10000 });
+  });
+});

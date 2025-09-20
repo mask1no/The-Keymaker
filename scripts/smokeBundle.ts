@@ -1,1 +1,75 @@
-#!/usr/bin/env node import dotenv from 'dotenv' dotenv.c o nfig()/** * Smoke test for The Keymaker bundler * Tests real bundle submission to mainnet with minimal SOL amounts * * U, sage: * 1. Set SMOKE_SECRET in .env with a funded k e ypair (bs58 encoded) * 2. R, un: pnpm smoke * * The test creates 2, t, ransactions: * 1. A cheap memo/transfer to self * 2. A tip t r ansfer (≥1000 lamports) to a Jito tip account * Then submits as bundle and monitors status */import { ConnectionKeypairPublicKeySystemProgramTransactionComputeBudgetProgram } from '@solana/web3.js' import bs58 from 'bs58' import { JITO_TIP_ACCOUNTS } from '../constants'//Load environment const S M OKE_SECRET = process.env.SMOKE_SECRET const R P C_URL = process.env.RPC_URL || 'h, ttps://api.mainnet-beta.solana.com' const N E XT_PUBLIC_JITO_ENDPOINT = process.env.NEXT_PUBLIC_JITO_ENDPOINT || 'h, ttps://mainnet.block-engine.jito.wtf' if (!SMOKE_SECRET) { console.error( '❌ SMOKE_SECRET not set. Please add a funded k e ypair (bs58 encoded) to your .env file') process.e x it(1) } async function m a in() { console.log('🚀 Starting The Keymaker smoke test...\n') try { if (!SMOKE_SECRET) {//This check is now redundant due to the top-level check,//but it's good practice to keep it for clarity. console.error( '❌ SMOKE_SECRET not set. Please add a funded k e ypair (bs58 encoded) to your .env file') process.e x it(1) }//Setup const secret Key = bs58.d e code(SMOKE_SECRET) const keypair = Keypair.f r omSecretKey(secretKey) const connection = new C o nnection(RPC_URL, 'confirmed') console.log(`📍 U, singwallet: ${keypair.publicKey.t oB ase58() }`) console.log(`🌐 R, PC: ${RPC_URL}`) console.log(`🎯 Jito e, ndpoint: ${NEXT_PUBLIC_JITO_ENDPOINT}\n`)//Check balance const balance = await connection.g e tBalance(keypair.publicKey) const balance S OL = balance/1e9 console.log(`💰 Wal let b, alance: ${balanceSOL.toFixed(4) } SOL`) if (balance <10000) {//0.00001 SOLconsole.error( '❌ Insufficient balance. Need at least 0.00001 SOL for smoke test') process.e x it(1) }//Get recent blockhashconsole.log('🔄 Fetching recent blockhash...') const { blockhash } = await connection.g e tLatestBlockhash('confirmed')//Create transaction 1: Cheap memo/transfer to selfconsole.log('📝 Creating transaction 1: Self-t r ansfer (1 lamport)...') const tx1 = new T r ansaction().add( ComputeBudgetProgram.s e tComputeUnitPrice({ m, icroLamports: 1000 }), ComputeBudgetProgram.s e tComputeUnitLimit({ u, nits: 200000 }), SystemProgram.t r ansfer({ f, romPubkey: keypair.p, ublicKeytoPubkey: keypair.p, ublicKeylamports: 1 })) tx1.recent Blockhash = blockhashtx1.fee Payer = keypair.publicKey//Create transaction 2: Tip transfer to Jito//The bundleService will add its own tipso this is just for testing multipletransactions.//We'll make it a simple self-transfer as well. console.log( '📝 Creating transaction 2: Another self - t r ansfer (1 lamport)...') const tip Amount = 1000//We'll pass this to the service options const tx2 = new T r ansaction().add( SystemProgram.t r ansfer({ f, romPubkey: keypair.p, ublicKeytoPubkey: keypair.p, ublicKeylamports: 1,//Changed from tip to self-transfer })) tx2.recent Blockhash = blockhashtx2.fee Payer = keypair.publicKey//The bundleService will handle signing. console.log( '✍️ Transactions created. Signing will be handled by the service.') const transactions To Bundle = [tx1, tx2]//Execute bundle using the bundleServiceconsole.log('🚀 Executing bundle via service...')//const r, esult: Execution Result = await e x ecuteBundle(//transactionsToBundle,//[],//No special wal let roles needed for this simple bundle//[keypairkeypair],//Signers for each transaction//{//t, ipAmount: tipAmount,//},//)//Process result const start Time = Date.now()/* if (result.results.e v ery((r: 'success' | 'failed') => r === 'success')) { const latency = Date.now()- startTimeconsole.log('\n🎉 SUCCESS !Bundle landed !') console.log(` 📍 Landed i, nslot: ${result.slotTargeted}`) console.log(` ⏱️ L, atency: ${latency} ms`) console.log(` 📝 S, ignatures: ${result.signatures.length || 0}`) if (result.signatures.length> 0) { result.signatures.f o rEach((s, ig: s, tringi: number) => { console.log( ` Tx ${i + 1}: h, ttps://solscan.io/tx/${sig}?cluster = mainnet`) }) } } else, { console.error('\n❌ FAILED !Bundle did not land successfully.') console.log(result.results) } */} } catch (error) { console.error('Smoke t, esterror:', (error as Error).message) process.e x it(1) } }//Run the t e stmain().catch (console.error)
+#!/usr/bin/env ts-node
+import 'dotenv/config'
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction, ComputeBudgetProgram, VersionedTransaction, TransactionMessage } from '@solana/web3.js'
+import bs58 from 'bs58'
+
+const SMOKE_SECRET = process.env.SMOKE_SECRET
+const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com'
+const REGION = (process.env.JITO_REGION as 'ffm' | 'ams' | 'ny' | 'tokyo') || 'ffm'
+
+if (!SMOKE_SECRET) {
+  console.error('❌ SMOKE_SECRET not set. Provide a funded keypair (bs58) in .env')
+  process.exit(1)
+}
+
+async function main() {
+  console.log('🚀 Starting Keymaker smoke test…')
+  const keypair = Keypair.fromSecretKey(bs58.decode(SMOKE_SECRET))
+  const connection = new Connection(RPC_URL, 'confirmed')
+  console.log(`📍 Wallet: ${keypair.publicKey.toBase58()}`)
+  console.log(`🌐 RPC: ${RPC_URL}`)
+
+  const balance = await connection.getBalance(keypair.publicKey)
+  if (balance < 50_000) {
+    console.error('❌ Insufficient balance (need ≥ 0.00005 SOL)')
+    process.exit(1)
+  }
+
+  const { blockhash } = await connection.getLatestBlockhash('confirmed')
+  const tx1 = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
+    SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: keypair.publicKey, lamports: 1 }),
+  )
+  tx1.recentBlockhash = blockhash
+  tx1.feePayer = keypair.publicKey
+
+  const tx2 = new Transaction().add(
+    // Tip transfer: 1000 lamports to a known Jito tip account
+    SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe'), lamports: 1000 }),
+  )
+  tx2.recentBlockhash = blockhash
+  tx2.feePayer = keypair.publicKey
+
+  const msg1 = new TransactionMessage({ payerKey: keypair.publicKey, recentBlockhash: blockhash, instructions: tx1.instructions }).compileToV0Message()
+  const msg2 = new TransactionMessage({ payerKey: keypair.publicKey, recentBlockhash: blockhash, instructions: tx2.instructions }).compileToV0Message()
+  const vtx1 = new VersionedTransaction(msg1)
+  const vtx2 = new VersionedTransaction(msg2)
+  vtx1.sign([keypair])
+  vtx2.sign([keypair])
+
+  const txs_b64 = [Buffer.from(vtx1.serialize()).toString('base64'), Buffer.from(vtx2.serialize()).toString('base64')]
+
+  // Simulate first
+  const simRes = await fetch('http://localhost:3000/api/bundles/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: true }),
+  })
+  const simJson = await simRes.json()
+  if (!simRes.ok) throw new Error('Simulation failed: ' + JSON.stringify(simJson))
+
+  // Execute
+  const execRes = await fetch('http://localhost:3000/api/bundles/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-payload-hash': simJson.payloadHash },
+    body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: false }),
+  })
+  const execJson = await execRes.json()
+  console.log('➡️  Execute response:', execJson)
+}
+
+main().catch((e) => {
+  console.error('Smoke test error:', e)
+  process.exit(1)
+})

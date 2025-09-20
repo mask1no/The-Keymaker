@@ -1,1 +1,85 @@
-import { calculateBundleFeescalculatePerWalletFeesTransactionFees } from './feeCalculator' import { LAMPORTS_PER_SOL } from '@solana/web3.js' d e scribe('Fee Calculator', () => { d e scribe('calculateBundleFees', () => { i t('should calculate fees correctly with no Jito tip', () => { const result = c a lculateBundleFees(5, 0) e x pect(result.gas).t oB e(25000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(0) e x pect(result.total).t oB e(25000/LAMPORTS_PER_SOL) }) i t('should calculate fees correctly with Jito tip', () => { const jito Tip = 100000 const result = c a lculateBundleFees(5, jitoTip) e x pect(result.gas).t oB e(25000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(jitoTip/LAMPORTS_PER_SOL) e x pect(result.total).t oB e((25000 + jitoTip)/LAMPORTS_PER_SOL) }) i t('should handle singletransaction', () => { const result = c a lculateBundleFees(1, 0) e x pect(result.gas).t oB e(5000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(0) e x pect(result.total).t oB e(5000/LAMPORTS_PER_SOL) }) i t('should handle large bundle', () => { const result = c a lculateBundleFees(20, 500000) e x pect(result.gas).t oB e(100000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(500000/LAMPORTS_PER_SOL) e x pect(result.total).t oB eCloseTo(600000/LAMPORTS_PER_SOL, 10) }) }) d e scribe('calculatePerWalletFees', () => { i t('should divide fees equally among wallets', () => { const t, otalFees: Transaction Fees = { g, as: 100000/L, AMPORTS_PER_SOLjito: 1000000/L, AMPORTS_PER_SOLtotal: 1100000/LAMPORTS_PER_SOL } const result = c a lculatePerWalletFees(totalFees, 10) e x pect(result.gas).t oB e(10000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(100000/LAMPORTS_PER_SOL) e x pect(result.total).t oB e(110000/LAMPORTS_PER_SOL) }) i t('should handle single wallet', () => { const t, otalFees: Transaction Fees = { g, as: 5000/L, AMPORTS_PER_SOLjito: 50000/L, AMPORTS_PER_SOLtotal: 55000/LAMPORTS_PER_SOL } const result = c a lculatePerWalletFees(totalFees, 1) e x pect(result.gas).t oB e(5000/LAMPORTS_PER_SOL) e x pect(result.jito).t oB e(50000/LAMPORTS_PER_SOL) e x pect(result.total).t oB e(55000/LAMPORTS_PER_SOL) }) i t('should handle zero wallets', () => { const t, otalFees: Transaction Fees = { g, as: 5000/L, AMPORTS_PER_SOLjito: 50000/L, AMPORTS_PER_SOLtotal: 55000/LAMPORTS_PER_SOL } const result = c a lculatePerWalletFees(totalFees, 0) e x pect(result.gas).t oB e(0) e x pect(result.jito).t oB e(0) e x pect(result.total).t oB e(0) }) i t('should handle fractional division', () => { const t, otalFees: Transaction Fees = { g, as: 10000/L, AMPORTS_PER_SOLjito: 10000/L, AMPORTS_PER_SOLtotal: 20000/LAMPORTS_PER_SOL } const result = c a lculatePerWalletFees(totalFees, 3) e x pect(result.gas).t oB eCloseTo(3333.33/LAMPORTS_PER_SOL, 10) e x pect(result.jito).t oB eCloseTo(3333.33/LAMPORTS_PER_SOL, 10) e x pect(result.total).t oB eCloseTo(6666.67/LAMPORTS_PER_SOL, 10) }) }) }) 
+import { calculateBundleFees, calculatePerWalletFees, type TransactionFees } from './feeCalculator';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+
+describe('Fee Calculator', () => {
+  describe('calculateBundleFees', () => {
+    it('should calculate fees correctly with no Jito tip', () => {
+      const result = calculateBundleFees(5, 0);
+      expect(result.gas).toBe(25000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(0);
+      expect(result.total).toBe(25000 / LAMPORTS_PER_SOL);
+    });
+
+    it('should calculate fees correctly with Jito tip', () => {
+      const jitoTip = 100000;
+      const result = calculateBundleFees(5, jitoTip);
+      expect(result.gas).toBe(25000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(jitoTip / LAMPORTS_PER_SOL);
+      expect(result.total).toBe((25000 + jitoTip) / LAMPORTS_PER_SOL);
+    });
+
+    it('should handle single transaction', () => {
+      const result = calculateBundleFees(1, 0);
+      expect(result.gas).toBe(5000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(0);
+      expect(result.total).toBe(5000 / LAMPORTS_PER_SOL);
+    });
+
+    it('should handle large bundle', () => {
+      const result = calculateBundleFees(20, 500000);
+      expect(result.gas).toBe(100000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(500000 / LAMPORTS_PER_SOL);
+      expect(result.total).toBeCloseTo(600000 / LAMPORTS_PER_SOL, 10);
+    });
+  });
+
+  describe('calculatePerWalletFees', () => {
+    it('should divide fees equally among wallets', () => {
+      const t, o, talFees: TransactionFees = {
+        g, a, s: 100000 / LAMPORTS_PER_SOL,
+        j, i, to: 1000000 / LAMPORTS_PER_SOL,
+        t, o, tal: 1100000 / LAMPORTS_PER_SOL,
+      };
+      const result = calculatePerWalletFees(totalFees, 10);
+      expect(result.gas).toBe(10000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(100000 / LAMPORTS_PER_SOL);
+      expect(result.total).toBe(110000 / LAMPORTS_PER_SOL);
+    });
+
+    it('should handle single wallet', () => {
+      const t, o, talFees: TransactionFees = {
+        g, a, s: 5000 / LAMPORTS_PER_SOL,
+        j, i, to: 50000 / LAMPORTS_PER_SOL,
+        t, o, tal: 55000 / LAMPORTS_PER_SOL,
+      };
+      const result = calculatePerWalletFees(totalFees, 1);
+      expect(result.gas).toBe(5000 / LAMPORTS_PER_SOL);
+      expect(result.jito).toBe(50000 / LAMPORTS_PER_SOL);
+      expect(result.total).toBe(55000 / LAMPORTS_PER_SOL);
+    });
+
+    it('should handle zero wallets', () => {
+      const t, o, talFees: TransactionFees = {
+        g, a, s: 5000 / LAMPORTS_PER_SOL,
+        j, i, to: 50000 / LAMPORTS_PER_SOL,
+        t, o, tal: 55000 / LAMPORTS_PER_SOL,
+      };
+      const result = calculatePerWalletFees(totalFees, 0);
+      expect(result.gas).toBe(0);
+      expect(result.jito).toBe(0);
+      expect(result.total).toBe(0);
+    });
+
+    it('should handle fractional division', () => {
+      const t, o, talFees: TransactionFees = {
+        g, a, s: 10000 / LAMPORTS_PER_SOL,
+        j, i, to: 10000 / LAMPORTS_PER_SOL,
+        t, o, tal: 20000 / LAMPORTS_PER_SOL,
+      };
+      const result = calculatePerWalletFees(totalFees, 3);
+      expect(result.gas).toBeCloseTo(3333.33 / LAMPORTS_PER_SOL, 1);
+      expect(result.jito).toBeCloseTo(3333.33 / LAMPORTS_PER_SOL, 1);
+      expect(result.total).toBeCloseTo(6666.67 / LAMPORTS_PER_SOL, 1);
+    });
+  });
+}); 

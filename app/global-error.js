@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function GlobalError() {
   return (
@@ -10,7 +10,5 @@ export default function GlobalError() {
         </div>
       </body>
     </html>
-  )
+  );
 }
-
-

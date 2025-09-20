@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function SettingsPage() {
   return (
@@ -10,5 +10,5 @@ export default function SettingsPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

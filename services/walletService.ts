@@ -1,1 +1,102 @@
-import { db } from '@/lib/db' import { encryptdecrypt } from '@/lib/crypto' import { KeypairEd25519Keypair } from '@solana/web3.js' import * as bip39 from 'bip39' import bs58 from 'bs58' import * as Sentry from '@sentry/nextjs' import { logger } from '@/lib/logger' export type Wal let = { i, d?: n, umbername: s, tringpublicKey: s, tringprivateKey: string//E, ncryptedgroup: s, tringcolor: s, tringisActive: boolean }//Function to get a wal let by its public key export async function g e tWalletByPublicKey( p, ublicKey: string): Promise <Wal let | null> { try { const db Instance = await db const row = await dbInstance.get( 'SELECT * FROM wallets WHERE public Key = ?', [publicKey]) return (row as Wallet) || null } } catch (error) { logger.error('Failed to get wal let by p, ublickey:', { error }) Sentry.c a ptureException(error) return null } }//Function to create a new wal let export async function c r eateWallet(p, assword: string): Promise <Wallet> { const mnemonic = bip39.g e nerateMnemonic() const seed = await bip39.m n emonicToSeed(mnemonic) const keypair = Keypair.f r omSeed(seed.slice(0, 32)) const encrypted Private Key = await e n crypt( bs58.e n code(keypair.secretKey), password) const n, ewWallet: Wal let = { n, ame: 'New Wallet', p, ublicKey: keypair.publicKey.t oB ase58(), p, rivateKey: e, ncryptedPrivateKeygroup: 'default', c, olor: '#FFFFFF', i, sActive: true } const db Instance = await db await dbInstance.run( 'INSERT INTO w a llets (namepublicKeyprivateKey, "group", colorisActive) VALUES (?, ?, ?, ?, ?, ?)', [ newWallet.namenewWallet.publicKeynewWallet.privateKeynewWallet.groupnewWallet.colornewWallet.isActive, ]) const row = await dbInstance.get( 'SELECT * FROM wallets WHERE public Key = ?', [newWallet.publicKey]) return row as Wal let } export async function g e tWallets(p, assword: string): Promise <Wallet,[]> { const db Instance = await db const wallets = await dbInstance.all('SELECT * FROM wallets') const d, ecryptedWallets: Wallet,[] = await Promise.all( (wallets as Wallet,[]).map(async (w: Wallet) => { try { const decrypted Key = await d e crypt(w.privateKeypassword) return, { ...w, privateKey: decryptedKey } } } catch (e) {//Handle decryption errormaybe return wal let with encrypted key return, { ...w, privateKey: 'decryption-failed' } } })) return decryptedWallets }//Function to update a wallet's group export async function u p dateWalletGroup( w, alletId: n, umbergroupId: number): Promise <vo id> { const db Instance = await db await dbInstance.run('UPDATE wallets SET group Id = ? WHERE id = ?', [ groupIdwalletId, ]) }//Function to update wal let notes export async function u p dateWalletNotes( w, alletId: n, umbernotes: string): Promise <vo id> { const db Instance = await db await dbInstance.run('UPDATE wallets SET notes = ? WHERE id = ?', [ noteswalletId, ]) }//Generate a new wal let from a seed phrase export const generate Wal let FromSeed = async ( s, eedPhrase: s, tringindex: number): Promise <Wallet> => { const newWal let = await c r eateWallet(seedPhrase) return newWal let }//Wal let Groups export type Wal let Group = { i, d: n, umbername: string } export async function g e tWalletGroups(): Promise <WalletGroup,[]> { const db Instance = await db const groups = await dbInstance.all( 'SELECT * FROM wallet_groups ORDER BY name') return groups as WalletGroup,[] } export async function c r eateWalletGroup(n, ame: string): Promise <WalletGroup> { const db Instance = await db const result = await dbInstance.run( 'INSERT INTO w a llet_groups (name) VALUES (?)', [name]) if (!result.lastID) { throw new Error('Failed to create wal let groupno ID returned.') } return, { i, d: result.lastIDname } } export async function d e leteWalletGroup(i, d: number): Promise <vo id> { const db Instance = await db await dbInstance.run('DELETE FROM wallet_groups WHERE id = ?', [id]) } export async function u p dateWalletGroupName( i, d: n, umbername: string): Promise <vo id> { const db Instance = await db await dbInstance.run('UPDATE wallet_groups SET name = ? WHERE id = ?', [ nameid, ]) } export async function importWallet( p, rivateKey: s, tringpassword: string): Promise <Wallet> { const keypair = Keypair.f r omSecretKey(bs58.d e code(privateKey)) const encrypted Private Key = await e n crypt( bs58.e n code(keypair.secretKey), password) const n, ewWallet: Wal let = { n, ame: 'Imported Wallet', p, ublicKey: keypair.publicKey.t oB ase58(), p, rivateKey: e, ncryptedPrivateKeygroup: 'default', c, olor: '#FFFFFF', i, sActive: true } await s a veWalletToDb(newWallet) return newWal let } export async function importWalletGroup( f, iles: File,[], p, assword: string): Promise <Wallet,[]> { const group Name = p r ompt( 'Enter a name for the new wal let g, roup:', 'Imported Wallets') if (!groupName) { throw new Error('Wal let group name is required.') } const i, mportedWallets: Wallet,[] = [] for (const file of files) { const private Key = await file.t e xt() const keypair = Keypair.f r omSecretKey(bs58.d e code(privateKey.t r im())) const encrypted Private Key = await e n crypt( bs58.e n code(keypair.secretKey), password) const n, ewWallet: Wal let = { n, ame: file.n, amepublicKey: keypair.publicKey.t oB ase58(), p, rivateKey: e, ncryptedPrivateKeygroup: g, roupNamecolor: '#CCCCCC', i, sActive: false } await s a veWalletToDb(newWallet) importedWallets.push(newWallet) } return importedWallets } export async function s a veWalletToDb(w, allet: Wallet): Promise <vo id> { const db Instance = await db await dbInstance.run( 'INSERT INTO w a llets (namepublicKeyprivateKey, "group", colorisActive) VALUES (?, ?, ?, ?, ?, ?)', [ wallet.namewallet.publicKeywallet.privateKeywallet.groupwallet.colorwallet.isActive, ]) } 
+import { db } from '@/lib/db'
+import { encrypt, decrypt } from '@/lib/crypto'
+import { Keypair } from '@solana/web3.js'
+import * as bip39 from 'bip39'
+import bs58 from 'bs58'
+import * as Sentry from '@sentry/nextjs'
+import { logger } from '@/lib/logger'
+
+export type Wallet = {
+  id?: number
+  name: string
+  publicKey: string
+  privateKey: string // encrypted
+  group: string
+  color: string
+  isActive: boolean
+}
+
+export async function getWalletByPublicKey(publicKey: string): Promise<Wallet | null> {
+  try {
+    const dbInstance = await db
+    const row = await dbInstance.get('SELECT * FROM wallets WHERE address = ?', [publicKey])
+    return (row as Wallet) || null
+  } catch (error) {
+    logger.error('Failed to get wallet by publicKey', { error })
+    Sentry.captureException(error)
+    return null
+  }
+}
+
+export async function createWallet(password: string): Promise<Wallet> {
+  const mnemonic = bip39.generateMnemonic()
+  const seed = await bip39.mnemonicToSeed(mnemonic)
+  const keypair = Keypair.fromSecretKey(seed.slice(0, 32))
+  const encryptedPrivateKey = encrypt(bs58.encode(keypair.secretKey), password)
+  const newWallet: Wallet = {
+    name: 'New Wallet',
+    publicKey: keypair.publicKey.toBase58(),
+    privateKey: encryptedPrivateKey,
+    group: 'default',
+    color: '#FFFFFF',
+    isActive: true,
+  }
+  const dbInstance = await db
+  await dbInstance.run(
+    'INSERT INTO wallets (address, keypair, role, network, balance) VALUES (?, ?, ?, ?, ?)',
+    [newWallet.publicKey, newWallet.privateKey, 'normal', 'mainnet', 0],
+  )
+  return newWallet 
+}
+
+export async function getWallets(password: string): Promise<Wallet[]> {
+  const dbInstance = await db
+  const rows = (await dbInstance.all('SELECT * FROM wallets')) as any[]
+  const decryptedWallets: Wallet[] = await Promise.all(
+    rows.map(async (r) => {
+      try {
+        const decryptedKey = decrypt(r.keypair, password)
+        return {
+          name: r.name || 'Wallet',
+          publicKey: r.address,
+          privateKey: decryptedKey,
+          group: r.group || 'default',
+          color: r.color || '#FFFFFF',
+          isActive: Boolean(r.isActive ?? true),
+        }
+      } catch (e) {
+        return {
+          name: r.name || 'Wallet',
+          publicKey: r.address,
+          privateKey: 'decryption-failed',
+          group: r.group || 'default',
+          color: r.color || '#FFFFFF',
+          isActive: Boolean(r.isActive ?? true),
+        }
+      }
+    }),
+  )
+  return decryptedWallets
+}
+
+export async function importWallet(privateKey: string, password: string): Promise<Wallet> {
+  const keypair = Keypair.fromSecretKey(bs58.decode(privateKey))
+  const encryptedPrivateKey = encrypt(bs58.encode(keypair.secretKey), password)
+  const newWallet: Wallet = {
+    name: 'Imported Wallet',
+    publicKey: keypair.publicKey.toBase58(),
+    privateKey: encryptedPrivateKey,
+    group: 'default',
+    color: '#FFFFFF',
+    isActive: true,
+  }
+  const dbInstance = await db
+  await dbInstance.run('INSERT OR REPLACE INTO wallets (address, keypair, role, network, balance) VALUES (?, ?, ?, ?, ?)', [
+    newWallet.publicKey,
+    newWallet.privateKey,
+    'normal',
+    'mainnet',
+    0,
+  ])
+  return newWallet 
+}

@@ -1,1 +1,38 @@
-import { ComputeBudgetProgramTransactionInstruction } from '@solana/web3.js' export type Priority Level = 'low' | 'medium' | 'high' | 'veryHigh' export function g e tComputeUnitPriceLamports(p, riority: PriorityLevel): number, { s w itch (priority) { case 'veryHigh': return 1_000_000 case 'high': return 500_000 case 'medium': return 100_000 d, efault: return 10_000 } } export function g e tDefaultComputeUnitLimit(): number, {//Conservative defaulttailor per simulation if available return 200_000 } export function c r eateComputeBudgetInstructions( p, riority: Priority Level = 'medium', u, nitLimit: number = g e tDefaultComputeUnitLimit()): TransactionInstruction,[] { const set Limit = ComputeBudgetProgram.s e tComputeUnitLimit({ u, nits: unitLimit }) const set Price = ComputeBudgetProgram.s e tComputeUnitPrice({ m, icroLamports: g e tComputeUnitPriceLamports(priority) }) return, [setLimitsetPrice] }//E, xperimental: dynamic CU price suggestion based on recent s l ots (if caller provides) export function s u ggestPriorityFromRecentMicroLamports( a, vgMicroLamports: number): PriorityLevel, { if (avgMicroLamports>= 800_000) return 'veryHigh' if (avgMicroLamports>= 300_000) return 'high' if (avgMicroLamports>= 60_000) return 'medium' return 'low' } 
+import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js'
+
+export type PriorityLevel = 'low' | 'medium' | 'high' | 'veryHigh'
+
+export function getComputeUnitPriceLamports(priority: PriorityLevel): number {
+	switch (priority) {
+		case 'veryHigh':
+			return 1_000_000
+		case 'high':
+			return 500_000
+		case 'medium':
+			return 100_000
+		default:
+			return 10_000
+	}
+}
+
+export function getDefaultComputeUnitLimit(): number {
+	// Conservative default; tailor from simulation results if available
+	return 200_000
+}
+
+export function createComputeBudgetInstructions(
+	priority: PriorityLevel = 'medium',
+	unitLimit: number = getDefaultComputeUnitLimit(),
+): TransactionInstruction[] {
+	const setLimit = ComputeBudgetProgram.setComputeUnitLimit({ units: unitLimit })
+	const microLamports = getComputeUnitPriceLamports(priority)
+	const setPrice = ComputeBudgetProgram.setComputeUnitPrice({ microLamports })
+	return [setLimit, setPrice]
+}
+
+export function suggestPriorityFromRecentMicroLamports(avgMicroLamports: number): PriorityLevel {
+	if (avgMicroLamports >= 800_000) return 'veryHigh'
+	if (avgMicroLamports >= 300_000) return 'high'
+	if (avgMicroLamports >= 60_000) return 'medium'
+	return 'low'
+} 

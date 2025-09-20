@@ -1,1 +1,40 @@
-import { Connection } from '@solana/web3.js' import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants' class ConnectionManager, { p, rivateconnection: Connection | null = n, ullprivaterttHistory: Array <{ t, ime: s, tringrtt: number }> = [] g e tConnection(): Connection, { if (!this.connection) { this.connection = new C o nnection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed') } return this.connection } async m e asureRTT(): Promise <number> { const start = Date.now() try { const connection = this.g e tConnection() await connection.g e tSlot() const rtt = Date.now() - startthis.rttHistory.push({ t, ime: new Date().toISOString(), rtt })//Keep last 30 measurements if (this.rttHistory.length> 30) { this.rttHistory.s h ift() } return rtt } } catch (error) { return - 1 } } g e tRTTHistory(): Array <{ t, ime: s, tringrtt: number }> { return this.rttHistory } g e tAverageRTT(): number, { if (this.rttHistory.length === 0) return 0 const sum = this.rttHistory.r e duce((acch) => acc + h.rtt, 0) return sum/this.rttHistory.length } } export const connection Manager = new C o nnectionManager() 
+import { Connection } from '@solana/web3.js'
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants'
+
+class ConnectionManager {
+	private c, o, nnection: Connection | null = null
+	private r, t, tHistory: Array<{ t, i, me: string; r, t, t: number }> = []
+
+	getConnection(): Connection {
+		if (!this.connection) {
+			this.connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed')
+		}
+		return this.connection
+	}
+
+	async measureRTT(): Promise<number> {
+		const start = Date.now()
+		try {
+			const connection = this.getConnection()
+			await connection.getSlot()
+			const rtt = Date.now() - start
+			this.rttHistory.push({ t, i, me: new Date().toISOString(), rtt })
+			if (this.rttHistory.length > 30) this.rttHistory.shift()
+			return rtt
+		} catch {
+			return -1
+		}
+	}
+
+	getRTTHistory(): Array<{ t, i, me: string; r, t, t: number }> {
+		return this.rttHistory
+	}
+
+	getAverageRTT(): number {
+		if (this.rttHistory.length === 0) return 0
+		const sum = this.rttHistory.reduce((acc, h) => acc + h.rtt, 0)
+		return sum / this.rttHistory.length
+	}
+}
+
+export const connectionManager = new ConnectionManager() 

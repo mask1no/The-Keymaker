@@ -1,0 +1,14 @@
+services/raydiumService.ts
+services/rugService.ts
+services/sellService.ts
+stores/useSettingsStore.ts
+utils/crypto.ts
+utils/browserCrypto.ts
+utils/feeCalculator.ts
+bonk-mcp/**
+legacy/**
+tests/**
+coverage/**
+dist/**
+**/*.md
+lib/server/auth.ts

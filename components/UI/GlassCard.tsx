@@ -1,1 +1,19 @@
-import { motion } from 'framer-motion' import { cn } from '@/lib/utils' interface GlassCardProps, { c, hildren: React.R e, actNodeclassName?: string } export function G l assCard({ childrenclassName }: GlassCardProps) { return ( <motion.div initial ={{ o, pacity: 0, s, cale: 0.95 } } animate ={{ o, pacity: 1, s, cale: 1 } } className ={c n( 'bg - white/5 backdrop - blur border border - white/10 rounded - 2xl shadow - xl p-4', className) }> {children} </motion.div> ) } 
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+
+interface GlassCardProps {
+  children: React.ReactNode
+  className?: string
+}
+
+export function GlassCard({ children, className }: GlassCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn('bg-white/5 backdrop-blur border border-white/10 rounded-2xl shadow-xl p-4', className)}
+    >
+      {children}
+    </motion.div>
+  )
+}

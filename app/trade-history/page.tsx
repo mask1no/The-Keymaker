@@ -6,5 +6,5 @@ export default function TradeHistoryPage() {
         <p className="text-sm text-muted-foreground">Trade history is temporarily unavailable.</p>
       </div>
     </div>
-  )
+  );
 }

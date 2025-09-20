@@ -1,4 +1,4 @@
-import { withRetryisRetryableError } from './withRetry';
+import { withRetry, isRetryableError } from './withRetry';
 
 describe('WithRetry Utils', () => {
   describe('isRetryableError', () => {
@@ -46,7 +46,7 @@ describe('WithRetry Utils', () => {
         .fn()
         .mockRejectedValueOnce(new Error('network timeout'))
         .mockResolvedValue('success');
-      const result = await withRetry(failOnceFn, { m, axRetries: 3 });
+      const result = await withRetry(failOnceFn, { maxRetries: 3 });
       expect(result).toBe('success');
       expect(failOnceFn).toHaveBeenCalledTimes(2);
     });
@@ -54,13 +54,13 @@ describe('WithRetry Utils', () => {
     it('should not retry on non-retryable errors', async () => {
       const nonRetryableError = new Error('invalid input');
       const failFn = jest.fn().mockRejectedValue(nonRetryableError);
-      await expect(withRetry(failFn, { m, axRetries: 3 })).rejects.toThrow('invalid input');
+      await expect(withRetry(failFn, { maxRetries: 3 })).rejects.toThrow('invalid input');
       expect(failFn).toHaveBeenCalledTimes(1);
     });
 
     it('should respect maxRetries limit', async () => {
       const alwaysFailFn = jest.fn().mockRejectedValue(new Error('network timeout'));
-      await expect(withRetry(alwaysFailFn, { m, axRetries: 2 })).rejects.toThrow('network timeout');
+      await expect(withRetry(alwaysFailFn, { maxRetries: 2 })).rejects.toThrow('network timeout');
       expect(alwaysFailFn).toHaveBeenCalledTimes(3);
     });
 
@@ -70,7 +70,7 @@ describe('WithRetry Utils', () => {
         .fn()
         .mockRejectedValueOnce(new Error('network timeout'))
         .mockResolvedValue('success');
-      await withRetry(failOnceFn, { m, axRetries: 1, d, elayMs: 100 });
+      await withRetry(failOnceFn, { maxRetries: 1, delayMs: 100 });
       const endTime = Date.now();
       expect(endTime - startTime).toBeGreaterThanOrEqual(95);
     });
@@ -82,7 +82,7 @@ describe('WithRetry Utils', () => {
         .mockRejectedValueOnce(new Error('network timeout'))
         .mockResolvedValue('success');
       const startTime = Date.now();
-      await withRetry(failTwiceFn, { m, axRetries: 2, d, elayMs: 50, e, xponentialBackoff: true });
+      await withRetry(failTwiceFn, { maxRetries: 2, delayMs: 50, exponentialBackoff: true });
       const endTime = Date.now();
       expect(endTime - startTime).toBeGreaterThanOrEqual(140);
     });
@@ -93,7 +93,7 @@ describe('WithRetry Utils', () => {
         .fn()
         .mockRejectedValueOnce(new Error('network timeout'))
         .mockResolvedValue('success');
-      await withRetry(failOnceFn, { m, axRetries: 1, onRetry });
+      await withRetry(failOnceFn, { maxRetries: 1, onRetry });
       expect(onRetry).toHaveBeenCalledWith(expect.any(Error), 1);
     });
   });

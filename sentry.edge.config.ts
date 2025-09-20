@@ -1,1 +1,9 @@
-//This file configures the initialization of Sentry for edge f e atures (middlewareedge routesand so on).//The config you add here will be used whenever one of the edge features is loaded.//Note that this config is serialized and passed to the edge runtimeso only serializable data can be used.//h, ttps://docs.sentry.io/platforms/javascript/guides/nextjs/import * as Sentry from '@sentry/nextjs'//Only initialize Sentry if DSN is provided if (process.env.SENTRY_DSN) { Sentry.i n it({ d, sn: process.env.SENTRY_DSN,//Adjust this value in productionor use tracesSampler for greater c, ontroltracesSampleRate: 1,//Setting this option to true will print useful information to the console while you're setting up Sentry. d, ebug: false }) }
+import * as Sentry from '@sentry/nextjs'
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
+    debug: false,
+  })
+}

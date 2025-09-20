@@ -1,1 +1,160 @@
-import { safeToBigIntLEsafeToBufferLEsanitizeNumericInputSafeMath } from './safeBigInt' d e scribe('SafeBigInt Utils', () => { d e scribe('safeToBigIntLE', () => { i t('should convert positive numbers correctly', () => { const result = s a feToBigIntLE(42) e x pect(result).t oB e(42n) }) i t('should convert zero correctly', () => { const result = s a feToBigIntLE(0) e x pect(result).t oB e(0n) }) i t('should handle large numbers', () => { const result = s a feToBigIntLE(1000000000000) e x pect(result).t oB e(1000000000000n) }) i t('should handle decimal truncation', () => { const result = s a feToBigIntLE(42.99) e x pect(result).t oB e(42n) }) i t('should handle negative numbers', () => { const result = s a feToBigIntLE(- 42) e x pect(result).t oB e(- 42n) }) i t('should handle string input', () => { const result = s a feToBigIntLE('123') e x pect(result).t oB e(123n) }) i t('should handle invalid input gracefully', () => { const result = s a feToBigIntLE('invalid') e x pect(result).t oB e(0n) }) }) d e scribe('safeToBufferLE', () => { i t('should convert positive number to buffer', () => { const result = s a feToBufferLE(42, 8) e x pect(result).t oB eInstanceOf(Buffer) e x pect(result.length).t oB e(8) }) i t('should handle zero', () => { const result = s a feToBufferLE(0, 4) e x pect(result).t oB eInstanceOf(Buffer) e x pect(result.length).t oB e(4) e x pect(result.e v ery((byte) => byte === 0)).t oB e(true) }) i t('should handle invalid input gracefully', () => { const result = s a feToBufferLE('invalid', 8) e x pect(result).t oB eInstanceOf(Buffer) e x pect(result.length).t oB e(8) }) }) d e scribe('sanitizeNumericInput', () => { i t('should sanitize valid numeric string', () => { const result = s a nitizeNumericInput('123.45') e x pect(result).t oB e('123.45') }) i t('should remove invalid characters', () => { const result = s a nitizeNumericInput('1a2b3.4c5') e x pect(result).t oB e('123.45') }) i t('should handle negative numbers', () => { const result = s a nitizeNumericInput('- 123.45') e x pect(result).t oB e('- 123.45') }) i t('should handle empty string', () => { const result = s a nitizeNumericInput('') e x pect(result).t oB e('') }) i t('should handle only invalid characters', () => { const result = s a nitizeNumericInput('abc') e x pect(result).t oB e('') }) i t('should handle multiple decimal points', () => { const result = s a nitizeNumericInput('12.34.56') e x pect(result).t oB e('12.3456') }) }) d e scribe('SafeMath', () => { d e scribe('add', () => { i t('should add positive numbers', () => { const result = SafeMath.add(5, 3) e x pect(result).t oB e(8n) }) i t('should handle zero addition', () => { const result = SafeMath.add(5, 0) e x pect(result).t oB e(5n) }) i t('should handle negative addition', () => { const result = SafeMath.add(5,- 3) e x pect(result).t oB e(2n) }) }) d e scribe('subtract', () => { i t('should subtract positive numbers', () => { const result = SafeMath.s u btract(10, 3) e x pect(result).t oB e(7n) }) i t('should handle zero subtraction', () => { const result = SafeMath.s u btract(5, 0) e x pect(result).t oB e(5n) }) i t('should handle negative results', () => { const result = SafeMath.s u btract(3, 5) e x pect(result).t oB e(- 2n) }) }) d e scribe('multiply', () => { i t('should multiply positive numbers', () => { const result = SafeMath.m u ltiply(5, 3) e x pect(result).t oB e(15n) }) i t('should handle zero multiplication', () => { const result = SafeMath.m u ltiply(5, 0) e x pect(result).t oB e(0n) }) i t('should handle negative multiplication', () => { const result = SafeMath.m u ltiply(- 5, 3) e x pect(result).t oB e(- 15n) }) }) d e scribe('divide', () => { i t('should divide positive numbers', () => { const result = SafeMath.d i vide(15, 3) e x pect(result).t oB e(5n) }) i t('should handle division with remainder', () => { const result = SafeMath.d i vide(16, 3) e x pect(result).t oB e(5n) }) i t('should throw on division by zero', () => { e x pect(() => SafeMath.d i vide(5, 0)).t oT hrow('Division by zero') }) i t('should handle negative division', () => { const result = SafeMath.d i vide(- 15, 3) e x pect(result).t oB e(- 5n) }) }) d e scribe('percentage', () => { i t('should calculate percentage correctly', () => { const result = SafeMath.p e rcentage(200, 50) e x pect(result).t oB e(100n) }) i t('should handle zero amount', () => { const result = SafeMath.p e rcentage(0, 50) e x pect(result).t oB e(0n) }) i t('should handle zero percentage', () => { const result = SafeMath.p e rcentage(100, 0) e x pect(result).t oB e(0n) }) }) }) }) 
+import { safeToBigIntLE, safeToBufferLE, sanitizeNumericInput, SafeMath } from './safeBigInt';
+
+describe('SafeBigInt Utils', () => {
+  describe('safeToBigIntLE', () => {
+    it('should convert positive numbers correctly', () => {
+      const result = safeToBigIntLE(42);
+      expect(result).toBe(42n);
+    });
+    it('should convert zero correctly', () => {
+      const result = safeToBigIntLE(0);
+      expect(result).toBe(0n);
+    });
+    it('should handle large numbers', () => {
+      const result = safeToBigIntLE(1000000000000);
+      expect(result).toBe(1000000000000n);
+    });
+    it('should handle decimal truncation', () => {
+      const result = safeToBigIntLE(42.99);
+      expect(result).toBe(42n);
+    });
+    it('should handle negative numbers', () => {
+      const result = safeToBigIntLE(-42);
+      expect(result).toBe(-42n);
+    });
+    it('should handle string input', () => {
+      const result = safeToBigIntLE('123');
+      expect(result).toBe(123n);
+    });
+    it('should handle invalid input gracefully', () => {
+      const result = safeToBigIntLE('invalid' as any);
+      expect(result).toBe(0n);
+    });
+  });
+
+  describe('safeToBufferLE', () => {
+    it('should convert positive number to buffer', () => {
+      const result = safeToBufferLE(42, 8);
+      expect(result).toBeInstanceOf(Buffer);
+      expect(result.length).toBe(8);
+    });
+    it('should handle zero', () => {
+      const result = safeToBufferLE(0, 4);
+      expect(result).toBeInstanceOf(Buffer);
+      expect(result.length).toBe(4);
+      expect(result.every((byte) => byte === 0)).toBe(true);
+    });
+    it('should handle invalid input gracefully', () => {
+      const result = safeToBufferLE('invalid' as any, 8);
+      expect(result).toBeInstanceOf(Buffer);
+      expect(result.length).toBe(8);
+    });
+  });
+
+  describe('sanitizeNumericInput', () => {
+    it('should sanitize valid numeric string', () => {
+      const result = sanitizeNumericInput('123.45');
+      expect(result).toBe('123.45');
+    });
+    it('should remove invalid characters', () => {
+      const result = sanitizeNumericInput('1a2b3.4c5');
+      expect(result).toBe('123.45');
+    });
+    it('should handle negative numbers', () => {
+      const result = sanitizeNumericInput('-123.45');
+      expect(result).toBe('-123.45');
+    });
+    it('should handle empty string', () => {
+      const result = sanitizeNumericInput('');
+      expect(result).toBe('');
+    });
+    it('should handle only invalid characters', () => {
+      const result = sanitizeNumericInput('abc');
+      expect(result).toBe('');
+    });
+    it('should handle multiple decimal points', () => {
+      const result = sanitizeNumericInput('12.34.56');
+      expect(result).toBe('12.3456');
+    });
+  });
+
+  describe('SafeMath', () => {
+    describe('add', () => {
+      it('should add positive numbers', () => {
+        const result = SafeMath.add(5, 3);
+        expect(result).toBe(8n);
+      });
+      it('should handle zero addition', () => {
+        const result = SafeMath.add(5, 0);
+        expect(result).toBe(5n);
+      });
+      it('should handle negative addition', () => {
+        const result = SafeMath.add(5, -3);
+        expect(result).toBe(2n);
+      });
+    });
+
+    describe('subtract', () => {
+      it('should subtract positive numbers', () => {
+        const result = SafeMath.subtract(10, 3);
+        expect(result).toBe(7n);
+      });
+      it('should handle zero subtraction', () => {
+        const result = SafeMath.subtract(5, 0);
+        expect(result).toBe(5n);
+      });
+      it('should handle negative results', () => {
+        const result = SafeMath.subtract(3, 5);
+        expect(result).toBe(-2n);
+      });
+    });
+
+    describe('multiply', () => {
+      it('should multiply positive numbers', () => {
+        const result = SafeMath.multiply(5, 3);
+        expect(result).toBe(15n);
+      });
+      it('should handle zero multiplication', () => {
+        const result = SafeMath.multiply(5, 0);
+        expect(result).toBe(0n);
+      });
+      it('should handle negative multiplication', () => {
+        const result = SafeMath.multiply(-5, 3);
+        expect(result).toBe(-15n);
+      });
+    });
+
+    describe('divide', () => {
+      it('should divide positive numbers', () => {
+        const result = SafeMath.divide(15, 3);
+        expect(result).toBe(5n);
+      });
+      it('should handle division with remainder', () => {
+        const result = SafeMath.divide(16, 3);
+        expect(result).toBe(5n);
+      });
+      it('should throw on division by zero', () => {
+        expect(() => SafeMath.divide(5, 0)).toThrow('Division by zero');
+      });
+      it('should handle negative division', () => {
+        const result = SafeMath.divide(-15, 3);
+        expect(result).toBe(-5n);
+      });
+    });
+
+    describe('percentage', () => {
+      it('should calculate percentage correctly', () => {
+        const result = SafeMath.percentage(200, 50);
+        expect(result).toBe(100n);
+      });
+      it('should handle zero amount', () => {
+        const result = SafeMath.percentage(0, 50);
+        expect(result).toBe(0n);
+      });
+      it('should handle zero percentage', () => {
+        const result = SafeMath.percentage(100, 0);
+        expect(result).toBe(0n);
+      });
+    });
+  });
+}); 

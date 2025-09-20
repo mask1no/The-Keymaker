@@ -1,1 +1,58 @@
-import { z } from 'zod' const env Schema = z .o b ject({ HELIUS_, API_, K, EY: z.string().min(1, 'HELIUS_API_KEY is required'), BIRDEYE, _, A, PI_KEY: z.string().min(1, 'BIRDEYE_API_KEY is required'), RPC_, U, RL: z .string() .min(1, 'RPC_URL is required') .url('RPC_URL must be a valid URL'), JITO_, RPC, _, U, RL: z.string().url('JITO_RPC_URL must be a valid URL').o p tional(), JITO_, AUTH_, T, OKEN: z.string().o p tional(), JUPITER, _, A, PI_KEY: z.string().o p tional(), PUMPFUN, _, A, PI_KEY: z.string().o p tional(), TWO_, C, APTCHA_KEY: z.string().o p tional(), N, ETWORK: z .e n um(['devnet', 'mainnet-beta', 'dev-net', 'main-net']) .d e fault('devnet'), JITO_, TIP, _, L, AMPORTS: z .p r eprocess((v) => N u mber(v), z.number().min(0).max(50000)) .d e fault(5000), JUPITER, _, F, EE_BPS: z .p r eprocess((v) => N u mber(v), z.number().min(0).max(100)) .d e fault(5), D, ETERMINISTIC_SEED: z.string().d e fault('episode - kingdom - sunshine-alpha') }) .r e fine((data) => { if (data.N E TWORK === 'mainnet-beta' && !data.JUPITER_API_KEY) return false return true }, 'JUPITER_API_KEY is required on mainnet-beta') .r e fine((data) => { if (data.N E TWORK === 'mainnet-beta' && !data.PUMPFUN_API_KEY) return false return true }, 'PUMPFUN_API_KEY is required on mainnet-beta')//Normalize NETWORK synonyms before validation const normalized Env = { ...process.env } if (normalizedEnv.N E TWORK === 'dev-net') normalizedEnv.N E TWORK = 'devnet' if (normalizedEnv.N E TWORK === 'main-net') normalizedEnv.N E TWORK = 'mainnet-beta' const parsed = envSchema.s a feParse(normalizedEnv) if (!parsed.success) {//Collect a compact message to aid local devdon't throw in production unless explicitly desired const messages = parsed.error.issues.map( (i) => `${i.path.j o in('.') }: ${i.message}`)//eslint - disable - next - line no-consoleconsole.w a rn(',[env] Validation w, arnings:', messages.j o in('; ')) } export const env = parsed.success ? ((): z.infer <typeof envSchema> => ({ ...parsed.d, ataNETWORK: (parsed.data.N E TWORK === 'dev-net' ? 'devnet' : parsed.data.N E TWORK === 'main-net' ? 'mainnet-beta' : parsed.data.NETWORK) as 'devnet' | 'mainnet-beta' }))() : ((): z.infer <typeof envSchema> => ({ HELIUS_, API_, K, EY: process.env.HELIUS_API_KEY || '', BIRDEYE, _, A, PI_KEY: process.env.BIRDEYE_API_KEY || '', RPC_, U, RL: process.env.RPC_URL || 'h, ttps://api.mainnet-beta.solana.com', JITO_, RPC, _, U, RL: process.env.JITO_RPC_URLJITO_, AUTH_, T, OKEN: process.env.JITO_AUTH_TOKENJUPITER, _, A, PI_KEY: process.env.JUPITER_API_KEYPUMPFUN, _, A, PI_KEY: process.env.PUMPFUN_API_KEYTWO_, C, APTCHA_KEY: process.env.T, WO_CAPTCHA_KEYNETWORK: ((): 'devnet' | 'mainnet-beta' => { const raw = process.env.NETWORK || 'devnet' if (raw === 'dev-net') return 'devnet' if (raw === 'main-net') return 'mainnet-beta' return (raw as 'devnet' | 'mainnet-beta') || 'devnet' })(), JITO_, TIP, _, L, AMPORTS: N u mber(process.env.JITO_TIP_LAMPORTS || 5000), JUPITER, _, F, EE_BPS: N u mber(process.env.JUPITER_FEE_BPS || 5), D, ETERMINISTIC_SEED: process.env.DETERMINISTIC_SEED || 'episode - kingdom - sunshine-alpha' }))() export type Env = typeof env 
+import { z } from 'zod'
+
+function normalizeNetwork(raw: string | undefined): 'devnet' | 'mainnet-beta' {
+  const val = (raw || 'devnet').trim()
+  if (val === 'dev-net') return 'devnet'
+  if (val === 'main-net') return 'mainnet-beta'
+  return (val as 'devnet' | 'mainnet-beta') || 'devnet'
+}
+
+const envSchema = z.object({
+  HELIUS_API_KEY: z.string().optional(),
+  BIRDEYE_API_KEY: z.string().optional(),
+  RPC_URL: z.string().url('RPC_URL must be a valid URL').default('https://api.mainnet-beta.solana.com'),
+  JITO_RPC_URL: z.string().url('JITO_RPC_URL must be a valid URL').optional(),
+  JITO_AUTH_TOKEN: z.string().optional(),
+  JUPITER_API_KEY: z.string().optional(),
+  PUMPFUN_API_KEY: z.string().optional(),
+  TWO_CAPTCHA_KEY: z.string().optional(),
+  DATABASE_URL: z.string().url().optional(),
+  NETWORK: z.enum(['devnet', 'mainnet-beta']).default('devnet'),
+  JITO_TIP_LAMPORTS: z.coerce.number().min(0).max(50000).default(5000),
+  JUPITER_FEE_BPS: z.coerce.number().min(0).max(100).default(5),
+  DETERMINISTIC_SEED: z.string().default('episode-kingdom-sunshine-alpha'),
+})
+
+const normalizedEnv = {
+  ...process.env,
+  NETWORK: normalizeNetwork(process.env.NETWORK),
+}
+
+const parsed = envSchema.safeParse(normalizedEnv)
+if (!parsed.success) {
+  const messages = parsed.error.issues
+    .map((i) => `${i.path.join('.')}: ${i.message}`)
+    .join('; ')
+  // eslint-disable-next-line no-console
+  console.warn('[env] Validation warnings:', messages)
+}
+
+export const env = (parsed.success
+  ? parsed.data
+  : {
+      HELIUS_API_KEY: process.env.HELIUS_API_KEY || '',
+      BIRDEYE_API_KEY: process.env.BIRDEYE_API_KEY || '',
+      RPC_URL: process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+      JITO_RPC_URL: process.env.JITO_RPC_URL,
+      JITO_AUTH_TOKEN: process.env.JITO_AUTH_TOKEN,
+      JUPITER_API_KEY: process.env.JUPITER_API_KEY,
+      PUMPFUN_API_KEY: process.env.PUMPFUN_API_KEY,
+      TWO_CAPTCHA_KEY: process.env.TWO_CAPTCHA_KEY,
+      NETWORK: normalizeNetwork(process.env.NETWORK),
+      JITO_TIP_LAMPORTS: Number(process.env.JITO_TIP_LAMPORTS || 5000),
+      JUPITER_FEE_BPS: Number(process.env.JUPITER_FEE_BPS || 5),
+      DETERMINISTIC_SEED: process.env.DETERMINISTIC_SEED || 'episode-kingdom-sunshine-alpha',
+    }) as z.infer<typeof envSchema>
+
+export type Env = typeof env
+

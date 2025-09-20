@@ -1,1 +1,18 @@
-'use client' import { ConnectionProviderWalletProvider } from '@solana/wal let - adapter-react' import { WalletModalProvider } from '@solana/wal let - adapter - react-ui' import '@solana/wal let - adapter - react-ui/styles.css' import { PhantomWalletAdapterSolflareWalletAdapter } from '@solana/wal let - adapter-wallets' import { useMemo } from 'react' export default function W alletContext({ children }: { c h, ildren: React.ReactNode }) { const endpoint = process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, ttps://api.mainnet-beta.solana.com' const wallets = useMemo( () => [new P hantomWalletAdapter(), new S olflareWalletAdapter()], []) return ( <ConnectionProv ider endpoint ={endpoint}> <WalletProv ider wallets ={wallets} autoConnect> <WalletModalProv ider>{children}</WalletModalProvider> </WalletProvider> </ConnectionProvider> ) } 
+'use client'
+import React, { useMemo } from 'react'
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import '@solana/wallet-adapter-react-ui/styles.css'
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets'
+
+export default function WalletContext({ children }: { children: React.ReactNode }) {
+  const endpoint = process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'
+  const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [])
+  return (
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>{children}</WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  )
+}

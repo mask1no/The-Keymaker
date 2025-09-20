@@ -1,5 +1,5 @@
-import { Connection, VersionedTransaction } from '@solana/web3.js'
-import { Result, ok, err } from './Result'
+import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { Result, ok, err } from './Result';
 
 export class SimulationService {
   constructor(private readonly conn: Connection) {}
@@ -10,14 +10,14 @@ export class SimulationService {
         const sim = await this.conn.simulateTransaction(txs[i], {
           sigVerify: false,
           commitment: 'processed',
-        })
+        });
         if (sim.value.err) {
-          return err(new Error(`Simulation failed @${i}: ${JSON.stringify(sim.value.err)}`))
+          return err(new Error(`Simulation failed @${i}: ${JSON.stringify(sim.value.err)}`));
         }
       }
-      return ok(undefined)
+      return ok(undefined);
     } catch (e: any) {
-      return err(e)
+      return err(e);
     }
   }
 }

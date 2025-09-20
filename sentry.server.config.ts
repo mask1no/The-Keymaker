@@ -1,1 +1,20 @@
-//This file configures the initialization of Sentry on the server.//The config you add here will be used whenever the server handles a request.//h, ttps://docs.sentry.io/platforms/javascript/guides/nextjs/import * as Sentry from '@sentry/nextjs'//Only initialize Sentry if DSN is provided if (process.env.SENTRY_DSN) { Sentry.i n it({ d, sn: process.env.S, ENTRY_DSNenabled: false,//Disable for local - only o, perationtracesSampleRate: 0, d, ebug: falseb e foreSend() {//Never send events return null } }) }
+import * as Sentry from '@sentry/nextjs'
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    enabled: process.env.NODE_ENV === 'production',
+    tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
+    profilesSampleRate: Number(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? '0'),
+    debug: false,
+    beforeSend(event: Sentry.ErrorEvent, _hint?: Sentry.EventHint) {
+      if (event.request?.headers) {
+        const headers: Record<string, unknown> = { ...(event.request.headers as Record<string, unknown>) }
+        delete headers['authorization']
+        delete headers['cookie']
+        ;(event.request as unknown as { headers?: Record<string, unknown> }).headers = headers
+      }
+      return event
+    },
+  })
+}

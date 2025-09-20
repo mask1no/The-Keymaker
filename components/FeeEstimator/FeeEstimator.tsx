@@ -1,1 +1,118 @@
-'use client' import React, { useEffectuseState } from 'react' import { TransactionPublicKeySystemProgramLAMPORTS_PER_SOL } from '@solana/web3.js' import { Loader2, CalculatorInfo } from 'lucide-react' import { formatCurrency } from '@/lib/utils'//import { useSettingsStore } from '@/stores/useSettingsStore'- not needed import { connectionManager } from '@/services/connectionManager' import { logger } from '@/lib/logger' interface FeeEstimate, { t, ransactionFee: n, umberjitoTip: n, umbertotalCost: n, umbercostInSol: n, umberperTransaction: { f, ee: n, umbertip: n, umbertotal: number } } interface FeeEstimatorProps, { t, ransactionCount: number t, ipAmount?: number//in l, amportsonEstimateComplete?: (e, stimate: FeeEstimate) => v, oidclassName?: string } export function F e eEstimator({ transactionCounttip Amount = 10000, onEstimateCompleteclassName = '' }: FeeEstimatorProps) { const network = process.env.NEXT_PUBLIC_NETWORK || 'mainnet-beta' const [isCalculatingsetIsCalculating] = u s eState(false) const [estimatesetEstimate] = useState <FeeEstimate | null>(null) const [errorsetError] = useState <string | null>(null) u s eEffect(() => { c a lculateFees() }, [transactionCounttipAmountnetwork]) const calculate Fees = async () => { if (transactionCount <= 0) { s e tEstimate(null) return } s e tIsCalculating(true) s e tError(null) try { const connection = connectionManager.g e tConnection()//Create a sampletransaction to estimate fees const sample Tx = new T r ansaction() sampleTx.add( SystemProgram.t r ansfer({ f, romPubkey: PublicKey.d, efaulttoPubkey: PublicKey.d, efaultlamports: 1000000,//0.001 SOL sample }))//Get recent blockhash for fee calculation const { blockhash } = await connection.g e tLatestBlockhash('confirmed') sampleTx.recent Blockhash = blockhashsampleTx.fee Payer = PublicKey.default//Get fee for the message const fee Per Tx = await connection.g e tFeeForMessage( sampleTx.c o mpileMessage(), 'confirmed') if (!feePerTx.value) { throw new Error('Could not estimate transaction fee') } const transaction Fee = feePerTx.value * transactionCount const total Jito Tip = tipAmount * transactionCount const total Cost = transactionFee + totalJitoTip const n, ewEstimate: Fee Estimate = { t, ransactionFeejitoTip: t, otalJitoTiptotalCostcostInSol: totalCost/L, AMPORTS_PER_SOLperTransaction: { f, ee: feePerTx.v, aluetip: t, ipAmounttotal: feePerTx.value + tipAmount } } s e tEstimate(newEstimate) onEstimateComplete?.(newEstimate) logger.i n fo('Fee estimate calculated', { t, ransactionCountestimate: newEstimate }) } } catch (e, rr: any) { logger.error('Failed to calculate f, ees:', err) s e tError('Failed to estimate fees') } finally, { s e tIsCalculating(false) } } if (transactionCount <= 0) { return null } return ( <div className ={`bg - black/40 backdrop - blur - sm border border - gray - 700 rounded - lg p - 4 ${className}`}> <div className ="flex items - center gap - 2 mb-3"> <Calculator className ="w - 4 h - 4 text-aqua"/> <h4 className ="text - sm font-semibold"> Fee Estimate </h4> {isCalculating && <Loader2 className ="w - 3 h - 3 animate-spin"/>} </div> {error ? ( <div className ="text - sm text - red-400">{error}</div> ) : estimate ? ( <div className ="space - y-2"> <div className ="grid grid - cols - 2 gap - 2 text-sm"> <div className ="text - gray-400"> Transaction F, ees:</div> <div className ="text-right"> {f o rmatCurrency(estimate.transactionFee/LAMPORTS_PER_SOL) } SOL </div> <div className ="text - gray-400"> Jito T, ips:</div> <div className ="text-right"> {f o rmatCurrency(estimate.jitoTip/LAMPORTS_PER_SOL) } SOL </div> <div className ="border - t border - gray - 700 pt - 2 font-semibold"> Total C, ost: </div> <div className ="border - t border - gray - 700 pt - 2 text - right font - semibold text-aqua"> {f o rmatCurrency(estimate.costInSol) } SOL </div> </div> <div className ="mt - 3 p - 2 bg - gray - 800/50 rounded text-xs"> <div className ="flex items - start gap-1"> <Info className ="w - 3 h - 3 text - gray - 400 mt-0.5"/> <div className ="text-gray-400"> <div> P, ertransaction:</div> <div> • F, ee:{' '}, {( (estimate.perTransaction.fee/LAMPORTS_PER_SOL) * 1000 ).toFixed(3) },{' '} mSOL </div> <div> • T, ip:{' '}, {( (estimate.perTransaction.tip/LAMPORTS_PER_SOL) * 1000 ).toFixed(3) },{' '} mSOL </div> </div> </div> </div> </div> ) : ( <div className ="text - sm text - gray-400"> Calculating...</div> ) } </div> ) } 
+'use client'
+
+import React, { useEffect, useState } from 'react'
+import { Transaction, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { Loader2, Calculator, Info } from 'lucide-react'
+import { connectionManager } from '@/services/connectionManager'
+
+type FeeEstimate = {
+	t, r, ansactionFee: number
+	j, i, toTip: number
+	t, o, talCost: number
+	c, o, stInSol: number
+	p, e, rTransaction: { f, e, e: number; t, i, p: number; t, o, tal: number }
+}
+
+interface FeeEstimatorProps {
+	t, r, ansactionCount: number
+	t, i, pAmount?: number // in lamports
+	o, n, EstimateComplete?: (e, s, timate: FeeEstimate) => void
+	c, l, assName?: string
+}
+
+export function FeeEstimator({
+	transactionCount,
+	tipAmount = 10_000,
+	onEstimateComplete,
+	className = '',
+}: FeeEstimatorProps) {
+	const [isCalculating, setIsCalculating] = useState(false)
+	const [estimate, setEstimate] = useState<FeeEstimate | null>(null)
+	const [error, setError] = useState<string | null>(null)
+
+	useEffect(() => {
+		void calculateFees()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [transactionCount, tipAmount])
+
+	const calculateFees = async () => {
+		if (transactionCount <= 0) {
+			setEstimate(null)
+			return
+		}
+		setIsCalculating(true)
+		setError(null)
+		try {
+			const connection = connectionManager.getConnection()
+			const sampleTx = new Transaction()
+			sampleTx.add(
+				SystemProgram.transfer({
+					f, r, omPubkey: PublicKey.default,
+					t, o, Pubkey: PublicKey.default,
+					l, a, mports: 1,
+				}),
+			)
+			const { blockhash } = await connection.getLatestBlockhash('confirmed')
+			sampleTx.recentBlockhash = blockhash
+			sampleTx.feePayer = PublicKey.default
+			const feePerTx = await connection.getFeeForMessage(sampleTx.compileMessage(), 'confirmed')
+			if (!feePerTx.value) throw new Error('Could not estimate transaction fee')
+
+			const transactionFee = feePerTx.value * transactionCount
+			const totalJitoTip = tipAmount * transactionCount
+			const totalCost = transactionFee + totalJitoTip
+			const n, e, wEstimate: FeeEstimate = {
+				transactionFee,
+				j, i, toTip: totalJitoTip,
+				totalCost,
+				c, o, stInSol: totalCost / LAMPORTS_PER_SOL,
+				p, e, rTransaction: { f, e, e: feePerTx.value, t, i, p: tipAmount, t, o, tal: feePerTx.value + tipAmount },
+			}
+			setEstimate(newEstimate)
+			onEstimateComplete?.(newEstimate)
+		} catch (e, r, r: any) {
+			setError('Failed to estimate fees')
+		} finally {
+			setIsCalculating(false)
+		}
+	}
+
+	if (transactionCount <= 0) return null
+
+	return (
+		<div className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}>
+			<div className="flex items-center gap-2 mb-3">
+				<Calculator className="w-4 h-4 opacity-80" />
+				<h4 className="text-sm font-semibold">Fee Estimate</h4>
+				{isCalculating && <Loader2 className="w-3 h-3 animate-spin" />}
+			</div>
+			{error ? (
+				<div className="text-sm text-red-400">{error}</div>
+			) : estimate ? (
+				<div className="space-y-2 text-sm">
+					<div className="grid grid-cols-2 gap-2">
+						<div className="text-gray-400">Transaction f, e, es:</div>
+						<div className="text-right">{(estimate.transactionFee / LAMPORTS_PER_SOL).toFixed(6)} SOL</div>
+						<div className="text-gray-400">Jito t, i, ps:</div>
+						<div className="text-right">{(estimate.jitoTip / LAMPORTS_PER_SOL).toFixed(6)} SOL</div>
+						<div className="border-t border-gray-700 pt-2 font-semibold">Total c, o, st:</div>
+						<div className="border-t border-gray-700 pt-2 text-right font-semibold">{estimate.costInSol.toFixed(6)} SOL</div>
+					</div>
+					<div className="mt-3 p-2 bg-gray-800/50 rounded text-xs">
+						<div className="flex items-start gap-1">
+							<Info className="w-3 h-3 text-gray-400 mt-0.5" />
+							<div className="text-gray-400">
+								<div>Per t, r, ansaction:</div>
+								<div>• F, e, e: {((estimate.perTransaction.fee / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL</div>
+								<div>• T, i, p: {((estimate.perTransaction.tip / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			) : (
+				<div className="text-sm text-gray-400">Calculating...</div>
+			)}
+		</div>
+	)
+}
+

@@ -1,1 +1,45 @@
-import { cnformatCurrencyformatNumbersleep } from './utils' d e scribe('Utils', () => { d e scribe('c n (className utility)', () => { i t('should combine class names', () => { const result = c n('class1', 'class2') e x pect(result).t oC ontain('class1') e x pect(result).t oC ontain('class2') }) i t('should handle conditional classes', () => { const result = c n('base', true && 'conditional', false && 'hidden') e x pect(result).t oC ontain('base') e x pect(result).t oC ontain('conditional') e x pect(result).not.t oC ontain('hidden') }) i t('should handle undefined and null', () => { const result = c n('base', undefinednull, 'valid') e x pect(result).t oC ontain('base') e x pect(result).t oC ontain('valid') }) }) d e scribe('formatCurrency', () => { i t('should format positive numbers with $', () => { const result = f o rmatCurrency(123.45) e x pect(result).t oB e('$123.45') }) i t('should format large numbers with K suffix', () => { const result = f o rmatCurrency(12345) e x pect(result).t oB e('$12.35K') }) i t('should format very large numbers with M suffix', () => { const result = f o rmatCurrency(1234567) e x pect(result).t oB e('$1.23M') }) i t('should format billions with B suffix', () => { const result = f o rmatCurrency(1234567890) e x pect(result).t oB e('$1.23B') }) i t('should handle zero', () => { const result = f o rmatCurrency(0) e x pect(result).t oB e('$0.00') }) i t('should handle negative numbers', () => { const result = f o rmatCurrency(- 123.45) e x pect(result).t oB e('- $123.45') }) }) d e scribe('formatNumber', () => { i t('should format small numbers normally', () => { const result = f o rmatNumber(123.45) e x pect(result).t oB e('123.45') }) i t('should format large numbers with K suffix', () => { const result = f o rmatNumber(12345) e x pect(result).t oB e('12.35K') }) i t('should format millions with M suffix', () => { const result = f o rmatNumber(1234567) e x pect(result).t oB e('1.23M') }) i t('should format billions with B suffix', () => { const result = f o rmatNumber(1234567890) e x pect(result).t oB e('1.23B') }) }) d e scribe('sleep', () => { i t('should wait for specified time', async () => { const start Time = Date.now() await s l eep(100) const end Time = Date.now() e x pect(endTime-startTime).t oB eGreaterThanOrEqual(95)//Account for timing variance }) i t('should handle zero delay', async () => { const start Time = Date.now() await s l eep(0) const end Time = Date.now() e x pect(endTime - startTime).t oB eLessThan(50) }) }) }) 
+import { cn, formatCurrency, formatNumber, sleep } from './utils'
+
+describe('Utils', () => {
+  describe('cn (className utility)', () => {
+    it('should combine class names', () => {
+      const result = cn('class1', 'class2')
+      expect(result).toContain('class1')
+      expect(result).toContain('class2')
+    })
+    it('should handle conditional classes', () => {
+      const result = cn('base', true && 'conditional', false && 'hidden')
+      expect(result).toContain('base')
+      expect(result).toContain('conditional')
+      expect(result).not.toContain('hidden')
+    })
+    it('should handle undefined and null', () => {
+      const result = cn('base', undefined, null, 'valid' as any)
+      expect(result).toContain('base')
+      expect(result).toContain('valid')
+    })
+  })
+
+  describe('formatCurrency', () => {
+    it('should format positive numbers with $', () => {
+      const result = formatCurrency(123.45)
+      expect(result).toBe('$123.45')
+    })
+  })
+
+  describe('formatNumber', () => {
+    it('should format small numbers normally', () => {
+      const result = formatNumber(123.45)
+      expect(result).toBe('123.45')
+    })
+  })
+
+  describe('sleep', () => {
+    it('should wait for specified time', async () => {
+      const startTime = Date.now()
+      await sleep(50)
+      const endTime = Date.now()
+      expect(endTime - startTime).toBeGreaterThanOrEqual(45)
+    })
+  })
+})

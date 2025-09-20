@@ -1,1 +1,55 @@
-'use client' import { useEffectuseState } from 'react' import { ServerRadioZap } from 'lucide-react' const Chip = ({ oklabelIcon }: { o, k: boolean l, abel: string I, con: any }) => ( <div className ="flex items - center gap - 2 rounded - xl border px - 2 py - 1 text - xs bg-card"> <Icon className ="h - 3.5 w - 3.5 opacity-90"/> <span className ={ok ? 'text-foreground' : 'text - muted-foreground'}> {label} </span> </div> ) export default function N a vStatus() { const [rpcsetRpc] = u s eState(false) const [wssetWs] = u s eState(false) const [jitosetJito] = u s eState(false) const [netsetNet] = useState <'MAINNET' | 'DEVNET' | 'UNKNOWN'>('UNKNOWN') u s eEffect(() => { const rpc Url = (process.env.NEXT_PUBLIC_HELIUS_RPC || '').toLowerCase() s e tNet( rpcUrl.i n cludes('devnet') ? 'DEVNET' : rpcUrl ? 'MAINNET' : 'UNKNOWN') f e tch('/api/jito/tipfloor', { c, ache: 'no-store' }) .t h en((r) => (r.ok ? r.json() : Promise.r e ject())) .t h en(() => { s e tRpc(true) s e tJito(true) }) .catch (() => { s e tRpc(false) s e tJito(false) }) const ws Url = (process.env.NEXT_PUBLIC_HELIUS_WS || '').t r im() if (!wsUrl) return s e tWs(false) try { const s = new W e bSocket(wsUrl) let opened = false s.onopen = () => { opened = true s e tWs(true) s.c l ose() } s.onerror = () => { if (!opened) s e tWs(false) } } } catch, { s e tWs(false) } }, []) return ( <div className ="grid grid - cols - 2 gap-2"> <Chip ok ={rpc} label ="RPC" Icon ={Server}/> <Chip ok ={ws} label ="WebSocket" Icon ={Radio}/> <Chip ok ={jito} label ="JITO" Icon ={Zap}/> <Chip ok label ={net} Icon ={Server}/> </div> ) } 
+'use client'
+import { useEffect, useState } from 'react'
+import { Radio, Server, Zap } from 'lucide-react'
+
+const Chip = ({ ok, label, Icon }: { ok: boolean; label: string; Icon: any }) => (
+  <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs bg-card">
+    <Icon className="h-3.5 w-3.5 opacity-90" />
+    <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
+  </div>
+)
+
+export default function NavStatus() {
+  const [rpc, setRpc] = useState(false)
+  const [ws, setWs] = useState(false)
+  const [jito, setJito] = useState(false)
+  const [net, setNet] = useState<'MAINNET' | 'DEVNET' | 'UNKNOWN'>('UNKNOWN')
+  useEffect(() => {
+    const rpcUrl = (process.env.NEXT_PUBLIC_HELIUS_RPC || '').toLowerCase()
+    setNet(rpcUrl.includes('devnet') ? 'DEVNET' : rpcUrl ? 'MAINNET' : 'UNKNOWN')
+    fetch('/api/jito/tipfloor', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(() => {
+        setRpc(true)
+        setJito(true)
+      })
+      .catch(() => {
+        setRpc(false)
+        setJito(false)
+      })
+    const wsUrl = (process.env.NEXT_PUBLIC_HELIUS_WS || '').trim()
+    if (!wsUrl) return setWs(false)
+    try {
+      const s = new WebSocket(wsUrl)
+      let opened = false
+      s.onopen = () => {
+        opened = true
+        setWs(true)
+        s.close()
+      }
+      s.onerror = () => {
+        if (!opened) setWs(false)
+      }
+    } catch {
+      setWs(false)
+    }
+  }, [])
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <Chip ok={rpc} label="RPC" Icon={Server} />
+      <Chip ok={ws} label="WebSocket" Icon={Radio} />
+      <Chip ok={jito} label="JITO" Icon={Zap} />
+      <Chip ok label={net} Icon={Server} />
+    </div>
+  )
+}

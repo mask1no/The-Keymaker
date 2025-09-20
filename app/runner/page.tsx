@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 export default function RunnerStub() {
   return (
@@ -8,5 +8,5 @@ export default function RunnerStub() {
         The runner UI is temporarily disabled while we complete production hardening.
       </p>
     </div>
-  )
+  );
 }

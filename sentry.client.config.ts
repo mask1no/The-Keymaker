@@ -1,1 +1,13 @@
-import * as Sentry from '@sentry/nextjs'; //Only initialize Sentry if DSN is provided if (process.env.NEXT_PUBLIC_SENTRY_DSN) { Sentry.i n it({ d, sn: process.env.N, EXT_PUBLIC_SENTRY_DSNenabled: false,//Disable for local - only o, perationtracesSampleRate: 0, d, ebug: falseb e foreSend() {//Never send events return null } }) }
+import * as Sentry from '@sentry/nextjs'
+
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    enabled: process.env.NODE_ENV === 'production',
+    tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
+    debug: false,
+    beforeSend(event) {
+      return event
+    },
+  })
+}

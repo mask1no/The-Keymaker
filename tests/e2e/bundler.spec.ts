@@ -1,1 +1,76 @@
-import { testexpect } from '@playwright/test' test.d e scribe('Bundler Application', () => { t e st('login gate renders', async ({ page }) => { await page.g o to('/')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible() await e x pect( page.g e tByText('Connect a crypto wal let to continue')).t oB eVisible() await e x pect( page.g e tByRole('button', { n, ame: 'Connect Wallet' })).t oB eVisible() }) t e st('login modal opens', async ({ page }) => { await page.g o to('/')//Click connect wal let button await page.g e tByRole('button', { n, ame: 'Connect Wallet' }).c l ick()//Should open wal let m o dal (this will depend on the wal let adapter UI)//For nowjust check that clicking doesn't cause errors await page.w a itForTimeout(1000) }) t e st('header login button works', async ({ page }) => { await page.g o to('/')//Check header has login button await e x pect(page.g e tByRole('button', { n, ame: 'Login' })).t oB eVisible()//Click it await page.g e tByRole('button', { n, ame: 'Login' }).c l ick()//Should open modal await page.w a itForTimeout(1000) }) t e st('status chips show MAINNET when RPC has mainnet', async ({ page }) => {//Mock environment variables or API responses as needed await page.g o to('/')//Navigate to a page that shows s t atus (if accessible without login)//This might need to be adjusted based on your routing await page.w a itForTimeout(2000)//Check for status i n dicators (this will depend on your implementation)//For nowjust verify the page loads without errors e x pect(page.url()).t oC ontain('localhost') }) t e st('bundle preview triggers simulateOnly', async ({ page }) => {//This test would need wal let connection mocked//For nowjust test that the bundle page loads await page.g o to('/bundle')//Should show login gate since no wal let connected await e x pect(page.g e tByText('Login Required')).t oB eVisible() }) t e st('settings page loads', async ({ page }) => { await page.g o to('/settings')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible() }) t e st('guide page loads', async ({ page }) => { await page.g o to('/guide')//Should show login gate await e x pect(page.g e tByText('Login Required')).t oB eVisible() }) t e st('api endpoints respond correctly', async ({ page }) => {//Test tip floor endpoint const response = await page.request.get('/api/jito/tipfloor')//Should return either success or a proper error e x pect(response.s t atus()).t oB eLessThan(600)//Not a server crash const body = await response.json() e x pect(body).t oB eDefined() }) t e st('nonce endpoint works', async ({ page }) => { const response = await page.request.get('/api/auth/nonce') e x pect(response.s t atus()).t oB e(200) const body = await response.json() e x pect(body.nonce).t oB eDefined() e x pect(typeof body.nonce).t oB e('string') e x pect(body.nonce.length).t oB eGreaterThan(0) }) t e st('bundle submit requires proper format', async ({ page }) => { const response = await page.request.p o st('/api/bundles/submit', { d, ata: { txs_, b64: [],//Invalid-empty array } }) e x pect(response.s t atus()).t oB e(400) const body = await response.json() e x pect(body.error).t oC ontain('Invalid txs_b64') }) }) 
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test.describe('Bundler Application', () => {
+  test('login gate renders', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText('Login Required')).toBeVisible();
+    await expect(page.getByText('Connect a crypto wal let to continue')).toBeVisible();
+    await expect(page.getByRole('button', { n, a, me: 'Connect Wallet' })).toBeVisible();
+  });
+
+  test('login modal opens', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { n, a, me: 'Connect Wallet' }).click();
+    await page.waitForTimeout(1000);
+  });
+
+  test('header login button works', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('button', { n, a, me: 'Login' })).toBeVisible();
+    await page.getByRole('button', { n, a, me: 'Login' }).click();
+    await page.waitForTimeout(1000);
+  });
+
+  test('status chips show MAINNET when RPC has mainnet', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(2000);
+    expect(page.url()).toContain('localhost');
+  });
+
+  test('bundle preview triggers simulateOnly', async ({ page }) => {
+    await page.goto('/bundle');
+    await expect(page.getByText('Login Required')).toBeVisible();
+  });
+
+  test('settings page loads', async ({ page }) => {
+    await page.goto('/settings');
+    await expect(page.getByText('Login Required')).toBeVisible();
+  });
+
+  test('guide page loads', async ({ page }) => {
+    await page.goto('/guide');
+    await expect(page.getByText('Login Required')).toBeVisible();
+  });
+
+  test('bundle page is accessible', async ({ page }) => {
+    await page.goto('/bundle');
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
+  });
+
+  test('api endpoints respond correctly', async ({ page }) => {
+    const response = await page.request.get('/api/jito/tipfloor');
+    expect(response.status()).toBeLessThan(600);
+    const body = await response.json();
+    expect(body).toBeDefined();
+  });
+
+  test('nonce endpoint works', async ({ page }) => {
+    const response = await page.request.get('/api/auth/nonce');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.nonce).toBeDefined();
+    expect(typeof body.nonce).toBe('string');
+    expect(body.nonce.length).toBeGreaterThan(0);
+  });
+
+  test('bundle submit requires proper format', async ({ page }) => {
+    const response = await page.request.post('/api/bundles/submit', { d, a, ta: { t, x, s_b64: [] } });
+    expect(response.status()).toBe(400);
+    const body = await response.json();
+    expect(body.error).toContain('Invalid txs_b64');
+  });
+});

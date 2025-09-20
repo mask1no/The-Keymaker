@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
+    // Skip lint errors during build to allow bundler path to compile
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Build will fail on type errors in included files
+    ignoreBuildErrors: false,
   },
   webpack: (config, { isServer }) => {
     // Exclude sqlite3 from client bundle
@@ -37,7 +39,8 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          { key: 'X-XSS-Protection', value: '0' },
         ],
       },
     ];

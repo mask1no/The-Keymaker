@@ -1,1 +1,1 @@
-//Server - side RPC URL helper export function g e tServerRpc(): string, { return ( process.env.RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, ttps://api.mainnet-beta.solana.com' ) }
+//Server - side RPC URL helper export function g e tServerRpc(): string, { return ( process.env.RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, ps://api.mainnet-beta.solana.com' ) }
