@@ -2,7 +2,9 @@
   "name": "bundler-mvp",
   "private": true,
   "version": "0.1.0",
-  "engines": { "node": ">=20 <21" },
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -28,5 +30,3 @@
     "eslint-config-next": "14.2.0"
   }
 }
-
-
