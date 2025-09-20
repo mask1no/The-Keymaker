@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "The Keymaker",
+    "welcome": "Welcome"
+  },
+  "status": {
+    "ok": "OK",
+    "error": "Error"
+  }
+}
+
+
