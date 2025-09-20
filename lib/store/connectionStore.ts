@@ -1,1 +1,36 @@
-import { create } from 'zustand' interface ConnectionState, { r, p, c, Down: b, o, o, leanwsDown: b, o, o, leanjitoDown: b, o, o, leanmainnetDown: b, o, o, leanretryCount: n, u, m, berretryInSeconds: n, u, m, bersetRpcDown: (d, o, w, n: boolean) => v, o, i, dsetWsDown: (d, o, w, n: boolean) => v, o, i, dsetJitoDown: (d, o, w, n: boolean) => v, o, i, dsetMainnetDown: (d, o, w, n: boolean) => v, o, i, dsetRetryCount: (c, o, u, nt: number) => v, o, i, dsetRetryInSeconds: (s, e, c, onds: number) => v, o, i, disAnyServiceDown: () => boolean } export const use Connection Store = create <ConnectionState>((setget) => ({ r, p, c, Down: f, a, l, sewsDown: f, a, l, sejitoDown: f, a, l, semainnetDown: f, a, l, seretryCount: 0, r, e, t, ryInSeconds: 0, s, e, t, RpcDown: (down) => set({ r, p, c, Down: down }), s, e, t, WsDown: (down) => set({ w, s, D, own: down }), s, e, t, JitoDown: (down) => set({ j, i, t, oDown: down }), s, e, t, MainnetDown: (down) => set({ m, a, i, nnetDown: down }), s, e, t, RetryCount: (count) => set({ r, e, t, ryCount: count }), s, e, t, RetryInSeconds: (seconds) => set({ r, e, t, ryInSeconds: seconds }), i, s, A, nyServiceDown: () => { const state = get() return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown } })) 
+import { create } from 'zustand';
+
+interface ConnectionState {
+  rpcDown: boolean;
+  wsDown: boolean;
+  jitoDown: boolean;
+  mainnetDown: boolean;
+  retryCount: number;
+  retryInSeconds: number;
+  setRpcDown: (down: boolean) => void;
+  setWsDown: (down: boolean) => void;
+  setJitoDown: (down: boolean) => void;
+  setMainnetDown: (down: boolean) => void;
+  setRetryCount: (count: number) => void;
+  setRetryInSeconds: (seconds: number) => void;
+  isAnyServiceDown: () => boolean;
+}
+
+export const useConnectionStore = create<ConnectionState>((set, get) => ({
+  rpcDown: false,
+  wsDown: false,
+  jitoDown: false,
+  mainnetDown: false,
+  retryCount: 0,
+  retryInSeconds: 0,
+  setRpcDown: (down) => set({ rpcDown: down }),
+  setWsDown: (down) => set({ wsDown: down }),
+  setJitoDown: (down) => set({ jitoDown: down }),
+  setMainnetDown: (down) => set({ mainnetDown: down }),
+  setRetryCount: (count) => set({ retryCount: count }),
+  setRetryInSeconds: (seconds) => set({ retryInSeconds: seconds }),
+  isAnyServiceDown: () => {
+    const state = get();
+    return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown;
+  },
+})); 

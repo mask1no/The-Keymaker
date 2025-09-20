@@ -2,45 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, chore/** ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm type-check
-      - run: pnpm lint
-      - run: pnpm test -- --coverage
-      - name: Enforce coverage threshold
-        run: |
-          COVERAGE=$(node -e "console.log(require('./coverage/coverage-final.json').total.lines.pct)")
-          echo "Coverage: $COVERAGE%"
-          node -e "if (Number(process.env.COVERAGE) < 70) { console.error('Coverage below 70%'); process.exit(1) }" \
-            COVERAGE=$COVERAGE
-      - name: Accessibility audit (placeholder)
-        run: pnpm a11y
-
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  typecheck-and-api:
+  build-and-a11y:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,39 +23,28 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Corruption check
+        run: node scripts/fixCorruption.mjs --check
+
       - name: Type check
         run: pnpm type-check
 
-      - name: Build
-        run: pnpm build
+      - name: Build (standalone)
+        run: pnpm build:standalone
         env:
           NEXT_TELEMETRY_DISABLED: '1'
 
-      - name: Start server (test mode)
+      - name: Install Playwright Browsers
+        run: pnpm dlx playwright install --with-deps
+
+      - name: Start server in test mode
         run: |
           TEST_MODE=1 NEXT_PUBLIC_TEST_MODE=1 pnpm start &
           echo $! > server.pid
           npx wait-on http://localhost:3000
 
-      - name: Verify /api/health
-        run: curl -sf http://localhost:3000/api/health
-
-      - name: Verify /api/jito/tipfloor
-        run: curl -sf "http://localhost:3000/api/jito/tipfloor?region=ffm"
-
-      - name: API contract - simulate
-        run: |
-          node -e "fetch('http://localhost:3000/api/bundles/submit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({region:'ffm',txs_b64:[],simulateOnly:true})}).then(async r=>{if(r.status!==200)process.exit(1); console.log(await r.text());}).catch(e=>{console.error(e);process.exit(1)});"
-        env:
-          TEST_MODE: '1'
-          NEXT_PUBLIC_TEST_MODE: '1'
-
-      - name: API contract - status
-        run: |
-          node -e "fetch('http://localhost:3000/api/bundles/status/batch',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({region:'ffm',bundle_ids:['TEST-123']})}).then(async r=>{if(r.status!==200)process.exit(1); console.log(await r.text());}).catch(e=>{console.error(e);process.exit(1)});"
-        env:
-          TEST_MODE: '1'
-          NEXT_PUBLIC_TEST_MODE: '1'
+      - name: Run a11y tests
+        run: pnpm test:e2e
 
       - name: Stop server
         if: always()

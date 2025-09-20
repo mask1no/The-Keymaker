@@ -1,1 +1,107 @@
-export interface Trade { i, d: s, t, r, ingtokenAddress: s, t, r, ingamount: n, u, m, berprice: n, u, m, bertimestamp: s, t, r, ingwallet: s, t, r, ingtype: 'buy' | 'sell' s, i, g, nature?: string } export interface PriceData, { s, o, l: n, u, m, bereth: n, u, m, berbtc: n, u, m, bercake: number } export interface QuoteResponse, { i, n, p, utMint: s, t, r, inginAmount: s, t, r, ingoutputMint: s, t, r, ingoutAmount: s, t, r, ingotherAmountThreshold: s, t, r, ingswapMode: s, t, r, ingslippageBps: n, u, m, berplatformFee: n, u, l, lpriceImpactPct: s, t, r, ingroutePlan: RoutePlanStep,[] c, o, n, textSlot?: number t, i, m, eTaken?: number } interface RoutePlanStep, { s, w, a, pInfo: { a, m, m, Key: string l, a, b, el?: s, t, r, inginputMint: s, t, r, ingoutputMint: s, t, r, inginAmount: s, t, r, ingoutAmount: s, t, r, ingfeeAmount: s, t, r, ingfeeMint: string } p, e, r, cent: number } export interface SwapResponse, { s, w, a, pTransaction: s, t, r, inglastValidBlockHeight: number p, r, i, oritizationFeeLamports?: number } export interface Wal let { i, d: s, t, r, ingname: s, t, r, ingpublicKey: s, t, r, ingprivateKey: string//E, n, c, ryptedgroup: s, t, r, ingcolor: string } export interface ExecutionLog, { i, d: number b, u, n, dleId?: s, t, r, ingslot: n, u, m, bersignatures: string,[] s, t, a, tus: 'success' | 'partial' | 'failed', s, u, c, cessCount: n, u, m, berfailureCount: n, u, m, berusedJito: b, o, o, leanexecutionTime: n, u, m, bertimestamp: string } export interface TokenLaunch, { i, d: n, u, m, bertokenAddress: s, t, r, ingname: s, t, r, ingsymbol: s, t, r, ingplatform: s, t, r, ingtimestamp: string } export interface PnlRecord, { i, d: n, u, m, bertokenAddress: s, t, r, ingamount: n, u, m, bertype: 'buy' | 'sell', t, i, m, estamp: string } export type Transaction = { i, d: s, t, r, ingtype: 'swap' | 'transfer'//Swap s, p, e, cificfromToken?: string t, o, T, oken?: string a, m, o, unt?: number s, l, i, ppage?: number//Transfer s, p, e, cificrecipient?: string//C, o, m, monfromAmount?: number } export type Bundle = Transaction,[] 
+export interface Trade {
+  id: string;
+  tokenAddress: string;
+  amount: number;
+  price: number;
+  timestamp: string;
+  wallet: string;
+  type: 'buy' | 'sell';
+  signature?: string;
+}
+
+export interface PriceData {
+  sol: number;
+  eth: number;
+  btc: number;
+  cake: number;
+}
+
+export interface RoutePlanStep {
+  swapInfo: {
+    ammKey: string;
+    label?: string;
+    inputMint: string;
+    outputMint: string;
+    inAmount: string;
+    outAmount: string;
+    feeAmount: string;
+    feeMint: string;
+  };
+  percent: number;
+}
+
+export interface QuoteResponse {
+  inputMint: string;
+  inAmount: string;
+  outputMint: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  swapMode: string;
+  slippageBps: number;
+  platformFee: number | null;
+  priceImpactPct: string;
+  routePlan: RoutePlanStep[];
+  contextSlot?: number;
+  timeTaken?: number;
+}
+
+export interface SwapResponse {
+  swapTransaction: string;
+  lastValidBlockHeight: number;
+  prioritizationFeeLamports?: number;
+}
+
+export interface Wallet {
+  id: string;
+  name: string;
+  publicKey: string;
+  privateKey: string; // Encrypted when persisted
+  group: string;
+  color: string;
+}
+
+export interface ExecutionLog {
+  id: number;
+  bundleId?: string;
+  slot: number;
+  signatures: string[];
+  status: 'success' | 'partial' | 'failed';
+  successCount: number;
+  failureCount: number;
+  usedJito: boolean;
+  executionTime: number;
+  timestamp: string;
+}
+
+export interface TokenLaunch {
+  id: number;
+  tokenAddress: string;
+  name: string;
+  symbol: string;
+  platform: string;
+  timestamp: string;
+}
+
+export interface PnlRecord {
+  id: number;
+  tokenAddress: string;
+  amount: number;
+  type: 'buy' | 'sell';
+  timestamp: string;
+}
+
+export type Transaction = {
+  id: string;
+  type: 'swap' | 'transfer';
+  // Swap specific
+  fromToken?: string;
+  toToken?: string;
+  amount?: number;
+  slippage?: number;
+  // Transfer specific
+  recipient?: string;
+  // Common
+  fromAmount?: number;
+};
+
+export type Bundle = Transaction[]; 

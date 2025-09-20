@@ -11,7 +11,7 @@ const getEncryptionKey = (): Buffer => {
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 
-export function encrypt(t, e, xt: string, p, a, ssword?: string): string {
+export function encrypt(text: string, password?: string): string {
   const key = password
     ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
     : getEncryptionKey();
@@ -23,7 +23,7 @@ export function encrypt(t, e, xt: string, p, a, ssword?: string): string {
   return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted}`;
 }
 
-export function decrypt(e, n, cryptedText: string, p, a, ssword?: string): string {
+export function decrypt(encryptedText: string, password?: string): string {
   const key = password
     ? crypto.pbkdf2Sync(password, 'salt', 100000, 32, 'sha512')
     : getEncryptionKey();

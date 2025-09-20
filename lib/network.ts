@@ -1,1 +1,13 @@
-import { Connection } from '@solana/web3.js' export const M A INNET_RPC = process.env.RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, ps://api.mainnet-beta.solana.com' export function g e tConnection( c, o, m, mitment: 'processed' | 'confirmed' | 'finalized' = 'processed'): Connection, { return new C o nnection(MAINNET_RPCcommitment) }//Back-compat for services depending on Jito endpoint helper export const J I TO_MAINNET_URL = 'h, t, t, ps://mainnet.block - engine.jito.wtf' export function g e tJitoEndpoint(): string, { return ( process.env.NEXT_PUBLIC_JITO_ENDPOINT || process.env.JITO_RPC_URL || JITO_MAINNET_URL ) } 
+import { Connection, Commitment } from '@solana/web3.js';
+
+export const MAINNET_RPC: string =
+  process.env.RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+
+export function getConnection(commitment: Commitment = 'processed'): Connection {
+  return new Connection(MAINNET_RPC, commitment);
+}
+
+export const JITO_MAINNET_URL = 'https://mainnet.block-engine.jito.wtf';
+export function getJitoEndpoint(): string {
+  return process.env.NEXT_PUBLIC_JITO_ENDPOINT || process.env.JITO_RPC_URL || JITO_MAINNET_URL;
+} 

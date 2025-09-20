@@ -14,7 +14,6 @@ The Keymaker is a Solana bundler application for executing transactions through 
 - ✅ Wallet adapters: Phantom / Backpack / Solflare
 - ✅ Design system: Tailwind + shadcn/ui components
 - ⚠️ Token creation: Pump.fun/Raydium flows gated/off by default
-- ⚠️ SQLite fallback for basic persistence (no Prisma required in dev)
 
 ## Non-Custodial
 
@@ -24,24 +23,29 @@ The Keymaker is a Solana bundler application for executing transactions through 
 ## Features
 
 ### Bundle Execution
+
 - Jito tipfloor endpoint
 - Bundle submission with polling (SSE + fallback)
 - Simulation before execution
 - Guardrails: compute budget, Jito tip present, balance check
 
 ### API
+
 - `GET /api/jito/tipfloor` – tipfloor metrics
 - `POST /api/bundles/submit` – simulate/execute bundles
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - pnpm
 - Solana wallet extension
 
 ### Environment
+
 Create `.env.local`:
+
 ```env
 NEXT_PUBLIC_HELIUS_RPC=https://your-helius-rpc-url
 NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
@@ -51,34 +55,45 @@ NEXT_PUBLIC_TEST_MODE=1
 ```
 
 ### Install & Run
+
 ```bash
 pnpm install
 pnpm dev
 # open http://localhost:3000
 ```
 
-### Verify
-- Header wallet button opens wallet modal
-- `/api/jito/tipfloor` returns metrics
-- On `/bundle`:
-  - Paste base64 v0 txs (≤5)
-  - Preview (simulate) succeeds and returns a payloadHash
-  - Execute returns `{ bundle_id, signatures, slot, status }` (test-mode is stubbed success)
+### Build
 
-## Development
-
-### Scripts
+- Local (Windows/OneDrive): avoid standalone to skip symlink issues
 ```bash
-pnpm dev       # Start dev server
-pnpm build     # Build for production
-pnpm test      # Unit tests
-pnpm lint      # Lint
-pnpm format    # Format
+pnpm build
+```
+- CI/Container: use standalone output
+```bash
+NEXT_STANDALONE=1 pnpm build:standalone
 ```
 
+### Tests
+
+- Unit tests: `pnpm test`
+- E2E & Accessibility (Playwright + Axe): `pnpm test:e2e`
+
+CI runs:
+- Corruption check (`scripts/fixCorruption.mjs --check`)
+- Type-check, Standalone build, Start server in TEST_MODE
+- Playwright a11y tests for `/` and `/bundle`
+
 ## Notes
+
 - Prisma is optional; dev uses SQLite fallback via `lib/db.ts`.
 - Legacy dashboard features are temporarily disabled in the UI while being upgraded.
 
+## Security
+
+- CSP headers enforced via `next.config.js` (inline allowed for Next runtime; consider nonces in prod)
+- Rate limiting for APIs, Upstash-compatible
+- Sentry configured for client/server/edge
+
 ## License
+
 MIT

@@ -1,0 +1,28 @@
+import { BUNDLE_CONFIG, getBundleTxLimit } from './bundleConfig';
+
+describe('Bundle Configuration', () => {
+  describe('BUNDLE_CONFIG constants', () => {
+    it('should have correct default values', () => {
+      expect(BUNDLE_CONFIG.DEFAULT_TX_LIMIT).toBe(5);
+      expect(BUNDLE_CONFIG.MAX_TX_LIMIT).toBe(20);
+      expect(BUNDLE_CONFIG.MIN_TX_LIMIT).toBe(1);
+    });
+  });
+  describe('getBundleTxLimit', () => {
+    const originalEnv = process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT;
+    afterEach(() => {
+      if (originalEnv) process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT = originalEnv;
+      else delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT;
+    });
+    it('defaults when not set', () => {
+      delete process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT;
+      const result = getBundleTxLimit();
+      expect(result).toBe(BUNDLE_CONFIG.DEFAULT_TX_LIMIT);
+    });
+    it('uses valid env', () => {
+      process.env.NEXT_PUBLIC_BUNDLE_TX_LIMIT = '10';
+      const result = getBundleTxLimit();
+      expect(result).toBe(10);
+    });
+  });
+});

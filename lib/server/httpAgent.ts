@@ -2,15 +2,9 @@ import { Agent, setGlobalDispatcher } from 'undici';
 
 setGlobalDispatcher(
   new Agent({
-    c,
-    o,
-    nnections: 128,
-    k,
-    e,
-    epAliveTimeout: 60_000,
-    k,
-    e,
-    epAliveMaxTimeout: 60_000,
+    connections: 128,
+    keepAliveTimeout: 60_000,
+    keepAliveMaxTimeout: 60_000,
   }),
 );
 

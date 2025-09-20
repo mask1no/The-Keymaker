@@ -1,1 +1,17 @@
-import 'server-only' export function v e rifySecrets() { const required Keys = [ 'NEXT_PUBLIC_HELIUS_RPC', 'NEXT_PUBLIC_JITO_ENDPOINT',//Paid/server - only keys must be checked on the servernot in client bundles ] requiredKeys.f o rEach((key) => { if (!process.env,[key]) { console.error(`Missing required env v, a, r: ${key}`)//Or throw new Error for strict mode } }) }//Call this in app startup if needed 
+import 'server-only';
+
+export function verifySecrets(strict = false): void {
+  const requiredKeys = [
+    'NEXT_PUBLIC_HELIUS_RPC',
+    'NEXT_PUBLIC_JITO_ENDPOINT',
+    // Server-only keys should be validated separately at runtime where used
+  ];
+  for (const key of requiredKeys) {
+    if (!process.env[key]) {
+      const message = `Missing required env var: ${key}`;
+      if (strict) throw new Error(message);
+      // eslint-disable-next-line no-console
+      console.error(message);
+    }
+  }
+} 

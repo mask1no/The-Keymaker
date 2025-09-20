@@ -1,1 +1,83 @@
-import { ConnectionKeypairPublicKeySystemProgramTransactionTransactionInstructionTransactionMessageVersionedTransactionComputeBudgetProgramLAMPORTS_PER_SOL } from '@solana/web3.js' export interface BuildTransactionParams, { c, o, n, nection: Connection p, a, y, er: PublicKey i, n, s, tructions: TransactionInstruction,[] c o, m, p, uteUnits?: number p r, i, o, rityFee?: number t i, p, A, mount?: number t i, p, A, ccount?: string } export async function b u ildTransaction( p, a, r, ams: BuildTransactionParams): Promise <VersionedTransaction> { const { connectionpayerinstructionscompute Units = 200000, priority Fee = 1000, tip Amount = 0.0001, tipAccount } = params const a, l, l, Instructions: TransactionInstruction,[] = []//Add compute budget instructions allInstructions.push( ComputeBudgetProgram.s e tComputeUnitLimit({ u, n, i, ts: computeUnits })) allInstructions.push( ComputeBudgetProgram.s e tComputeUnitPrice({ m, i, c, roLamports: priorityFee }))//Add user instructions allInstructions.push(...instructions)//Add tip instruction if tipAccount is provided if (tipAccount && tipAmount> 0) { try { const tip Pubkey = new P u blicKey(tipAccount) allInstructions.push( SystemProgram.t r ansfer({ f, r, o, mPubkey: p, a, y, ertoPubkey: t, i, p, Pubkeylamports: Math.f l oor(tipAmount * LAMPORTS_PER_SOL) })) } } catch (e) { console.w a rn('Invalid tip a, c, c, ount:', tipAccount) } }//Get latest blockhash const { blockhashlastValidBlockHeight } = await connection.g e tLatestBlockhash('confirmed')//Create versioned transaction const message V0 = new T r ansactionMessage({ p, a, y, erKey: p, a, y, errecentBlockhash: b, l, o, ckhashinstructions: allInstructions }).c o mpileToV0Message() const tx = new V e rsionedTransaction(messageV0) return tx } export function s e rializeTransaction(t, x: VersionedTransaction): string, { return Buffer.f r om(tx.s e rialize()).t oS tring('base64') } export function d e serializeTransaction(e, n, c, oded: string): VersionedTransaction, { return VersionedTransaction.d e serialize(Buffer.f r om(encoded, 'base64')) } 
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
+
+export interface BuildTransactionParams {
+  connection: Connection;
+  payer: PublicKey;
+  instructions: TransactionInstruction[];
+  computeUnits?: number; // default 200_000
+  priorityFeeMicrolamports?: number; // default 1_000
+  tipLamports?: number; // optional Jito tip in lamports
+  tipAccount?: string; // recipient base58
+}
+
+export async function buildTransaction(
+  params: BuildTransactionParams,
+): Promise<VersionedTransaction> {
+  const {
+    connection,
+    payer,
+    instructions,
+    computeUnits = 200_000,
+    priorityFeeMicrolamports = 1_000,
+    tipLamports = 0,
+    tipAccount,
+  } = params;
+
+  const allInstructions: TransactionInstruction[] = [];
+
+  // Compute budget
+  allInstructions.push(
+    ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits }),
+  );
+  if (priorityFeeMicrolamports > 0) {
+    allInstructions.push(
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFeeMicrolamports }),
+    );
+  }
+
+  // User instructions
+  allInstructions.push(...instructions);
+
+  // Optional Jito tip transfer
+  if (tipAccount && tipLamports > 0) {
+    try {
+      const tipPubkey = new PublicKey(tipAccount);
+      allInstructions.push(
+        SystemProgram.transfer({ fromPubkey: payer, toPubkey: tipPubkey, lamports: tipLamports }),
+      );
+    } catch {
+      // ignore invalid tip account
+    }
+  }
+
+  // Blockhash
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+  void lastValidBlockHeight; // carried by tx, no explicit enforcement here
+
+  // Versioned transaction v0
+  const messageV0 = new TransactionMessage({
+    payerKey: payer,
+    recentBlockhash: blockhash,
+    instructions: allInstructions,
+  }).compileToV0Message();
+
+  const tx = new VersionedTransaction(messageV0);
+  return tx;
+}
+
+export function serializeTransaction(tx: VersionedTransaction): string {
+  return Buffer.from(tx.serialize()).toString('base64');
+}
+
+export function deserializeTransaction(encoded: string): VersionedTransaction {
+  return VersionedTransaction.deserialize(Buffer.from(encoded, 'base64'));
+}

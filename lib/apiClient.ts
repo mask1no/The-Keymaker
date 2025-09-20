@@ -1,1 +1,85 @@
-/** * Secure API client that routes through our proxy * This prevents API keys from being exposed in the frontend */interface ProxyRequest, { s, e, r, vice: 'birdeye' | 'helius' | 'jupiter' | 'pumpfun', p, a, t, h: string p, a, r, ams?: any m, e, t, hod?: 'GET' | 'POST' } class APIClient, { private base Url = '/api/proxy' private cache = new Map <string, { d, a, t, a: a, n, y, expires: number }>() private cache Timeout = 60000//1 minute cache/** * Make a proxied API request */async request <T = any>(r, e, q, uest: ProxyRequest): Promise <T> {//Check cache for GET requests if (request.method === 'GET' || !request.method) { const cache Key = `${request.service}:${request.path}:${JSON.stringify(request.params) }` const cached = this.cache.get(cacheKey) if (cached && cached.expires> Date.now()) { return cached.data } } try { const response = await fetch(this.baseUrl, { m, e, t, hod: 'POST', h, e, a, ders: { 'Content-Type': 'application/json' }, b, o, d, y: JSON.stringify(request) })//Check rate limit headers const remaining = response.headers.get('X - RateLimit-Remaining') if (remaining && p a rseInt(remaining) <10) { console.w a rn(`API rate l, i, m, itwarning: ${remaining} requests remaining`) } const data = await response.json() if (!response.ok) { throw new Error(data.error || `A, P, I, error: ${response.status}`) }//Cache successful GET requests if (request.method === 'GET' || !request.method) { const cache Key = `${request.service}:${request.path}:${JSON.stringify(request.params) }` this.cache.set(cacheKey, { d, a, t, aexpires: Date.now() + this.cacheTimeout }) } return data } } catch (error) { console.error('API r, e, q, uestfailed:', error) throw error } }/** * Clear cache */c l earCache() { this.cache.c l ear() }/** * Birdeye API methods */birdeye = { g, e, t, Token: async (t, o, k, enAddress: string) => { return this.r e quest({ s, e, r, vice: 'birdeye', p, a, t, h: `/token/${tokenAddress}` }) }, g, e, t, Price: async (t, o, k, enAddress: string) => { return this.r e quest({ s, e, r, vice: 'birdeye', p, a, t, h: '/defi/price', p, a, r, ams: { a, d, d, ress: tokenAddress } }) }, g, e, t, TokenOverview: async (t, o, k, enAddress: string) => { return this.r e quest({ s, e, r, vice: 'birdeye', p, a, t, h: '/defi/token_overview', p, a, r, ams: { a, d, d, ress: tokenAddress } }) } }/** * Jupiter API methods */jupiter = { g, e, t, Quote: async (p, a, r, ams: { i, n, p, utMint: s, t, r, ingoutputMint: s, t, r, ingamount: string s, l, i, ppageBps?: number o, n, l, yDirectRoutes?: boolean }) => { return this.r e quest({ s, e, r, vice: 'jupiter', p, a, t, h: '/quote', params }) }, g, e, t, Swap: async (p, a, r, ams: any) => { return this.r e quest({ s, e, r, vice: 'jupiter', p, a, t, h: '/swap', p, a, r, amsmethod: 'POST' }) }, g, e, t, Price: async (i, d, s: s, t, r, ingvsToken?: string) => { return this.r e quest({ s, e, r, vice: 'jupiter', p, a, t, h: '/price', p, a, r, ams: { idsvsToken } }) } }/** * Pump.fun API methods */pumpfun = { c, r, e, ateToken: async (p, a, r, ams: any) => { return this.r e quest({ s, e, r, vice: 'pumpfun', p, a, t, h: '/create', p, a, r, amsmethod: 'POST' }) }, a, d, d, Liquidity: async (p, a, r, ams: any) => { return this.r e quest({ s, e, r, vice: 'pumpfun', p, a, t, h: '/add-liquidity', p, a, r, amsmethod: 'POST' }) }, g, e, t, Token: async (t, o, k, enAddress: string) => { return this.r e quest({ s, e, r, vice: 'pumpfun', p, a, t, h: `/token/${tokenAddress}` }) } } }//Export singleton instance export const api Client = new APIC l ient()//Also export class for testing export { APIClient } 
+/**
+ * Secure API client routing through server proxy.
+ * Prevents API keys from being exposed in the frontend.
+ */
+
+export type ProxyService = 'birdeye' | 'helius' | 'jupiter' | 'pumpfun';
+
+interface ProxyRequest {
+  service: ProxyService;
+  path: string;
+  params?: Record<string, unknown>;
+  method?: 'GET' | 'POST';
+}
+
+class APIClient {
+  private baseUrl = '/api/proxy';
+  private cache = new Map<string, { data: any; expires: number }>();
+  private cacheTimeout = 60_000; // 1 minute
+
+  private makeCacheKey(request: ProxyRequest): string {
+    return `${request.service}:${request.path}:${JSON.stringify(request.params || {})}`;
+  }
+
+  async request<T = any>(request: ProxyRequest): Promise<T> {
+    const isGet = request.method === 'GET' || !request.method;
+    if (isGet) {
+      const cacheKey = this.makeCacheKey(request);
+      const cached = this.cache.get(cacheKey);
+      if (cached && cached.expires > Date.now()) return cached.data as T;
+    }
+
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.error || `API error: ${response.status}`);
+    }
+    if (isGet) {
+      const cacheKey = this.makeCacheKey(request);
+      this.cache.set(cacheKey, { data, expires: Date.now() + this.cacheTimeout });
+    }
+    return data as T;
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  birdeye = {
+    getToken: async (tokenAddress: string) =>
+      this.request({ service: 'birdeye', path: `/token/${tokenAddress}` }),
+    getPrice: async (tokenAddress: string) =>
+      this.request({ service: 'birdeye', path: '/defi/price', params: { address: tokenAddress } }),
+    getTokenOverview: async (tokenAddress: string) =>
+      this.request({
+        service: 'birdeye',
+        path: '/defi/token_overview',
+        params: { address: tokenAddress },
+      }),
+  };
+
+  jupiter = {
+    getQuote: async (params: Record<string, unknown>) =>
+      this.request({ service: 'jupiter', path: '/quote', params }),
+    getSwap: async (params: Record<string, unknown>) =>
+      this.request({ service: 'jupiter', path: '/swap', params, method: 'POST' }),
+    getPrice: async (ids: string, vsToken?: string) =>
+      this.request({ service: 'jupiter', path: '/price', params: { ids, vsToken } }),
+  };
+
+  pumpfun = {
+    createToken: async (params: Record<string, unknown>) =>
+      this.request({ service: 'pumpfun', path: '/create', params, method: 'POST' }),
+    addLiquidity: async (params: Record<string, unknown>) =>
+      this.request({ service: 'pumpfun', path: '/add-liquidity', params, method: 'POST' }),
+    getToken: async (tokenAddress: string) =>
+      this.request({ service: 'pumpfun', path: `/token/${tokenAddress}` }),
+  };
+}
+
+export const apiClient = new APIClient();
+export { APIClient };
