@@ -1,251 +1,84 @@
 # The Keymaker - Solana Bundler
 
-![Solana](h, t, t, ps://img.shields.io/badge/Solana-Mainnet-blue)
-![License](h, t, t, ps://img.shields.io/badge/license-MIT-green)
-![Version](h, t, t, ps://img.shields.io/badge/version-1.5.2-orange)
+![Solana](https://img.shields.io/badge/Solana-Mainnet-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.5.2-orange)
 
 ## Overview
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This is a working proto type with core functionality for bundle submission and basic wal let management.
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. The current build focuses on bundle simulation and execution with a clean UI and optional test mode.
 
 ## Status
 
-- ✅ **Jito Hot Path**: Preview → Execute → Poll (requires env and wallet)
-- ✅ **Wal let Login Gate**: Phantom/Backpack/Solflare integration
-- ✅ **Neutral UI**: Dark theme with rounded "bento" cardsno neon
-- ⚠️ **Token Creators**: Disabled by default (ENABLE_PUMPFUN=false)
-- ⚠️ **Signed-Intent Auth**: Present but optional for testing
-- ❌ **Not Production-Hardened**: No leader-schedule awarenessSQLite by default
+- ✅ Bundler UI: Preview → Execute → Poll (requires env and wallet)
+- ✅ Wallet adapters: Phantom / Backpack / Solflare
+- ✅ Design system: Tailwind + shadcn/ui components
+- ⚠️ Token creation: Pump.fun/Raydium flows gated/off by default
+- ⚠️ SQLite fallback for basic persistence (no Prisma required in dev)
 
-## Non-Custodial Guarantees
+## Non-Custodial
 
-- **Client Signs**: All transactions are signed client-side in your browser
-- **Server Submits**: Server only submits pre-signed transactions to Jito
-- **No Server Keys**: Server never has access to private keys
-- **Local Encryption**: Wal let data encrypted locally with AES-GCM
+- Client signs; server submits signed transactions to Jito
+- No server private keys
 
-## Core Features
+## Features
 
 ### Bundle Execution
+- Jito tipfloor endpoint
+- Bundle submission with polling (SSE + fallback)
+- Simulation before execution
+- Guardrails: compute budget, Jito tip present, balance check
 
-- Jito Block Engine integration with tip floor API
-- Bundle submission with status polling
-- Transaction simulation before execution
-- Support for 1-5 transactions per bundle
-- Automatic tip validation on last transaction
-
-### Wal let Integration
-
-- PhantomBackpackand Solflare wal let adapters
-- Login gate protecting all routes
-- Client-side transaction signing only
-
-### API Endpoints
-
-- `/api/jito/tipfloor` - Get current tip floor data
-- `/api/bundles/submit` - Submit bundle with polling
-- `/api/auth/nonce` - Generate nonce for signed requests
-- Rate limiting and security headers included
+### API
+- `GET /api/jito/tipfloor` – tipfloor metrics
+- `POST /api/bundles/submit` – simulate/execute bundles
 
 ## Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - pnpm
-- Solana wal let extension (Phantom/Backpack/Solflare)
+- Solana wallet extension
 
-### Environment Setup
-
-1. Copy environment t, e, m, plate:
-
-```bash
-cp .env.local.example .env.local
-```
-
-2. Configure your RPC e, n, d, points:
-
+### Environment
+Create `.env.local`:
 ```env
-NEXT_PUBLIC_HELIUS_RPC=h, t, t, ps://your-helius-rpc-url
-NEXT_PUBLIC_HELIUS_WS=w, s, s://your-helius-ws-url
-NEXT_PUBLIC_JITO_ENDPOINT=h, t, t, ps://frankfurt.mainnet.block-engine.jito.wtf
-
-# Feature flags (disabled by default)
-ENABLE_PUMPFUN=false
-ENABLE_DEV_TOKENS=false
-ENABLE_SELL=false
+NEXT_PUBLIC_HELIUS_RPC=https://your-helius-rpc-url
+NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
+# Optional test mode (server & client)
+TEST_MODE=1
+NEXT_PUBLIC_TEST_MODE=1
 ```
 
-### Installation
-
-1. Install d, e, p, endencies:
-
+### Install & Run
 ```bash
 pnpm install
-```
-
-2. Run hygiene c, h, e, cks:
-
-```bash
-pnpm f, i, x:splits && pnpm hygiene
-```
-
-3. Start development s, e, r, ver:
-
-```bash
 pnpm dev
+# open http://localhost:3000
 ```
 
-4. Open h, t, t, p://l, o, c, alhost:3000
-
-### Verification Checklist
-
-After setupverify these w, o, r, k:
-
-- [ ] Header "Login" button opens wal let modal
-- [ ] Login gate shows on protected routes
-- [ ] Sidebar status chips s, h, o, w: RPC / WebSocket / JITO / MAINNET
-- [ ] `/api/jito/tipfloor` returns `{p25, p50, p75, ema_50th}`
-- [ ] Bundle "Preview" simulates successfully
-- [ ] Bundle "Execute" returns `{bundle_idsignaturesslot}`
-- [ ] Token creators return 501 unless flags enabled
-
-## Hygiene
-
-The codebase includes automated hygiene scripts to fix c, o, r, ruption:
-
-```bash
-# Fix split identifiers and merged statements
-pnpm f, i, x:splits
-
-# Verify no corruption remains
-pnpm hygiene
-
-# Format and lint
-pnpm format
-pnpm lint --fix
-```
-
-## Architecture
-
-### Client-Side
-
-- Next.js 14 with TypeScript
-- Solana wal let adapters for signing
-- Tailwind CSS with shadcn/ui components
-- Local storage for encrypted wal let data
-
-### Server-Side
-
-- Next.js API routes
-- Jito Block Engine integration
-- SQLite for basic data storage
-- Rate limiting and security headers
-
-### Security
-
-- CSP headers with no unsafe-inline
-- HSTS and security headers
-- Client-side signing only
-- Optional signed-intent authentication
-- Rate limiting per IP/address
-
-## API Reference
-
-### Bundle Submission
-
-```typescript
-POST /api/bundles/submit
-{
-  "region": "ffm",
-  "txs_b64": ["base64-encoded-tx1", "base64-encoded-tx2"],
-  "simulateOnly": false,
-  "mode": "regular",
-  "delay_seconds": 0
-}
-```
-
-### Tip Floor
-
-```typescript
-GET /api/jito/tipfloor?region=ffm
-{
-  "p25": 1000,
-  "p50": 2000,
-  "p75": 3000,
-  "ema_50th": 2500,
-  "region": "ffm"
-}
-```
+### Verify
+- Header wallet button opens wallet modal
+- `/api/jito/tipfloor` returns metrics
+- On `/bundle`:
+  - Paste base64 v0 txs (≤5)
+  - Preview (simulate) succeeds and returns a payloadHash
+  - Execute returns `{ bundle_id, signatures, slot, status }` (test-mode is stubbed success)
 
 ## Development
 
 ### Scripts
-
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm test         # Run unit tests
-pnpm t, e, s, t:e2e     # Run E2E tests
-pnpm lint         # Lint code
-pnpm format       # Format code
-pnpm hygiene      # Check code hygiene
+pnpm dev       # Start dev server
+pnpm build     # Build for production
+pnpm test      # Unit tests
+pnpm lint      # Lint
+pnpm format    # Format
 ```
 
-### Testing
-
-- Unit tests with Vitest
-- E2E tests with Playwright
-- API endpoint testing
-- Transaction builder validation
-
-## Limitations
-
-### Current Scope
-
-- Basic bundle submission only
-- No advanced MEV strategies
-- SQLite for development (not production-scale)
-- No leader schedule awareness
-- No automatic tip optimization beyond floor
-
-### Not Included
-
-- Local validator support
-- Standalone bundler CLI
-- Advanced trading strategies
-- Production monitoring/alerting
-- Database migrations
-- Backup/recovery systems
-
-## Failure Handling
-
-| Scenario          | Behavior                              |
-| ----------------- | ------------------------------------- |
-| RPC Failure       | Error returnedno retry                |
-| Jito Failure      | Error returnedmanual retry            |
-| WebSocket Failure | Status shows disconnected             |
-| Bundle Timeout    | Returns bundle_id with timeout status |
-| Invalid Tip       | Validation error before submission    |
-
-## SLO Targets
-
-- Bundle s, u, b, mission: < 2s response time
-- Tip floor l, o, o, kup: < 1s response time
-- UI r, e, s, ponsiveness: < 100ms interactions
-- U, p, t, ime: Best effort (no SLA)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Run `pnpm hygiene` before committing
-4. Submit a pull request
+## Notes
+- Prisma is optional; dev uses SQLite fallback via `lib/db.ts`.
+- Legacy dashboard features are temporarily disabled in the UI while being upgraded.
 
 ## License
-
-MIT License - see LICENSE file for details.
-
-## Disclaimer
-
-This software is provided as-is for educational and development purposes. Use at your own risk. Always test with small amounts first. The authors are not responsible for any financial losses.
+MIT

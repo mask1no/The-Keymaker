@@ -1,10 +1,6 @@
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/UI/skeleton';
 import { motion } from 'framer-motion';
-import { CreatorForm } from '@/components/MemecoinCreator/CreatorForm';
-import { NotificationCenter } from '@/components/Notifications/NotificationCenter';
-import AnalyticsPanel from '@/components/Analytics/AnalyticsPanel';
-import { ControlCenter } from '@/components/ControlCenter/ControlCenter';
 
 const DashboardWrapper = () => {
   return (
@@ -15,34 +11,25 @@ const DashboardWrapper = () => {
       className="p-4 sm:p-6 md:p-8"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-2 lg:col-span-3 bento-card"
-        >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <ControlCenter />
-          </Suspense>
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-2 lg:col-span-3 bento-card">
+          <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
+            Dashboard features are being upgraded. Use the Bundler from the sidebar.
+          </div>
         </motion.div>
         <motion.div whileHover={{ y: -5, scale: 1.02 }} className="lg:col-span-1 bento-card">
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <AnalyticsPanel />
-          </Suspense>
+          <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
+            Analytics coming soon.
+          </div>
         </motion.div>
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-1 lg:col-span-1 bento-card"
-        >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <CreatorForm />
-          </Suspense>
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-1 lg:col-span-1 bento-card">
+          <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
+            Creator tools coming soon.
+          </div>
         </motion.div>
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
-          className="md:col-span-1 lg:col-span-1 bento-card"
-        >
-          <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <NotificationCenter />
-          </Suspense>
+        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-1 lg:col-span-1 bento-card">
+          <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
+            Notifications coming soon.
+          </div>
         </motion.div>
       </div>
     </motion.div>

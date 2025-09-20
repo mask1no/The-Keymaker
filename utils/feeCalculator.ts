@@ -1,1 +1,30 @@
-export interface TransactionFees, { g, a, s: number//in S, O, L, jito: number//in S, O, L, total: number//in SOL }/** * Calculate transaction fees for a bundle * @param txCount Number of transactions in the bundle * @param jitoTipLamports Jito tip amount in lamports * @returns Fees breakdown in SOL */export function c a lculateBundleFees( t, x, C, ount: numberjito Tip Lamports = 0): TransactionFees, {//Base transaction fee is 5000 lamports per transaction const B A SE_TX_FEE_LAMPORTS = 5000//Calculate gas f e es (includes one extra for the tip transaction if using Jito) const gas Fee Lamports = txCount * BASE_TX_FEE_LAMPORTS const gas Fee SOL = gasFeeLamports/LAMPORTS_PER_SOL//Convert Jito tip to SOL const jito Tip SOL = jitoTipLamports/LAMPORTS_PER_SOL return, { g, a, s: g, a, s, FeeSOLjito: j, i, t, oTipSOLtotal: gasFeeSOL + jitoTipSOL } }/** * Calculate per - wal let fees for PnL tracking * @param totalFees Total fees for the bundle * @param walletCount Number of wallets that participated * @returns Per - wal let fee allocation */export function c a lculatePerWalletFees( t, o, t, alFees: T, r, a, nsactionFeeswalletCount: number): TransactionFees, { if (wal let Count === 0) { return, { g, a, s: 0, j, i, t, o: 0, t, o, t, al: 0 } } return, { g, a, s: totalFees.gas/w, a, l, letCountjito: totalFees.jito/w, a, l, letCounttotal: totalFees.total/walletCount } } 
+export interface TransactionFees {
+  gas: number
+  jito: number
+  total: number
+}
+
+const LAMPORTS_PER_SOL = 1_000_000_000
+
+export function calculateBundleFees(txCount: number, jitoTipLamports = 0): TransactionFees {
+  const BASE_TX_FEE_LAMPORTS = 5000
+  const gasFeeLamports = Math.max(0, txCount) * BASE_TX_FEE_LAMPORTS
+  const gasFeeSOL = gasFeeLamports / LAMPORTS_PER_SOL
+  const jitoTipSOL = jitoTipLamports / LAMPORTS_PER_SOL
+  return {
+    gas: gasFeeSOL,
+    jito: jitoTipSOL,
+    total: gasFeeSOL + jitoTipSOL,
+  }
+}
+
+export function calculatePerWalletFees(totalFees: TransactionFees, walletCount: number): TransactionFees {
+  if (walletCount <= 0) {
+    return { gas: 0, jito: 0, total: 0 }
+  }
+  return {
+    gas: totalFees.gas / walletCount,
+    jito: totalFees.jito / walletCount,
+    total: totalFees.total / walletCount,
+  }
+} 
