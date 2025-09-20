@@ -19,8 +19,14 @@ import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Button } from '@/components/UI/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/UI/select'
-import { Textarea } from '@/components/UI/Textarea'
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/UI/select';
+import { Textarea } from '@/components/UI/Textarea';
 
 async function fetchTipfloor(region?: string) {
   const q = region ? `?region=${region}` : '';

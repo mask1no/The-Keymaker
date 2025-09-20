@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/UI/card'
-import { Button } from '@/components/UI/button'
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/UI/card';
+import { Button } from '@/components/UI/button';
 
 export default function HomePage() {
   return (
@@ -47,5 +47,5 @@ export default function HomePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
