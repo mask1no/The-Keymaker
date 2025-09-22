@@ -37,11 +37,14 @@ export const bundleRateLimit = createRateLimiter(10, 0.1); // 10 requests; refil
 export const generalRateLimit = createRateLimiter(60, 1); // 60 requests; refill 1/s
 
 // Cleanup old buckets periodically
-setInterval(() => {
-  const cutoff = Date.now() - 10 * 60 * 1000; // 10 minutes
-  for (const [key, bucket] of buckets.entries()) {
-    if (bucket.lastRefill < cutoff) {
-      buckets.delete(key);
+setInterval(
+  () => {
+    const cutoff = Date.now() - 10 * 60 * 1000; // 10 minutes
+    for (const [key, bucket] of buckets.entries()) {
+      if (bucket.lastRefill < cutoff) {
+        buckets.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000); // Every 5 minutes
+  },
+  5 * 60 * 1000,
+); // Every 5 minutes

@@ -14,5 +14,3 @@ test.describe('Accessibility: Bundle page', () => {
     expect(critical).toHaveLength(0);
   });
 });
-
-

@@ -104,4 +104,4 @@ export type Transaction = {
   fromAmount?: number;
 };
 
-export type Bundle = Transaction[]; 
+export type Bundle = Transaction[];

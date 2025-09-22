@@ -1,4 +1,6 @@
-/** * Secure storage system - password strength validation *//** * Validate password strength */export function validatePasswordStrength(password: string): {
+/** * Secure storage system - password strength validation */ /** * Validate password strength */ export function validatePasswordStrength(
+  password: string,
+): {
   valid: boolean;
   score: number;
   feedback: string[];
@@ -27,4 +29,4 @@
   }
 
   return { valid: score >= 4, score, feedback };
-} 
+}

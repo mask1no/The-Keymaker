@@ -19,12 +19,18 @@ import {
   getBundleStatuses,
   createDailyJournal,
   logJsonLine,
+  incCounter,
+  observeLatency,
 } from '../lib/core/src';
 
 type Priority = keyof typeof PRIORITY_TO_MICROLAMPORTS;
 
 function getRpc(): string {
-  return process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+  return (
+    process.env.HELIUS_RPC_URL ||
+    process.env.NEXT_PUBLIC_HELIUS_RPC ||
+    'https://api.mainnet-beta.solana.com'
+  );
 }
 
 function loadKeypair(): Keypair {
@@ -45,10 +51,21 @@ function correlationId(encodedTxs: string[]): string {
   return createHash('sha256').update(concat).digest('hex');
 }
 
-async function buildTipOnlyTx(payer: PublicKey, tipLamports: number): Promise<VersionedTransaction> {
-  const ix: TransactionInstruction = SystemProgram.transfer({ fromPubkey: payer, toPubkey: payer, lamports: 0 });
+async function buildTipOnlyTx(
+  payer: PublicKey,
+  tipLamports: number,
+): Promise<VersionedTransaction> {
+  const ix: TransactionInstruction = SystemProgram.transfer({
+    fromPubkey: payer,
+    toPubkey: payer,
+    lamports: 0,
+  });
   const { blockhash } = await new Connection(getRpc(), 'confirmed').getLatestBlockhash('confirmed');
-  const msg = new TransactionMessage({ payerKey: payer, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+  const msg = new TransactionMessage({
+    payerKey: payer,
+    recentBlockhash: blockhash,
+    instructions: [ix],
+  }).compileToV0Message();
   return new VersionedTransaction(msg);
 }
 
@@ -59,6 +76,7 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const tipFloor = await getTipFloor(region);
   const dynamicTip = Math.ceil(tipFloor.ema_landed_tips_50th_percentile * 1.1);
   const effectiveTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
+  console.log(JSON.stringify({ ev: 'tip', region, chosen: effectiveTip, floor_ema50: tipFloor.ema_landed_tips_50th_percentile }));
 
   const tx = await buildTipOnlyTx(payer.publicKey, effectiveTip);
   tx.sign([payer]);
@@ -82,6 +100,7 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
     txSigs: [bs58.encode(sigBytes)],
     corr,
   });
+  incCounter('bundles_submitted_total', { region });
 
   const attempt = async (r: RegionKey) => sendBundle(r, [encoded]);
   const order: RegionKey[] = ['ffm', 'ny', 'ams', 'tokyo'];
@@ -109,9 +128,25 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const t0 = Date.now();
   const status = await getBundleStatuses(region, [result.bundle_id]);
   const ms = Date.now() - t0;
-  logJsonLine(journal, { ev: 'status', region, bundleId: result.bundle_id, ms, statuses: status, corr });
+  observeLatency('bundle_status_ms', ms, { region });
+  logJsonLine(journal, {
+    ev: 'status',
+    region,
+    bundleId: result.bundle_id,
+    ms,
+    statuses: status,
+    corr,
+  });
+  const s = status?.[0]?.confirmation_status || 'pending';
+  if (s === 'landed') incCounter('bundles_landed_total', { region });
+  else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
 
-  console.log(JSON.stringify({ bundleId: result.bundle_id, status: status?.[0]?.confirmation_status || 'pending' }));
+  console.log(
+    JSON.stringify({
+      bundleId: result.bundle_id,
+      status: s,
+    }),
+  );
 }
 
 async function statusCommand(region: RegionKey, bundleId: string) {
@@ -129,7 +164,11 @@ async function fundCommand(toBase58: string, lamports: number) {
   const conn = new Connection(getRpc(), 'confirmed');
   const { blockhash } = await conn.getLatestBlockhash('confirmed');
   const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: to, lamports });
-  const msg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+  const msg = new TransactionMessage({
+    payerKey: payer.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [ix],
+  }).compileToV0Message();
   const tx = new VersionedTransaction(msg);
   tx.sign([payer]);
   const sig = await conn.sendTransaction(tx, { skipPreflight: true });
@@ -159,7 +198,9 @@ async function main() {
     await fundCommand(to, lamports);
     return;
   }
-  console.error('Usage:\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>');
+  console.error(
+    'Usage:\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>',
+  );
   process.exit(1);
 }
 
@@ -167,5 +208,3 @@ main().catch((e) => {
   console.error(e?.message || String(e));
   process.exit(1);
 });
-
-

@@ -58,5 +58,3 @@ export function renderMetrics(): string {
   }
   return lines.join('\n') + '\n';
 }
-
-

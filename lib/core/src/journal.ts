@@ -24,5 +24,3 @@ export function logJsonLine(filePath: string, obj: unknown): void {
   ensureDir(dir);
   appendFileSync(filePath, JSON.stringify(obj) + '\n', 'utf8');
 }
-
-

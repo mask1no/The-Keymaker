@@ -199,4 +199,4 @@ export const useKeymakerStore = create<KeymakerStore>()((set, get) => ({
   addBanner: (banner) => set((state) => ({ banners: [...state.banners, banner] })),
   removeBanner: (banner) =>
     set((state) => ({ banners: state.banners.filter((b) => b !== banner) })),
-})); 
+}));

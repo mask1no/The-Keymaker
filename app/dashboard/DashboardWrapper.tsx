@@ -11,7 +11,10 @@ const DashboardWrapper = () => {
       className="p-4 sm:p-6 md:p-8"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-2 lg:col-span-3 bento-card">
+        <motion.div
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-2 lg:col-span-3 bento-card"
+        >
           <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
             Dashboard features are being upgraded. Use the Bundler from the sidebar.
           </div>
@@ -21,12 +24,18 @@ const DashboardWrapper = () => {
             Analytics coming soon.
           </div>
         </motion.div>
-        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-1 lg:col-span-1 bento-card">
+        <motion.div
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-1 lg:col-span-1 bento-card"
+        >
           <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
             Creator tools coming soon.
           </div>
         </motion.div>
-        <motion.div whileHover={{ y: -5, scale: 1.02 }} className="md:col-span-1 lg:col-span-1 bento-card">
+        <motion.div
+          whileHover={{ y: -5, scale: 1.02 }}
+          className="md:col-span-1 lg:col-span-1 bento-card"
+        >
           <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
             Notifications coming soon.
           </div>

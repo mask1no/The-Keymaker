@@ -19,7 +19,8 @@ function requireToken(headers: Headers) {
 
 export async function POST(request: Request) {
   try {
-    if (!requireToken(request.headers)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!requireToken(request.headers))
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await request.json();
     const { region, bundleId } = Body.parse(body);
     const statuses = await getBundleStatuses(region, [bundleId]);
@@ -28,5 +29,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: e?.message || 'Failed' }, { status: 500 });
   }
 }
-
-

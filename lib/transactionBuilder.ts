@@ -35,9 +35,7 @@ export async function buildTransaction(
   const allInstructions: TransactionInstruction[] = [];
 
   // Compute budget
-  allInstructions.push(
-    ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits }),
-  );
+  allInstructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits }));
   if (priorityFeeMicrolamports > 0) {
     allInstructions.push(
       ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFeeMicrolamports }),

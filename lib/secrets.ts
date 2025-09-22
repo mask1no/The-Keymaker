@@ -14,4 +14,4 @@ export function verifySecrets(strict = false): void {
       console.error(message);
     }
   }
-} 
+}

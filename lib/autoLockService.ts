@@ -7,7 +7,7 @@ class AutoLockService {
   private lockTimer: NodeJS.Timeout | null = null;
   private lastActivity: number = Date.now();
   private lockTimeoutMs: number = 15 * 60 * 1000; // 15 minutes
-  private isLocked: boolean = false;
+  private isLocked = false;
   private eventListeners: Array<(e: Event) => void> = [];
 
   constructor() {
@@ -63,9 +63,7 @@ class AutoLockService {
     logger.warn('Auto-lock activated - clearing sensitive data');
     this.clearSensitiveData();
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('app-locked', { detail: { timestamp: Date.now() } }),
-      );
+      window.dispatchEvent(new CustomEvent('app-locked', { detail: { timestamp: Date.now() } }));
     }
   }
 
@@ -97,9 +95,7 @@ class AutoLockService {
     this.resetTimer();
     logger.info('Application unlocked');
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('app-unlocked', { detail: { timestamp: Date.now() } }),
-      );
+      window.dispatchEvent(new CustomEvent('app-unlocked', { detail: { timestamp: Date.now() } }));
     }
   }
 
@@ -125,6 +121,5 @@ class AutoLockService {
   }
 }
 
-export const autoLockService =
-  typeof window !== 'undefined' ? new AutoLockService() : null;
+export const autoLockService = typeof window !== 'undefined' ? new AutoLockService() : null;
 export default autoLockService;

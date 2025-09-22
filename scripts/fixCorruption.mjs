@@ -69,5 +69,3 @@ if (process.argv.includes('--check')) {
   walk(ROOT);
   console.log('Done');
 }
-
-

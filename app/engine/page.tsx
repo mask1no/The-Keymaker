@@ -12,7 +12,10 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function getDepositAddress(): Promise<string | null> {
   try {
-    const d = await fetchJson<{ publicKey: string }>(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/deposit-address`, { cache: 'no-store' });
+    const d = await fetchJson<{ publicKey: string }>(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/deposit-address`,
+      { cache: 'no-store' },
+    );
     return d.publicKey;
   } catch {
     return null;
@@ -26,7 +29,10 @@ async function submitTestBundle(formData: FormData) {
   const tipLamports = Number(formData.get('tipLamports') || 5000);
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+    },
     body: JSON.stringify({ region, priority, tipLamports }),
   });
   const j = await res.json();
@@ -49,7 +55,8 @@ function readTodayJournal(): Array<{ time: string; ev: string; summary: string }
       const time = new Date().toISOString().slice(11, 19);
       let summary = '';
       if (ev === 'submit') summary = `bundleId=${o.bundleId} tip=${o.tipLamports}`;
-      else if (ev === 'status') summary = `bundleId=${o.bundleId} statuses=${o.statuses?.length || 0}`;
+      else if (ev === 'status')
+        summary = `bundleId=${o.bundleId} statuses=${o.statuses?.length || 0}`;
       else if (ev === 'fund') summary = `txSig=${o.txSig} lamports=${o.lamports}`;
       return { time, ev, summary };
     });
@@ -77,22 +84,40 @@ export default async function Page() {
           <h2 className="text-lg font-semibold mb-2">Run Test Bundle</h2>
           <form action={submitTestBundle} className="flex flex-col gap-2">
             <label className="text-sm">Region</label>
-            <select name="region" defaultValue="ffm" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
+            <select
+              name="region"
+              defaultValue="ffm"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            >
               <option value="ffm">ffm</option>
               <option value="ams">ams</option>
               <option value="ny">ny</option>
               <option value="tokyo">tokyo</option>
             </select>
             <label className="text-sm">Priority</label>
-            <select name="priority" defaultValue="med" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
+            <select
+              name="priority"
+              defaultValue="med"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            >
               <option value="low">low</option>
               <option value="med">med</option>
               <option value="high">high</option>
               <option value="vhigh">vhigh</option>
             </select>
             <label className="text-sm">Tip Lamports</label>
-            <input type="number" name="tipLamports" defaultValue={5000} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <button type="submit" className="mt-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded px-3 py-1 w-fit">Submit</button>
+            <input
+              type="number"
+              name="tipLamports"
+              defaultValue={5000}
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <button
+              type="submit"
+              className="mt-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded px-3 py-1 w-fit"
+            >
+              Submit
+            </button>
           </form>
         </section>
         <section className="col-span-1 border border-zinc-800 rounded-xl p-4">
@@ -100,7 +125,11 @@ export default async function Page() {
           <div className="text-sm">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr><th className="py-1">Time</th><th className="py-1">Event</th><th className="py-1">Summary</th></tr>
+                <tr>
+                  <th className="py-1">Time</th>
+                  <th className="py-1">Event</th>
+                  <th className="py-1">Summary</th>
+                </tr>
               </thead>
               <tbody>
                 {events.map((e, i) => (
@@ -111,7 +140,11 @@ export default async function Page() {
                   </tr>
                 ))}
                 {events.length === 0 && (
-                  <tr><td colSpan={3} className="py-2 text-zinc-500">No events yet</td></tr>
+                  <tr>
+                    <td colSpan={3} className="py-2 text-zinc-500">
+                      No events yet
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -121,5 +154,3 @@ export default async function Page() {
     </div>
   );
 }
-
-

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, chore/** ]
+    branches: [main, chore/**]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-a11y:

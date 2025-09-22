@@ -14,5 +14,3 @@
   "include": ["lib/core/src/**/*", "bin/**/*"],
   "exclude": ["node_modules", "dist", "coverage", "tests", ".next"]
 }
-
-

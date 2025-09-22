@@ -43,5 +43,3 @@ export const config = {
   // Skip static assets for performance
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
-
-

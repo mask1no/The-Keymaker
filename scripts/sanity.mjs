@@ -15,5 +15,3 @@ if (bad.length) {
   process.exit(1);
 }
 console.log('Sanity OK');
-
-

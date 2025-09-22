@@ -31,7 +31,10 @@ export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> 
 }
 
 export async function sendBundle(region: RegionKey, encodedTransactions: string[]) {
-  const result = await jrpc<string>(region, 'sendBundle', { encodedTransactions, bundleOnly: true });
+  const result = await jrpc<string>(region, 'sendBundle', {
+    encodedTransactions,
+    bundleOnly: true,
+  });
   return { bundle_id: result };
 }
 
@@ -42,5 +45,3 @@ export async function getBundleStatuses(region: RegionKey, bundleIds: string[]) 
     return await jrpc<any[]>(region, 'getBundleStatuses', bundleIds);
   }
 }
-
-

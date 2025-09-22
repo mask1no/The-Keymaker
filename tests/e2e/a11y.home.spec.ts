@@ -14,5 +14,3 @@ test.describe('Accessibility: Home', () => {
     expect(critical).toHaveLength(0);
   });
 });
-
-

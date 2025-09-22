@@ -1,8 +1,23 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Connection, Keypair, PublicKey, SystemProgram, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  TransactionMessage,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import { readFileSync } from 'fs';
-import { RegionKey, PRIORITY_TO_MICROLAMPORTS, getTipFloor, sendBundle, getBundleStatuses } from '@/lib/core/src';
+import {
+  RegionKey,
+  PRIORITY_TO_MICROLAMPORTS,
+  getTipFloor,
+  sendBundle,
+  getBundleStatuses,
+  incCounter,
+  observeLatency,
+} from '@/lib/core/src';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -21,12 +36,17 @@ function requireToken(headers: Headers) {
 }
 
 function rpcUrl(): string {
-  return process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+  return (
+    process.env.HELIUS_RPC_URL ||
+    process.env.NEXT_PUBLIC_HELIUS_RPC ||
+    'https://api.mainnet-beta.solana.com'
+  );
 }
 
 export async function POST(request: Request) {
   try {
-    if (!requireToken(request.headers)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!requireToken(request.headers))
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await request.json();
     const { region = 'ffm', tipLamports, priority = 'med' } = Body.parse(body);
 
@@ -43,17 +63,32 @@ export async function POST(request: Request) {
     const priMicros = PRIORITY_TO_MICROLAMPORTS[priority];
 
     // simple tip-only tx; signer remains server-side
-    const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: payer.publicKey, lamports: 0 });
-    const msg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+    const ix = SystemProgram.transfer({
+      fromPubkey: payer.publicKey,
+      toPubkey: payer.publicKey,
+      lamports: 0,
+    });
+    const msg = new TransactionMessage({
+      payerKey: payer.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [ix],
+    }).compileToV0Message();
     const tx = new VersionedTransaction(msg);
     tx.sign([payer]);
     const encoded = Buffer.from(tx.serialize()).toString('base64');
+    incCounter('bundles_submitted_total', { region });
     const submit = await sendBundle(region as RegionKey, [encoded]);
+    const t0 = Date.now();
     const statuses = await getBundleStatuses(region as RegionKey, [submit.bundle_id]);
-    return NextResponse.json({ bundleId: submit.bundle_id, status: statuses?.[0]?.confirmation_status || 'pending' });
+    observeLatency('bundle_status_ms', Date.now() - t0, { region });
+    const s = statuses?.[0]?.confirmation_status || 'pending';
+    if (s === 'landed') incCounter('bundles_landed_total', { region });
+    else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
+    return NextResponse.json({
+      bundleId: submit.bundle_id,
+      status: s,
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed' }, { status: 500 });
   }
 }
-
-
