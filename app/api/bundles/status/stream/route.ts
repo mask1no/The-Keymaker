@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
           await new Promise((r) => setTimeout(r, interval));
         }
       }
-      loop();
+      void loop();
       // Close after 2 minutes to avoid leaks
       setTimeout(() => {
         active = false;

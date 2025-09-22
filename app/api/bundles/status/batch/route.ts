@@ -14,8 +14,9 @@ export async function POST(request: Request) {
   try {
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0] || 'anon';
     const cfg = getRateConfig('status');
-    const rl = rateLimit(`status:${ip}`, cfg.limit, cfg.windowMs);
+    const rl = rateLimit(`status:${ip}`, cfg.limit, cfg.windowMs) as { ok: boolean };
     if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
     const bodySchema = z.object({
       region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
       bundle_ids: z.array(z.string().min(1)).min(1).max(getEnvInt('STATUS_MAX_IDS', 20)),
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     });
     const region = (body as any).region || 'ffm';
     const idsTyped: string[] = (body as any).bundle_ids.map(String);
+
     const cacheKey = `${region}:${idsTyped.join(',')}`;
     const now = Date.now();
     const hit = cache.get(cacheKey);
@@ -49,14 +51,14 @@ export async function POST(request: Request) {
       return NextResponse.json(payload);
     }
 
-    const raw = await getBundleStatuses(region, idsTyped);
+    const raw = await getBundleStatuses(region as any, idsTyped);
     // Provide a stable, UI-friendly shape while preserving original fields
     const statuses = raw.map((s) => ({
       ...s,
       status: s.confirmation_status,
-      landed_slot: typeof s.slot === 'number' ? s.slot : null,
+      landed_slot: typeof (s as any).slot === 'number' ? (s as any).slot : null,
     }));
-    const payload = { region, statuses };
+    const payload = { region, statuses } as any;
     cache.set(cacheKey, { at: now, data: payload });
     return NextResponse.json(payload);
   } catch (e) {

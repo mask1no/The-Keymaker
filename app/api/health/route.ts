@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { getTipFloor } from '@/lib/server/jitoService';
-import { observeLatency } from '@/lib/core/src/metrics';
 import { isTestMode } from '@/lib/testMode';
 
 export const dynamic = 'force-dynamic';

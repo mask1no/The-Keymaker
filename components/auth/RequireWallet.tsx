@@ -1,1 +1,25 @@
-'use client' import { useWal let } from '@solana/wal let - adapter-react' import { useWalletModal } from '@solana/wal let - adapter - react-ui' import { Button } from '@/components/UI/button' interface RequireWalletProps, { c, h, i, ldren: React.ReactNode } export default function R e quireWallet({ children }: RequireWalletProps) { const { connected } = u s eWallet() const { setVisible } = u s eWalletModal() if (!connected) { return ( <div className ="flex flex - col items - center justify - center min - h -[60vh] space - y-6"> <div className ="text - center space - y-3"> <h2 className ="text - 2xl font - semibold text-foreground"> Login Required </h2> <p className ="text - muted - foreground max - w-md"> Connect a crypto wal let to continue using The Keymaker bundler. </p> </div> <Button onClick = {() => s e tVisible(true) } className ="rounded - 2xl px - 6 py-3" size ="lg"> Connect Wal let </Button> </div> ) } return <>{children}</> }
+'use client';
+import React from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Button } from '@/components/UI/button';
+
+export default function RequireWallet({ children }: { children: React.ReactNode }) {
+  const { connected } = useWallet();
+  if (!connected) {
+    return (
+      <div className="mx-auto max-w-xl mt-12 rounded-2xl border border-zinc-800 p-6 bg-black/40 text-center">
+        <div className="text-sm text-zinc-400 mb-3">Connect your wallet to continue</div>
+        <Button
+          onClick={() => {
+            document
+              .querySelector('button,[aria-label="Connect Wallet"], .wallet-adapter-button')
+              ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          }}
+        >
+          Connect Wallet
+        </Button>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}

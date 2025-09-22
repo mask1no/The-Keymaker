@@ -1,10 +1,7 @@
 import { Connection } from '@solana/web3.js';
 import { isTestMode } from '@/lib/testMode';
 
-export type LeaderInfo = {
-  currentSlot: number;
-  nextLeaders: string[];
-};
+export type LeaderInfo = { currentSlot: number; nextLeaders: string[] };
 
 export async function getNextLeaders(
   connection: Connection,

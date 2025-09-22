@@ -6,13 +6,13 @@ import { useHealth } from '@/hooks/useHealth';
 function Chip({ ok, label, Icon }: { ok: boolean; label: string; Icon: any }) {
   return (
     <div
-      className="flex items-center gap-2 rounded-xl border border-zinc-800/70 bg-zinc-900/40 px-2 py-1 text-xs"
+      className="flex items-center gap-2 rounded-xl border border-zinc-800/70 bg-zinc-900/40 px-2 py-1 text-xs max-w-full overflow-hidden"
       role="status"
       aria-live="polite"
       aria-label={`${label} ${ok ? 'healthy' : 'down'}`}
     >
-      <Icon className={'h-3.5 w-3.5 ' + (ok ? 'text-zinc-300' : 'text-zinc-500')} />
-      <span className={ok ? 'text-zinc-200' : 'text-zinc-500'}>{label}</span>
+      <Icon className={'h-3.5 w-3.5 shrink-0 ' + (ok ? 'text-zinc-300' : 'text-zinc-500')} />
+      <span className={(ok ? 'text-zinc-200' : 'text-zinc-500') + ' truncate'}>{label}</span>
     </div>
   );
 }
@@ -25,7 +25,6 @@ export default function StatusCluster() {
   useEffect(() => {
     const rpcUrl = (process.env.NEXT_PUBLIC_HELIUS_RPC || '').toLowerCase();
     setNet(rpcUrl.includes('devnet') ? 'DEVNET' : rpcUrl ? 'MAINNET' : 'UNKNOWN');
-
     const wsUrl = (process.env.NEXT_PUBLIC_HELIUS_WS || '').trim();
     if (!wsUrl) return setWs(false);
     try {
@@ -48,7 +47,7 @@ export default function StatusCluster() {
   const jitoOk = !!health && health.checks.jito.status === 'healthy';
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
+    <div className="grid grid-cols-2 gap-2">
       <Chip ok={rpcOk} label="RPC" Icon={Server} />
       <Chip ok={ws} label="WebSocket" Icon={Radio} />
       <Chip ok={jitoOk} label="JITO" Icon={Zap} />

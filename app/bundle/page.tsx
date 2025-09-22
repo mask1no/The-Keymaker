@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import RequireWallet from '@/components/auth/RequireWallet';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useHealth } from '@/hooks/useHealth';
 import { useTipfloor } from '@/hooks/useTipfloor';
@@ -47,7 +48,9 @@ export default function Page() {
   const { connected, publicKey } = useWallet();
   const { connection } = useConnection();
   const { health, healthy, rpcHealthy, jitoHealthy } = useHealth();
-  const [loading, setLoading] = React.useState<'idle' | 'tip' | 'simulate' | 'execute'>('idle');
+  const [loading, setLoading] = React.useState<'idle' | 'tip' | 'simulate' | 'execute'>(
+    'idle',
+  );
   const [region, setRegion] = React.useState('ffm');
   const [txsText, setTxsText] = React.useState('');
   const [out, setOut] = React.useState<any>(null);
@@ -279,6 +282,7 @@ export default function Page() {
           return programKey?.toBase58?.() === ComputeBudgetProgram.programId.toBase58();
         });
         setComputeBudgetOk(allHaveCompute);
+
         // JITO tip account last tx transfer
         const last = decoded[decoded.length - 1];
         const msg: any = last.message as any;
@@ -329,7 +333,8 @@ export default function Page() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4">
+    <RequireWallet>
+      <div className="mx-auto max-w-7xl space-y-4">
       {health && !healthy && (
         <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/40 p-3 text-sm">
           System degraded: RPC {health.checks.rpc.status}, JITO {health.checks.jito.status}.
@@ -562,9 +567,7 @@ export default function Page() {
                 </span>
               </li>
             </ul>
-            <div className="text-xs text-zinc-500 mt-3">
-              All guardrails must pass before execution.
-            </div>
+            <div className="text-xs text-zinc-500 mt-3">All guardrails must pass before execution.</div>
           </CardContent>
         </Card>
 
@@ -595,6 +598,7 @@ export default function Page() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </RequireWallet>
   );
 }

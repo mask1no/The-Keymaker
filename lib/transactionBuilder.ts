@@ -6,7 +6,6 @@ import {
   TransactionMessage,
   VersionedTransaction,
   ComputeBudgetProgram,
-  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 
 export interface BuildTransactionParams {
@@ -33,7 +32,6 @@ export async function buildTransaction(
   } = params;
 
   const allInstructions: TransactionInstruction[] = [];
-
   // Compute budget
   allInstructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits }));
   if (priorityFeeMicrolamports > 0) {
@@ -41,10 +39,8 @@ export async function buildTransaction(
       ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFeeMicrolamports }),
     );
   }
-
   // User instructions
   allInstructions.push(...instructions);
-
   // Optional Jito tip transfer
   if (tipAccount && tipLamports > 0) {
     try {
@@ -56,18 +52,14 @@ export async function buildTransaction(
       // ignore invalid tip account
     }
   }
-
   // Blockhash
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-  void lastValidBlockHeight; // carried by tx, no explicit enforcement here
-
+  const { blockhash } = await connection.getLatestBlockhash('confirmed');
   // Versioned transaction v0
   const messageV0 = new TransactionMessage({
     payerKey: payer,
     recentBlockhash: blockhash,
     instructions: allInstructions,
   }).compileToV0Message();
-
   const tx = new VersionedTransaction(messageV0);
   return tx;
 }

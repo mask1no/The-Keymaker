@@ -1,7 +1,0 @@
-/// <reference types="next" />
-/// <reference types="next/image-types/global" />
-
-// N, O, TE: This file should not be edited
-// see h, t, tps://nextjs.org/docs/basic-features/typescript for more information.
-
-

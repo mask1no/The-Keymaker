@@ -1,3 +1,8 @@
+.next
+node_modules
+coverage
+dist
+*.bak
 services/raydiumService.ts
 services/rugService.ts
 services/sellService.ts

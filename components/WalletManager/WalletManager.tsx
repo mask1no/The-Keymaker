@@ -1,1 +1,199 @@
-'use client' import React, { useStateuseEffect } from 'react' import { Keypair } from '@solana/web3.js' import bs58 from 'bs58' import { encryptdecrypt } from '@/utils/browserCrypto' import { Button } from '@/components/UI/button' import { Input } from '@/components/UI/input' import { FolderPlusFolderOpenKeyRound } from 'lucide-react' type Wal let = { p, u, b: s, t, r, ingenc: string } type Folder = { i, d: s, t, r, ingname: s, t, r, ingwallets: Wallet,[]; h, i, n, t?: string } const S T ORE = 'keymaker.wallet_folders' const A C TIVE = 'keymaker.active_master' const load = (): Folder,[] => { try { return JSON.p a rse(localStorage.g e tItem(STORE) || ',[]') } } catch, { return, [] } } const save = (f, s: Folder,[]) => localStorage.s e tItem(STOREJSON.stringify(fs)) const set Active = (p, u, b: string) => localStorage.s e tItem(ACTIVEpub) export default function W a lletFolders() { const [folderssetFolders] = useState <Folder,[]>([]) const [openIdsetOpenId] = useState <string | null>(null) const [namesetName] = u s eState('') const [hintsetHint] = u s eState('') const [passwordsetPassword] = u s eState('') const [privsetPriv] = u s eState('') u s eEffect(() => { const fs = l o ad() s e tFolders(fs) if (fs,[0]) s e tOpenId(fs,[0].id) }, []) function c r eateFolder() { if (!name || !password) return const id = crypto.r a ndomUUID() const next = [ ...folders, { i, d, n, ame: name.t r im(), h, i, n, t: hint || u, n, d, efinedwallets: [] }, ] s e tFolders(next) s a ve(next) s e tName('') s e tHint('') s e tOpenId(id) } async function g e nerate() { if (!openId || !password) return const kp = Keypair.g e nerate() const enc = await e n crypt(kp.secretKeypassword) const next = folders.map((f) => f.id === openId ? { ...f, w, a, llets: [...f.wallets, { p, u, b: kp.publicKey.t oB ase58(), enc }] } : f) s e tFolders(next) s a ve(next) } async function importPriv() { if (!openId || !password || !priv) return try { const sk = priv.t r im().s t artsWith(',[') ? new U i nt8Array(JSON.p a rse(priv.t r im())) : bs58.d e code(priv.t r im()) const kp = Keypair.f r omSecretKey(sk) const enc = await e n crypt(kp.secretKeypassword) const next = folders.map((f) => f.id === openId ? { ...f, w, a, llets: [...f.wallets, { p, u, b: kp.publicKey.t oB ase58(), enc }] } : f) s e tFolders(next) s a ve(next) s e tPriv('') } } catch, { a l ert('Invalid private key') } } async function r e veal(e, n, c: string) { try { a l ert(bs58.e n code(await d e crypt(encpassword))) } } catch, { a l ert('Wrong password') } } return ( <div className ="space - y-6"> <div className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center gap - 2 mb - 3 text - sm font-medium"> <FolderPlus className ="h - 4 w-4"/> New Wal let Folder </div> <div className ="grid gap - 2, m, d:grid - cols-3"> <Input placeholder ="Folder name" value ={name} on Change ={(e) => s e tName(e.target.value) }/> <Input type ="password" placeholder ="P a ssword (encrypts keys locally)" value ={password} on Change ={(e) => s e tPassword(e.target.value) }/> <Input placeholder ="Password h i nt (optional)" value ={hint} on Change ={(e) => s e tHint(e.target.value) }/> </div> <div className ="mt-3"> <Buttonon Click ={createFolder} variant ="outline" className ="rounded-2xl"> Create Folder </Button> </div> </div> <div className ="grid gap - 4, m, d:grid - cols-2"> {folders.map((f) => ( <divkey ={f.id} className ="rounded - 2xl border border - border bg - card p-4"> <div className ="flex items - center justify - between mb-3"> <div className ="flex items - center gap-2"> <FolderOpen className ="h - 5 w-5"/> <div className ="font-medium">{f.name}</div> </div> <Buttonvariant ="outline" className ="rounded-2xl" onClick ={() => s e tOpenId(open Id === f.id ? null : f.id) }> {open Id === f.id ? 'Hide' : 'Open'} </Button> </div> {open Id === f.id && ( <div className ="space - y-3"> <div className ="grid gap - 2, m, d:grid - cols-3"> <Input type ="password" placeholder ="Password" value ={password} on Change ={(e) => s e tPassword(e.target.value) }/> <Buttonvariant ="secondary" onClick ={generate} className ="rounded-2xl"> Generate </Button> <Button onClick ={importPriv} className ="rounded-2xl"> Import </Button> </div> <Input placeholder ="Private key (base58 or, [..])" value ={priv} on Change ={(e) => s e tPriv(e.target.value) }/> <div className ="space - y-2"> {f.wallets.length === 0 && ( <div className ="text - sm opacity-70"> No wallets in this folder yet. </div> ) }, {f.wallets.map((wi) => ( <divkey ={w.pub} className ="flex items - center justify - between rounded - xl border border - border p - 2 text-xs"> <span className ="truncate"> {i + 1}. {w.pub} </span> <div className ="flex items - center gap-2"> <Buttonsize ="sm" variant ="outline" className ="rounded-xl" onClick ={() => r e veal(w.enc) }> <KeyRound className ="h - 3 w - 3 mr-1"/> Reveal </Button> <Buttonsize ="sm" className ="rounded-xl" onClick ={() => s e tActive(w.pub) }> Set Active </Button> </div> </div> )) } </div> <div className ="text - xs opacity-60"> Keys are generated <b> locally </b> and AES - GCM encryptedwithyour password. Nothing leaves your browser. </div> </div> ) } </div> )) } </div> </div> ) } 
+"use client";
+import React from 'react';
+import { Keypair } from '@solana/web3.js';
+import bs58 from 'bs58';
+import { encrypt, decrypt } from '@/utils/browserCrypto';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
+import { FolderPlus, FolderOpen, KeyRound } from 'lucide-react';
+
+type WalletItem = { pub: string; enc: string };
+type Folder = { id: string; name: string; wallets: WalletItem[]; hint?: string };
+
+const STORE = 'keymaker.wallet_folders';
+const ACTIVE = 'keymaker.active_master';
+
+function load(): Folder[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORE) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function save(fs: Folder[]) {
+  localStorage.setItem(STORE, JSON.stringify(fs));
+}
+
+function setActive(pub: string) {
+  localStorage.setItem(ACTIVE, pub);
+}
+
+export default function WalletManager() {
+  const [folders, setFolders] = React.useState<Folder[]>([]);
+  const [openId, setOpenId] = React.useState<string | null>(null);
+  const [name, setName] = React.useState('');
+  const [hint, setHint] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [priv, setPriv] = React.useState('');
+
+  React.useEffect(() => {
+    const fs = load();
+    setFolders(fs);
+    if (fs[0]) setOpenId(fs[0].id);
+  }, []);
+
+  function createFolder() {
+    if (!name || !password) return;
+    const id = crypto.randomUUID();
+    const next = [...folders, { id, name: name.trim(), hint: hint || undefined, wallets: [] }];
+    setFolders(next);
+    save(next);
+    setName('');
+    setHint('');
+    setOpenId(id);
+  }
+
+  async function generate() {
+    if (!openId || !password) return;
+    const kp = Keypair.generate();
+    const enc = await encrypt(kp.secretKey, password);
+    const next = folders.map((f) =>
+      f.id === openId ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] } : f,
+    );
+    setFolders(next);
+    save(next);
+  }
+
+  async function importPriv() {
+    if (!openId || !password || !priv) return;
+    try {
+      const trimmed = priv.trim();
+      const sk = trimmed.startsWith('[')
+        ? new Uint8Array(JSON.parse(trimmed))
+        : bs58.decode(trimmed);
+      const kp = Keypair.fromSecretKey(sk);
+      const enc = await encrypt(kp.secretKey, password);
+      const next = folders.map((f) =>
+        f.id === openId ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] } : f,
+      );
+      setFolders(next);
+      save(next);
+      setPriv('');
+    } catch {
+      alert('Invalid private key');
+    }
+  }
+
+  async function reveal(enc: string) {
+    try {
+      const raw = await decrypt(enc, password);
+      alert(bs58.encode(raw));
+    } catch {
+      alert('Wrong password');
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="flex items-center gap-2 mb-3 text-sm font-medium">
+          <FolderPlus className="h-4 w-4" /> New Wallet Folder
+        </div>
+        <div className="grid gap-2 md:grid-cols-3">
+          <Input placeholder="Folder name" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            type="password"
+            placeholder="Password (encrypts keys locally)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Input
+            placeholder="Password hint (optional)"
+            value={hint}
+            onChange={(e) => setHint(e.target.value)}
+          />
+        </div>
+        <div className="mt-3">
+          <Button onClick={createFolder} variant="outline" className="rounded-2xl">
+            Create Folder
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {folders.map((f) => (
+          <div key={f.id} className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" />
+                <div className="font-medium">{f.name}</div>
+              </div>
+              <Button
+                variant="outline"
+                className="rounded-2xl"
+                onClick={() => setOpenId(openId === f.id ? null : f.id)}
+              >
+                {openId === f.id ? 'Hide' : 'Open'}
+              </Button>
+            </div>
+
+            {openId === f.id && (
+              <div className="space-y-3">
+                <div className="grid gap-2 md:grid-cols-3">
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <Button variant="secondary" onClick={generate} className="rounded-2xl">
+                    Generate
+                  </Button>
+                  <Button onClick={importPriv} className="rounded-2xl">
+                    Import
+                  </Button>
+                </div>
+                <Input
+                  placeholder="Private key (base58 or [..])"
+                  value={priv}
+                  onChange={(e) => setPriv(e.target.value)}
+                />
+                <div className="space-y-2">
+                  {f.wallets.length === 0 && (
+                    <div className="text-sm opacity-70">No wallets in this folder yet.</div>
+                  )}
+                  {f.wallets.map((w, i) => (
+                    <div
+                      key={w.pub}
+                      className="flex items-center justify-between rounded-xl border border-zinc-800 p-2 text-xs"
+                    >
+                      <span className="truncate">{i + 1}. {w.pub}</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl"
+                          onClick={() => reveal(w.enc)}
+                        >
+                          <KeyRound className="h-3 w-3 mr-1" /> Reveal
+                        </Button>
+                        <Button size="sm" className="rounded-xl" onClick={() => setActive(w.pub)}>
+                          Set Active
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs opacity-60">
+                  Keys are generated <b>locally</b> and AES-GCM encrypted with your password. Nothing leaves your
+                  browser.
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

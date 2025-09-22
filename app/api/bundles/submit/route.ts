@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const cfg = getRateConfig('submit');
     // Per-IP + optional per-wallet rate-limiting key
     const wallet = request.headers.get('x-wallet') || 'no-wallet';
-    const rl = rateLimit(`submit:${ip}:${wallet}`, cfg.limit, cfg.windowMs);
+    const rl = rateLimit(`submit:${ip}:${wallet}`, cfg.limit, cfg.windowMs) as { ok: boolean };
     if (!rl.ok) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
       await new Promise((resolve) => setTimeout(resolve, delay_seconds * 1000));
     }
 
-    // Optional integrity c, h, eck: require client to echo payloadHash if previously simulated
+    // Optional integrity check: require client to echo payloadHash if previously simulated
     const clientPayloadHash = request.headers.get('x-payload-hash');
     if (clientPayloadHash && clientPayloadHash !== payloadHash) {
       return NextResponse.json({ error: 'Payload changed since simulation' }, { status: 400 });
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
         data: { region },
       });
     }
-    const { bundle_id } = await sendBundle(region, txs_b64);
+    const { bundle_id } = await sendBundle(region as any, txs_b64);
     let attempts = 0;
     const maxAttempts = 20;
     const pollInterval = 1200;
@@ -227,7 +227,7 @@ export async function POST(request: Request) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
       attempts++;
       try {
-        const statuses = await getBundleStatuses(region, [bundle_id]);
+        const statuses = await getBundleStatuses(region as any, [bundle_id]);
         const status = (statuses as any)?.[0];
         if (status && status.confirmation_status !== 'pending') {
           Sentry.captureMessage('Bundle finalized', {

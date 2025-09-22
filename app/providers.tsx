@@ -7,15 +7,16 @@ import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys';
 
 export function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
-    // Support both correct and previously misspelled method name
     const state = useSettingsStore.getState() as any;
     (state.fetchSettings || state.fetchSettings)?.();
   }, []);
   return (
-    <WalletContext>
+    <>
+      <WalletContext>
+        <div className="contents">{children}</div>
+      </WalletContext>
       <Toaster />
       <GlobalHotkeys />
-      {children}
-    </WalletContext>
+    </>
   );
 }

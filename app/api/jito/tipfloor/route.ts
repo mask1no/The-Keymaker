@@ -14,8 +14,13 @@ export async function GET(request: Request) {
     const region = z.enum(['ffm', 'ams', 'ny', 'tokyo']).parse(regionParam);
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0] || 'anon';
     const cfg = getRateConfig('tipfloor');
-    const rl = rateLimit(`tipfloor:${ip}`, cfg.limit, cfg.windowMs);
-    if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    const rl = rateLimit(`tipfloor:${ip}`, cfg.limit, cfg.windowMs) as { ok: boolean };
+    if (!rl.ok)
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { 'content-type': 'application/json' },
+      });
+
     const now = Date.now();
     const c = cache.get(region);
     if (c && now - c.at < 1000) return NextResponse.json(c.data);
@@ -29,12 +34,14 @@ export async function GET(request: Request) {
       region,
     };
     cache.set(region, { at: now, data: payload });
-    return NextResponse.json(payload);
+    return new Response(JSON.stringify(payload), {
+      headers: { 'content-type': 'application/json' },
+    });
   } catch (error: any) {
     console.error('Tip floor request failed:', error);
-    return NextResponse.json(
-      { error: error?.message || 'Failed to get tip floor' },
-      { status: 500 },
+    return new Response(
+      JSON.stringify({ error: error?.message || 'Failed to get tip floor' }),
+      { status: 500, headers: { 'content-type': 'application/json' } },
     );
   }
 }

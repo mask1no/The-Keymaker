@@ -75,3 +75,6 @@ pnpm-lock.yaml
 *.7z
 *.tar
 *.gz
+
+# Backup files
+*.bak

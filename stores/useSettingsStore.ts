@@ -49,7 +49,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
   lastCreatedTokenAddress: undefined,
   setSettings: (settings) => set((state) => ({ ...state, ...settings })),
-  setHotkeys: (hotkeys) => set((state) => ({ hotkeys: { ...state.hotkeys, ...hotkeys } })),
+  setHotkeys: (hotkeys) =>
+    set((state) => ({
+      hotkeys: { ...state.hotkeys, ...hotkeys },
+    })),
   setLastCreatedTokenAddress: (address) => set({ lastCreatedTokenAddress: address }),
   fetchSettings: async () => {
     try {
@@ -61,9 +64,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       set((state) => ({
         ...state,
         jitoTipLamports:
-          typeof data.jitoTipLamports === 'number' ? data.jitoTipLamports : state.jitoTipLamports,
+          typeof data.jitoTipLamports === 'number'
+            ? data.jitoTipLamports
+            : state.jitoTipLamports,
         jupiterFeeBps:
-          typeof data.jupiterFeeBps === 'number' ? data.jupiterFeeBps : state.jupiterFeeBps,
+          typeof data.jupiterFeeBps === 'number'
+            ? data.jupiterFeeBps
+            : state.jupiterFeeBps,
       }));
     } catch (error) {
       // eslint-disable-next-line no-console

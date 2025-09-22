@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-import { Skeleton } from '@/components/UI/skeleton';
 import { motion } from 'framer-motion';
 
 const DashboardWrapper = () => {
