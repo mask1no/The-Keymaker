@@ -1,99 +1,36 @@
-# The Keymaker - Solana Bundler
+# Keymaker — lean Solana bundler with Jito, CLI-first, SSR console.
 
-![Solana](https://img.shields.io/badge/Solana-Mainnet-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.5.2-orange)
+## 10-line Runbook (Non-Coder)
+1) pnpm install --ignore-scripts
+2) pnpm check:node && pnpm core:build
+3) solana-keygen new -o ~/keymaker-payer.json -s
+4) solana-keygen pubkey ~/keymaker-payer.json (fund ~0.01 SOL from Phantom)
+5) export KEYPAIR_JSON=~/keymaker-payer.json
+6) pnpm cli:send            # → {bundleId}
+7) pnpm cli:status ffm <id> # → {statuses}
+8) tail -n 5 data/journal*.ndjson
+9) pnpm dev → open /engine
+10) curl /api/metrics | curl /api/health
 
-## Overview
+## Architecture
+- Core modules in `lib/core/src`: Jito client, journal, metrics, types.
+- CLI in `bin/keymaker.ts` (send/status/fund). Signing is server/CLI only.
+- Tiny API: `/api/engine/*` routes for deposit-address, submit, status, metrics, health.
+- SSR-only console at `/engine` (no client bundle).
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. The current build focuses on bundle simulation and execution with a clean UI and optional test mode.
+## Usage
+- CLI: `pnpm cli:send`, `pnpm cli:status ffm <id>`, `pnpm cli:fund <to> <lamports>`
+- Envs: `KEYPAIR_JSON`, `HELIUS_RPC_URL` (or `NEXT_PUBLIC_HELIUS_RPC`), optional `ENGINE_API_TOKEN`.
+- Optional: `PRIORITY`, `TIP_LAMPORTS`, `BLOCKHASH`.
 
-## Status
+## Performance
+- SSR-only `/engine`. No client-side signing or heavy bundles.
 
-- ✅ Bundler UI: Preview → Execute → Poll (requires env and wallet)
-- ✅ Wallet adapters: Phantom / Backpack / Solflare
-- ✅ Design system: Tailwind + shadcn/ui components
-- ⚠️ Token creation: Pump.fun/Raydium flows gated/off by default
+## Safety
+- No browser keys. Repo private. Logs redact secrets.
 
-## Non-Custodial
+## Roadmap
+- Pump.fun & Raydium adapters emit instruction arrays only; submission stays in core.
 
-- Client signs; server submits signed transactions to Jito
-- No server private keys
-
-## Features
-
-### Bundle Execution
-
-- Jito tipfloor endpoint
-- Bundle submission with polling (SSE + fallback)
-- Simulation before execution
-- Guardrails: compute budget, Jito tip present, balance check
-
-### API
-
-- `GET /api/jito/tipfloor` – tipfloor metrics
-- `POST /api/bundles/submit` – simulate/execute bundles
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm
-- Solana wallet extension
-
-### Environment
-
-Create `.env.local`:
-
-```env
-NEXT_PUBLIC_HELIUS_RPC=https://your-helius-rpc-url
-NEXT_PUBLIC_JITO_ENDPOINT=https://frankfurt.mainnet.block-engine.jito.wtf
-# Optional test mode (server & client)
-TEST_MODE=1
-NEXT_PUBLIC_TEST_MODE=1
-```
-
-### Install & Run
-
-```bash
-pnpm install
-pnpm dev
-# open http://localhost:3000
-```
-
-### Build
-
-- Local (Windows/OneDrive): avoid standalone to skip symlink issues
-```bash
-pnpm build
-```
-- CI/Container: use standalone output
-```bash
-NEXT_STANDALONE=1 pnpm build:standalone
-```
-
-### Tests
-
-- Unit tests: `pnpm test`
-- E2E & Accessibility (Playwright + Axe): `pnpm test:e2e`
-
-CI runs:
-- Corruption check (`scripts/fixCorruption.mjs --check`)
-- Type-check, Standalone build, Start server in TEST_MODE
-- Playwright a11y tests for `/` and `/bundle`
-
-## Notes
-
-- Prisma is optional; dev uses SQLite fallback via `lib/db.ts`.
-- Legacy dashboard features are temporarily disabled in the UI while being upgraded.
-
-## Security
-
-- CSP headers enforced via `next.config.js` (inline allowed for Next runtime; consider nonces in prod)
-- Rate limiting for APIs, Upstash-compatible
-- Sentry configured for client/server/edge
-
-## License
-
-MIT
+## History
+- See docs/archive for prior audits and notes.

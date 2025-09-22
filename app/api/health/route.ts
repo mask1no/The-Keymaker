@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { getTipFloor } from '@/lib/server/jitoService';
-import { db } from '@/lib/db';
+import { observeLatency } from '@/lib/core/src/metrics';
 import { isTestMode } from '@/lib/testMode';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,6 @@ export async function GET() {
   const started = Date.now();
   let rpcLatency = -1;
   let jitoLatency = -1;
-  let dbOk = false;
   if (isTestMode()) {
     return NextResponse.json({
       ok: true,
@@ -42,13 +41,7 @@ export async function GET() {
     jitoLatency = -1;
   }
 
-  try {
-    const conn = await db;
-    await conn.exec('/* ping */');
-    dbOk = true;
-  } catch (e) {
-    dbOk = false;
-  }
+  // No DB dependency in lean mode
 
   return NextResponse.json({
     ok: rpcLatency >= 0 && jitoLatency >= 0,
@@ -61,7 +54,7 @@ export async function GET() {
         latency_ms: jitoLatency,
         region: 'ffm',
       },
-      database: { status: dbOk ? 'healthy' : 'down' },
+      database: { status: 'n/a' },
     },
     duration_ms: Date.now() - started,
   });

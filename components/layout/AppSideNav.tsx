@@ -12,6 +12,7 @@ const NAV = [
   { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Guide', href: '/guide', icon: BookOpen },
+  { name: 'Engine', href: '/engine', icon: Boxes },
 ];
 
 export default function AppSideNav() {
