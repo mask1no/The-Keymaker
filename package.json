@@ -32,6 +32,9 @@
     "postinstall": "node scripts/postinstall-safe.js",
     "browsers:install": "cross-env PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
     "prepare": "husky && husky install",
+    "core:build": "tsx --tsconfig tsconfig.core.json --no-cache -e \"console.log('core build ok')\"",
+    "cli:send": "tsx --tsconfig tsconfig.core.json bin/keymaker.ts send ffm",
+    "cli:status": "tsx --tsconfig tsconfig.core.json bin/keymaker.ts status ffm",
     "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev"
   },
   "dependencies": {
