@@ -1,27 +1,22 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
-const ROOT = process.cwd()
+const ROOT = process.cwd();
 
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
     if (
-      [
-        'node_modules',
-        '.git',
-        '.next',
-        'dist',
-        'coverage',
-        'test-results',
-      ].some((s) => d.includes(s))
+      ['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some((s) =>
+        d.includes(s),
+      )
     )
-      continue
-    const p = path.join(d, n)
-    const st = fs.statSync(p)
+      continue;
+    const p = path.join(d, n);
+    const st = fs.statSync(p);
     if (st.isDirectory()) {
-      yield* walk(p)
+      yield* walk(p);
     } else if (/\.(ts|tsx|js|jsx)$/.test(p)) {
-      yield p
+      yield p;
     }
   }
 }
@@ -62,23 +57,23 @@ const buildFixes = [
   // Fix missing spaces in function calls
   [/loadHoldings\(\)useEffect/g, 'loadHoldings()\n  }, [])\n\n  useEffect'],
   [/\}, \[\]\)([a-zA-Z])/g, '}, [])\n\n  $1'],
-]
+];
 
-let changed = 0
+let changed = 0;
 for (const p of walk(ROOT)) {
-  let s = fs.readFileSync(p, 'utf8')
-  let o = s
+  let s = fs.readFileSync(p, 'utf8');
+  let o = s;
 
   // Apply build fixes
   for (const [re, rep] of buildFixes) {
-    s = s.replace(re, rep)
+    s = s.replace(re, rep);
   }
 
   if (s !== o) {
-    fs.writeFileSync(p, s)
-    console.log('fixed', p)
-    changed++
+    fs.writeFileSync(p, s);
+    console.log('fixed', p);
+    changed++;
   }
 }
 
-console.log('done, files changed:', changed)
+console.log('done, files changed:', changed);

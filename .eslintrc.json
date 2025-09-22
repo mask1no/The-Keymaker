@@ -1,16 +1,21 @@
 {
-  "env": { "browser": true, "node": true },
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "env": { "browser": true, "node": true, "jest": true },
+  "extends": ["next", "eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "rules": {
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-inferrable-types": "off",
-    "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/no-extra-semi": "error",
-    "no-empty-pattern": "error"
-  }
+    "@typescript-eslint/ban-ts-comment": ["warn", { "ts-ignore": "allow-with-description" }]
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
+      "env": { "jest": true },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    }
+  ]
 }

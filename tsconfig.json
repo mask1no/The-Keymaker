@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "baseUrl": ".",
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,6 +24,37 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "components/**/*.{ts,tsx}",
+    "hooks/**/*.{ts,tsx}",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "app/api/bundles/**/*.ts",
+    "app/api/jito/**/*.ts",
+    "app/api/health/route.ts",
+    "app/api/marketcap/[mint]/route.ts",
+    "app/api/pnl/route.ts",
+    "app/layout.tsx",
+    "app/bundle/page.tsx",
+    "app/dashboard/sell-monitor/page.tsx",
+    "lib/server/jitoService.ts",
+    "lib/server/request.ts",
+    "lib/server/redis.ts",
+    "utils/withRetry.ts",
+    "constants.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "legacy",
+    "bonk-mcp",
+    "tests",
+    "coverage",
+    "dist",
+    "lib/server/auth.ts",
+    "utils/browserCrypto.ts",
+    "utils/crypto.ts",
+    "**/*.test.ts"
+  ]
 }

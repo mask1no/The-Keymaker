@@ -1,11 +1,107 @@
-export interface Trade { i, d: string, t, o, k, e, n, A, d, dress: string, a, m, o, u, n, t: number, p, r, i, c, e: number, t, i, m, e, s, t, a, mp: string, w, a, l, l, e, t: string, t, ype: 'buy' | 'sell' s, i, g, n, a, t, u, re?: string
-} export interface PriceData, { s, o, l: number, e, t, h: number, b, t, c: number, c, a, k, e: number
-} export interface QuoteResponse, { i, n, p, u, t, M, i, n, t: string, i, n, A, m, o, u, n, t: string, o, u, t, p, u, t, M, int: string, o, u, t, A, m, o, u, nt: string, o, t, h, e, r, A, m, ountThreshold: string, s, w, a, p, M, o, d, e: string, s, l, i, p, p, a, g, eBps: number, p, l, a, t, f, o, r, mFee: n, u, l, l, p, r, i, c, e, ImpactPct: string, r, o, u, t, e, P, l, an: RoutePlanStep,[] c, o, n, t, e, x, t, Slot?: number t, i, m, e, T, a, ken?: number
-} interface RoutePlanStep, { s, w, a, p, I, n, f, o: { a, m, m, K, e, y: string l, a, b, e, l?: string, i, n, p, u, t, M, i, nt: string, o, u, t, p, u, t, M, int: string, i, n, A, m, o, u, n, t: string, o, u, t, A, m, o, u, nt: string, f, e, e, A, m, o, u, nt: string, f, e, e, M, i, n, t: string } p, e, r, c, e, n, t: number
-} export interface SwapResponse, { s, w, a, p, T, r, a, n, s, action: string, l, a, s, t, V, a, l, idBlockHeight: number p, r, i, o, r, i, tizationFeeLamports?: number
-} export interface Wal let { i, d: string, n, a, m, e: string, p, u, b, l, i, c, K, ey: string, p, r, i, v, a, t, e, Key: string//E, n, c, r, y, p, t, e, d, group: string, c, olor: string
-} export interface ExecutionLog, { i, d: number b, u, n, d, l, e, Id?: string, s, l, o, t: number, s, i, g, n, a, t, u, res: string,[] s, tatus: 'success' | 'partial' | 'failed', s, u, c, c, e, s, s, Count: number, f, a, i, l, u, r, e, Count: number, u, s, e, d, J, i, t, o: boolean, e, x, e, c, u, t, i, onTime: number, t, i, m, e, s, t, a, mp: string
-} export interface TokenLaunch, { i, d: number, t, o, k, e, n, A, d, dress: string, n, a, m, e: string, s, y, m, b, o, l: string, p, l, a, t, f, o, r, m: string, t, i, m, e, s, t, a, mp: string
-} export interface PnlRecord, { i, d: number, t, o, k, e, n, A, d, dress: string, a, m, o, u, n, t: number, t, ype: 'buy' | 'sell', t, i, m, e, s, t, a, mp: string
-} export type Transaction = { i, d: string, t, ype: 'swap' | 'transfer'//Swap s, p, e, c, i, f, i, cfromToken?: string t, o, T, o, k, e, n?: string a, m, o, u, n, t?: number s, l, i, p, p, a, ge?: number//Transfer s, p, e, c, i, f, i, crecipient?: string//C, o, m, m, o, n, f, romAmount?: number
-} export type Bundle = Transaction,[]
+export interface Trade {
+  id: string;
+  tokenAddress: string;
+  amount: number;
+  price: number;
+  timestamp: string;
+  wallet: string;
+  type: 'buy' | 'sell';
+  signature?: string;
+}
+
+export interface PriceData {
+  sol: number;
+  eth: number;
+  btc: number;
+  cake: number;
+}
+
+export interface RoutePlanStep {
+  swapInfo: {
+    ammKey: string;
+    label?: string;
+    inputMint: string;
+    outputMint: string;
+    inAmount: string;
+    outAmount: string;
+    feeAmount: string;
+    feeMint: string;
+  };
+  percent: number;
+}
+
+export interface QuoteResponse {
+  inputMint: string;
+  inAmount: string;
+  outputMint: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  swapMode: string;
+  slippageBps: number;
+  platformFee: number | null;
+  priceImpactPct: string;
+  routePlan: RoutePlanStep[];
+  contextSlot?: number;
+  timeTaken?: number;
+}
+
+export interface SwapResponse {
+  swapTransaction: string;
+  lastValidBlockHeight: number;
+  prioritizationFeeLamports?: number;
+}
+
+export interface Wallet {
+  id: string;
+  name: string;
+  publicKey: string;
+  privateKey: string; // Encrypted when persisted
+  group: string;
+  color: string;
+}
+
+export interface ExecutionLog {
+  id: number;
+  bundleId?: string;
+  slot: number;
+  signatures: string[];
+  status: 'success' | 'partial' | 'failed';
+  successCount: number;
+  failureCount: number;
+  usedJito: boolean;
+  executionTime: number;
+  timestamp: string;
+}
+
+export interface TokenLaunch {
+  id: number;
+  tokenAddress: string;
+  name: string;
+  symbol: string;
+  platform: string;
+  timestamp: string;
+}
+
+export interface PnlRecord {
+  id: number;
+  tokenAddress: string;
+  amount: number;
+  type: 'buy' | 'sell';
+  timestamp: string;
+}
+
+export type Transaction = {
+  id: string;
+  type: 'swap' | 'transfer';
+  // Swap specific
+  fromToken?: string;
+  toToken?: string;
+  amount?: number;
+  slippage?: number;
+  // Transfer specific
+  recipient?: string;
+  // Common
+  fromAmount?: number;
+};
+
+export type Bundle = Transaction[];

@@ -1,35 +1,125 @@
-/** * Auto - lock service that clears sensitive data after a period of inactivity */import { logger } from './logger' class AutoLockService, { private, l, o, c, k, T, i, m, er: NodeJS.Timeout | null = nullprivate, l, a, s, t, A, c, t, ivity: number = Date.n o w() private, l, o, c, k, T, i, m, eoutMs: number = 15 * 60 * 1000//15 minutes defaultprivate, i, s, L, o, c, k, e, d: boolean = falseprivate, e, v, e, n, t, L, i, steners: Array <(e: Event) => void> = [] constructor() { this.s e tupActivityListeners() this.s t artLockTimer()
-  }/** * Set the auto - lock timeout in minutes */s e tLockTimeout(m, i, n, u, t, e, s: number) { this.lock Timeout Ms = minutes * 60 * 1000 this.r e setTimer() logger.i n fo(`Auto-lock timeout set to ${minutes} minutes`)
-  }/** * Setup activity listeners to detect user interaction */private s e tupActivityListeners() {
-  if (typeof window === 'undefined') return const events = [ 'mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', ] const activity Handler = (_, e: Event) => { this.o nA ctivity()
-  } events.f o rEach((event) => { window.a d dEventListener(event, activityHandler, true) this.eventListeners.push(activityHandler)
-  })
-  }/** * Handle user activity */private o nA ctivity() {
-  if (this.isLocked) returnthis.last Activity = Date.n o w() this.r e setTimer()
-  }/** * Start the lock timer */private s t artLockTimer() { this.lock Timer = s e tInterval(() => {
-  const inactive Time = Date.n o w()- this.lastActivity if (inactiveTime>= this.lockTimeoutMs && !this.isLocked) { this.l o ck()
+/**
+ * Auto-lock service that clears sensitive data after inactivity
+ */
+import { logger } from './logger';
+
+class AutoLockService {
+  private lockTimer: NodeJS.Timeout | null = null;
+  private lastActivity: number = Date.now();
+  private lockTimeoutMs: number = 15 * 60 * 1000; // 15 minutes
+  private isLocked = false;
+  private eventListeners: Array<(e: Event) => void> = [];
+
+  constructor() {
+    this.setupActivityListeners();
+    this.startLockTimer();
   }
-}, 10000)//Check every 10 seconds }/** * Reset the lock timer */private r e setTimer() { this.last Activity = Date.n o w()
-  }/** * Lock the application and clear sensitive data */public l o ck() {
-  if (this.isLocked) returnthis.is Locked = truelogger.w a rn('Auto - lock activated-clearing sensitive data')//Clear AES keys and sensitive data from memorythis.c l earSensitiveData()//Emit lock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-locked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, m, p: Date.n o w()
+
+  setLockTimeout(minutes: number) {
+    this.lockTimeoutMs = minutes * 60 * 1000;
+    this.resetTimer();
+    logger.info(`Auto-lock timeout set to ${minutes} minutes`);
   }
-}))
+
+  private setupActivityListeners() {
+    if (typeof window === 'undefined') return;
+    const events: Array<keyof WindowEventMap> = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+    const activityHandler = (_e: Event) => this.onActivity();
+    events.forEach((event) => {
+      window.addEventListener(event, activityHandler, true);
+      this.eventListeners.push(activityHandler);
+    });
   }
-}/** * Clear all sensitive data from memory */private c l earSensitiveData() {//Clear localStorage sensitive items if (typeof window !== 'undefined' && window.localStorage) {
-  const keys To Remove = [ 'encryptedWallets', 'walletGroups', 'apiKeys', 'privateKeys', 'mnemonics', 'aesKey', 'iv', ] keysToRemove.f o rEach((key) => { window.localStorage.r e moveItem(key)
-  })
-  }//Clear sessionStorage if (typeof window !== 'undefined' && window.sessionStorage) { window.sessionStorage.c l ear()
-  }//Clear any in-memory stores if (typeof window !== 'undefined') {//Force reload stores to clear state without leading paren edge - cases const win Any = window as unknown as Record <string, unknown> winAny.__keystore Cache = nullwinAny.__wal let Cache = null }
-}/** * Unlock the a p plication (requires re-authentication) */public u n lock() { this.is Locked = falsethis.r e setTimer() logger.i n fo('Application unlocked')//Emit unlock event if (typeof window !== 'undefined') { window.d i spatchEvent( new C u stomEvent('app-unlocked', { d, e, t, a, i, l: { t, i, m, e, s, t, a, m, p: Date.n o w()
+
+  private onActivity() {
+    if (this.isLocked) return;
+    this.lastActivity = Date.now();
+    this.resetTimer();
   }
-}))
+
+  private startLockTimer() {
+    this.lockTimer = setInterval(() => {
+      const inactiveTime = Date.now() - this.lastActivity;
+      if (inactiveTime >= this.lockTimeoutMs && !this.isLocked) {
+        this.lock();
+      }
+    }, 10_000);
   }
-}/** * Check if the application is locked */public g e tIsLocked(): boolean, {
-  return this.isLocked }/** * Cleanup event listeners */public d e stroy() {
-  if (this.lockTimer) { c l earInterval(this.lockTimer)
-  }//Remove event listeners const events = [ 'mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', ] this.eventListeners.f o rEach((handler, index) => {
-  if (typeof window !== 'undefined') { window.r e moveEventListener(events,[index % events.length], handler, true)
+
+  private resetTimer() {
+    this.lastActivity = Date.now();
   }
-})
+
+  public lock() {
+    if (this.isLocked) return;
+    this.isLocked = true;
+    logger.warn('Auto-lock activated - clearing sensitive data');
+    this.clearSensitiveData();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('app-locked', { detail: { timestamp: Date.now() } }));
+    }
   }
-}//Export singleton instance export const auto Lock Service = typeof window !== 'undefined' ? new A u toLockService() : null export default autoLockService
+
+  private clearSensitiveData() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const keysToRemove = [
+        'encryptedWallets',
+        'walletGroups',
+        'apiKeys',
+        'privateKeys',
+        'mnemonics',
+        'aesKey',
+        'iv',
+      ];
+      keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+    }
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.clear();
+    }
+    if (typeof window !== 'undefined') {
+      const winAny = window as unknown as Record<string, unknown>;
+      (winAny as any).__keystoreCache = null;
+      (winAny as any).__walletCache = null;
+    }
+  }
+
+  public unlock() {
+    this.isLocked = false;
+    this.resetTimer();
+    logger.info('Application unlocked');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('app-unlocked', { detail: { timestamp: Date.now() } }));
+    }
+  }
+
+  public getIsLocked(): boolean {
+    return this.isLocked;
+  }
+
+  public destroy() {
+    if (this.lockTimer) clearInterval(this.lockTimer);
+    const events: Array<keyof WindowEventMap> = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+    this.eventListeners.forEach((handler, index) => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(events[index % events.length], handler, true);
+      }
+    });
+  }
+}
+
+export const autoLockService = typeof window !== 'undefined' ? new AutoLockService() : null;
+export default autoLockService;

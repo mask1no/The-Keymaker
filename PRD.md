@@ -1,14 +1,14 @@
-# The Keymaker – Research, Product, and Design (RPD)
+# The Keymaker – ResearchProductand Design (RPD)
 
 ## Executive Summary
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working proto type with core bundling functionality.
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Working proto type with basic Jito integration, wal let authentication, and bundle submission capabilities.
+**Current Status**: Working proto type with basic Jito integrationwal let authenticationand bundle submission capabilities.
 
 ## Vision & Mission
 
-### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, i, t, h:
+### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates whilethe server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, i, t, h:
 
 - **Military-grade reliability**
 - **Crystal-clear guardrails**
@@ -42,7 +42,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Web Client    │    │   Next.js API   │    │   External APIs │
-│   (React/TS)    │◄──►│   (Serverless)  │◄──►│   (Jito, RPC)   │
+│   (React/TS)    │◄──►│   (Serverless)  │◄──►│   (JitoRPC)   │
 │                 │    │                 │    │                 │
 │ • Dashboard UI  │    │ • Bundle Engine │    │ • Jito Block    │
 │ • Wal let Mgmt   │    │ • Status Poller │    │   Engine        │
@@ -63,12 +63,12 @@ The Keymaker is a Solana bundler application for executing transactions through 
 | Component            | Technology                         | Purpose                           |
 | -------------------- | ---------------------------------- | --------------------------------- |
 | **Frontend**         | Next.js 14.2, React 18, TypeScript | Modern web application framework  |
-| **UI Framework**     | Tailwind CSS, shadcn/ui            | Responsive design system          |
+| **UI Framework**     | Tailwind CSSshadcn/ui              | Responsive design system          |
 | **State Management** | Zustand                            | Lightweight client state          |
 | **Database**         | SQLite                             | Analytics and transaction history |
-| **Security**         | AES-256-GCM, PBKDF2                | Military-grade encryption         |
+| **Security**         | AES-256-GCMPBKDF2                  | Military-grade encryption         |
 | **Monitoring**       | Sentry                             | Error tracking and performance    |
-| **Deployment**       | Docker, Kubernetes                 | Container orchestration           |
+| **Deployment**       | DockerKubernetes                   | Container orchestration           |
 
 ## Core Workflows
 
@@ -87,9 +87,9 @@ User Action → Server Processing → External Validation → Bundle Submission
 
 #### Detailed F, l, o, w:
 
-1. **Create**: Optional SPL token creation flow (server-side, receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`s, i, m, u, l, a, t, eOnly: true`)
-3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
+1. **Create**: Optional SPL token creation flow (server-sidereceipt-gated)
+2. **Preview**: Build native v0 transactionssimulate on server (`s, i, m, ulateOnly: true`)
+3. **Validation**: Strict guardrails check (tip accountscompute budgethealth status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
 
@@ -137,7 +137,7 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response S, t, r, u, c, t, u, re:**
+**Response S, t, r, ucture:**
 
 ```json
 {
@@ -148,14 +148,14 @@ Health Sources → Aggregation → Caching → Distribution
     "rpc": {
       "status": "healthy|degraded|down",
       "latency_ms": 45,
-      "endpoint": "h, t, t, p, s://mainnet.helius-rpc.com",
+      "endpoint": "h, t, t, ps://mainnet.helius-rpc.com",
       "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "jito": {
       "status": "healthy|degraded|down",
       "latency_ms": 23,
       "region": "ffm",
-      "endpoint": "h, t, t, p, s://ffm.mainnet.block-engine.jito.wtf",
+      "endpoint": "h, t, t, ps://ffm.mainnet.block-engine.jito.wtf",
       "last_check": "2025-01-01, T00:00:00.000Z"
     },
     "database": {
@@ -174,9 +174,9 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### Health Thresholds
 
-- **Healthy**: All systems operational, latency < 400ms
-- **Degraded**: Non-critical system issues, latency 400-6000ms
-- **Down**: Critical system failure, latency > 6000ms or connection failed
+- **Healthy**: All systems operationallatency < 400ms
+- **Degraded**: Non-critical system issueslatency 400-6000ms
+- **Down**: Critical system failurelatency > 6000ms or connection failed
 
 #### Health-Driven UI States
 
@@ -194,7 +194,7 @@ System Health → UI State → User Actions → System Response
 ### Design Principles
 
 - **Clarity First**: Every action and state must be crystal clear
-- **Progressive Disclosure**: Show essential info first, details on demand
+- **Progressive Disclosure**: Show essential info firstdetails on demand
 - **Error Prevention**: Guardrails and validation prevent user errors
 - **Performance Feedback**: Real-time status updates and progress indicators
 
@@ -203,9 +203,9 @@ System Health → UI State → User Actions → System Response
 - **Navigation**: Sidebar + topbar with max-width 7xl main content
 - **Cards**: Rounded-2xl with soft shadows and consistent spacing
 - **Status**: Compact cluster in topbar only with health indicators
-- **Icons**: Cpu (RPC), Network (WS), Rocket (Jito), Wallet, Boxes (Bundler), Sparkles (SPL Creator), Clock (Trade History), LineChart (P&L), Settings, BookOpen (Guide)
+- **Icons**: Cpu (RPC), Network (WS), Rocket (Jito), WalletBoxes (Bundler), Sparkles (SPL Creator), Clock (Trade History), LineChart (P&L), SettingsBookOpen (Guide)
 - **Buttons**: Primary (action), secondary (navigation), disabled with tooltips
-- **Guards**: Clear rationale tooltips when actions are disabled
+- **Guards**: Clear rationaletooltips when actions are disabled
 
 ## Bundle Execution Guardrails
 
@@ -213,16 +213,16 @@ System Health → UI State → User Actions → System Response
 
 #### System Health Gates
 
-- [ ] **RPC Health**: Connection < 400ms latency, responsive endpoint
+- [ ] **RPC Health**: Connection < 400ms latencyresponsive endpoint
 - [ ] **Jito Status**: Block Engine operational across regions
-- [ ] **Database**: Read/write access confirmed, connection healthy
-- [ ] **Network**: Internet connectivity verified, DNS resolution working
+- [ ] **Database**: Read/write access confirmedconnection healthy
+- [ ] **Network**: Internet connectivity verifiedDNS resolution working
 
 #### Bundle Configuration Gates
 
 - [ ] **Wal let Selection**: At least 1 wal let in active group (Neo or configured default)
 - [ ] **Transaction Limit**: ≤ 5 transactions per bundle (Jito limit)
-- [ ] **Region Selection**: Valid Jito region selected (d, e, f, a, u, l, t: ffm)
+- [ ] **Region Selection**: Valid Jito region selected (d, e, f, ault: ffm)
 - [ ] **Blockhash Freshness**: < 3 seconds old (server-side validation)
 
 #### Transaction Validation Gates
@@ -230,7 +230,7 @@ System Health → UI State → User Actions → System Response
 - [ ] **Simulation Success**: All transactions simulate successfully on server
 - [ ] **Tip Account Validation**: Valid Jito tip account in static keys (no ALT dependencies)
 - [ ] **Compute Budget**: Proper ComputeBudgetProgram instructions first in v0 transactions
-- [ ] **Balance Verification**: Sufficient SOL for fees, tips, and transaction costs
+- [ ] **Balance Verification**: Sufficient SOL for feestipsand transaction costs
 
 ### Gate Failure Response Strategy
 
@@ -254,13 +254,13 @@ Gate Failure → UI State Change → User Guidance → Resolution Path
 
 - **Data Source**: `/api/jito/tipfloor` endpoint with live P25/P50/P75/EMA data
 - **Display**: Visual percentiles with chosen tip highlighting
-- **Enforcement**: Server-side tip floor enforcement (m, i, n: max(requested, ema50th, 1000))
+- **Enforcement**: Server-side tip floor enforcement (m, i, n: max(requestedema50th, 1000))
 
 #### Execution Mode Strategies
 
 - **Regular Mode**: `P50 × 1.2` multiplier, 60ms stagger timing
 - **Delayed Mode**: `P50 × 1.2` multiplier, 30s countdown with fresh blockhash
-- **Instant Mode**: `P75 × 1.25` multiplier, random [0-10ms] stagger
+- **Instant Mode**: `P75 × 1.25` multiplierrandom [0-10ms] stagger
 - **Range Limits**: Clamped to [50k, 2M] lamports regardless of market conditions
 
 ### Performance Optimization Features
@@ -333,9 +333,9 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 - **Tooltips**: Clear explanations for disabled actions and validation failures
 - **Toast Notifications**:
-  - S, u, c, c, e, s, s: "Bundle landed in slot X" with transaction links
-  - W, a, r, n, i, n, g: "Bundle pending > 30s" with status updates
-  - E, r, r, o, r: "Bundle f, a, i, l, e, d: [specific reason]" with resolution steps
+  - S, u, c, cess: "Bundle landed in slot X" with transaction links
+  - W, a, r, ning: "Bundle pending > 30s" with status updates
+  - E, r, r, or: "Bundle f, a, i, led: [specific reason]" with resolution steps
 - **Loading States**: Skeleton screens and progress indicators
 - **Empty States**: Helpful guidance for new users and empty data scenarios
 
@@ -355,13 +355,13 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 - **Component Testing**: React component behavior and state management
 - **Service Layer**: API service functionality and error handling
 - **Utility Functions**: Helper functions and data transformations
-- **Security Validation**: Encryption, validation, and sanitization
+- **Security Validation**: Encryptionvalidationand sanitization
 
 #### 2) Integration Testing (20% Coverage)
 
 - **API Workflows**: Complete bundle execution pipeline testing
-- **External Services**: Jito, RPC, database integration validation
-- **Error Scenarios**: Network failures, rate limits, API errors
+- **External Services**: JitoRPCdatabase integration validation
+- **Error Scenarios**: Network failuresrate limitsAPI errors
 - **Performance Validation**: Load testing and resource utilization
 
 #### 3) End-to-End Testing (5% Coverage)
@@ -432,7 +432,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 1) External Service Dependencies
 
-**Risk**: Jito API changes, RPC provider outages, network congestion
+**Risk**: Jito API changesRPC provider outagesnetwork congestion
 **Impact**: High - Bundle execution failures
 **Mitigation**:
 
@@ -443,7 +443,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 2) Security Vulnerabilities
 
-**Risk**: Private key exposure, unauthorized access, data breaches
+**Risk**: Private key exposureunauthorized accessdata breaches
 **Impact**: Critical - Financial loss
 **Mitigation**:
 
@@ -454,8 +454,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 3) Performance Degradation
 
-**Risk**: System slowdown, memory leaks, database bottlenecks
-**Impact**: Medium - Increased latency, failed operations
+**Risk**: System slowdownmemory leaksdatabase bottlenecks
+**Impact**: Medium - Increased latencyfailed operations
 **Mitigation**:
 
 - Horizontal scaling capabilities
@@ -467,7 +467,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 1) Configuration Management
 
-**Risk**: Environment misconfiguration, key management failures
+**Risk**: Environment misconfigurationkey management failures
 **Impact**: High - Service unavailability
 **Mitigation**:
 
@@ -478,7 +478,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 2) Data Persistence
 
-**Risk**: Database corruption, data loss, backup failures
+**Risk**: Database corruptiondata lossbackup failures
 **Impact**: Medium - Analytics and audit trail loss
 **Mitigation**:
 
@@ -491,7 +491,7 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 #### 1) Regulatory Compliance
 
-**Risk**: Changes in Solana ecosystem regulations, MEV policies
+**Risk**: Changes in Solana ecosystem regulationsMEV policies
 **Impact**: Medium - Operational changes required
 **Mitigation**:
 
@@ -513,8 +513,8 @@ Raw Telemetry → Processing Engine → Aggregation Layer → Visualization
 
 ### Non-custodial guarantees
 
-- **Client-side s, i, g, n, i, n, g:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
-- **AES-GCM key s, t, o, r, a, g, e:** Private keys are encrypted locally using AES-GCM, a highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromised, their private keys remain protected.
+- **Client-side s, i, g, ning:** All transactions are signed exclusively on the client-side. Private keys are never transmitted to the server or any third party.
+- **AES-GCM key s, t, o, rage:** Private keys are encrypted locally using AES-GCMa highly secure and authenticated encryption cipher. This ensures that even if a user's device is compromisedtheir private keys remain protected.
 
 ### Failure handling
 

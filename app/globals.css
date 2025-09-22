@@ -4,12 +4,43 @@
 
 :root {
   --radius: 1.25rem;
+
+  /* Theme tokens (HSL) */
+  --background: 222 47% 4%; /* zinc-950 */
+  --foreground: 210 20% 98%; /* zinc-50 */
+
+  --card: 222 47% 6%;
+  --card-foreground: 210 20% 98%;
+
+  --popover: 222 47% 6%;
+  --popover-foreground: 210 20% 98%;
+
+  --primary: 217 91% 60%; /* sky-500 */
+  --primary-foreground: 222 47% 6%;
+
+  --secondary: 240 5% 20%;
+  --secondary-foreground: 210 20% 98%;
+
+  --muted: 240 5% 12%;
+  --muted-foreground: 215 16% 70%;
+
+  --accent: 240 5% 16%;
+  --accent-foreground: 210 20% 98%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 20% 98%;
+
+  --border: 240 5% 26%;
+  --input: 240 5% 26%;
+  --ring: 217 91% 60%;
 }
+
 html,
 body {
-  background: #0f1115;
-  color: #e5e7eb;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
+
 a {
-  color: #e5e7eb;
+  color: hsl(var(--foreground));
 }

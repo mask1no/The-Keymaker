@@ -1,5 +1,5 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Fix specific critical files for minimal working bundler
 const fixes = [
@@ -21,14 +21,12 @@ const fixes = [
   {
     file: 'components/ControlCenter/ControlCenter.tsx',
     find: ').length const progress = (completedSteps / executionSteps.length) * 100',
-    replace:
-      ').length\n  const progress = (completedSteps / executionSteps.length) * 100',
+    replace: ').length\n  const progress = (completedSteps / executionSteps.length) * 100',
   },
   {
     file: 'components/ControlCenter/ControlCenter.tsx',
     find: '// Calculate progress const completedSteps = executionSteps.filter(',
-    replace:
-      '// Calculate progress\n  const completedSteps = executionSteps.filter(',
+    replace: '// Calculate progress\n  const completedSteps = executionSteps.filter(',
   },
   {
     file: 'components/ControlCenter/ControlCenter.tsx',
@@ -60,23 +58,22 @@ const fixes = [
   {
     file: 'components/Notifications/NotificationCenter.tsx',
     find: 't, itle: stringmessage?: stringtimestamp: numberread?: boolean',
-    replace:
-      'title: string\n  message?: string\n  timestamp: number\n  read?: boolean',
+    replace: 'title: string\n  message?: string\n  timestamp: number\n  read?: boolean',
   },
-]
+];
 
-let changed = 0
+let changed = 0;
 for (const fix of fixes) {
-  const filePath = path.join(process.cwd(), fix.file)
+  const filePath = path.join(process.cwd(), fix.file);
   if (fs.existsSync(filePath)) {
-    let content = fs.readFileSync(filePath, 'utf8')
+    let content = fs.readFileSync(filePath, 'utf8');
     if (content.includes(fix.find)) {
-      content = content.replace(fix.find, fix.replace)
-      fs.writeFileSync(filePath, content)
-      console.log('fixed', fix.file)
-      changed++
+      content = content.replace(fix.find, fix.replace);
+      fs.writeFileSync(filePath, content);
+      console.log('fixed', fix.file);
+      changed++;
     }
   }
 }
 
-console.log('done, files changed:', changed)
+console.log('done, files changed:', changed);

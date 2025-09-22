@@ -1,119 +1,61 @@
-import { NextResponse } from 'next/server'
-import { Connection } from '@solana/web3.js'
-import path from 'path'
-import { NEXT_PUBLIC_HELIUS_RPC, NEXT_PUBLIC_JITO_ENDPOINT } from '@/constants'
-import { getServerRpc } from '@/lib/server/rpc'
-import { getPuppeteerHelper } from '@/helpers/puppeteerHelper'
+import { NextResponse } from 'next/server';
+import { Connection } from '@solana/web3.js';
+import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
+import { getTipFloor } from '@/lib/server/jitoService';
+import { observeLatency } from '@/lib/core/src/metrics';
+import { isTestMode } from '@/lib/testMode';
 
-async function checkDatabase(): Promise<boolean> {
-  try {
-    const sqlite3 = (await import('sqlite3')).default
-    const { open } = await import('sqlite')
-    const db = await open({ filename: path.join(process.cwd(), 'data', 'keymaker.db'), driver: sqlite3.Database })
-    const required = ['wallets', 'tokens', 'trades', 'execution_logs', 'pnl_records', 'bundles', 'settings', 'errors']
-    const rows = await db.all("SELECT name FROM sqlite_master WHERE type='table'")
-    const names = new Set<string>(rows.map((r: any) => r.name))
-    const ok = required.every((t) => names.has(t))
-    await db.close()
-    return ok
-  } catch {
-    return false
-  }
-}
+export const dynamic = 'force-dynamic';
 
-async function checkRPC(): Promise<{ connected: boolean; slot?: number; latency_ms?: number }> {
-  try {
-    const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
-    const startTime = Date.now()
-    const connection = new Connection(rpc, 'confirmed')
-    await connection.getLatestBlockhash('processed')
-    const slot = await connection.getSlot()
-    const latency = Date.now() - startTime
-    return { connected: true, slot, latency_ms: latency }
-  } catch {
-    return { connected: false }
-  }
-}
-
-async function checkWS(): Promise<{ connected: boolean; latency_ms?: number }> {
-  try {
-    const rpc = getServerRpc() || NEXT_PUBLIC_HELIUS_RPC
-    const startTime = Date.now()
-    const connection = new Connection(rpc, 'confirmed')
-    const subscriptionId = await connection.onSlotChange(() => {})
-    await connection.removeSlotChangeListener(subscriptionId)
-    const latency = Date.now() - startTime
-    return { connected: true, latency_ms: latency }
-  } catch {
-    return { connected: false }
-  }
-}
-
-async function checkJito(): Promise<boolean> {
-  try {
-    const response = await fetch(`${NEXT_PUBLIC_JITO_ENDPOINT}/api/v1/bundles`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(5000),
-    })
-    return response.ok || response.status === 400
-  } catch {
-    return false
-  }
-}
-
-export async function GET(request: Request) {
-  try {
-    const { version } = await import('../../../package.json')
-    if (process.env.NODE_ENV !== 'production') {
-      return NextResponse.json(
-        { ok: true, puppeteer: false, version, timestamp: new Date().toISOString(), rpc: 'healthy', rpc_latency_ms: 150, ws: 'healthy', ws_latency_ms: 200, be: 'healthy', tipping: 'healthy', db: 'healthy' },
-        { status: 200 },
-      )
-    }
-
-    const [dbOk, rpcStatus, wsStatus, jitoOk, tipOk] = await Promise.all([
-      checkDatabase(),
-      checkRPC(),
-      checkWS(),
-      checkJito(),
-      (async () => {
-        try {
-          const res = await fetch(`${NEXT_PUBLIC_JITO_ENDPOINT}/api/v1/bundles/tipfloor`, { signal: AbortSignal.timeout(4000) })
-          return res.ok
-        } catch {
-          return false
-        }
-      })(),
-    ])
-
-    const puppeteerOk = await (async () => {
-      try {
-        const helper = getPuppeteerHelper()
-        return await helper.testPuppeteer()
-      } catch {
-        return false
-      }
-    })()
-
-    const health = {
-      ok: rpcStatus.connected && dbOk,
-      puppeteer: puppeteerOk,
-      version,
+export async function GET() {
+  const started = Date.now();
+  let rpcLatency = -1;
+  let jitoLatency = -1;
+  if (isTestMode()) {
+    return NextResponse.json({
+      ok: true,
+      version: process.env.npm_package_version || 'dev',
       timestamp: new Date().toISOString(),
-      rpc: rpcStatus.connected ? 'healthy' : 'down',
-      rpc_latency_ms: rpcStatus.latency_ms,
-      ws: wsStatus.connected ? 'healthy' : 'down',
-      ws_latency_ms: wsStatus.latency_ms,
-      be: jitoOk ? 'healthy' : 'down',
-      tipping: tipOk ? 'healthy' : 'down',
-      db: dbOk ? 'healthy' : 'down',
-    }
-    return NextResponse.json(health, { status: health.ok ? 200 : 503 })
-  } catch (error) {
-    return NextResponse.json(
-      { ok: false, puppeteer: false, version: 'unknown', timestamp: new Date().toISOString(), rpc: false, jito: false, db: false },
-      { status: 503 },
-    )
+      checks: {
+        rpc: { status: 'healthy', latency_ms: 10 },
+        jito: { status: 'healthy', latency_ms: 5, region: 'ffm' },
+        database: { status: 'healthy' },
+      },
+      duration_ms: Date.now() - started,
+    });
   }
+  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
+  try {
+    const t0 = Date.now();
+    await connection.getSlot();
+    rpcLatency = Date.now() - t0;
+  } catch (e) {
+    rpcLatency = -1;
+  }
+
+  try {
+    const t1 = Date.now();
+    await getTipFloor('ffm');
+    jitoLatency = Date.now() - t1;
+  } catch (e) {
+    jitoLatency = -1;
+  }
+
+  // No DB dependency in lean mode
+
+  return NextResponse.json({
+    ok: rpcLatency >= 0 && jitoLatency >= 0,
+    version: process.env.npm_package_version || 'dev',
+    timestamp: new Date().toISOString(),
+    checks: {
+      rpc: { status: rpcLatency >= 0 ? 'healthy' : 'down', latency_ms: rpcLatency },
+      jito: {
+        status: jitoLatency >= 0 ? 'healthy' : 'down',
+        latency_ms: jitoLatency,
+        region: 'ffm',
+      },
+      database: { status: 'n/a' },
+    },
+    duration_ms: Date.now() - started,
+  });
 }

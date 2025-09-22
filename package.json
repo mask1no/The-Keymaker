@@ -3,6 +3,8 @@
   "version": "1.5.2",
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
+    "check:node": "node -e \"const [mj]=process.versions.node.split('.') ; if(+mj<18){console.error('Node>=18 required'); process.exit(1)} else console.log('Node OK')\"",
+    "core:build": "tsc --project tsconfig.core.json --noEmit",
     "dev": "next dev",
     "build": "next build",
     "build:scripts": "tsc --project tsconfig.node.json",
@@ -14,7 +16,8 @@
     "hygiene": "node scripts/hygiene.mjs",
     "lint:fix": "pnpm lint --fix",
     "format": "prettier -w .",
-    "type-check": "tsc --noEmit || true",
+    "type-check": "tsc --noEmit",
+    "type-check:server": "tsc --project tsconfig.server.json --noEmit",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
@@ -32,10 +35,15 @@
     "postinstall": "node scripts/postinstall-safe.js",
     "browsers:install": "cross-env PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
     "prepare": "husky && husky install",
-    "core:build": "tsx --tsconfig tsconfig.core.json --no-cache -e \"console.log('core build ok')\"",
-    "cli:send": "tsx --tsconfig tsconfig.core.json bin/keymaker.ts send ffm",
-    "cli:status": "tsx --tsconfig tsconfig.core.json bin/keymaker.ts status ffm",
-    "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev",
+    "cli:send": "tsx bin/keymaker.ts send",
+    "cli:status": "tsx bin/keymaker.ts status",
+    "cli:fund": "tsx bin/keymaker.ts fund",
+    "sanity": "node scripts/sanity.mjs",
+    "bundle:zip": "node scripts/bundle-zip.mjs"
   },
   "dependencies": {
     "2captcha": "^3.0.5-2",
@@ -101,6 +109,7 @@
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
     "swr": "^2.3.6",
+    "@prisma/client": "^5.18.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.0",
     "undici": "^7.16.0",
@@ -135,12 +144,14 @@
     "jest-environment-jsdom": "^30.1.2",
     "node-fetch": "^3.3.2",
     "playwright": "^1.54.2",
+    "@axe-core/playwright": "^4.10.0",
     "prettier": "^3.0.0",
     "puppeteer": "^24.15.0",
     "semver": "^7.7.2",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "tailwindcss-animate": "^1.0.7",
+    "prisma": "^5.18.0",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "ts-prune": "^0.10.3",
@@ -153,5 +164,8 @@
   },
   "resolutions": {
     "bigint-buffer": "1.1.5"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
