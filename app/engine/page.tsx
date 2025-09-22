@@ -27,7 +27,7 @@ async function submitTestBundle(formData: FormData) {
   const region = (formData.get('region') as string) || 'ffm';
   const priority = (formData.get('priority') as string) || 'med';
   const tipLamports = Number(formData.get('tipLamports') || 5000);
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
+  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,8 +35,6 @@ async function submitTestBundle(formData: FormData) {
     },
     body: JSON.stringify({ region, priority, tipLamports }),
   });
-  const j = await res.json();
-  return JSON.stringify(j);
 }
 
 function readTodayJournal(): Array<{ time: string; ev: string; summary: string }> {

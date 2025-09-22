@@ -76,7 +76,14 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const tipFloor = await getTipFloor(region);
   const dynamicTip = Math.ceil(tipFloor.ema_landed_tips_50th_percentile * 1.1);
   const effectiveTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
-  console.log(JSON.stringify({ ev: 'tip', region, chosen: effectiveTip, floor_ema50: tipFloor.ema_landed_tips_50th_percentile }));
+  console.log(
+    JSON.stringify({
+      ev: 'tip',
+      region,
+      chosen: effectiveTip,
+      floor_ema50: tipFloor.ema_landed_tips_50th_percentile,
+    }),
+  );
 
   const tx = await buildTipOnlyTx(payer.publicKey, effectiveTip);
   tx.sign([payer]);
