@@ -28,8 +28,7 @@ async function derive(password: string, salt: Uint8Array): Promise<CryptoKey> {
 }
 
 function viewToArrayBuffer(v: Uint8Array): ArrayBuffer {
-  if (v.byteOffset === 0 && v.byteLength === v.buffer.byteLength)
-    return v.buffer as ArrayBuffer;
+  if (v.byteOffset === 0 && v.byteLength === v.buffer.byteLength) return v.buffer as ArrayBuffer;
   return v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength) as ArrayBuffer;
 }
 

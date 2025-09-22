@@ -4,6 +4,7 @@ import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 import { getTipFloor } from '@/lib/server/jitoService';
 import { isTestMode } from '@/lib/testMode';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {

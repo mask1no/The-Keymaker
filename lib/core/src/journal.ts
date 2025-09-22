@@ -19,8 +19,20 @@ export function createDailyJournal(dir: string): string {
   return file;
 }
 
+function sanitize(obj: any): any {
+  if (obj == null || typeof obj !== 'object') return obj;
+  const out: any = Array.isArray(obj) ? [] : {};
+  const re = /(key|secret|token|pass)/i;
+  for (const [k, v] of Object.entries(obj)) {
+    if (re.test(k)) out[k] = '[redacted]';
+    else out[k] = typeof v === 'object' ? sanitize(v as any) : v;
+  }
+  return out;
+}
+
 export function logJsonLine(filePath: string, obj: unknown): void {
   const dir = dirname(filePath);
   ensureDir(dir);
-  appendFileSync(filePath, JSON.stringify(obj) + '\n', 'utf8');
+  const safe = sanitize(obj);
+  appendFileSync(filePath, JSON.stringify(safe) + '\n', 'utf8');
 }

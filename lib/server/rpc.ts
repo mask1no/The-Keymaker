@@ -11,4 +11,3 @@ export function getServerRpc(): string {
   }
   return 'https://api.mainnet-beta.solana.com';
 }
-

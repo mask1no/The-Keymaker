@@ -30,9 +30,7 @@ export function createComputeBudgetInstructions(
   return [setLimit, setPrice];
 }
 
-export function suggestPriorityFromRecentMicroLamports(
-  avgMicroLamports: number,
-): PriorityLevel {
+export function suggestPriorityFromRecentMicroLamports(avgMicroLamports: number): PriorityLevel {
   if (avgMicroLamports >= 800_000) return 'veryHigh';
   if (avgMicroLamports >= 300_000) return 'high';
   if (avgMicroLamports >= 60_000) return 'medium';

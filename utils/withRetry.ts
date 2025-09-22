@@ -15,10 +15,7 @@ const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'onRetry' | 'shouldRetry'>> &
 /**
  * Wraps a function with retry logic using optional exponential backoff
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const config = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
@@ -47,7 +44,7 @@ export async function withRetry<T>(
     }
   }
   // Should never get here, but satisfy TS
-  throw (lastError as unknown as Error);
+  throw lastError as unknown as Error;
 }
 
 /**

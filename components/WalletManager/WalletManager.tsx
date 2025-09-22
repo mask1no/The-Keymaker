@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React from 'react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
@@ -59,7 +59,9 @@ export default function WalletManager() {
     const kp = Keypair.generate();
     const enc = await encrypt(kp.secretKey, password);
     const next = folders.map((f) =>
-      f.id === openId ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] } : f,
+      f.id === openId
+        ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] }
+        : f,
     );
     setFolders(next);
     save(next);
@@ -75,7 +77,9 @@ export default function WalletManager() {
       const kp = Keypair.fromSecretKey(sk);
       const enc = await encrypt(kp.secretKey, password);
       const next = folders.map((f) =>
-        f.id === openId ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] } : f,
+        f.id === openId
+          ? { ...f, wallets: [...f.wallets, { pub: kp.publicKey.toBase58(), enc }] }
+          : f,
       );
       setFolders(next);
       save(next);
@@ -168,7 +172,9 @@ export default function WalletManager() {
                       key={w.pub}
                       className="flex items-center justify-between rounded-xl border border-zinc-800 p-2 text-xs"
                     >
-                      <span className="truncate">{i + 1}. {w.pub}</span>
+                      <span className="truncate">
+                        {i + 1}. {w.pub}
+                      </span>
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
@@ -186,8 +192,8 @@ export default function WalletManager() {
                   ))}
                 </div>
                 <div className="text-xs opacity-60">
-                  Keys are generated <b>locally</b> and AES-GCM encrypted with your password. Nothing leaves your
-                  browser.
+                  Keys are generated <b>locally</b> and AES-GCM encrypted with your password.
+                  Nothing leaves your browser.
                 </div>
               </div>
             )}

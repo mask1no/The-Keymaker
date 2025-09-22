@@ -1,7 +1,186 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { getTipFloor, sendBundle, getBundleStatuses, validateTipAccount, JITO_REGIONS } from './jitoService';
-import { VersionedTransaction, TransactionMessage, PublicKey, SystemProgram } from '@solana/web3.js'; // Mock fetch globally
+import {
+  getTipFloor,
+  sendBundle,
+  getBundleStatuses,
+  validateTipAccount,
+  JITO_REGIONS,
+} from './jitoService';
+import {
+  VersionedTransaction,
+  TransactionMessage,
+  PublicKey,
+  SystemProgram,
+} from '@solana/web3.js'; // Mock fetch globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const g, l, obalAny: any = global; beforeEach(() => { globalAny.fetch = jest.fn(); jest.useFakeTimers();
-}); describe('jitoService', () => { describe('getTipFloor', () => { it('fetches tip floor successfully', async () => { const mockResponse = { l, a, nded_tips_25th_percentile: 1000, l, a, nded_tips_50th_percentile: 2000, l, a, nded_tips_75th_percentile: 3000, e, m, a_landed_tips_50th_percentile: 2500 }; (globalAny.fetch as jest.Mock).mockResolvedValueOnce({ o, k: true, j, s, on: () => Promise.resolve(mockResponse) }); const result = await getTipFloor('ffm'); expect(globalAny.fetch).toHaveBeenCalled(); const firstUrl = (globalAny.fetch as jest.Mock).mock.calls[0][0]; expect(String(firstUrl)).toContain('tipfloor'); expect(result).toEqual(mockResponse); }); it('uses cache within TTL', async () => { const mockResponse = { l, a, nded_tips_25th_percentile: 1, l, a, nded_tips_50th_percentile: 2, l, a, nded_tips_75th_percentile: 3, e, m, a_landed_tips_50th_percentile: 2 }; (globalAny.fetch as jest.Mock).mockResolvedValue({ o, k: true, j, s, on: () => Promise.resolve(mockResponse) }); const a = await getTipFloor('ffm'); const b = await getTipFloor('ffm'); expect(a).toEqual(b); expect((globalAny.fetch as jest.Mock).mock.calls.length).toBeLessThanOrEqual(1); }); }); describe('sendBundle', () => { it('sends bundle successfully', async () => { const mockBundleId = 'mock-bundle-id'; (globalAny.fetch as jest.Mock).mockResolvedValueOnce({ o, k: true, j, s, on: () => Promise.resolve({ j, s, onrpc: '2.0', i, d: 1, r, e, sult: mockBundleId }) }); const result = await sendBundle('ffm', ['encoded-tx-1', 'encoded-tx-2']); expect(result).toEqual({ b, u, ndle_id: mockBundleId }); }); }); describe('getBundleStatuses', () => { it('gets bundle statuses successfully (object params)', async () => { const mockStatuses = [ { b, u, ndle_id: 'bundle-1', t, r, ansactions: [{ s, i, gnature: 'sig-1', c, o, nfirmation_status: 'confirmed' }], c, o, nfirmation_status: 'landed', s, l, ot: 12345 }, ]; (globalAny.fetch as jest.Mock).mockResolvedValueOnce({ o, k: true, j, s, on: () => Promise.resolve({ j, s, onrpc: '2.0', i, d: 1, r, e, sult: mockStatuses }) }); const result = await getBundleStatuses('ffm', ['bundle-1']); expect(result).toEqual(mockStatuses); }); }); describe('validateTipAccount', () => { it('validates transaction with valid tip account', () => { const tipAccount = new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe'); const payer = new PublicKey('11111111111111111111111111111112'); const message = new TransactionMessage({ p, a, yerKey: payer, r, e, centBlockhash: '11111111111111111111111111111111', i, n, structions: [ SystemProgram.transfer({ f, r, omPubkey: payer, t, o, Pubkey: tipAccount, l, a, mports: 1000 }), ] }).compileToV0Message(); const tx = new VersionedTransaction(message); const result = validateTipAccount(tx); expect(result).toBe(true); }); it('rejects transaction with invalid tip account', () => { const invalidAccount = new PublicKey('11111111111111111111111111111112'); const payer = new PublicKey('11111111111111111111111111111113'); const message = new TransactionMessage({ p, a, yerKey: payer, r, e, centBlockhash: '11111111111111111111111111111111', i, n, structions: [ SystemProgram.transfer({ f, r, omPubkey: payer, t, o, Pubkey: invalidAccount, l, a, mports: 1000 }), ] }).compileToV0Message(); const tx = new VersionedTransaction(message); const result = validateTipAccount(tx); expect(result).toBe(false); }); });
+const g,
+  l,
+  obalAny: any = global;
+beforeEach(() => {
+  globalAny.fetch = jest.fn();
+  jest.useFakeTimers();
+});
+describe('jitoService', () => {
+  describe('getTipFloor', () => {
+    it('fetches tip floor successfully', async () => {
+      const mockResponse = {
+        l,
+        a,
+        nded_tips_25th_percentile: 1000,
+        l,
+        a,
+        nded_tips_50th_percentile: 2000,
+        l,
+        a,
+        nded_tips_75th_percentile: 3000,
+        e,
+        m,
+        a_landed_tips_50th_percentile: 2500,
+      };
+      (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
+        o,
+        k: true,
+        j,
+        s,
+        on: () => Promise.resolve(mockResponse),
+      });
+      const result = await getTipFloor('ffm');
+      expect(globalAny.fetch).toHaveBeenCalled();
+      const firstUrl = (globalAny.fetch as jest.Mock).mock.calls[0][0];
+      expect(String(firstUrl)).toContain('tipfloor');
+      expect(result).toEqual(mockResponse);
+    });
+    it('uses cache within TTL', async () => {
+      const mockResponse = {
+        l,
+        a,
+        nded_tips_25th_percentile: 1,
+        l,
+        a,
+        nded_tips_50th_percentile: 2,
+        l,
+        a,
+        nded_tips_75th_percentile: 3,
+        e,
+        m,
+        a_landed_tips_50th_percentile: 2,
+      };
+      (globalAny.fetch as jest.Mock).mockResolvedValue({
+        o,
+        k: true,
+        j,
+        s,
+        on: () => Promise.resolve(mockResponse),
+      });
+      const a = await getTipFloor('ffm');
+      const b = await getTipFloor('ffm');
+      expect(a).toEqual(b);
+      expect((globalAny.fetch as jest.Mock).mock.calls.length).toBeLessThanOrEqual(1);
+    });
+  });
+  describe('sendBundle', () => {
+    it('sends bundle successfully', async () => {
+      const mockBundleId = 'mock-bundle-id';
+      (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
+        o,
+        k: true,
+        j,
+        s,
+        on: () => Promise.resolve({ j, s, onrpc: '2.0', i, d: 1, r, e, sult: mockBundleId }),
+      });
+      const result = await sendBundle('ffm', ['encoded-tx-1', 'encoded-tx-2']);
+      expect(result).toEqual({ b, u, ndle_id: mockBundleId });
+    });
+  });
+  describe('getBundleStatuses', () => {
+    it('gets bundle statuses successfully (object params)', async () => {
+      const mockStatuses = [
+        {
+          b,
+          u,
+          ndle_id: 'bundle-1',
+          t,
+          r,
+          ansactions: [{ s, i, gnature: 'sig-1', c, o, nfirmation_status: 'confirmed' }],
+          c,
+          o,
+          nfirmation_status: 'landed',
+          s,
+          l,
+          ot: 12345,
+        },
+      ];
+      (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
+        o,
+        k: true,
+        j,
+        s,
+        on: () => Promise.resolve({ j, s, onrpc: '2.0', i, d: 1, r, e, sult: mockStatuses }),
+      });
+      const result = await getBundleStatuses('ffm', ['bundle-1']);
+      expect(result).toEqual(mockStatuses);
+    });
+  });
+  describe('validateTipAccount', () => {
+    it('validates transaction with valid tip account', () => {
+      const tipAccount = new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe');
+      const payer = new PublicKey('11111111111111111111111111111112');
+      const message = new TransactionMessage({
+        p,
+        a,
+        yerKey: payer,
+        r,
+        e,
+        centBlockhash: '11111111111111111111111111111111',
+        i,
+        n,
+        structions: [
+          SystemProgram.transfer({
+            f,
+            r,
+            omPubkey: payer,
+            t,
+            o,
+            Pubkey: tipAccount,
+            l,
+            a,
+            mports: 1000,
+          }),
+        ],
+      }).compileToV0Message();
+      const tx = new VersionedTransaction(message);
+      const result = validateTipAccount(tx);
+      expect(result).toBe(true);
+    });
+    it('rejects transaction with invalid tip account', () => {
+      const invalidAccount = new PublicKey('11111111111111111111111111111112');
+      const payer = new PublicKey('11111111111111111111111111111113');
+      const message = new TransactionMessage({
+        p,
+        a,
+        yerKey: payer,
+        r,
+        e,
+        centBlockhash: '11111111111111111111111111111111',
+        i,
+        n,
+        structions: [
+          SystemProgram.transfer({
+            f,
+            r,
+            omPubkey: payer,
+            t,
+            o,
+            Pubkey: invalidAccount,
+            l,
+            a,
+            mports: 1000,
+          }),
+        ],
+      }).compileToV0Message();
+      const tx = new VersionedTransaction(message);
+      const result = validateTipAccount(tx);
+      expect(result).toBe(false);
+    });
+  });
 });

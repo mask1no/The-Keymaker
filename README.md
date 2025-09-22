@@ -26,6 +26,43 @@
 - Envs: `KEYPAIR_JSON`, `HELIUS_RPC_URL` (or `NEXT_PUBLIC_HELIUS_RPC`), optional `ENGINE_API_TOKEN`.
 - Optional: `PRIORITY`, `TIP_LAMPORTS`, `BLOCKHASH`.
 
+## API Examples
+
+If `ENGINE_API_TOKEN` is set, include the header `-H "x-engine-token: $ENGINE_API_TOKEN"`.
+
+Deposit address (GET):
+
+```bash
+curl -s ${BASE_URL:-http://localhost:3000}/api/engine/deposit-address
+```
+
+Submit (POST):
+
+```bash
+curl -s -X POST \
+  -H "content-type: application/json" \
+  -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"region":"ffm","priority":"med","tipLamports":5000}' \
+  ${BASE_URL:-http://localhost:3000}/api/engine/submit
+```
+
+Status (POST):
+
+```bash
+curl -s -X POST \
+  -H "content-type: application/json" \
+  -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"region":"ffm","bundleId":"<id>"}' \
+  ${BASE_URL:-http://localhost:3000}/api/engine/status
+```
+
+Metrics/Health (GET):
+
+```bash
+curl -s ${BASE_URL:-http://localhost:3000}/api/metrics
+curl -s ${BASE_URL:-http://localhost:3000}/api/health
+```
+
 ## Performance
 
 - SSR-only `/engine`. No client-side signing or heavy bundles.
@@ -33,6 +70,8 @@
 ## Safety
 
 - No browser keys. Repo private. Logs redact secrets.
+- Engine API is Node runtime and dynamic; guarded by optional `ENGINE_API_TOKEN`, rate limited, size-capped, and schema-validated.
+- Strict security headers via `next.config.js` (CSP, frameguard, no-referrer, nosniff, permissions-policy). No third-party client fetches.
 
 ## Roadmap
 

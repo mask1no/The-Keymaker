@@ -39,9 +39,9 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error('Tip floor request failed:', error);
-    return new Response(
-      JSON.stringify({ error: error?.message || 'Failed to get tip floor' }),
-      { status: 500, headers: { 'content-type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: error?.message || 'Failed to get tip floor' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+    });
   }
 }

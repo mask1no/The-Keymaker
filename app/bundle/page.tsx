@@ -48,9 +48,7 @@ export default function Page() {
   const { connected, publicKey } = useWallet();
   const { connection } = useConnection();
   const { health, healthy, rpcHealthy, jitoHealthy } = useHealth();
-  const [loading, setLoading] = React.useState<'idle' | 'tip' | 'simulate' | 'execute'>(
-    'idle',
-  );
+  const [loading, setLoading] = React.useState<'idle' | 'tip' | 'simulate' | 'execute'>('idle');
   const [region, setRegion] = React.useState('ffm');
   const [txsText, setTxsText] = React.useState('');
   const [out, setOut] = React.useState<any>(null);
@@ -335,269 +333,271 @@ export default function Page() {
   return (
     <RequireWallet>
       <div className="mx-auto max-w-7xl space-y-4">
-      {health && !healthy && (
-        <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/40 p-3 text-sm">
-          System degraded: RPC {health.checks.rpc.status}, JITO {health.checks.jito.status}.
-          Execution may be disabled.
-        </div>
-      )}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardHeader className="mb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">Bundle Engine</CardTitle>
-              <div className="text-xs text-zinc-400">
-                {connected ? 'Wallet connected' : 'Connect wallet to execute'}
+        {health && !healthy && (
+          <div className="rounded-2xl border border-yellow-700/40 bg-yellow-950/40 p-3 text-sm">
+            System degraded: RPC {health.checks.rpc.status}, JITO {health.checks.jito.status}.
+            Execution may be disabled.
+          </div>
+        )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
+            <CardHeader className="mb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl">Bundle Engine</CardTitle>
+                <div className="text-xs text-zinc-400">
+                  {connected ? 'Wallet connected' : 'Connect wallet to execute'}
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-sm">Region</label>
-              <div className="min-w-[160px]">
-                <Select value={region} onValueChange={(v) => setRegion(v)}>
-                  <SelectTrigger aria-label="Region">
-                    <SelectValue placeholder="Region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ffm">Frankfurt</SelectItem>
-                    <SelectItem value="ams">Amsterdam</SelectItem>
-                    <SelectItem value="ny">New York</SelectItem>
-                    <SelectItem value="tokyo">Tokyo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <label className="ml-2 text-sm">Mode</label>
-              <div className="min-w-[140px]">
-                <Select value={mode} onValueChange={(v) => setMode(v as any)}>
-                  <SelectTrigger aria-label="Mode">
-                    <SelectValue placeholder="Mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="instant">Instant</SelectItem>
-                    <SelectItem value="delayed">Delayed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {mode === 'delayed' && (
-                <input
-                  type="number"
-                  min={0}
-                  max={120}
-                  className="w-24 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm"
-                  value={delaySec}
-                  onChange={(e) => setDelaySec(parseInt(e.target.value || '0', 10))}
-                  placeholder="Delay (s)"
-                />
-              )}
-              <Button onClick={onTip} disabled={loading !== 'idle'} variant="outline">
-                {loading === 'tip' ? 'Loading…' : 'Fetch Tipfloor'}
-              </Button>
-            </div>
-            {tip && (
-              <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">
-                {JSON.stringify(tip, null, 2)}
-              </pre>
-            )}
-            {tipSuggestion && (
-              <div className="mt-2 text-xs text-zinc-400">
-                Tip suggestions (lamports): conservative {tipSuggestion.conservative} • aggressive{' '}
-                {tipSuggestion.aggressive}
-              </div>
-            )}
-            <div className="mt-3">
-              <BundlePresets
-                onApply={(p) => {
-                  setMode(p.mode);
-                  if (p.mode === 'delayed') setDelaySec(p.delaySec || 30);
-                }}
-              />
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-medium mb-2">Transactions (base64, one per line)</h3>
-              <Textarea
-                rows={8}
-                className="w-full font-mono text-xs"
-                value={txsText}
-                onChange={(e) => setTxsText(e.target.value)}
-                placeholder="base64 tx v0..."
-                aria-label="Transactions base64 input"
-              />
-              <div className="flex gap-2 mt-3 flex-wrap">
-                <Button onClick={onSimulate} disabled={loading !== 'idle'} variant="outline">
-                  {loading === 'simulate' ? 'Simulating…' : 'Preview (simulate)'}
-                </Button>
-                <Button
-                  onClick={onExecute}
-                  disabled={
-                    loading !== 'idle' ||
-                    !connected ||
-                    !tip ||
-                    !rpcHealthy ||
-                    !jitoHealthy ||
-                    parseTxs().length === 0 ||
-                    parseTxs().length > 5 ||
-                    !payloadHash ||
-                    balanceOk === false ||
-                    computeBudgetOk === false ||
-                    tipPresentOk === false
-                  }
-                >
-                  {loading === 'execute' ? 'Executing…' : 'Execute'}
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-sm">Region</label>
+                <div className="min-w-[160px]">
+                  <Select value={region} onValueChange={(v) => setRegion(v)}>
+                    <SelectTrigger aria-label="Region">
+                      <SelectValue placeholder="Region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ffm">Frankfurt</SelectItem>
+                      <SelectItem value="ams">Amsterdam</SelectItem>
+                      <SelectItem value="ny">New York</SelectItem>
+                      <SelectItem value="tokyo">Tokyo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <label className="ml-2 text-sm">Mode</label>
+                <div className="min-w-[140px]">
+                  <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+                    <SelectTrigger aria-label="Mode">
+                      <SelectValue placeholder="Mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="instant">Instant</SelectItem>
+                      <SelectItem value="delayed">Delayed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {mode === 'delayed' && (
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    className="w-24 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm"
+                    value={delaySec}
+                    onChange={(e) => setDelaySec(parseInt(e.target.value || '0', 10))}
+                    placeholder="Delay (s)"
+                  />
+                )}
+                <Button onClick={onTip} disabled={loading !== 'idle'} variant="outline">
+                  {loading === 'tip' ? 'Loading…' : 'Fetch Tipfloor'}
                 </Button>
               </div>
-              {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-              {out && (
+              {tip && (
                 <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">
-                  {JSON.stringify(out, null, 2)}
+                  {JSON.stringify(tip, null, 2)}
                 </pre>
               )}
-              {status && (
-                <div className="mt-3 text-sm text-zinc-300" role="status" aria-live="polite">
-                  <div className="flex items-center gap-2">
-                    <span>Status: {status.confirmation_status || 'pending'}</span>
-                    {out?.bundle_id && (
-                      <Button
-                        variant="outline"
-                        className="h-7 px-2 py-0.5 text-xs"
-                        onClick={() =>
-                          out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)
-                        }
-                        aria-label="Copy bundle ID"
-                      >
-                        Copy ID
-                      </Button>
-                    )}
-                  </div>
-                  {typeof status.slot !== 'undefined' && <div>Landed slot: {status.slot}</div>}
+              {tipSuggestion && (
+                <div className="mt-2 text-xs text-zinc-400">
+                  Tip suggestions (lamports): conservative {tipSuggestion.conservative} • aggressive{' '}
+                  {tipSuggestion.aggressive}
                 </div>
               )}
-              {mode === 'delayed' && loading === 'execute' && armCountdown > 0 && (
-                <div className="mt-3 text-xs text-zinc-400">Arming… T-{armCountdown}s</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-3">
+                <BundlePresets
+                  onApply={(p) => {
+                    setMode(p.mode);
+                    if (p.mode === 'delayed') setDelaySec(p.delaySec || 30);
+                  }}
+                />
+              </div>
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">Transactions (base64, one per line)</h3>
+                <Textarea
+                  rows={8}
+                  className="w-full font-mono text-xs"
+                  value={txsText}
+                  onChange={(e) => setTxsText(e.target.value)}
+                  placeholder="base64 tx v0..."
+                  aria-label="Transactions base64 input"
+                />
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  <Button onClick={onSimulate} disabled={loading !== 'idle'} variant="outline">
+                    {loading === 'simulate' ? 'Simulating…' : 'Preview (simulate)'}
+                  </Button>
+                  <Button
+                    onClick={onExecute}
+                    disabled={
+                      loading !== 'idle' ||
+                      !connected ||
+                      !tip ||
+                      !rpcHealthy ||
+                      !jitoHealthy ||
+                      parseTxs().length === 0 ||
+                      parseTxs().length > 5 ||
+                      !payloadHash ||
+                      balanceOk === false ||
+                      computeBudgetOk === false ||
+                      tipPresentOk === false
+                    }
+                  >
+                    {loading === 'execute' ? 'Executing…' : 'Execute'}
+                  </Button>
+                </div>
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+                {out && (
+                  <pre className="mt-3 rounded-xl border border-zinc-800 bg-black/40 p-3 text-xs overflow-auto">
+                    {JSON.stringify(out, null, 2)}
+                  </pre>
+                )}
+                {status && (
+                  <div className="mt-3 text-sm text-zinc-300" role="status" aria-live="polite">
+                    <div className="flex items-center gap-2">
+                      <span>Status: {status.confirmation_status || 'pending'}</span>
+                      {out?.bundle_id && (
+                        <Button
+                          variant="outline"
+                          className="h-7 px-2 py-0.5 text-xs"
+                          onClick={() =>
+                            out?.bundle_id && navigator.clipboard.writeText(out.bundle_id)
+                          }
+                          aria-label="Copy bundle ID"
+                        >
+                          Copy ID
+                        </Button>
+                      )}
+                    </div>
+                    {typeof status.slot !== 'undefined' && <div>Landed slot: {status.slot}</div>}
+                  </div>
+                )}
+                {mode === 'delayed' && loading === 'execute' && armCountdown > 0 && (
+                  <div className="mt-3 text-xs text-zinc-400">Arming… T-{armCountdown}s</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Guardrails</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Wallet connected</span>
-                <span className={connected ? 'text-emerald-400' : 'text-red-400'}>
-                  {connected ? 'ok' : 'missing'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">≤ 5 transactions</span>
-                <span
-                  className={
-                    txsText.split('\n').filter(Boolean).length <= 5
-                      ? 'text-emerald-400'
-                      : 'text-red-400'
-                  }
-                >
-                  {txsText.split('\n').filter(Boolean).length}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Health: RPC/JITO</span>
-                <span
-                  className={rpcHealthy && jitoHealthy ? 'text-emerald-400' : 'text-yellow-400'}
-                >
-                  {rpcHealthy && jitoHealthy ? 'ok' : 'degraded'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Tipfloor fetched</span>
-                <span className={tip ? 'text-emerald-400' : 'text-yellow-400'}>
-                  {tip ? 'ok' : 'pending'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Simulated payload</span>
-                <span className={payloadHash ? 'text-emerald-400' : 'text-yellow-400'}>
-                  {payloadHash ? 'ok' : 'pending'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Compute budget present</span>
-                <span
-                  className={
-                    computeBudgetOk
-                      ? 'text-emerald-400'
-                      : computeBudgetOk === false
-                        ? 'text-red-400'
-                        : 'text-yellow-400'
-                  }
-                >
-                  {computeBudgetOk ? 'ok' : computeBudgetOk === false ? 'missing' : 'unknown'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">JITO tip in last tx</span>
-                <span
-                  className={
-                    tipPresentOk
-                      ? 'text-emerald-400'
-                      : tipPresentOk === false
-                        ? 'text-red-400'
-                        : 'text-yellow-400'
-                  }
-                >
-                  {tipPresentOk ? 'ok' : tipPresentOk === false ? 'missing' : 'unknown'}
-                </span>
-              </li>
-              <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
-                <span className="text-zinc-400">Balance sufficient</span>
-                <span
-                  className={
-                    balanceOk
-                      ? 'text-emerald-400'
-                      : balanceOk === false
-                        ? 'text-red-400'
-                        : 'text-yellow-400'
-                  }
-                >
-                  {balanceOk ? 'ok' : balanceOk === false ? 'insufficient' : 'unknown'}
-                </span>
-              </li>
-            </ul>
-            <div className="text-xs text-zinc-500 mt-3">All guardrails must pass before execution.</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Guardrails</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Wallet connected</span>
+                  <span className={connected ? 'text-emerald-400' : 'text-red-400'}>
+                    {connected ? 'ok' : 'missing'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">≤ 5 transactions</span>
+                  <span
+                    className={
+                      txsText.split('\n').filter(Boolean).length <= 5
+                        ? 'text-emerald-400'
+                        : 'text-red-400'
+                    }
+                  >
+                    {txsText.split('\n').filter(Boolean).length}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Health: RPC/JITO</span>
+                  <span
+                    className={rpcHealthy && jitoHealthy ? 'text-emerald-400' : 'text-yellow-400'}
+                  >
+                    {rpcHealthy && jitoHealthy ? 'ok' : 'degraded'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Tipfloor fetched</span>
+                  <span className={tip ? 'text-emerald-400' : 'text-yellow-400'}>
+                    {tip ? 'ok' : 'pending'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Simulated payload</span>
+                  <span className={payloadHash ? 'text-emerald-400' : 'text-yellow-400'}>
+                    {payloadHash ? 'ok' : 'pending'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Compute budget present</span>
+                  <span
+                    className={
+                      computeBudgetOk
+                        ? 'text-emerald-400'
+                        : computeBudgetOk === false
+                          ? 'text-red-400'
+                          : 'text-yellow-400'
+                    }
+                  >
+                    {computeBudgetOk ? 'ok' : computeBudgetOk === false ? 'missing' : 'unknown'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">JITO tip in last tx</span>
+                  <span
+                    className={
+                      tipPresentOk
+                        ? 'text-emerald-400'
+                        : tipPresentOk === false
+                          ? 'text-red-400'
+                          : 'text-yellow-400'
+                    }
+                  >
+                    {tipPresentOk ? 'ok' : tipPresentOk === false ? 'missing' : 'unknown'}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between rounded-xl border border-zinc-800 bg-black/40 px-3 py-2">
+                  <span className="text-zinc-400">Balance sufficient</span>
+                  <span
+                    className={
+                      balanceOk
+                        ? 'text-emerald-400'
+                        : balanceOk === false
+                          ? 'text-red-400'
+                          : 'text-yellow-400'
+                    }
+                  >
+                    {balanceOk ? 'ok' : balanceOk === false ? 'insufficient' : 'unknown'}
+                  </span>
+                </li>
+              </ul>
+              <div className="text-xs text-zinc-500 mt-3">
+                All guardrails must pass before execution.
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Leader schedule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LeaderPanel />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Leader schedule</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LeaderPanel />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Recent metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MetricsPanel />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Recent metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MetricsPanel />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Recent runs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RecentRunsPanel />
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Recent runs</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RecentRunsPanel />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </RequireWallet>
   );
