@@ -20,23 +20,20 @@ const include = [
 
 const exclude = ['**/node_modules/**', 'legacy/**', '.next/**', 'coverage/**', 'test-results/**'];
 
-const files = await glob(include, { ignore: exclude, nodir: true });
+const files = await glob(include, { ignore: exclude, nodir: true, windowsPathsNoEscape: true });
 if (!files.length) {
   console.error('No files matched for bundling');
   process.exit(1);
 }
 if (existsSync('bundle.zip')) {
-  try {
-    unlinkSync('bundle.zip');
-  } catch {}
+  try { unlinkSync('bundle.zip'); } catch {}
 }
 
 if (process.platform === 'win32') {
-  const psScript = [
-    'Param([String[]]$Paths)',
-    'Compress-Archive -Path $Paths -DestinationPath bundle.zip -Force',
-  ].join('; ');
-  const args = ['-NoProfile', '-Command', psScript, '--', ...files];
+  // Use -Path @(...) to pass array correctly
+  const quoted = files.map((p) => `'${p.replace(/'/g, "''")}'`).join(',');
+  const ps = `Compress-Archive -Path @(${quoted}) -DestinationPath 'bundle.zip' -Force`;
+  const args = ['-NoProfile', '-Command', ps];
   const zip = spawn('powershell', args, { stdio: 'inherit' });
   zip.on('exit', (code) => {
     if (code !== 0) process.exit(code || 1);

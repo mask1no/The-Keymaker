@@ -104,7 +104,7 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
     blockhash: bh.blockhash,
     tipLamports: effectiveTip,
     cuPrice: pri,
-    txSigs: [bs58.encode(sigBytes)],
+    txSigs: [Buffer.from(sigBytes).toString('base64')],
     corr,
   });
   incCounter('bundles_submitted_total', { region });
