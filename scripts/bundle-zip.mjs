@@ -26,7 +26,9 @@ if (!files.length) {
   process.exit(1);
 }
 if (existsSync('bundle.zip')) {
-  try { unlinkSync('bundle.zip'); } catch {}
+  try {
+    unlinkSync('bundle.zip');
+  } catch {}
 }
 
 if (process.platform === 'win32') {
