@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import { z } from 'zod';
 import {
   Connection,
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
     const tx = new VersionedTransaction(msg);
     tx.sign([payer]);
     const encoded = Buffer.from(tx.serialize()).toString('base64');
+    const corr = createHash('sha256').update(Buffer.from(encoded)).digest('hex');
     incCounter('bundles_submitted_total', { region });
     const submit = await sendBundle(region as RegionKey, [encoded]);
     const t0 = Date.now();
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     const s = statuses?.[0]?.confirmation_status || 'pending';
     if (s === 'landed') incCounter('bundles_landed_total', { region });
     else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
-    return NextResponse.json({ bundleId: submit.bundle_id, status: s, corr: submit.bundle_id, requestId });
+    return NextResponse.json({ bundleId: submit.bundle_id, status: s, corr, requestId });
   } catch {
     return apiError(500, 'failed');
   }

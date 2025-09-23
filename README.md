@@ -58,6 +58,15 @@ curl -s -X POST \
   ${BASE_URL:-http://localhost:3000}/api/engine/status
 ```
 
+Adapter demo (POST):
+
+```bash
+curl -s ${BASE_URL:-http://localhost:3000}/api/adapters/build \
+  -H "content-type: application/json" \
+  -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"adapter":"spl-mint-demo","memo":"hello"}'
+```
+
 Metrics/Health (GET):
 
 ```bash
