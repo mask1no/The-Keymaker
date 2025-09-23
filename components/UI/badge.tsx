@@ -2,13 +2,11 @@ import { cn } from '@/lib/utils';
 
 type Variant = 'default' | 'secondary' | 'destructive' | 'outline';
 
-export function Badge(
-  {
-    className,
-    variant = 'default',
-    ...props
-  }: React.HTMLAttributes<HTMLSpanElement> & { variant?: Variant },
-) {
+export function Badge({
+  className,
+  variant = 'default',
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement> & { variant?: Variant }) {
   const base = 'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium';
   const variants: Record<Variant, string> = {
     default: 'bg-muted text-foreground border-border',
