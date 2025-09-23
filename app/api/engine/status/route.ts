@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { getBundleStatuses } from '@/lib/core/src/jito';
 import { rateLimit } from '@/lib/server/rateLimit';
@@ -21,6 +22,7 @@ function requireToken(headers: Headers) {
 
 export async function POST(request: Request) {
   try {
+    const requestId = randomUUID();
     if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
     if (request.method !== 'POST') return apiError(405, 'method_not_allowed');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { region, bundleId } = Body.parse(body);
     const statuses = await getBundleStatuses(region, [bundleId]);
-    return NextResponse.json({ statuses });
+    return NextResponse.json({ statuses, requestId });
   } catch {
     return apiError(500, 'failed');
   }

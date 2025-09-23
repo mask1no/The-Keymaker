@@ -20,14 +20,24 @@ async function jrpc<T>(region: RegionKey, method: string, params: unknown, timeo
   return json.result as T;
 }
 
+const tipCache = new Map<string, { at: number; data: TipFloorResponse }>();
+const TIP_TTL_MS = Number(process.env.TIPFLOOR_TTL_MS || '7000');
+
 export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> {
+  const key = `tip:${region}`;
+  const now = Date.now();
+  const cached = tipCache.get(key);
+  if (cached && now - cached.at < TIP_TTL_MS) return cached.data;
+
   const base = JITO_BUNDLE_ENDPOINTS[region];
   const primary = new URL('tipfloor', base);
   const root = new URL('/tipfloor', base.replace('/api/v1/bundles', ''));
   let res = await fetch(primary);
   if (!res.ok) res = await fetch(root);
   if (!res.ok) throw new Error(`Tipfloor ${res.status}`);
-  return (await res.json()) as TipFloorResponse;
+  const data = (await res.json()) as TipFloorResponse;
+  tipCache.set(key, { at: now, data });
+  return data;
 }
 
 export async function sendBundle(region: RegionKey, encodedTransactions: string[]) {

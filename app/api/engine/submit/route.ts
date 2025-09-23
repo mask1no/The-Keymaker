@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import {
   Connection,
@@ -47,6 +48,7 @@ function rpcUrl(): string {
 
 export async function POST(request: Request) {
   try {
+    const requestId = randomUUID();
     if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
     if (request.method !== 'POST') return apiError(405, 'method_not_allowed');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
     const s = statuses?.[0]?.confirmation_status || 'pending';
     if (s === 'landed') incCounter('bundles_landed_total', { region });
     else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
-    return NextResponse.json({ bundleId: submit.bundle_id, status: s });
+    return NextResponse.json({ bundleId: submit.bundle_id, status: s, corr: submit.bundle_id, requestId });
   } catch {
     return apiError(500, 'failed');
   }

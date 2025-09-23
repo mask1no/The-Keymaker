@@ -13,6 +13,8 @@
 9. pnpm dev → open /engine
 10. curl /api/metrics | curl /api/health
 
+PowerShell tip: run commands separately instead of chaining with &&.
+
 ## Architecture
 
 - Core modules in `lib/core/src`: Jito client, journal, metrics, types.
