@@ -16,8 +16,6 @@ import {
   getTipFloor,
   sendBundle,
   getBundleStatuses,
-  incCounter,
-  observeLatency,
 } from '@/lib/core/src';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
@@ -50,8 +48,15 @@ function rpcUrl(): string {
 export async function POST(request: Request) {
   try {
     const requestId = randomUUID();
-    if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
-    if (request.method !== 'POST') return apiError(405, 'method_not_allowed');
+    if (!requireToken(request.headers)) {
+      incCounter('token_missing_total');
+      incCounter('engine_4xx_total');
+      return apiError(401, 'unauthorized');
+    }
+    if (request.method !== 'POST') {
+      incCounter('engine_4xx_total');
+      return apiError(405, 'method_not_allowed');
+    }
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
     if (!rateLimit(key)) {
@@ -59,11 +64,19 @@ export async function POST(request: Request) {
       return apiError(429, 'rate_limited');
     }
     const cl = Number(request.headers.get('content-length') || '0');
-    if (cl > 8192) {
+    const LIMIT = 8192;
+    if (cl > LIMIT) {
       incCounter('payload_too_large_total');
+      incCounter('engine_4xx_total');
       return apiError(413, 'payload_too_large');
     }
-    const body = await request.json();
+    const rawText = await request.text();
+    if (Buffer.byteLength(rawText || '', 'utf8') > LIMIT) {
+      incCounter('payload_too_large_total');
+      incCounter('engine_4xx_total');
+      return apiError(413, 'payload_too_large');
+    }
+    const body = rawText ? JSON.parse(rawText) : {};
     const { region = 'ffm', tipLamports, priority = 'med' } = Body.parse(body);
 
     const keyPath = process.env.KEYPAIR_JSON;
@@ -78,8 +91,16 @@ export async function POST(request: Request) {
     const effTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
     const priMicros = PRIORITY_TO_MICROLAMPORTS[priority];
 
-    const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: payer.publicKey, lamports: 0 });
-    const msg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+    const ix = SystemProgram.transfer({
+      fromPubkey: payer.publicKey,
+      toPubkey: payer.publicKey,
+      lamports: 0,
+    });
+    const msg = new TransactionMessage({
+      payerKey: payer.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [ix],
+    }).compileToV0Message();
     const tx = new VersionedTransaction(msg);
     tx.sign([payer]);
     const encoded = Buffer.from(tx.serialize()).toString('base64');
