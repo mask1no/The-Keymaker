@@ -5,6 +5,7 @@ services:
       NODE_ENV: production
 
       # Public RPC endpoint (do not compose from secret keys here)
+      # NEXT_PUBLIC_* are public by design; identifiers only — no secrets
       NEXT_PUBLIC_HELIUS_RPC: https://api.mainnet-beta.solana.com
       NEXT_PUBLIC_JITO_ENDPOINT: https://mainnet.block-engine.jito.wtf
       # Server RPC can be a secret-backed URL; prefer configuring via .env

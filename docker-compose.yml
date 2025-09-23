@@ -11,6 +11,7 @@ services:
       NODE_ENV: production
 
       # Solana RPC Configuration
+      # NEXT_PUBLIC_* are public by design; identifiers only — no secrets
       NEXT_PUBLIC_HELIUS_RPC: ${NEXT_PUBLIC_HELIUS_RPC}
       NEXT_PUBLIC_JITO_ENDPOINT: ${NEXT_PUBLIC_JITO_ENDPOINT:-https://mainnet.block-engine.jito.wtf}
 
@@ -27,6 +28,7 @@ services:
 
       # Monitoring
       SENTRY_DSN: ${SENTRY_DSN}
+      # Public DSN is optional; contains no secrets
       NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
 
       # Python module RPC

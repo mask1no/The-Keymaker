@@ -32,10 +32,17 @@ export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> 
   const base = JITO_BUNDLE_ENDPOINTS[region];
   const primary = new URL('tipfloor', base);
   const root = new URL('/tipfloor', base.replace('/api/v1/bundles', ''));
+  const t0 = Date.now();
   let res = await fetch(primary);
   if (!res.ok) res = await fetch(root);
   if (!res.ok) throw new Error(`Tipfloor ${res.status}`);
   const data = (await res.json()) as TipFloorResponse;
+  const hit = cached && now - cached.at < TIP_TTL_MS;
+  // Lightweight log for local dev; does not introduce a logger dep
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify({ ev: 'tipfloor', region, cache: hit ? 'hit' : 'miss', ms: Date.now() - t0 }));
+  }
   tipCache.set(key, { at: now, data });
   return data;
 }
