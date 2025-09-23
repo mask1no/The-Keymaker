@@ -1,4 +1,5 @@
 import { RegionKey, TipFloorResponse } from './types';
+import { incCounter, observeLatency } from './metrics';
 
 export const JITO_BUNDLE_ENDPOINTS: Record<RegionKey, string> = {
   ffm: 'https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles',
@@ -27,7 +28,10 @@ export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> 
   const key = `tip:${region}`;
   const now = Date.now();
   const cached = tipCache.get(key);
-  if (cached && now - cached.at < TIP_TTL_MS) return cached.data;
+  if (cached && now - cached.at < TIP_TTL_MS) {
+    incCounter('tipfloor_cache_hit_total', { region });
+    return cached.data;
+  }
 
   const base = JITO_BUNDLE_ENDPOINTS[region];
   const primary = new URL('tipfloor', base);
@@ -38,11 +42,8 @@ export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> 
   if (!res.ok) throw new Error(`Tipfloor ${res.status}`);
   const data = (await res.json()) as TipFloorResponse;
   const hit = cached && now - cached.at < TIP_TTL_MS;
-  // Lightweight log for local dev; does not introduce a logger dep
-  if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify({ ev: 'tipfloor', region, cache: hit ? 'hit' : 'miss', ms: Date.now() - t0 }));
-  }
+  incCounter('tipfloor_cache_miss_total', { region });
+  observeLatency('tipfloor_fetch_ms', Date.now() - t0, { region, hit: hit ? 'hit' : 'miss' });
   tipCache.set(key, { at: now, data });
   return data;
 }

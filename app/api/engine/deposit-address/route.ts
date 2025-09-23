@@ -12,6 +12,7 @@ export async function GET() {
     const raw = readFileSync(keyPath, 'utf8');
     const arr = JSON.parse(raw);
     const kp = Keypair.fromSecretKey(Uint8Array.from(arr));
+    // Only expose the publicKey
     return NextResponse.json({ publicKey: kp.publicKey.toBase58() });
   } catch {
     return NextResponse.json({ error: 'failed' }, { status: 500 });

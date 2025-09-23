@@ -21,6 +21,7 @@ import {
 } from '@/lib/core/src';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
+import { incCounter, observeLatency } from '@/lib/server/metricsStore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,9 +54,15 @@ export async function POST(request: Request) {
     if (request.method !== 'POST') return apiError(405, 'method_not_allowed');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(key)) return apiError(429, 'rate_limited');
+    if (!rateLimit(key)) {
+      incCounter('rate_limited_total');
+      return apiError(429, 'rate_limited');
+    }
     const cl = Number(request.headers.get('content-length') || '0');
-    if (cl > 8192) return apiError(413, 'payload_too_large');
+    if (cl > 8192) {
+      incCounter('payload_too_large_total');
+      return apiError(413, 'payload_too_large');
+    }
     const body = await request.json();
     const { region = 'ffm', tipLamports, priority = 'med' } = Body.parse(body);
 
@@ -77,6 +84,7 @@ export async function POST(request: Request) {
     tx.sign([payer]);
     const encoded = Buffer.from(tx.serialize()).toString('base64');
     const corr = createHash('sha256').update(Buffer.from(encoded)).digest('hex');
+    incCounter('engine_submit_total');
     incCounter('bundles_submitted_total', { region });
     const submit = await sendBundle(region as RegionKey, [encoded]);
     const t0 = Date.now();
@@ -85,8 +93,11 @@ export async function POST(request: Request) {
     const s = statuses?.[0]?.confirmation_status || 'pending';
     if (s === 'landed') incCounter('bundles_landed_total', { region });
     else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
-    return NextResponse.json({ bundleId: submit.bundle_id, status: s, corr, requestId });
+    const res = NextResponse.json({ bundleId: submit.bundle_id, status: s, corr, requestId });
+    incCounter('engine_2xx_total');
+    return res;
   } catch {
+    incCounter('engine_5xx_total');
     return apiError(500, 'failed');
   }
 }

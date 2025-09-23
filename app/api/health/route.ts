@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { getTipFloor } from '@/lib/server/jitoService';
+import { getTipFloor } from '@/lib/core/src/jito';
+import { incCounter } from '@/lib/server/metricsStore';
 import { isTestMode } from '@/lib/testMode';
 
 export const runtime = 'nodejs';
@@ -43,7 +44,7 @@ export async function GET() {
 
   // No DB dependency in lean mode
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     ok: rpcLatency >= 0 && jitoLatency >= 0,
     version: process.env.npm_package_version || 'dev',
     timestamp: new Date().toISOString(),
@@ -58,4 +59,6 @@ export async function GET() {
     },
     duration_ms: Date.now() - started,
   });
+  incCounter('engine_2xx_total');
+  return res;
 }

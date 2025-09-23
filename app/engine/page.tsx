@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import Link from 'next/link';
+// SSR-only; avoid client imports
 
 export const dynamic = 'force-dynamic';
 

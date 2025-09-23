@@ -1,0 +1,1 @@
+This directory holds quarantined UI/services/scripts not required for the production-ready engine.
