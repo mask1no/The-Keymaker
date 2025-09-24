@@ -10,24 +10,25 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import { readFileSync } from 'fs';
-import {
-  RegionKey,
-  PRIORITY_TO_MICROLAMPORTS,
-  getTipFloor,
-  sendBundle,
-  getBundleStatuses,
-} from '@/lib/core/src';
+import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
+import { engineSubmit } from '@/lib/core/src/engineFacade';
+import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { incCounter, observeLatency } from '@/lib/server/metricsStore';
+import { getUiSettings } from '@/lib/server/settings';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
+  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
   region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
   tipLamports: z.number().int().nonnegative().optional(),
   priority: z.enum(['low', 'med', 'high', 'vhigh']).optional(),
+  chunkSize: z.number().int().min(1).max(20).optional(),
+  concurrency: z.number().int().min(1).max(16).optional(),
+  jitterMs: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
 });
 
 function requireToken(headers: Headers) {
@@ -77,7 +78,15 @@ export async function POST(request: Request) {
       return apiError(413, 'payload_too_large');
     }
     const body = rawText ? JSON.parse(rawText) : {};
-    const { region = 'ffm', tipLamports, priority = 'med' } = Body.parse(body);
+    const parsed = Body.parse(body);
+    const ui = getUiSettings();
+    const mode: ExecutionMode = (parsed.mode || ui.mode || 'JITO_BUNDLE') as ExecutionMode;
+    const region = (parsed.region || ui.region || 'ffm') as 'ffm' | 'ams' | 'ny' | 'tokyo';
+    const tipLamports = parsed.tipLamports ?? ui.tipLamports;
+    const priority = (parsed.priority || ui.priority || 'med') as 'low' | 'med' | 'high' | 'vhigh';
+    const chunkSize = parsed.chunkSize ?? ui.chunkSize;
+    const concurrency = parsed.concurrency ?? ui.concurrency;
+    const jitterMs = parsed.jitterMs ?? ui.jitterMs;
 
     const keyPath = process.env.KEYPAIR_JSON;
     if (!keyPath) return apiError(400, 'not_configured');
@@ -86,9 +95,6 @@ export async function POST(request: Request) {
 
     const conn = new Connection(rpcUrl(), 'confirmed');
     const { blockhash } = await conn.getLatestBlockhash('confirmed');
-    const tip = await getTipFloor(region as RegionKey);
-    const dynamicTip = Math.ceil(tip.ema_landed_tips_50th_percentile * 1.1);
-    const effTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
     const priMicros = PRIORITY_TO_MICROLAMPORTS[priority];
 
     const ix = SystemProgram.transfer({
@@ -106,15 +112,10 @@ export async function POST(request: Request) {
     const encoded = Buffer.from(tx.serialize()).toString('base64');
     const corr = createHash('sha256').update(Buffer.from(encoded)).digest('hex');
     incCounter('engine_submit_total');
-    incCounter('bundles_submitted_total', { region });
-    const submit = await sendBundle(region as RegionKey, [encoded]);
-    const t0 = Date.now();
-    const statuses = await getBundleStatuses(region as RegionKey, [submit.bundle_id]);
-    observeLatency('bundle_status_ms', Date.now() - t0, { region });
-    const s = statuses?.[0]?.confirmation_status || 'pending';
-    if (s === 'landed') incCounter('bundles_landed_total', { region });
-    else if (s === 'failed' || s === 'invalid') incCounter('bundles_dropped_total', { region });
-    const res = NextResponse.json({ bundleId: submit.bundle_id, status: s, corr, requestId });
+    const plan = { txs: [tx], corr };
+    const opts: ExecOptions = { mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs } as any;
+    const submit = await engineSubmit(plan, opts);
+    const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
     incCounter('engine_2xx_total');
     return res;
   } catch {

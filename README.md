@@ -1,19 +1,19 @@
-# Keymaker — lean Solana bundler with Jito, CLI-first, SSR console.
+# Keymaker — lean Solana bundler with Jito/RPC modes, CLI-first, SSR console.
 
 ## 10-line Runbook (Non-Coder)
 
 1. pnpm install --ignore-scripts
 2. pnpm check:node && pnpm core:build
 3. solana-keygen new -o ~/keymaker-payer.json -s
-4. solana-keygen pubkey ~/keymaker-payer.json (fund ~0.01 SOL from Phantom)
+4. solana-keygen pubkey ~/keymaker-payer.json # fund ~0.01 SOL from Phantom
 5. export KEYPAIR_JSON=~/keymaker-payer.json
-6. pnpm cli:send # → {bundleId}
-7. pnpm cli:status ffm <id> # → {statuses}
+6. pnpm cli:send # -> {"bundleId": "..."} or mode-specific ids/sigs, then a status map
+7. pnpm cli:status ffm <bundleId>
 8. tail -n 5 data/journal\*.ndjson
-9. pnpm dev → open /engine
-10. curl /api/metrics | curl /api/health
+9. pnpm dev && open http://localhost:3000/engine
+10. (optional) curl /api/metrics | curl /api/health
 
-PowerShell tip: run commands separately instead of chaining with &&.
+PowerShell: run commands separately instead of chaining with &&
 
 ## Architecture
 
@@ -28,6 +28,11 @@ PowerShell tip: run commands separately instead of chaining with &&.
 - Envs: `KEYPAIR_JSON`, `HELIUS_RPC_URL` (or `NEXT_PUBLIC_HELIUS_RPC`), optional `ENGINE_API_TOKEN`.
 - Optional: `PRIORITY`, `TIP_LAMPORTS`, `BLOCKHASH`.
 
+## Execution Modes
+
+- JITO_BUNDLE: best-effort same-slot ordered bundles (tip required; inclusion not guaranteed).
+- RPC_FANOUT: separate transactions with concurrency + jitter; not atomic/same-slot.
+
 ## API Examples
 
 If `ENGINE_API_TOKEN` is set, include the header `-H "x-engine-token: $ENGINE_API_TOKEN"`.
@@ -35,33 +40,40 @@ If `ENGINE_API_TOKEN` is set, include the header `-H "x-engine-token: $ENGINE_AP
 Deposit address (GET):
 
 ```bash
-curl -s ${BASE_URL:-http://localhost:3000}/api/engine/deposit-address
+curl -s ${BASE:-http://localhost:3000}/api/engine/deposit-address \
+  -H "x-engine-token: $ENGINE_API_TOKEN"
 ```
 
-Submit (POST):
+Submit (POST) — Jito example:
 
 ```bash
-curl -s -X POST \
+curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
-  -d '{"region":"ffm","priority":"med","tipLamports":5000}' \
-  ${BASE_URL:-http://localhost:3000}/api/engine/submit
+  -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","tipLamports":5000}'
+'
+Submit (POST) — RPC example:
+
+```bash
+curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+  -H "content-type: application/json" \
+  -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150]}'
 ```
 
 Status (POST):
 
 ```bash
-curl -s -X POST \
+curl -s ${BASE:-http://localhost:3000}/api/engine/status \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
-  -d '{"region":"ffm","bundleId":"<id>"}' \
-  ${BASE_URL:-http://localhost:3000}/api/engine/status
+  -d '{"mode":"JITO_BUNDLE","region":"ffm","bundleId":"<ID>"}'
 ```
 
 Adapter demo (POST):
 
 ```bash
-curl -s ${BASE_URL:-http://localhost:3000}/api/adapters/build \
+curl -s ${BASE:-http://localhost:3000}/api/adapters/build \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"adapter":"spl-mint-demo","memo":"hello"}'

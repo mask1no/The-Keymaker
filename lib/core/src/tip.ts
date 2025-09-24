@@ -14,4 +14,3 @@ export function tipIx(from: PublicKey, to: PublicKey, lamports: number): Transac
   if (!isValidTipRecipient(to.toBase58())) throw new Error('Invalid Jito tip recipient');
   return SystemProgram.transfer({ fromPubkey: from, toPubkey: to, lamports });
 }
-

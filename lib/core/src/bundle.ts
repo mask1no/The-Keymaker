@@ -13,7 +13,12 @@ export type BundleStatus = 'pending' | 'landed' | 'dropped' | 'invalid' | 'timeo
 
 const txB64 = (tx: VersionedTransaction): string => Buffer.from(tx.serialize()).toString('base64');
 
-async function jrpc<T>(region: Region, method: string, params: unknown, timeoutMs = 10_000): Promise<T> {
+async function jrpc<T>(
+  region: Region,
+  method: string,
+  params: unknown,
+  timeoutMs = 10_000,
+): Promise<T> {
   const res = await fetch(ENDPOINT[region], {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -28,7 +33,10 @@ async function jrpc<T>(region: Region, method: string, params: unknown, timeoutM
 
 export async function submitBundle(region: Region, txs: VersionedTransaction[]) {
   const encodedTransactions = txs.map(txB64);
-  const bundleId = await jrpc<string>(region, 'sendBundle', { encodedTransactions, bundleOnly: true });
+  const bundleId = await jrpc<string>(region, 'sendBundle', {
+    encodedTransactions,
+    bundleOnly: true,
+  });
   if (!bundleId) throw new Error('No bundle id');
   return { bundleId };
 }
@@ -42,4 +50,3 @@ export async function getStatuses(region: Region, ids: string[]) {
   }
   return out;
 }
-

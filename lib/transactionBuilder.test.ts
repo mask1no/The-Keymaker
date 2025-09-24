@@ -8,16 +8,14 @@ import {
 const mockConnection = {
   g,
   e,
-  tLatestBlockhash: vi
-    .fn()
-    .mockResolvedValue({
-      b,
-      l,
-      ockhash: '11111111111111111111111111111111',
-      l,
-      a,
-      stValidBlockHeight: 123456,
-    }),
+  tLatestBlockhash: vi.fn().mockResolvedValue({
+    b,
+    l,
+    ockhash: '11111111111111111111111111111111',
+    l,
+    a,
+    stValidBlockHeight: 123456,
+  }),
 } as unknown as Connection;
 describe('transactionBuilder', () => {
   const payer = new PublicKey('11111111111111111111111111111112');

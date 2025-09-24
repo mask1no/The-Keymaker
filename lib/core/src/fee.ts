@@ -11,10 +11,9 @@ export function computeBudget(priority: Priority): Budget {
     priority === 'vhigh'
       ? 800_000
       : priority === 'high'
-      ? 300_000
-      : priority === 'med'
-      ? 100_000
-      : 10_000;
+        ? 300_000
+        : priority === 'med'
+          ? 100_000
+          : 10_000;
   return { cuLimit, microLamports };
 }
-

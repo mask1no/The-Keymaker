@@ -1,0 +1,2 @@
+// archived: scripts/fixAllErrors.mjs
+

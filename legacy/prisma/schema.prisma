@@ -1,4 +1,4 @@
-// PostgreSQL datasource
+// archived prisma schema (moved out of active toolchains)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -23,4 +23,5 @@ model ExecutionLog {
   details    Json?
   created_at DateTime @default(now())
 }
+
 

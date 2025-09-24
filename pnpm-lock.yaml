@@ -6,6 +6,7 @@ settings:
 
 overrides:
   bigint-buffer: 1.1.5
+  axios: ^1.12.0
 
 importers:
 

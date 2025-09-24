@@ -1,5 +1,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
+import { getUiSettings, setUiSettings } from '@/lib/server/settings';
+import type { ExecutionMode } from '@/lib/core/src/engine';
 // SSR-only; avoid client imports
 
 export const dynamic = 'force-dynamic';
@@ -24,17 +26,44 @@ async function getDepositAddress(): Promise<string | null> {
 
 async function submitTestBundle(formData: FormData) {
   'use server';
+  const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
   const region = (formData.get('region') as string) || 'ffm';
   const priority = (formData.get('priority') as string) || 'med';
   const tipLamports = Number(formData.get('tipLamports') || 5000);
+  const chunkSize = Number(formData.get('chunkSize') || 5);
+  const concurrency = Number(formData.get('concurrency') || 4);
+  const jitterMin = Number(formData.get('jitterMin') || 50);
+  const jitterMax = Number(formData.get('jitterMax') || 150);
   await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-engine-token': process.env.ENGINE_API_TOKEN || '',
     },
-    body: JSON.stringify({ region, priority, tipLamports }),
+    body: JSON.stringify({ mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs: [jitterMin, jitterMax] }),
   });
+}
+
+async function toggleMode(formData: FormData) {
+  'use server';
+  const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
+  setUiSettings({ mode });
+}
+
+async function updateSettings(formData: FormData) {
+  'use server';
+  const entries: Record<string, string> = {} as any;
+  for (const [k, v] of formData.entries()) entries[k] = String(v);
+  const next: any = {};
+  if (entries.region) next.region = entries.region;
+  if (entries.priority) next.priority = entries.priority;
+  if (entries.tipLamports) next.tipLamports = Number(entries.tipLamports);
+  if (entries.chunkSize) next.chunkSize = Number(entries.chunkSize);
+  if (entries.concurrency) next.concurrency = Number(entries.concurrency);
+  const jm0 = Number(entries.jitterMin || 50);
+  const jm1 = Number(entries.jitterMax || 150);
+  next.jitterMs = [jm0, jm1];
+  setUiSettings(next);
 }
 
 function readTodayJournal(): Array<{ time: string; ev: string; summary: string }> {
@@ -66,9 +95,30 @@ function readTodayJournal(): Array<{ time: string; ev: string; summary: string }
 export default async function Page() {
   const deposit = await getDepositAddress();
   const events = readTodayJournal();
+  const ui = getUiSettings();
   return (
     <div className="prose prose-invert max-w-none">
+      <Style />
       <h1>Engine</h1>
+      <div className="mb-4 text-xs"><span className="badge">Execution Mode: {ui.mode}</span></div>
+      <div className="bento mb-4">
+        <form action={toggleMode} className={`card ${ui.mode === 'JITO_BUNDLE' ? 'active' : ''}`}>
+          <input type="hidden" name="mode" value="JITO_BUNDLE" />
+          <button type="submit" className="w-full text-left">
+            <div className="label mb-1">Mode</div>
+            <div className="text-lg font-semibold">Jito Bundle</div>
+            <div className="text-sm text-zinc-400">Same-block ordered bundle with tip</div>
+          </button>
+        </form>
+        <form action={toggleMode} className={`card ${ui.mode === 'RPC_FANOUT' ? 'active' : ''}`}>
+          <input type="hidden" name="mode" value="RPC_FANOUT" />
+          <button type="submit" className="w-full text-left">
+            <div className="label mb-1">Mode</div>
+            <div className="text-lg font-semibold">Direct RPC</div>
+            <div className="text-sm text-zinc-400">Concurrency and jitter; non-atomic</div>
+          </button>
+        </form>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <section className="col-span-1 border border-zinc-800 rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Deposit Address</h2>
@@ -81,10 +131,15 @@ export default async function Page() {
         <section className="col-span-1 border border-zinc-800 rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Run Test Bundle</h2>
           <form action={submitTestBundle} className="flex flex-col gap-2">
+            <label className="text-sm">Mode</label>
+            <select name="mode" defaultValue={ui.mode} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
+              <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+              <option value="RPC_FANOUT">RPC_FANOUT</option>
+            </select>
             <label className="text-sm">Region</label>
             <select
               name="region"
-              defaultValue="ffm"
+              defaultValue={ui.region}
               className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
             >
               <option value="ffm">ffm</option>
@@ -95,7 +150,7 @@ export default async function Page() {
             <label className="text-sm">Priority</label>
             <select
               name="priority"
-              defaultValue="med"
+              defaultValue={ui.priority}
               className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
             >
               <option value="low">low</option>
@@ -107,9 +162,27 @@ export default async function Page() {
             <input
               type="number"
               name="tipLamports"
-              defaultValue={5000}
+              defaultValue={ui.tipLamports ?? 5000}
               className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
             />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-sm">Chunk Size</label>
+                <input type="number" name="chunkSize" defaultValue={ui.chunkSize} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+              </div>
+              <div>
+                <label className="text-sm">Concurrency</label>
+                <input type="number" name="concurrency" defaultValue={ui.concurrency} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+              </div>
+              <div>
+                <label className="text-sm">Jitter Min (ms)</label>
+                <input type="number" name="jitterMin" defaultValue={ui.jitterMs?.[0] ?? 50} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+              </div>
+              <div>
+                <label className="text-sm">Jitter Max (ms)</label>
+                <input type="number" name="jitterMax" defaultValue={ui.jitterMs?.[1] ?? 150} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+              </div>
+            </div>
             <button
               type="submit"
               className="mt-2 bg-zinc-800 hover:bg-zinc-700 text-sm rounded px-3 py-1 w-fit"
@@ -150,5 +223,24 @@ export default async function Page() {
         </section>
       </div>
     </div>
+  );
+}
+
+// Styles for bento and cards (SSR-only)
+export const metadata = {} as any;
+export const viewport = {} as any;
+// Using a style tag here avoids client bundles; Next will inline CSS
+export function Style() {
+  return (
+    <style>{`
+:root{ --bg:#0b0e13; --card:#121826; --cardActive:#1d2a44; --text:#e6edf3; --muted:#9fb0c0; --accent:#6aa9ff; --accent2:#64d3a5; }
+@media (prefers-color-scheme: light){ :root{ --bg:#f7f9fc; --card:#ffffff; --cardActive:#eaf1ff; --text:#0b1220; --muted:#475569; --accent:#245bcc; --accent2:#0c8f63; } }
+.bento{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.card{ background:var(--card); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px; transition:background .15s,border-color .15s,transform .06s; }
+.card.active{ background:var(--cardActive); border-color:var(--accent); box-shadow:0 0 0 1px rgba(100,149,237,.25) inset; }
+.card:active{ transform:translateY(1px); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:999px; background:var(--cardActive); color:var(--accent); font-weight:600; font-size:12px; }
+.label{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    `}</style>
   );
 }

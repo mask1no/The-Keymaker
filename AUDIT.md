@@ -78,17 +78,20 @@ export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
 
 ## Fix-Forward Plan (today)
 
-0) Incident response (now)
+0. Incident response (now)
+
 - Rotate any previously exposed keys (Helius, Birdeye, Pump.fun, 2Captcha, Jito auth if any).
 - Ensure `.env*` stays ignored; never expose secrets via `NEXT_PUBLIC_*` unless truly public.
 
-1) Split codebase by responsibility
+1. Split codebase by responsibility
+
 - Create:
   - `packages/bundler-core` – headless TS lib (no Next.js/React/Zustand).
   - `apps/api` – thin HTTP wrapper over core.
   - `apps/web` – optional UI that calls the API only (quarantine current UI for later).
 
-2) Re-implement minimal bundler-core cleanly (500–1500 LOC target)
+2. Re-implement minimal bundler-core cleanly (500–1500 LOC target)
+
 - Modules:
   - `rpc.ts` – recent blockhash; light health checks.
   - `fee.ts` – CU limits + microLamports policy (low/med/high/vhigh).
@@ -98,18 +101,21 @@ export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
   - `journal.ts` – append-only NDJSON (or tiny SQLite DAL with migrations later).
   - `metrics.ts` – counters/histograms (OK to start by writing NDJSON metrics).
 
-3) Ship a tiny CLI before any UI
+3. Ship a tiny CLI before any UI
+
 - Commands:
   - `keymaker simulate --ix-file ix.json`
   - `keymaker send --region ffm --txs tx1.b64 tx2.b64`
   - `keymaker status --region ffm --id <bundleId>`
 - If CLI cannot land a bundle reliably, defer UI entirely.
 
-4) Replace broken subsystems with clean adapters
+4. Replace broken subsystems with clean adapters
+
 - `adapters/pumpfun` emits ix arrays only (no submission inside adapter).
 - Same for Raydium or others; core handles build/sign/submit.
 
-5) Observability > UX
+5. Observability > UX
+
 - Minimal metrics:
   - `bundles_submitted_total{region}`
   - `bundles_landed_total` | `bundles_dropped_total`
@@ -117,7 +123,8 @@ export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
   - `jito_tip_floor_micro_lamports` gauge
   - `rpc_health`, `jito_http_health`
 
-6) Definition of Done (for core)
+6. Definition of Done (for core)
+
 - Deterministic builder verified by binary equality tests.
 - E2E: sign → submit → poll returns landed|dropped|timeout.
 - Journal includes blockhash, slot, sigs, CU price, tip, region, timings.
@@ -144,16 +151,16 @@ export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
 
 ## Today’s Concrete Steps (order of execution)
 
-1) Create `packages/bundler-core` with: `rpc.ts`, `fee.ts`, `tip.ts`, `builder.ts`, `bundle.ts`, `journal.ts`, `metrics.ts`.
-2) Move `lib/server/jitoService.ts` logic into `bundle.ts` (or wrap it) and delete server/UI coupling.
-3) Add `packages/cli` with `simulate`, `send`, `status` commands.
-4) Add `apps/api` routes: `POST /bundles/submit`, `POST /bundles/status`, `GET /tipfloor` that call core.
-5) Disable/remove uses of `services/statusPoller.ts`, `lib/db.ts` in the Next.js app for now.
-6) Add tests:
+1. Create `packages/bundler-core` with: `rpc.ts`, `fee.ts`, `tip.ts`, `builder.ts`, `bundle.ts`, `journal.ts`, `metrics.ts`.
+2. Move `lib/server/jitoService.ts` logic into `bundle.ts` (or wrap it) and delete server/UI coupling.
+3. Add `packages/cli` with `simulate`, `send`, `status` commands.
+4. Add `apps/api` routes: `POST /bundles/submit`, `POST /bundles/status`, `GET /tipfloor` that call core.
+5. Disable/remove uses of `services/statusPoller.ts`, `lib/db.ts` in the Next.js app for now.
+6. Add tests:
    - Binary-equality builder tests
    - E2E smoke test to submit a 1-tx tip-only bundle on mainnet (config-gated)
-7) Add NDJSON journaling to `data/journal.ndjson` (gitignored) and minimal health/metrics route.
-8) Only after the CLI consistently lands, rebuild a minimal one-page UI that calls the API.
+7. Add NDJSON journaling to `data/journal.ndjson` (gitignored) and minimal health/metrics route.
+8. Only after the CLI consistently lands, rebuild a minimal one-page UI that calls the API.
 
 ---
 
@@ -182,4 +189,3 @@ export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
 ## Final Recommendation
 
 Stop polishing the UI. Ship a weapon-grade, headless bundler-core with a CLI and minimal API. Prove deterministic build and reliable submit→poll on mainnet. Journal everything. After that lands, add adapters and a minimal UI. The current repo should be split; treat most of it as peripherals and focus on the engine.
-

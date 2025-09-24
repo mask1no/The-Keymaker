@@ -2,7 +2,15 @@ import { readFileSync } from 'fs';
 import { glob } from 'glob';
 
 const files = await glob('**/*.{ts,tsx,js,jsx}', {
-  ignore: ['node_modules/**', 'legacy/**', '.next/**', 'coverage/**', 'dist/**', 'tests/**'],
+  ignore: [
+    'node_modules/**',
+    'legacy/**',
+    '.next/**',
+    'coverage/**',
+    'dist/**',
+    'tests/**',
+    'examples/**',
+  ],
 });
 
 let bad = [];

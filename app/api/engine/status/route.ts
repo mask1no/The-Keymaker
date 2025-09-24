@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { getBundleStatuses } from '@/lib/core/src/jito';
+import { enginePoll } from '@/lib/core/src/engineFacade';
+import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { incCounter } from '@/lib/server/metricsStore';
@@ -10,8 +11,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
-  region: z.enum(['ffm', 'ams', 'ny', 'tokyo']),
-  bundleId: z.string().min(4),
+  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
+  region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
+  bundleId: z.string().min(4).optional(),
+  sigs: z.array(z.string()).optional(),
 });
 
 function requireToken(headers: Headers) {
@@ -51,8 +54,14 @@ export async function POST(request: Request) {
       return apiError(413, 'payload_too_large');
     }
     const body = rawText ? JSON.parse(rawText) : {};
-    const { region, bundleId } = Body.parse(body);
-    const statuses = await getBundleStatuses(region, [bundleId]);
+    const { mode = 'JITO_BUNDLE', region = 'ffm', bundleId, sigs } = Body.parse(body);
+    const opts: ExecOptions = {
+      mode: mode as ExecutionMode,
+      region: region as any,
+      bundleIds: bundleId ? [bundleId] : undefined,
+      sigs: sigs || undefined,
+    } as any;
+    const statuses = await enginePoll(null, opts);
     const res = NextResponse.json({ statuses, requestId });
     incCounter('engine_status_total');
     incCounter('engine_2xx_total');

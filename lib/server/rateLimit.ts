@@ -11,5 +11,3 @@ export function rateLimit(key: string, cap = 30, refillPerSec = 10): boolean {
   buckets.set(key, b);
   return true;
 }
-
-

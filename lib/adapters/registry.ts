@@ -2,5 +2,5 @@
 export type AdapterKey = 'spl-mint-demo';
 
 export function listAdapters(): AdapterKey[] {
-	return ['spl-mint-demo'];
+  return ['spl-mint-demo'];
 }
