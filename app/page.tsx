@@ -13,7 +13,7 @@ export default function HomePage() {
           Welcome. Use the navigation to access Bundler, Settings, and more.{' '}
         </p>{' '}
       </div>{' '}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="bento">
         {' '}
         <Card className="rounded-xl border border-zinc-800 bg-zinc-950/50">
           {' '}
