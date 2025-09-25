@@ -9,6 +9,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 ## Vision & Mission
 
 ### Product Vision
+
 The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
 
 - **Military-grade reliability**
