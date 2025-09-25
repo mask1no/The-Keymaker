@@ -14,6 +14,12 @@ bonk-mcp/**
 legacy/**
 legacy/app-archive/**
 docs/ARCHIVE/**
+components/UI/stepper.tsx
+components/UI/switch.tsx
+components/UI/table.tsx
+components/UI/Tabs.tsx
+components/UI/tooltip.tsx
+components/UI/StatusBento.tsx
 tests/**
 coverage/**
 dist/**
