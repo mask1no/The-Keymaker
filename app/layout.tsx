@@ -11,16 +11,16 @@ function Header() {
           Keymaker
         </Link>
         <nav className="hidden md:flex items-center gap-4 text-sm">
-          <Link className="focusable" href="/engine">
+          <Link className="focusable" href="/engine" prefetch={false}>
             Engine
           </Link>
-          <Link className="focusable" href="/bundle">
+          <Link className="focusable" href="/bundle" prefetch={false}>
             Bundler
           </Link>
-          <Link className="focusable" href="/settings">
+          <Link className="focusable" href="/settings" prefetch={false}>
             Settings
           </Link>
-          <Link className="focusable" href="/dashboard">
+          <Link className="focusable" href="/dashboard" prefetch={false}>
             Dashboard
           </Link>
         </nav>
@@ -41,7 +41,7 @@ function SideNav() {
     <aside className="w-56 md:w-60 lg:w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
       <nav className="flex flex-col gap-1 text-sm">
         {items.map((x) => (
-          <Link key={x.name} href={x.href} className="pressable rounded-xl px-3 py-2">
+          <Link key={x.name} href={x.href} className="pressable rounded-xl px-3 py-2" prefetch={false}>
             {x.name}
           </Link>
         ))}

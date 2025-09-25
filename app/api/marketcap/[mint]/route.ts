@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/server/rateLimit';
+import { apiError } from '@/lib/server/apiError';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,13 +26,17 @@ async function fetchFromDexscreener(mint: string) {
 export async function GET(_request: Request, context: { params: { mint?: string } }) {
   try {
     const mint = context.params?.mint;
-    if (!mint || typeof mint !== 'string') {
-      return NextResponse.json({ error: 'invalid_mint' }, { status: 400 });
-    }
+    if (!mint || typeof mint !== 'string') return apiError(400, 'invalid_mint');
+    // Token guard (optional header) + rate limit + 8KB cap
+    const fwd = (_request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const key = fwd || 'anon';
+    if (!rateLimit(key)) return apiError(429, 'rate_limited');
+    const cl = Number(_request.headers.get('content-length') || '0');
+    if (cl > 8192) return apiError(413, 'payload_too_large');
     const data = await fetchFromDexscreener(mint);
-    if (!data) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    if (!data) return apiError(404, 'not_found');
     return NextResponse.json(data);
   } catch {
-    return NextResponse.json({ error: 'failed' }, { status: 500 });
+    return apiError(500, 'failed');
   }
 }
