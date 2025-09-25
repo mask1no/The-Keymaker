@@ -40,7 +40,17 @@ export function getUiSettings(): UiSettings {
       : [50, 150];
     const dryRun = typeof raw.dryRun === 'boolean' ? raw.dryRun : true;
     const cluster = raw.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
-    return { mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs, dryRun, cluster };
+    return {
+      mode,
+      region,
+      priority,
+      tipLamports,
+      chunkSize,
+      concurrency,
+      jitterMs,
+      dryRun,
+      cluster,
+    };
   } catch {
     return {
       mode: 'JITO_BUNDLE',

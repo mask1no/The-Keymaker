@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     const chunkSize = parsed.chunkSize ?? ui.chunkSize;
     const concurrency = parsed.concurrency ?? ui.concurrency;
     const jitterMs = parsed.jitterMs ?? ui.jitterMs;
-    const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : ui.dryRun ?? true;
+    const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : (ui.dryRun ?? true);
     const cluster = parsed.cluster || ui.cluster || 'mainnet-beta';
 
     const keyPath = process.env.KEYPAIR_JSON;

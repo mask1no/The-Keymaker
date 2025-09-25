@@ -23,9 +23,9 @@ function getRpc(cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): string {
     );
   }
   return (
-     process.env.HELIUS_RPC_URL ||
-     process.env.NEXT_PUBLIC_HELIUS_RPC ||
-     'https://api.mainnet-beta.solana.com'
+    process.env.HELIUS_RPC_URL ||
+    process.env.NEXT_PUBLIC_HELIUS_RPC ||
+    'https://api.mainnet-beta.solana.com'
   );
 }
 

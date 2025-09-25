@@ -19,5 +19,3 @@ export function disarm(): void {
 export function armedUntil(): number {
   return ARMED_UNTIL;
 }
-
-

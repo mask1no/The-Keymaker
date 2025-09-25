@@ -12,6 +12,8 @@ utils/browserCrypto.ts
 utils/feeCalculator.ts
 bonk-mcp/**
 legacy/**
+legacy/app-archive/**
+docs/ARCHIVE/**
 tests/**
 coverage/**
 dist/**

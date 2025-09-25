@@ -22,5 +22,3 @@ export async function POST(request: Request) {
   disarm();
   return NextResponse.json({ ok: true, armedUntil: armedUntil() });
 }
-
-

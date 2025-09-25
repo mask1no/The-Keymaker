@@ -1,2 +1,4 @@
 # Prettier ignore
 legacy/**
+legacy/app-archive/**
+docs/ARCHIVE/**

@@ -40,7 +40,9 @@ export class JitoEngine implements Engine {
       // Simulate each tx via RPC simulateTransaction. Use mainnet connection.
       const { Connection } = await import('@solana/web3.js');
       const connection = new Connection(
-        process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com',
+        process.env.HELIUS_RPC_URL ||
+          process.env.NEXT_PUBLIC_HELIUS_RPC ||
+          'https://api.mainnet-beta.solana.com',
         'confirmed',
       );
       for (const group of parts) {
@@ -69,7 +71,11 @@ export class JitoEngine implements Engine {
         }
       }
       observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'JITO_BUNDLE', region });
-      observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region, simulated: '1' });
+      observeLatency('engine_submit_ms', Date.now() - t0, {
+        mode: 'JITO_BUNDLE',
+        region,
+        simulated: '1',
+      });
       return { corr: plan.corr, mode: 'JITO_BUNDLE', statusHint: 'submitted', simulated: true };
     }
 

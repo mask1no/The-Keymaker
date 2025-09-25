@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
+import { generateNonce } from '@/lib/server/session';
+import { rateLimit } from '@/lib/server/rateLimit';
+
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
+  const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+  const key = fwd || 'anon';
+  if (!rateLimit(key)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   try {
-    const nonce = Math.random().toString(36).slice(2);
+    const nonce = generateNonce();
     return NextResponse.json({ nonce });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to generate nonce' }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'failed' }, { status: 500 });
   }
 }

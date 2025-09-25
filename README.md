@@ -86,15 +86,34 @@ curl -s ${BASE_URL:-http://localhost:3000}/api/metrics
 curl -s ${BASE_URL:-http://localhost:3000}/api/health
 ```
 
-## Performance
+## Design & Performance
 
-- SSR-only `/engine`. No client-side signing or heavy bundles.
+- Dark coding theme for legibility (Monokai/Cursor-like). WCAG-friendly contrast, visible focus outlines.
+- SSR-only for core pages (`/engine`, `/bundle`, `/settings`, `/dashboard`) → near-zero client JS.
+- Market Bento on `/bundle` streams server data with skeletons for instant first paint.
+
+## Login
+
+- Visit `/login` and sign the canonical message with Phantom only (no tx signing in browser):
+  `Keymaker-Login|pubkey=<BASE58>|ts=<ISO>|nonce=<hex>` → server verifies ed25519 and issues httpOnly session cookie.
+- Middleware gates all routes except `/login` and `/api/**`.
+
+## Settings & Execution Modes
+
+- Settings are the source of truth (`lib/server/settings.ts`):
+  `{ mode:'JITO_BUNDLE'|'RPC_FANOUT', region, priority, tipLamports?, chunkSize?, concurrency?, jitterMs?, dryRun?:boolean, cluster?:'mainnet-beta'|'devnet' }`
+- Defaults: `{ mode:'JITO_BUNDLE', region:'ffm', priority:'med', chunkSize:5, concurrency:4, jitterMs:[50,150], dryRun:true, cluster:'mainnet-beta' }`.
+- Quick badges on `/engine`; full form on `/settings`.
+
+## Market Bento
+
+- `/api/marketcap/[mint]` fetches from Dexscreener. `/bundle` SSR shows Price/24h/FDV/Volume; PnL tile currently disabled with CTA.
 
 ## Safety
 
 - Proof-of-control before funding:
-  1) Verify deposit pubkey equals your payer: PowerShell: `solana-keygen pubkey "$Env:KEYPAIR_JSON"`; macOS/Linux: `solana-keygen pubkey ~/keymaker-payer.json`.
-  2) GET `/api/engine/prove` with header `x-engine-token` and verify signature (ed25519) locally.
+  1. Verify deposit pubkey equals your payer: PowerShell: `solana-keygen pubkey "$Env:KEYPAIR_JSON"`; macOS/Linux: `solana-keygen pubkey ~/keymaker-payer.json`.
+  2. GET `/api/engine/prove` with header `x-engine-token` and verify signature (ed25519) locally.
 - DryRun mode: enable via `/engine` UI or send `dryRun:true` in `/api/engine/submit` to simulate only.
 - Arming latch: live submits are blocked unless `KEYMAKER_ALLOW_LIVE=YES` and you POST `/api/ops/arm`. Disarm with `/api/ops/disarm`.
 - Devnet is supported for RPC fanout via `cluster:"devnet"`.
@@ -119,10 +138,19 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
 curl -s ${BASE:-http://localhost:3000}/api/ops/arm -H "x-engine-token: $ENGINE_API_TOKEN" -X POST -d '{"minutes":15}'
 ```
 
-
 - No browser keys. Repo private. Logs redact secrets.
 - Engine API is Node runtime and dynamic; guarded by optional `ENGINE_API_TOKEN`, rate limited, size-capped, and schema-validated.
 - Strict security headers via `next.config.js` (CSP, frameguard, no-referrer, nosniff, permissions-policy). No third-party client fetches.
+
+## Non-coder Runbook
+
+PowerShell users: run commands separately (no &&)
+
+```
+pnpm install --ignore-scripts
+pnpm check:node && pnpm core:build
+pnpm dev
+```
 
 ## Roadmap
 

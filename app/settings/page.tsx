@@ -11,7 +11,20 @@ async function update(formData: FormData) {
   const concurrency = Number(formData.get('concurrency') || 4);
   const jitterMin = Number(formData.get('jitterMin') || 50);
   const jitterMax = Number(formData.get('jitterMax') || 150);
-  setUiSettings({ region: region as any, priority: priority as any, tipLamports, chunkSize, concurrency, jitterMs: [jitterMin, jitterMax] });
+  const mode = String(formData.get('mode') || 'JITO_BUNDLE') as any;
+  const dryRun = String(formData.get('dryRun') || '') === 'on';
+  const cluster = String(formData.get('cluster') || 'mainnet-beta') as any;
+  setUiSettings({
+    mode,
+    region: region as any,
+    priority: priority as any,
+    tipLamports,
+    chunkSize,
+    concurrency,
+    jitterMs: [jitterMin, jitterMax],
+    dryRun,
+    cluster,
+  });
 }
 
 export default async function SettingsPage() {
@@ -24,8 +37,19 @@ export default async function SettingsPage() {
           <div className="label mb-2">Engine Defaults</div>
           <form action={update} className="space-y-3">
             <div>
+              <label className="text-sm">Mode</label>
+              <select name="mode" defaultValue={ui.mode} className="input w-full px-2 py-1 bg-zinc-900">
+                <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+                <option value="RPC_FANOUT">RPC_FANOUT</option>
+              </select>
+            </div>
+            <div>
               <label className="text-sm">Region</label>
-              <select name="region" defaultValue={ui.region} className="input w-full px-2 py-1 bg-zinc-900">
+              <select
+                name="region"
+                defaultValue={ui.region}
+                className="input w-full px-2 py-1 bg-zinc-900"
+              >
                 <option value="ffm">ffm</option>
                 <option value="ams">ams</option>
                 <option value="ny">ny</option>
@@ -34,43 +58,87 @@ export default async function SettingsPage() {
             </div>
             <div>
               <label className="text-sm">Priority</label>
-              <select name="priority" defaultValue={ui.priority} className="input w-full px-2 py-1 bg-zinc-900">
+              <select
+                name="priority"
+                defaultValue={ui.priority}
+                className="input w-full px-2 py-1 bg-zinc-900"
+              >
                 <option value="low">low</option>
                 <option value="med">med</option>
                 <option value="high">high</option>
                 <option value="vhigh">vhigh</option>
               </select>
             </div>
+            <div>
+              <label className="text-sm">Dry Run</label>
+              <input type="checkbox" name="dryRun" defaultChecked={ui.dryRun ?? true} />
+            </div>
+            <div>
+              <label className="text-sm">Cluster (RPC)</label>
+              <select name="cluster" defaultValue={ui.cluster || 'mainnet-beta'} className="input w-full px-2 py-1 bg-zinc-900">
+                <option value="mainnet-beta">mainnet-beta</option>
+                <option value="devnet">devnet</option>
+              </select>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-sm">Tip Lamports</label>
-                <input name="tipLamports" type="number" defaultValue={ui.tipLamports ?? 5000} className="input w-full px-2 py-1 bg-zinc-900" />
+                <input
+                  name="tipLamports"
+                  type="number"
+                  defaultValue={ui.tipLamports ?? 5000}
+                  className="input w-full px-2 py-1 bg-zinc-900"
+                />
               </div>
               <div>
                 <label className="text-sm">Chunk Size (Jito)</label>
-                <input name="chunkSize" type="number" defaultValue={ui.chunkSize} className="input w-full px-2 py-1 bg-zinc-900" />
+                <input
+                  name="chunkSize"
+                  type="number"
+                  defaultValue={ui.chunkSize}
+                  className="input w-full px-2 py-1 bg-zinc-900"
+                />
               </div>
               <div>
                 <label className="text-sm">Concurrency (RPC)</label>
-                <input name="concurrency" type="number" defaultValue={ui.concurrency} className="input w-full px-2 py-1 bg-zinc-900" />
+                <input
+                  name="concurrency"
+                  type="number"
+                  defaultValue={ui.concurrency}
+                  className="input w-full px-2 py-1 bg-zinc-900"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-sm">Jitter Min</label>
-                  <input name="jitterMin" type="number" defaultValue={ui.jitterMs?.[0] ?? 50} className="input w-full px-2 py-1 bg-zinc-900" />
+                  <input
+                    name="jitterMin"
+                    type="number"
+                    defaultValue={ui.jitterMs?.[0] ?? 50}
+                    className="input w-full px-2 py-1 bg-zinc-900"
+                  />
                 </div>
                 <div>
                   <label className="text-sm">Jitter Max</label>
-                  <input name="jitterMax" type="number" defaultValue={ui.jitterMs?.[1] ?? 150} className="input w-full px-2 py-1 bg-zinc-900" />
+                  <input
+                    name="jitterMax"
+                    type="number"
+                    defaultValue={ui.jitterMs?.[1] ?? 150}
+                    className="input w-full px-2 py-1 bg-zinc-900"
+                  />
                 </div>
               </div>
             </div>
-            <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">Save</button>
+            <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">
+              Save
+            </button>
           </form>
         </section>
         <section className="card">
           <div className="label mb-2">Notes</div>
-          <p className="p-muted text-sm">These defaults are used by the Engine UI and API when optional fields are not provided.</p>
+          <p className="p-muted text-sm">
+            These defaults are used by the Engine UI and API when optional fields are not provided.
+          </p>
         </section>
       </div>
     </div>

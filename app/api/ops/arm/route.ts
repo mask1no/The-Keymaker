@@ -27,5 +27,3 @@ export async function POST(request: Request) {
   if (!ok) return apiError(403, 'forbidden');
   return NextResponse.json({ armedUntil: armedUntil() });
 }
-
-

@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server';
 
 export const config = {
-  matcher: ['/api/engine/:path*', '/api/ops/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt).*)'],
 };
 
 export function middleware(req: Request) {
-  const required = process.env.ENGINE_API_TOKEN;
-  if (required) {
-    const got = (req.headers.get('x-engine-token') || '').trim();
-    if (got !== required) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
+  const url = new URL(req.url);
+  const path = url.pathname;
+  // Preserve engine API token checks by letting API routes handle their own tokens
+  if (path.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+  // Allow login route without session
+  if (path === '/login') return NextResponse.next();
+  // Gate all other routes by presence of our session cookie
+  const hasSession = (req.headers.get('cookie') || '').includes('km_session=');
+  if (!hasSession) {
+    const to = new URL('/login', req.url);
+    return NextResponse.redirect(to);
   }
   return NextResponse.next();
 }
