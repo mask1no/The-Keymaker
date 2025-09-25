@@ -35,6 +35,44 @@ export class JitoEngine implements Engine {
     const bundleIds: string[] = [];
     const journal = createDailyJournal('data');
 
+    if (opts.dryRun) {
+      const simStart = Date.now();
+      // Simulate each tx via RPC simulateTransaction. Use mainnet connection.
+      const { Connection } = await import('@solana/web3.js');
+      const connection = new Connection(
+        process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com',
+        'confirmed',
+      );
+      for (const group of parts) {
+        for (const tx of group) {
+          const t1 = Date.now();
+          try {
+            const sim = await connection.simulateTransaction(tx, { sigVerify: false });
+            logJsonLine(journal, {
+              ev: 'simulate_jito',
+              region,
+              txCount: 1,
+              corr: plan.corr,
+              ms: Date.now() - t1,
+              logs: sim?.value?.logs?.slice(0, 10) || undefined,
+            });
+          } catch (e: any) {
+            logJsonLine(journal, {
+              ev: 'simulate_jito',
+              region,
+              txCount: 1,
+              corr: plan.corr,
+              ms: Date.now() - t1,
+              error: String(e?.message || e),
+            });
+          }
+        }
+      }
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'JITO_BUNDLE', region });
+      observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region, simulated: '1' });
+      return { corr: plan.corr, mode: 'JITO_BUNDLE', statusHint: 'submitted', simulated: true };
+    }
+
     // Submit serially (small parallelism could be added if needed)
     for (const group of parts) {
       const encoded = group.map(txToBase64);
@@ -70,5 +108,3 @@ export class JitoEngine implements Engine {
     return statuses;
   }
 }
-
-

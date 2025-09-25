@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
-import type { ExecutionMode, Priority, RegionKey } from '@/lib/core/src/engine';
+import type { ExecutionMode, Priority } from '@/lib/core/src/engine';
+import type { RegionKey } from '@/lib/core/src/types';
 
 export interface UiSettings {
   mode: ExecutionMode;
@@ -9,6 +10,8 @@ export interface UiSettings {
   chunkSize?: number;
   concurrency?: number;
   jitterMs?: [number, number];
+  dryRun?: boolean;
+  cluster?: 'mainnet-beta' | 'devnet';
 }
 
 const COOKIE_NAME = 'keymaker_ui_settings';
@@ -22,21 +25,33 @@ export function getUiSettings(): UiSettings {
     const c = cookies().get(COOKIE_NAME)?.value || '';
     const raw = c ? (JSON.parse(c) as Partial<UiSettings>) : {};
     const mode = (raw.mode === 'RPC_FANOUT' ? 'RPC_FANOUT' : 'JITO_BUNDLE') as ExecutionMode;
-    const region = (['ffm', 'ams', 'ny', 'tokyo'].includes(String(raw.region))
-      ? raw.region
-      : 'ffm') as RegionKey;
-    const priority = (['low', 'med', 'high', 'vhigh'].includes(String(raw.priority))
-      ? raw.priority
-      : 'med') as Priority;
-    const tipLamports = typeof raw.tipLamports === 'number' ? clamp(raw.tipLamports, 0, 1_000_000) : undefined;
+    const region = (
+      ['ffm', 'ams', 'ny', 'tokyo'].includes(String(raw.region)) ? raw.region : 'ffm'
+    ) as RegionKey;
+    const priority = (
+      ['low', 'med', 'high', 'vhigh'].includes(String(raw.priority)) ? raw.priority : 'med'
+    ) as Priority;
+    const tipLamports =
+      typeof raw.tipLamports === 'number' ? clamp(raw.tipLamports, 0, 1_000_000) : undefined;
     const chunkSize = typeof raw.chunkSize === 'number' ? clamp(raw.chunkSize, 1, 20) : 5;
     const concurrency = typeof raw.concurrency === 'number' ? clamp(raw.concurrency, 1, 16) : 4;
     const jitterMs: [number, number] = Array.isArray(raw.jitterMs)
       ? [Math.max(0, raw.jitterMs[0] || 0), Math.max(0, raw.jitterMs[1] || 0)]
       : [50, 150];
-    return { mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs };
+    const dryRun = typeof raw.dryRun === 'boolean' ? raw.dryRun : true;
+    const cluster = raw.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
+    return { mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs, dryRun, cluster };
   } catch {
-    return { mode: 'JITO_BUNDLE', region: 'ffm', priority: 'med', chunkSize: 5, concurrency: 4, jitterMs: [50, 150] };
+    return {
+      mode: 'JITO_BUNDLE',
+      region: 'ffm',
+      priority: 'med',
+      chunkSize: 5,
+      concurrency: 4,
+      jitterMs: [50, 150],
+      dryRun: true,
+      cluster: 'mainnet-beta',
+    };
   }
 }
 
@@ -51,5 +66,3 @@ export function setUiSettings(next: Partial<UiSettings>) {
     maxAge: 60 * 60 * 24 * 365,
   });
 }
-
-

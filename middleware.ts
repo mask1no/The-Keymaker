@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const config = {
-  matcher: ['/api/engine/:path*'],
+  matcher: ['/api/engine/:path*', '/api/ops/:path*'],
 };
 
 export function middleware(req: Request) {

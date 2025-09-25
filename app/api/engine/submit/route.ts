@@ -29,6 +29,8 @@ const Body = z.object({
   chunkSize: z.number().int().min(1).max(20).optional(),
   concurrency: z.number().int().min(1).max(16).optional(),
   jitterMs: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
+  dryRun: z.boolean().optional(),
+  cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
 });
 
 function requireToken(headers: Headers) {
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
     const chunkSize = parsed.chunkSize ?? ui.chunkSize;
     const concurrency = parsed.concurrency ?? ui.concurrency;
     const jitterMs = parsed.jitterMs ?? ui.jitterMs;
+    const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : ui.dryRun ?? true;
+    const cluster = parsed.cluster || ui.cluster || 'mainnet-beta';
 
     const keyPath = process.env.KEYPAIR_JSON;
     if (!keyPath) return apiError(400, 'not_configured');
@@ -113,7 +117,21 @@ export async function POST(request: Request) {
     const corr = createHash('sha256').update(Buffer.from(encoded)).digest('hex');
     incCounter('engine_submit_total');
     const plan = { txs: [tx], corr };
-    const opts: ExecOptions = { mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs } as any;
+    const opts: ExecOptions = {
+      mode,
+      region,
+      priority,
+      tipLamports,
+      chunkSize,
+      concurrency,
+      jitterMs,
+      dryRun,
+      cluster,
+    } as any;
+    if (!dryRun) {
+      const { isArmed } = await import('@/lib/server/arming');
+      if (!isArmed()) return apiError(403, 'not_armed');
+    }
     const submit = await engineSubmit(plan, opts);
     const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
     incCounter('engine_2xx_total');

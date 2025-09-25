@@ -18,5 +18,3 @@ export async function engineSubmit(plan: SubmitPlan, opts: ExecOptions) {
 export async function enginePoll(plan: SubmitPlan | null, opts: ExecOptions) {
   return engines[opts.mode].pollStatus(plan, opts);
 }
-
-

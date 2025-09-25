@@ -12,15 +12,20 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function txToBase64(tx: VersionedTransaction): string {
-  return Buffer.from(tx.serialize()).toString('base64');
-}
+// (intentionally no txToBase64 usage; helper removed to satisfy lints)
 
-function getRpc(): string {
+function getRpc(cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): string {
+  if (cluster === 'devnet') {
+    return (
+      process.env.HELIUS_RPC_DEVNET_URL ||
+      process.env.NEXT_PUBLIC_HELIUS_RPC_DEVNET ||
+      'https://api.devnet.solana.com'
+    );
+  }
   return (
-    process.env.HELIUS_RPC_URL ||
-    process.env.NEXT_PUBLIC_HELIUS_RPC ||
-    'https://api.mainnet-beta.solana.com'
+     process.env.HELIUS_RPC_URL ||
+     process.env.NEXT_PUBLIC_HELIUS_RPC ||
+     'https://api.mainnet-beta.solana.com'
   );
 }
 
@@ -34,9 +39,36 @@ export class RpcEngine implements Engine {
       : [50, 150];
     const pri = PRIORITY_TO_MICROLAMPORTS[opts.priority || 'med'] ?? 1000;
 
-    const connection = new Connection(getRpc(), 'confirmed');
+    const cluster = opts.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
+    const connection = new Connection(getRpc(cluster), 'confirmed');
     const journal = createDailyJournal('data');
     const queue = [...plan.txs];
+
+    if (opts.dryRun) {
+      const simStart = Date.now();
+      for (const tx of queue) {
+        const t1 = Date.now();
+        try {
+          const sim = await connection.simulateTransaction(tx, { sigVerify: false });
+          logJsonLine(journal, {
+            ev: 'simulate_rpc',
+            corr: plan.corr,
+            ms: Date.now() - t1,
+            logs: sim?.value?.logs?.slice(0, 10) || undefined,
+          });
+        } catch (e: unknown) {
+          logJsonLine(journal, {
+            ev: 'simulate_rpc',
+            corr: plan.corr,
+            ms: Date.now() - t1,
+            error: String((e as Error)?.message || e),
+          });
+        }
+      }
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'RPC_FANOUT' });
+      observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'RPC_FANOUT', simulated: '1' });
+      return { corr: plan.corr, mode: 'RPC_FANOUT', statusHint: 'submitted', simulated: true };
+    }
     const sigs: string[] = [];
     let inFlight = 0;
     let idx = 0;
@@ -54,7 +86,13 @@ export class RpcEngine implements Engine {
       observeLatency('engine_submit_rpc_ms', Date.now() - t1, {});
       incCounter('engine_submit_total');
       incCounter('engine_submit_rpc_total');
-      logJsonLine(journal, { ev: 'submit_rpc', sig, corr: plan.corr, ms: Date.now() - t1, cuPrice: pri });
+      logJsonLine(journal, {
+        ev: 'submit_rpc',
+        sig,
+        corr: plan.corr,
+        ms: Date.now() - t1,
+        cuPrice: pri,
+      });
     }
 
     const runners: Promise<void>[] = [];
@@ -63,7 +101,9 @@ export class RpcEngine implements Engine {
         const tx = queue[idx++];
         inFlight += 1;
         const p = dispatch(tx)
-          .catch(() => {})
+          .catch((_e) => {
+            // swallow individual dispatch errors to allow other sends to proceed
+          })
           .finally(() => {
             inFlight -= 1;
           });
@@ -78,7 +118,8 @@ export class RpcEngine implements Engine {
   }
 
   async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
-    const connection = new Connection(getRpc(), 'confirmed');
+    const cluster = opts.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
+    const connection = new Connection(getRpc(cluster), 'confirmed');
     const sigs = opts.sigs || [];
     const t0 = Date.now();
     const statuses = sigs.length ? await connection.getSignatureStatuses(sigs) : { value: [] };
@@ -88,5 +129,3 @@ export class RpcEngine implements Engine {
     return statuses;
   }
 }
-
-

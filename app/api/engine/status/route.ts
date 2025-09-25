@@ -15,6 +15,7 @@ const Body = z.object({
   region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
   bundleId: z.string().min(4).optional(),
   sigs: z.array(z.string()).optional(),
+  cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
 });
 
 function requireToken(headers: Headers) {
@@ -54,12 +55,13 @@ export async function POST(request: Request) {
       return apiError(413, 'payload_too_large');
     }
     const body = rawText ? JSON.parse(rawText) : {};
-    const { mode = 'JITO_BUNDLE', region = 'ffm', bundleId, sigs } = Body.parse(body);
+    const { mode = 'JITO_BUNDLE', region = 'ffm', bundleId, sigs, cluster } = Body.parse(body);
     const opts: ExecOptions = {
       mode: mode as ExecutionMode,
       region: region as any,
       bundleIds: bundleId ? [bundleId] : undefined,
       sigs: sigs || undefined,
+      cluster: cluster || 'mainnet-beta',
     } as any;
     const statuses = await enginePoll(null, opts);
     const res = NextResponse.json({ statuses, requestId });

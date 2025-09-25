@@ -46,7 +46,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/deposit-address \
 
 Submit (POST) — Jito example:
 
-```bash
+````bash
 curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
@@ -59,7 +59,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150]}'
-```
+````
 
 Status (POST):
 
@@ -91,6 +91,34 @@ curl -s ${BASE_URL:-http://localhost:3000}/api/health
 - SSR-only `/engine`. No client-side signing or heavy bundles.
 
 ## Safety
+
+- Proof-of-control before funding:
+  1) Verify deposit pubkey equals your payer: PowerShell: `solana-keygen pubkey "$Env:KEYPAIR_JSON"`; macOS/Linux: `solana-keygen pubkey ~/keymaker-payer.json`.
+  2) GET `/api/engine/prove` with header `x-engine-token` and verify signature (ed25519) locally.
+- DryRun mode: enable via `/engine` UI or send `dryRun:true` in `/api/engine/submit` to simulate only.
+- Arming latch: live submits are blocked unless `KEYMAKER_ALLOW_LIVE=YES` and you POST `/api/ops/arm`. Disarm with `/api/ops/disarm`.
+- Devnet is supported for RPC fanout via `cluster:"devnet"`.
+
+Example curl:
+
+```bash
+# Prove control (no funds)
+curl -s ${BASE:-http://localhost:3000}/api/engine/prove -H "x-engine-token: $ENGINE_API_TOKEN"
+
+# Submit dry-run Jito
+curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+  -H 'Content-Type: application/json' -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","dryRun":true}'
+
+# Submit dry-run RPC (devnet)
+curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+  -H 'Content-Type: application/json' -H "x-engine-token: $ENGINE_API_TOKEN" \
+  -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150],"dryRun":true,"cluster":"devnet"}'
+
+# Arm live window
+curl -s ${BASE:-http://localhost:3000}/api/ops/arm -H "x-engine-token: $ENGINE_API_TOKEN" -X POST -d '{"minutes":15}'
+```
+
 
 - No browser keys. Repo private. Logs redact secrets.
 - Engine API is Node runtime and dynamic; guarded by optional `ENGINE_API_TOKEN`, rate limited, size-capped, and schema-validated.

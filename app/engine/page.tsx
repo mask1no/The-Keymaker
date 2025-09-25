@@ -1,6 +1,8 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { getUiSettings, setUiSettings } from '@/lib/server/settings';
+import { armedUntil, isArmed } from '@/lib/server/arming';
+import { revalidatePath } from 'next/cache';
 import type { ExecutionMode } from '@/lib/core/src/engine';
 // SSR-only; avoid client imports
 
@@ -34,20 +36,34 @@ async function submitTestBundle(formData: FormData) {
   const concurrency = Number(formData.get('concurrency') || 4);
   const jitterMin = Number(formData.get('jitterMin') || 50);
   const jitterMax = Number(formData.get('jitterMax') || 150);
+  const dryRun = String(formData.get('dryRun')) === 'on';
+  const cluster = (formData.get('cluster') as string) || 'mainnet-beta';
   await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-engine-token': process.env.ENGINE_API_TOKEN || '',
     },
-    body: JSON.stringify({ mode, region, priority, tipLamports, chunkSize, concurrency, jitterMs: [jitterMin, jitterMax] }),
+    body: JSON.stringify({
+      mode,
+      region,
+      priority,
+      tipLamports,
+      chunkSize,
+      concurrency,
+      jitterMs: [jitterMin, jitterMax],
+      dryRun,
+      cluster,
+    }),
   });
+  revalidatePath('/engine');
 }
 
 async function toggleMode(formData: FormData) {
   'use server';
   const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
   setUiSettings({ mode });
+  revalidatePath('/engine');
 }
 
 async function updateSettings(formData: FormData) {
@@ -63,7 +79,33 @@ async function updateSettings(formData: FormData) {
   const jm0 = Number(entries.jitterMin || 50);
   const jm1 = Number(entries.jitterMax || 150);
   next.jitterMs = [jm0, jm1];
+  if (entries.dryRun !== undefined) next.dryRun = entries.dryRun === 'on';
+  if (entries.cluster) next.cluster = entries.cluster as any;
   setUiSettings(next);
+  revalidatePath('/engine');
+}
+
+async function armAction(formData: FormData) {
+  'use server';
+  const minutes = Number(formData.get('minutes') || 15);
+  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/arm`, {
+    method: 'POST',
+    headers: {
+      'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ minutes }),
+  });
+  revalidatePath('/engine');
+}
+
+async function disarmAction() {
+  'use server';
+  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/disarm`, {
+    method: 'POST',
+    headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+  });
+  revalidatePath('/engine');
 }
 
 function readTodayJournal(): Array<{ time: string; ev: string; summary: string }> {
@@ -96,11 +138,41 @@ export default async function Page() {
   const deposit = await getDepositAddress();
   const events = readTodayJournal();
   const ui = getUiSettings();
+  const armed = isArmed();
+  const armedTs = armedUntil();
   return (
     <div className="prose prose-invert max-w-none">
       <Style />
       <h1>Engine</h1>
-      <div className="mb-4 text-xs"><span className="badge">Execution Mode: {ui.mode}</span></div>
+      <div className="mb-4 text-xs flex items-center gap-3">
+        <span className="badge">Execution Mode: {ui.mode}</span>
+        <span className="badge" style={{ color: armed ? '#64d3a5' : '#eab308' }}>
+          {armed ? `ARMED until ${new Date(armedTs).toISOString().slice(11,16)}` : 'DISARMED'}
+        </span>
+        <span className="badge">DryRun: {ui.dryRun ? 'ON' : 'OFF'}</span>
+        <span className="badge">Cluster: {ui.cluster}</span>
+      </div>
+      <section className="card mb-4">
+        <div className="label mb-2">Verify Deposit & Proof</div>
+        <div className="text-sm">
+          <div className="mb-2">Deposit pubkey: {deposit || 'Not configured'}</div>
+          <div className="mb-1">Step 1: Cross-check</div>
+          <pre className="text-xs bg-zinc-900 p-2 rounded">PowerShell: solana-keygen pubkey "$Env:KEYPAIR_JSON"{"\n"}macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json</pre>
+          <div className="mb-1">Step 2: Proof (no funds)</div>
+          <pre className="text-xs bg-zinc-900 p-2 rounded">curl -s {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}` + '/api/engine/prove'} -H "x-engine-token: $ENGINE_API_TOKEN"</pre>
+        </div>
+      </section>
+      <section className="card mb-4">
+        <div className="label mb-2">Safety</div>
+        <form action={armAction} className="inline-block mr-2">
+          <input type="hidden" name="minutes" value="15" />
+          <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1" type="submit">Arm 15m</button>
+        </form>
+        <form action={disarmAction} className="inline-block">
+          <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1" type="submit">Disarm</button>
+        </form>
+        <div className="text-xs text-zinc-400 mt-2">Live submits require KEYMAKER_ALLOW_LIVE=YES and an armed window. DryRun bypasses arming and never sends funds.</div>
+      </section>
       <div className="bento mb-4">
         <form action={toggleMode} className={`card ${ui.mode === 'JITO_BUNDLE' ? 'active' : ''}`}>
           <input type="hidden" name="mode" value="JITO_BUNDLE" />
@@ -132,9 +204,20 @@ export default async function Page() {
           <h2 className="text-lg font-semibold mb-2">Run Test Bundle</h2>
           <form action={submitTestBundle} className="flex flex-col gap-2">
             <label className="text-sm">Mode</label>
-            <select name="mode" defaultValue={ui.mode} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
+            <select
+              name="mode"
+              defaultValue={ui.mode}
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            >
               <option value="JITO_BUNDLE">JITO_BUNDLE</option>
               <option value="RPC_FANOUT">RPC_FANOUT</option>
+            </select>
+            <label className="text-sm">Dry Run</label>
+            <input type="checkbox" name="dryRun" defaultChecked={ui.dryRun ?? true} />
+            <label className="text-sm">Cluster (RPC)</label>
+            <select name="cluster" defaultValue={ui.cluster || 'mainnet-beta'} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
+              <option value="mainnet-beta">mainnet-beta</option>
+              <option value="devnet">devnet</option>
             </select>
             <label className="text-sm">Region</label>
             <select
@@ -168,19 +251,39 @@ export default async function Page() {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-sm">Chunk Size</label>
-                <input type="number" name="chunkSize" defaultValue={ui.chunkSize} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+                <input
+                  type="number"
+                  name="chunkSize"
+                  defaultValue={ui.chunkSize}
+                  className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full"
+                />
               </div>
               <div>
                 <label className="text-sm">Concurrency</label>
-                <input type="number" name="concurrency" defaultValue={ui.concurrency} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+                <input
+                  type="number"
+                  name="concurrency"
+                  defaultValue={ui.concurrency}
+                  className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full"
+                />
               </div>
               <div>
                 <label className="text-sm">Jitter Min (ms)</label>
-                <input type="number" name="jitterMin" defaultValue={ui.jitterMs?.[0] ?? 50} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+                <input
+                  type="number"
+                  name="jitterMin"
+                  defaultValue={ui.jitterMs?.[0] ?? 50}
+                  className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full"
+                />
               </div>
               <div>
                 <label className="text-sm">Jitter Max (ms)</label>
-                <input type="number" name="jitterMax" defaultValue={ui.jitterMs?.[1] ?? 150} className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full" />
+                <input
+                  type="number"
+                  name="jitterMax"
+                  defaultValue={ui.jitterMs?.[1] ?? 150}
+                  className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-full"
+                />
               </div>
             </div>
             <button
