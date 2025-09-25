@@ -2,7 +2,7 @@ services:
   keymaker:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: keymaker-prod
     ports:
       - '3000:3000'
@@ -37,6 +37,7 @@ services:
     volumes:
       # Persist database and wallets
       - ./data:/app/data
+      - ./docker/.dockerignore:/app/.dockerignore:ro
 
     restart: unless-stopped
 

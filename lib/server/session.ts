@@ -96,5 +96,3 @@ export function getSession(): { userPubkey: string } | null {
   if (!payload) return null;
   return { userPubkey: payload.sub };
 }
-
-

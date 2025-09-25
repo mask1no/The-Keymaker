@@ -151,7 +151,9 @@ export default async function Page() {
         </span>
         <span className="badge">DryRun: {ui.dryRun ? 'ON' : 'OFF'}</span>
         <span className="badge">Cluster: {ui.cluster}</span>
-        <a href="/settings" className="badge" style={{ textDecoration: 'none' }}>Settings →</a>
+        <a href="/settings" className="badge" style={{ textDecoration: 'none' }}>
+          Settings →
+        </a>
       </div>
       <section className="card mb-4">
         <div className="label mb-2">Verify Deposit & Proof</div>

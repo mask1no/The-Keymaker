@@ -16,11 +16,15 @@ async function MarketCard({ mint }: { mint: string | null }) {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="text-zinc-400 text-xs">Price</div>
-          <div className="text-lg font-semibold">${'{'}data.price{'}'}</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.price{'}'}
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">24h</div>
-          <div className="text-lg font-semibold">${'{'}data.priceChange24h{'}'}%</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.priceChange24h{'}'}%
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">FDV/MC</div>
@@ -311,7 +315,7 @@ export default async function Page() {
   );
 
   return (
-      <div className="mx-auto max-w-7xl space-y-4">
+    <div className="mx-auto max-w-7xl space-y-4">
       <h1 className="h1">Bundler</h1>
       <div className="bento">
         <div className="card">
@@ -322,7 +326,7 @@ export default async function Page() {
               <MarketCard mint={mint} />
             </Suspense>
           </div>
-                </div>
+        </div>
         <div className="card">
           <div className="label mb-1">PnL snapshot</div>
           <div className="text-sm text-zinc-400">Temporarily disabled. Add tracked wallets.</div>

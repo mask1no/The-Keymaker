@@ -38,7 +38,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
-    "docker:dev": "docker build -t keymaker-dev -f Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev",
+    "docker:dev": "docker build -t keymaker-dev -f docker/Dockerfile.dev . && docker run --rm -p 3000:3000 keymaker-dev",
     "cli:send": "tsx bin/keymaker.ts send",
     "cli:status": "tsx bin/keymaker.ts status",
     "cli:fund": "tsx bin/keymaker.ts fund",

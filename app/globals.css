@@ -206,35 +206,67 @@ a:hover {
 
 /* Dark coding theme tokens (hex), used by SSR-only pages */
 :root {
-  --bg:#0b0e13;
-  --surface:#121826;
-  --surface-hi:#1b2436;
-  --border:#233048;
-  --text:#e6edf3;
-  --muted:#9fb0c0;
-  --accent:#6aa9ff;
-  --accent-2:#64d3a5;
-  --code-blue:#7aa2f7;
-  --code-pink:#f7768e;
-  --code-purple:#bb9af7;
-  --code-cyan:#7dcfff;
-  --code-orange:#e0af68;
+  --bg: #0b0e13;
+  --surface: #121826;
+  --surface-hi: #1b2436;
+  --border: #233048;
+  --text: #e6edf3;
+  --muted: #9fb0c0;
+  --accent: #6aa9ff;
+  --accent-2: #64d3a5;
+  --code-blue: #7aa2f7;
+  --code-pink: #f7768e;
+  --code-purple: #bb9af7;
+  --code-cyan: #7dcfff;
+  --code-orange: #e0af68;
 }
 
 /* Utilities for SSR UI */
-.pressable { cursor: pointer; transition: background .15s, border-color .15s, transform .06s; }
-.pressable:active { transform: translateY(1px); }
-.focusable { outline: none; }
-.focusable:focus-visible { box-shadow: 0 0 0 2px rgba(106,169,255,.35); border-radius: 10px; }
+.pressable {
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.06s;
+}
+.pressable:active {
+  transform: translateY(1px);
+}
+.focusable {
+  outline: none;
+}
+.focusable:focus-visible {
+  box-shadow: 0 0 0 2px rgba(106, 169, 255, 0.35);
+  border-radius: 10px;
+}
 
 /* Code-style headings */
-.k{ color: var(--code-blue); }
-.s{ color: var(--code-pink); }
-.fn{ color: var(--code-purple); }
-.n{ color: var(--code-cyan); }
-.err{ color: var(--code-orange); }
+.k {
+  color: var(--code-blue);
+}
+.s {
+  color: var(--code-pink);
+}
+.fn {
+  color: var(--code-purple);
+}
+.n {
+  color: var(--code-cyan);
+}
+.err {
+  color: var(--code-orange);
+}
 
 /* Alternate card/bento in dark theme */
-.card { background: color-mix(in srgb, var(--surface) 96%, black 4%); }
-.card.active { background: var(--surface-hi); border-color: var(--accent); box-shadow: 0 0 0 1px rgba(106,169,255,.25) inset; }
-.badge { background: rgba(106,169,255,.12); color: var(--text); }
+.card {
+  background: color-mix(in srgb, var(--surface) 96%, black 4%);
+}
+.card.active {
+  background: var(--surface-hi);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(106, 169, 255, 0.25) inset;
+}
+.badge {
+  background: rgba(106, 169, 255, 0.12);
+  color: var(--text);
+}

@@ -1,14 +1,15 @@
-# The Keymaker – ResearchProductand Design (RPD)
+# The Keymaker – Research, Product and Design (RPD)
 
 ## Executive Summary
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Working proto type with basic Jito integrationwal let authenticationand bundle submission capabilities.
+**Current Status**: Working prototype with basic Jito integration, wallet authentication, and bundle submission capabilities.
 
 ## Vision & Mission
 
-### Product VisionThe Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates whilethe server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles w, i, t, h:
+### Product Vision
+The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
 
 - **Military-grade reliability**
 - **Crystal-clear guardrails**
@@ -21,7 +22,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 ### Core Objectives
 
-- **Zero Mock Production**: Complete elimination of mock data - all operations execute on mainnet
+- **Zero Mock Production**: Complete elimination of mock data — all operations execute on mainnet
 - **Enterprise Reliability**: 99.9% uptime with comprehensive error handling and recovery
 - **MEV Optimization**: Intelligent tip floor enforcement and bundle success maximization
 - **Security First**: Military-grade encryption and secure key management

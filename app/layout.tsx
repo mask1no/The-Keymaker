@@ -11,10 +11,18 @@ function Header() {
           Keymaker
         </Link>
         <nav className="hidden md:flex items-center gap-4 text-sm">
-          <Link className="focusable" href="/engine">Engine</Link>
-          <Link className="focusable" href="/bundle">Bundler</Link>
-          <Link className="focusable" href="/settings">Settings</Link>
-          <Link className="focusable" href="/dashboard">Dashboard</Link>
+          <Link className="focusable" href="/engine">
+            Engine
+          </Link>
+          <Link className="focusable" href="/bundle">
+            Bundler
+          </Link>
+          <Link className="focusable" href="/settings">
+            Settings
+          </Link>
+          <Link className="focusable" href="/dashboard">
+            Dashboard
+          </Link>
         </nav>
       </div>
     </header>

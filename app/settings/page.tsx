@@ -38,7 +38,11 @@ export default async function SettingsPage() {
           <form action={update} className="space-y-3">
             <div>
               <label className="text-sm">Mode</label>
-              <select name="mode" defaultValue={ui.mode} className="input w-full px-2 py-1 bg-zinc-900">
+              <select
+                name="mode"
+                defaultValue={ui.mode}
+                className="input w-full px-2 py-1 bg-zinc-900"
+              >
                 <option value="JITO_BUNDLE">JITO_BUNDLE</option>
                 <option value="RPC_FANOUT">RPC_FANOUT</option>
               </select>
@@ -75,7 +79,11 @@ export default async function SettingsPage() {
             </div>
             <div>
               <label className="text-sm">Cluster (RPC)</label>
-              <select name="cluster" defaultValue={ui.cluster || 'mainnet-beta'} className="input w-full px-2 py-1 bg-zinc-900">
+              <select
+                name="cluster"
+                defaultValue={ui.cluster || 'mainnet-beta'}
+                className="input w-full px-2 py-1 bg-zinc-900"
+              >
                 <option value="mainnet-beta">mainnet-beta</option>
                 <option value="devnet">devnet</option>
               </select>

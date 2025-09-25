@@ -18,4 +18,3 @@
 - [ ] Lint/format changed files; run checks: pnpm check:node && pnpm core:build
 - [ ] Commit and push to main with message:
       feat(ui): dark coding theme, SSR bento, login, settings source of truth, market bento, safety interlocks; cleanup + docs
-

@@ -58,7 +58,9 @@ export default function LoginPage() {
       <div className="max-w-sm w-full card">
         <div className="label mb-2">Welcome</div>
         <h1 className="text-xl font-semibold mb-4">Login to Keymaker</h1>
-        <p className="text-sm text-zinc-400 mb-4">Sign a short message with your wallet to continue. No on-chain tx.</p>
+        <p className="text-sm text-zinc-400 mb-4">
+          Sign a short message with your wallet to continue. No on-chain tx.
+        </p>
         <button
           className="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg px-3 py-2"
           onClick={onLogin}
@@ -71,5 +73,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
