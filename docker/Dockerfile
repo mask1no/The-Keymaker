@@ -24,7 +24,7 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/init.sql ./init.sql
-COPY --chown=node:node docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --chown=node:node docker/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh && mkdir -p /app/data && chown -R node:node /app/data
 USER node
 EXPOSE 3000
