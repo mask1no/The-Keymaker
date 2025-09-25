@@ -37,7 +37,7 @@ services:
     volumes:
       # Persist database and wallets
       - ./data:/app/data
-      - ./docker/.dockerignore:/app/.dockerignore:ro
+      - ./.dockerignore:/app/.dockerignore:ro
 
     restart: unless-stopped
 

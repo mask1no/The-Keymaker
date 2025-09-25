@@ -15,7 +15,7 @@ const include = [
   'tailwind.config.ts',
   'data/**',
   'README.md',
-  'docs/**',
+  'md/**',
 ];
 
 const exclude = ['**/node_modules/**', 'legacy/**', '.next/**', 'coverage/**', 'test-results/**'];
