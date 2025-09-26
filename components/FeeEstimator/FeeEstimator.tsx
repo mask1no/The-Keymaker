@@ -1,12 +1,7 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  Transaction,
-  PublicKey,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js';
+import { Transaction, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Loader2, Calculator, Info } from 'lucide-react';
 import { connectionManager } from '@/services/connectionManager';
 
@@ -59,10 +54,7 @@ export function FeeEstimator({
       sampleTx.recentBlockhash = blockhash;
       sampleTx.feePayer = placeholder;
 
-      const feePerTx = await connection.getFeeForMessage(
-        sampleTx.compileMessage(),
-        'confirmed',
-      );
+      const feePerTx = await connection.getFeeForMessage(sampleTx.compileMessage(), 'confirmed');
       if (!feePerTx.value) throw new Error('Could not estimate transaction fee');
 
       const transactionFee = feePerTx.value * transactionCount;
@@ -116,12 +108,8 @@ export function FeeEstimator({
               {(estimate.transactionFee / LAMPORTS_PER_SOL).toFixed(6)} SOL
             </div>
             <div className="text-gray-400">Jito tips:</div>
-            <div className="text-right">
-              {(estimate.jitoTip / LAMPORTS_PER_SOL).toFixed(6)} SOL
-            </div>
-            <div className="border-t border-gray-700 pt-2 font-semibold">
-              Total cost:
-            </div>
+            <div className="text-right">{(estimate.jitoTip / LAMPORTS_PER_SOL).toFixed(6)} SOL</div>
+            <div className="border-t border-gray-700 pt-2 font-semibold">Total cost:</div>
             <div className="border-t border-gray-700 pt-2 text-right font-semibold">
               {estimate.costInSol.toFixed(6)} SOL
             </div>
@@ -132,12 +120,10 @@ export function FeeEstimator({
               <div className="text-gray-400">
                 <div>Per transaction:</div>
                 <div>
-                  • Fee: {((estimate.perTransaction.fee / LAMPORTS_PER_SOL) * 1000).toFixed(3)}{' '}
-                  mSOL
+                  • Fee: {((estimate.perTransaction.fee / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL
                 </div>
                 <div>
-                  • Tip: {((estimate.perTransaction.tip / LAMPORTS_PER_SOL) * 1000).toFixed(3)}{' '}
-                  mSOL
+                  • Tip: {((estimate.perTransaction.tip / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL
                 </div>
               </div>
             </div>

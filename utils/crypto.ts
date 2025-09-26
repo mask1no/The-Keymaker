@@ -25,19 +25,13 @@ export function decryptAES256(encryptedData: string, password: string): string {
   const combined = Buffer.from(encryptedData, 'base64');
   const salt = combined.slice(0, SALT_LENGTH);
   const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-  const tag = combined.slice(
-    SALT_LENGTH + IV_LENGTH,
-    SALT_LENGTH + IV_LENGTH + TAG_LENGTH,
-  );
+  const tag = combined.slice(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
   const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
   const key = deriveKey(password, salt);
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
   try {
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
-    ]);
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     return decrypted.toString('utf8');
   } catch {
     throw new Error('Invalid password or corrupted data');

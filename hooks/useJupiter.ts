@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { createJupiterApiClient } from '@jup-ag/api';
 import { Connection } from '@solana/web3.js';
@@ -8,10 +8,7 @@ import { useMemo } from 'react';
 const jupiterApi = createJupiterApiClient();
 
 export function useJupiter() {
-  const connection = useMemo(
-    () => new Connection(NEXT_PUBLIC_HELIUS_RPC),
-    [],
-  );
+  const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), []);
 
   const getQuote = async (
     fromMint: string,
@@ -33,10 +30,7 @@ export function useJupiter() {
     }
   };
 
-  const getSwapTransaction = async (
-    quote: unknown,
-    userPublicKey: string,
-  ): Promise<unknown> => {
+  const getSwapTransaction = async (quote: unknown, userPublicKey: string): Promise<unknown> => {
     try {
       const transaction = await jupiterApi.swapPost({
         swapRequest: {

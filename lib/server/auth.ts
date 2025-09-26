@@ -13,9 +13,7 @@ export function verifySignedIntent({
   body: unknown;
 }): boolean {
   try {
-    const message = new TextEncoder().encode(
-      `${nonce}:${JSON.stringify(body)}`,
-    );
+    const message = new TextEncoder().encode(`${nonce}:${JSON.stringify(body)}`);
     const signature = Buffer.from(signatureBase64, 'base64');
     const publicKey = new PublicKey(address).toBytes();
     return nacl.sign.detached.verify(message, signature, publicKey);

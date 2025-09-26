@@ -4,7 +4,6 @@ import {
   sendBundle,
   getBundleStatuses,
   validateTipAccount,
-  JITO_REGIONS as _JITO_REGIONS,
 } from './jitoService';
 import {
   VersionedTransaction,

@@ -1,10 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
-import {
-  buildTransaction,
-  serializeTransaction as _serializeTransaction,
-  deserializeTransaction as _deserializeTransaction,
-} from './transactionBuilder';
+import { buildTransaction } from './transactionBuilder';
 
 const mockConnection = {
   getLatestBlockhash: vi.fn().mockResolvedValue({
