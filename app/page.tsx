@@ -1,7 +1,5 @@
-import Link from 'next/link';
-import { Card, CardContent } from '@/components/UI/card';
-import { Button } from '@/components/UI/button';
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+export default async function HomePage() {
   return (
     <div className="space-y-4">
       {' '}
@@ -15,48 +13,48 @@ export default function HomePage() {
       </div>{' '}
       <div className="bento">
         {' '}
-        <Card className="rounded-xl border border-zinc-800 bg-zinc-950/50">
+        <section className="rounded-xl border border-zinc-800 bg-zinc-950/50">
           {' '}
-          <CardContent className="p-4 md:p-5 flex items-center justify-between">
+          <div className="p-4 md:p-5 flex items-center justify-between">
             {' '}
             <div>
               {' '}
               <div className="font-medium">Bundle Engine</div>{' '}
               <div className="text-xs text-zinc-400">Simulate and execute bundles</div>{' '}
             </div>{' '}
-            <Button asChild>
-              <Link href="/bundle">Open</Link>
-            </Button>{' '}
-          </CardContent>{' '}
-        </Card>{' '}
-        <Card className="rounded-xl border border-zinc-800 bg-zinc-950/50">
+            <a href="/bundle" className="px-3 py-2 rounded-2xl border border-zinc-800 text-sm">
+              Open
+            </a>{' '}
+          </div>{' '}
+        </section>{' '}
+        <section className="rounded-xl border border-zinc-800 bg-zinc-950/50">
           {' '}
-          <CardContent className="p-4 md:p-5 flex items-center justify-between">
+          <div className="p-4 md:p-5 flex items-center justify-between">
             {' '}
             <div>
               {' '}
               <div className="font-medium">Settings</div>{' '}
               <div className="text-xs text-zinc-400">RPC, JITO, preferences</div>{' '}
             </div>{' '}
-            <Button asChild variant="outline">
-              <Link href="/settings">Open</Link>
-            </Button>{' '}
-          </CardContent>{' '}
-        </Card>{' '}
-        <Card className="rounded-xl border border-zinc-800 bg-zinc-950/50">
+            <a href="/settings" className="px-3 py-2 rounded-2xl border border-zinc-800 text-sm">
+              Open
+            </a>{' '}
+          </div>{' '}
+        </section>{' '}
+        <section className="rounded-xl border border-zinc-800 bg-zinc-950/50">
           {' '}
-          <CardContent className="p-4 md:p-5 flex items-center justify-between">
+          <div className="p-4 md:p-5 flex items-center justify-between">
             {' '}
             <div>
               {' '}
               <div className="font-medium">Guide</div>{' '}
               <div className="text-xs text-zinc-400">Usage tips and docs</div>{' '}
             </div>{' '}
-            <Button asChild variant="outline">
-              <Link href="/guide">Open</Link>
-            </Button>{' '}
-          </CardContent>{' '}
-        </Card>{' '}
+            <a href="/guide" className="px-3 py-2 rounded-2xl border border-zinc-800 text-sm">
+              Open
+            </a>{' '}
+          </div>{' '}
+        </section>{' '}
       </div>{' '}
     </div>
   );
