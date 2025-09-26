@@ -23,6 +23,7 @@ const nextConfig = {
     // Skip TypeScript type errors during builds (temporary)
     ignoreBuildErrors: true,
   },
+  output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   async headers() {
     return [
       {
