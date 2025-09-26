@@ -18,6 +18,7 @@ PowerShell tip: run commands separately (no chaining with &&).
 - Dry-run honored in both engines with journal entries.
 - Arming latch required for live submits: `KEYMAKER_ALLOW_LIVE=YES` + timed arm via `/engine`.
 - Optional RPC `cluster=devnet`; Jito remains mainnet.
+ - In production, `KEYMAKER_SESSION_SECRET` is required; app fails fast if missing.
 
 Verify deposit pubkey:
 
@@ -47,3 +48,4 @@ Docker assets are under `/docker/**`. Use `-f docker/Dockerfile*` when building.
 - Client island: `/login`.
 - API hardening: `runtime='nodejs'`, `dynamic='force-dynamic'`, token guard header, per-IP rate limit, 8KB cap, uniform `apiError`, `requestId`.
 - Settings persisted in cookie via `lib/server/settings.ts`.
+ - Zero-client-JS on core SSR routes: avoid importing client libraries in `app/layout.tsx` or shared modules.

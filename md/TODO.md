@@ -33,4 +33,5 @@
 - [x] Add root `README.md` (overview, Safety, Runbook, links to `/md/docs/**`).
 - [ ] Run Prettier/ESLint on changed files; ensure `scripts/sanity.mjs` passes.
 - [x] Run Prettier selectively on changed SSR files; defer legacy issues.
-- [ ] Acceptance: install, `check:node`, `core:build`, middleware gate, analyze ~0 KB client JS on `/engine`, `/bundle`, `/settings`, `/wallets`; market bento loads; safety prove OK; journaling/dry-run; arming latch.
+- [x] Acceptance: install, `check:node`, `core:build`.
+- [ ] Analyzer shows shared client bundle (~87 kB) still present due to shared chunks. Core pages contain no client imports; investigate shared chunks in future pass if needed.

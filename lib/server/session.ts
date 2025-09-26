@@ -14,6 +14,13 @@ type SessionPayload = {
 const nonceStore = new Map<string, number>();
 
 function getSecret(): string {
+  if (process.env.NODE_ENV === 'production') {
+    const s = process.env.KEYMAKER_SESSION_SECRET;
+    if (!s) {
+      throw new Error('KEYMAKER_SESSION_SECRET is required in production');
+    }
+    return s;
+  }
   return (
     process.env.KEYMAKER_SESSION_SECRET ||
     process.env.ENGINE_API_TOKEN ||

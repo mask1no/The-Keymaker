@@ -31,6 +31,14 @@ export default async function SettingsPage() {
   const ui = getUiSettings();
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-4 text-xs flex items-center gap-3">
+        <span className="badge">Execution Mode: {ui.mode}</span>
+        <span className="badge">DryRun: {ui.dryRun ? 'ON' : 'OFF'}</span>
+        <span className="badge">Cluster: {ui.cluster}</span>
+        <a href="/engine" className="badge" style={{ textDecoration: 'none' }}>
+          Engine →
+        </a>
+      </div>
       <h1 className="h1 mb-6">Settings</h1>
       <div className="bento">
         <section className="card">
