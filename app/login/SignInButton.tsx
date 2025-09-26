@@ -30,12 +30,21 @@ function detectWallets(): DetectedWallet[] {
     const standard = (w as any)['wallets'] || (w as any)['@wallet-standard/app'];
     const accounts = standard?.get()?.wallets || [];
     for (const acct of accounts) {
-      push(acct.name?.toLowerCase?.() || acct.name || 'standard', acct.name || 'Wallet', acct, acct.icon);
+      push(
+        acct.name?.toLowerCase?.() || acct.name || 'standard',
+        acct.name || 'Wallet',
+        acct,
+        acct.icon,
+      );
     }
   } catch {}
   // Common injections
   push('phantom', 'Phantom', w.phantom?.solana || (w.solana?.isPhantom ? w.solana : null));
-  push('backpack', 'Backpack', w.backpack?.solana || (w.solana?.isBackpack ? w.solana : w.xnft?.solana));
+  push(
+    'backpack',
+    'Backpack',
+    w.backpack?.solana || (w.solana?.isBackpack ? w.solana : w.xnft?.solana),
+  );
   push('solflare', 'Solflare', w.solflare || (w.solana?.isSolflare ? w.solana : null));
   push('nightly', 'Nightly', w.nightly?.solana || (w.solana?.isNightly ? w.solana : null));
   // Fallback generic
@@ -72,12 +81,12 @@ export default function SignInButton() {
       if (!address) throw new Error('Wallet not connected');
       setLoading('sign');
       const nonce = await getNonce();
-      const issuedAt = new Date().toISOString();
-      const domain = window.location.host;
-      const uri = window.location.origin;
-      const message = `Keymaker wants you to sign in with your Solana wallet.\nAddress: ${address}\nDomain: ${domain}\nURI: ${uri}\nNonce: ${nonce}\nIssued At: ${issuedAt}`;
+      const tsIso = new Date().toISOString();
+      // Match server's canonical login message exactly
+      const message = `Keymaker-Login|pubkey=${address}|ts=${tsIso}|nonce=${nonce}`;
       const bytes = new TextEncoder().encode(message);
-      const res = await prov.signMessage?.(bytes, 'utf8');
+      // Some wallets only accept Uint8Array without encoding arg
+      const res = await prov.signMessage?.(bytes);
       const sigAny: any = res?.signature ?? res;
       let sig: Uint8Array | null = null;
       if (sigAny instanceof Uint8Array) sig = sigAny;
@@ -90,7 +99,7 @@ export default function SignInButton() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pubkey: address,
-          tsIso: issuedAt,
+          tsIso,
           nonce,
           messageBase64: Buffer.from(bytes).toString('base64'),
           signatureBase64: Buffer.from(sig).toString('base64'),
@@ -178,5 +187,3 @@ export default function SignInButton() {
     </div>
   );
 }
-
-
