@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 
 type DetectedWallet = {
@@ -61,10 +61,11 @@ export default function SignInButton() {
 
   useEffect(() => {
     try {
-      // Ensure Buffer exists
-      // @ts-expect-error
-      if (typeof window !== 'undefined' && !window.Buffer) window.Buffer = Buffer;
-    } catch {}
+      // Ensure Buffer exists in browser
+      if (typeof window !== 'undefined' && !(window as any).Buffer) (window as any).Buffer = Buffer as any;
+    } catch (_e) {
+      // ignore
+    }
     setLoading('detect');
     const list = detectWallets();
     setWallets(list);
@@ -108,8 +109,8 @@ export default function SignInButton() {
       const j = await verify.json().catch(() => ({}));
       if (!verify.ok) throw new Error(j?.error || 'Verification failed');
       window.location.href = '/engine?signed=1';
-    } catch (e: any) {
-      setError(e?.message || 'Login failed');
+    } catch (e: unknown) {
+      setError((e as Error)?.message || 'Login failed');
       setOpen(false);
       setLoading('idle');
     }

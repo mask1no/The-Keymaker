@@ -1,4 +1,5 @@
-import { isRedisConfigured, redisIncr, redisPExpire, redisPTTL } from '@/lib/server/redis'; // Tiny in-memory rate limiter (per key) for dev/demo purposes
+import { isRedisConfigured } from '@/lib/server/redis';
+// Tiny in-memory rate limiter (per key) for dev/demo purposes
 const buckets = new Map<string, { count: number; resetAt: number }>();
 function getEnvInt(name: string, fallback: number): number {
   const v = process.env[name];
@@ -18,7 +19,18 @@ export function rateLimit(key: string, limit = 30, windowMs = 60_000) {
     }
     entry.count += 1;
     return { ok: true, remaining: limit - entry.count };
-  } // Redis-based fixed window rate limiter // Note: async path; best-effort in serverless (async () => { try { const ttl = await redisPTTL(key); const count = await redisIncr(key); if (ttl < 0) await redisPExpire(key, windowMs); if (count > limit) { // Exceeded: set minimal TTL to enforce cooldown await redisPExpire(key, Math.max(ttl, 1000)); } } catch { // swallow } })(); return { ok: true, remaining: Math.max(limit - 1, 0) };
+  }
+  // Redis-based fixed window rate limiter (disabled in this build)
+  // Best-effort pattern for serverless environments:
+  // (async () => {
+  //   try {
+  //     const ttl = await redisPTTL(key);
+  //     const count = await redisIncr(key);
+  //     if (ttl < 0) await redisPExpire(key, windowMs);
+  //     if (count > limit) await redisPExpire(key, Math.max(ttl, 1000));
+  //   } catch { /* ignore */ }
+  // })();
+  return { ok: true, remaining: Math.max(limit - 1, 0) };
 }
 export function getRateConfig(kind: 'tipfloor' | 'submit' | 'status') {
   switch (kind) {

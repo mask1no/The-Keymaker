@@ -26,7 +26,11 @@ const envSchema = z.object({
 const normalizedEnv = { ...process.env, NETWORK: normalizeNetwork(process.env.NETWORK) };
 const parsed = envSchema.safeParse(normalizedEnv);
 if (!parsed.success) {
-  const messages = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '); // eslint-disable-next-line no-console console.warn('[env] Validation warnings:', messages);
+  const messages = parsed.error.issues
+    .map((i) => `${i.path.join('.')}: ${i.message}`)
+    .join('; ');
+  // eslint-disable-next-line no-console
+  console.warn('[env] Validation warnings:', messages);
 }
 export const env = (
   parsed.success
@@ -43,7 +47,8 @@ export const env = (
         NETWORK: normalizeNetwork(process.env.NETWORK),
         JITO_TIP_LAMPORTS: Number(process.env.JITO_TIP_LAMPORTS || 5000),
         JUPITER_FEE_BPS: Number(process.env.JUPITER_FEE_BPS || 5),
-        DETERMINISTIC_SEED: process.env.DETERMINISTIC_SEED || 'episode-kingdom-sunshine-alpha',
+        DETERMINISTIC_SEED:
+          process.env.DETERMINISTIC_SEED || 'episode-kingdom-sunshine-alpha',
       }
 ) as z.infer<typeof envSchema>;
 export type Env = typeof env;

@@ -106,7 +106,7 @@ const defaultExecutionSteps: ExecutionStep[] = [
   { id: 'complete', name: '✅ Complete', status: 'pending' },
 ];
 
-export const useKeymakerStore = create<KeymakerStore>()((set, get) => ({
+export const useKeymakerStore = create<KeymakerStore>()((set, _get) => ({
   wallets: [],
   walletGroups: [{ id: 'default', name: 'Default Group', walletIds: [] }],
   selectedGroup: 'default',

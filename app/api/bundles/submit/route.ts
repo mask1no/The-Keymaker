@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { webcrypto as nodeWebcrypto } from 'crypto';
 import { z } from 'zod';
 import { sendBundle, getBundleStatuses, validateTipAccount } from '@/lib/server/jitoService';
 import { isTestMode } from '@/lib/testMode';
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     });
 
     let transactions: VersionedTransaction[];
-    const subtle = (globalThis as any).crypto?.subtle || require('crypto').webcrypto?.subtle;
+    const subtle = (globalThis as any).crypto?.subtle || nodeWebcrypto?.subtle;
     if (!subtle) throw new Error('WebCrypto not available');
     const originalHash = await subtle.digest(
       'SHA-256',
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
         if (lastValidBlockHeight - bh <= 0) {
           return NextResponse.json({ error: 'Stale blockhash' }, { status: 400 });
         }
-      } catch {}
+      } catch (_e) { void 0; }
       try {
         for (const tx of transactions) {
           const result = await connection.simulateTransaction(tx, {
@@ -152,9 +153,10 @@ export async function POST(request: Request) {
             return sig ? Buffer.from(sig).toString('base64') : null;
           }),
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         Sentry.captureException(error);
-        return NextResponse.json({ error: `Simulation error: ${error.message}` }, { status: 500 });
+        const msg = (error as Error)?.message || 'Simulation error';
+        return NextResponse.json({ error: `Simulation error: ${msg}` }, { status: 500 });
       }
     }
 
@@ -211,7 +213,7 @@ export async function POST(request: Request) {
           target_slot,
         },
       });
-    } catch {
+    } catch (_e) {
       Sentry.addBreadcrumb({
         category: 'bundles',
         message: 'Sending bundle',
@@ -219,7 +221,7 @@ export async function POST(request: Request) {
         data: { region },
       });
     }
-    const { bundle_id } = await sendBundle(region as any, txs_b64);
+    const { bundle_id } = await sendBundle(region as RegionKey, txs_b64);
     let attempts = 0;
     const maxAttempts = 20;
     const pollInterval = 1200;
@@ -227,8 +229,13 @@ export async function POST(request: Request) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
       attempts++;
       try {
-        const statuses = await getBundleStatuses(region as any, [bundle_id]);
-        const status = (statuses as any)?.[0];
+        type JitoBundleStatus = {
+          confirmation_status?: string;
+          slot?: number | null;
+          transactions?: { signature: string }[];
+        };
+        const statuses = (await getBundleStatuses(region as RegionKey, [bundle_id])) as unknown as JitoBundleStatus[];
+        const status = statuses?.[0];
         if (status && status.confirmation_status !== 'pending') {
           Sentry.captureMessage('Bundle finalized', {
             level: 'info',
@@ -252,10 +259,10 @@ export async function POST(request: Request) {
                 JSON.stringify({ bundle_id, slot: status.slot, attempts }),
               ]);
             }
-          } catch {}
+          } catch (_e) { /* noop on journal write failure */ }
           return NextResponse.json({
             bundle_id,
-            signatures: status.transactions?.map((tx: any) => tx.signature) ?? [],
+            signatures: status.transactions?.map((tx: { signature: string }) => tx.signature) ?? [],
             slot: status.slot ?? null,
             status: status.confirmation_status,
             attempts,
@@ -288,7 +295,7 @@ export async function POST(request: Request) {
           JSON.stringify({ bundle_id, attempts }),
         ]);
       }
-    } catch {}
+    } catch (_e) { void 0; }
     return NextResponse.json({
       bundle_id,
       signatures: transactions.map((tx) => {

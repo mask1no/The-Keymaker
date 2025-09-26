@@ -1,21 +1,14 @@
 import { NextResponse } from 'next/server';
 import { randomUUID, createHash } from 'crypto';
 import { z } from 'zod';
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  TransactionMessage,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { Connection, Keypair, SystemProgram, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
 import { engineSubmit } from '@/lib/core/src/engineFacade';
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
-import { incCounter, observeLatency } from '@/lib/server/metricsStore';
+import { incCounter } from '@/lib/server/metricsStore';
 import { getUiSettings } from '@/lib/server/settings';
 
 export const runtime = 'nodejs';
@@ -99,7 +92,9 @@ export async function POST(request: Request) {
 
     const conn = new Connection(rpcUrl(), 'confirmed');
     const { blockhash } = await conn.getLatestBlockhash('confirmed');
-    const priMicros = PRIORITY_TO_MICROLAMPORTS[priority];
+    // priority mapped to micros; reserved for future use
+    // priority mapped to micros; reserved for future logging/metrics
+    void PRIORITY_TO_MICROLAMPORTS[priority];
 
     const ix = SystemProgram.transfer({
       fromPubkey: payer.publicKey,
@@ -127,7 +122,7 @@ export async function POST(request: Request) {
       jitterMs,
       dryRun,
       cluster,
-    } as any;
+    } as ExecOptions;
     if (!dryRun) {
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');

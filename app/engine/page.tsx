@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import { getUiSettings, setUiSettings } from '@/lib/server/settings';
 import { armedUntil, isArmed } from '@/lib/server/arming';
@@ -74,25 +74,7 @@ async function toggleMode(formData: FormData) {
   redirect('/engine?ok=mode');
 }
 
-async function updateSettings(formData: FormData) {
-  'use server';
-  const entries: Record<string, string> = {} as any;
-  for (const [k, v] of formData.entries()) entries[k] = String(v);
-  const next: any = {};
-  if (entries.region) next.region = entries.region;
-  if (entries.priority) next.priority = entries.priority;
-  if (entries.tipLamports) next.tipLamports = Number(entries.tipLamports);
-  if (entries.chunkSize) next.chunkSize = Number(entries.chunkSize);
-  if (entries.concurrency) next.concurrency = Number(entries.concurrency);
-  const jm0 = Number(entries.jitterMin || 50);
-  const jm1 = Number(entries.jitterMax || 150);
-  next.jitterMs = [jm0, jm1];
-  if (entries.dryRun !== undefined) next.dryRun = entries.dryRun === 'on';
-  if (entries.cluster) next.cluster = entries.cluster as any;
-  setUiSettings(next);
-  revalidatePath('/engine');
-  redirect('/engine?ok=save');
-}
+// removed unused updateSettings (redundant with submitTestBundle/toggleMode)
 
 async function armAction(formData: FormData) {
   'use server';
@@ -194,14 +176,14 @@ export default async function Page({
           <div className="mb-2">Deposit pubkey: {deposit || 'Not configured'}</div>
           <div className="mb-1">Step 1: Cross-check</div>
           <pre className="text-xs bg-zinc-900 p-2 rounded">
-            PowerShell: solana-keygen pubkey "$Env:KEYPAIR_JSON"{'\n'}macOS/Linux: solana-keygen
+            PowerShell: solana-keygen pubkey &quot;$Env:KEYPAIR_JSON&quot;{'\n'}macOS/Linux: solana-keygen
             pubkey ~/keymaker-payer.json
           </pre>
           <div className="mb-1">Step 2: Proof (no funds)</div>
           <pre className="text-xs bg-zinc-900 p-2 rounded">
             curl -s{' '}
             {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}` + '/api/engine/prove'}{' '}
-            -H "x-engine-token: $ENGINE_API_TOKEN"
+            -H &quot;x-engine-token: $ENGINE_API_TOKEN&quot;
           </pre>
         </div>
       </section>
@@ -384,10 +366,10 @@ export default async function Page({
 }
 
 // Styles for bento and cards (SSR-only)
-export const metadata = {} as any;
-export const viewport = {} as any;
+export const metadata = {} as const;
+export const viewport = {} as const;
 // Using a style tag here avoids client bundles; Next will inline CSS
-export function Style() {
+function Style() {
   return (
     <style>{`
 :root{ --bg:#0b0e13; --card:#121826; --cardActive:#1d2a44; --text:#e6edf3; --muted:#9fb0c0; --accent:#6aa9ff; --accent2:#64d3a5; }

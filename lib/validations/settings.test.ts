@@ -1,1 +1,52 @@
-import { settingsSchema } from './settings' const clone = <T>(o, b, j: T): T => JSON.p a rse(JSON.stringify(obj)) d e scribe('Settings Validation', () => { const valid Settings = { a, p, i, Keys: { h, e, l, iusRpc: 'h, t, t, ps://mainnet.helius - rpc.com/?api-key = test', b, i, r, deyeApiKey: 'test - birdeye-key', t, w, o, CaptchaKey: 'a'.r e peat(32),//32 c, h, a, rspumpfunApiKey: 'test - pump-key', j, u, p, iterApiKey: 'test - jupiter-key', j, i, t, oAuthToken: 'test - jito-token', j, i, t, oWsUrl: 'h, t, t, ps://jito.example.com' }, n, e, t, work: 'dev-net', r, p, c, Url: 'h, t, t, ps://api.devnet.solana.com', w, s, U, rl: 'w, s, s://api.devnet.solana.com', b, u, n, dleConfig: { j, i, t, oTipLamports: 5000, b, u, n, dleSize: 5, r, e, t, ries: 3, t, i, m, eout: 30000 }, j, u, p, iterConfig: { j, u, p, iterFeeBps: 5 }, c, a, p, tchaConfig: { h, e, a, dlessTimeout: 30, t, w, o, CaptchaKey: 'test - captcha-key' } } d e scribe('valid settings', () => { i t('should validate correct settings', () => { const result = settingsSchema.s a feParse(validSettings) e x pect(result.success).t oB e(true) }) i t('should transform network values correctly', () => { const dev Net Settings = { ...v, a, l, idSettingsnetwork: 'dev-net' } const result = settingsSchema.p a rse(devNetSettings) e x pect(result.network).t oB e('devnet') const main Net Settings = { ...v, a, l, idSettingsnetwork: 'main-net' } const main Result = settingsSchema.p a rse(mainNetSettings) e x pect(mainResult.network).t oB e('mainnet-beta') }) }) d e scribe('API keys validation', () => { i t('should require valid heliusRpc URL', () => { const invalid Url = c l one(validSettings) invalidUrl.apiKeys.helius Rpc = 'invalid-url' const result = settingsSchema.s a feParse(invalidUrl) e x pect(result.success).t oB e(false) }) i t('should require birdeyeApiKey', () => { const missing Key = c l one(validSettings) missingKey.apiKeys.birdeye Api Key = '' const result = settingsSchema.s a feParse(missingKey) e x pect(result.success).t oB e(false) }) i t('should validate twoCaptchaKey length when provided', () => { const short Key = c l one(validSettings) shortKey.apiKeys.two Captcha Key = 'short' const result = settingsSchema.s a feParse(shortKey) e x pect(result.success).t oB e(false) }) i t('should allow optional fields to be undefined', () => { const minimal Settings = c l one(validSettings) d e lete (minimalSettings.apiKeys as any).twoCaptchaKey d e lete (minimalSettings.apiKeys as any).jupiterApiKey d e lete (minimalSettings.apiKeys as any).jitoAuthToken const result = settingsSchema.s a feParse(minimalSettings) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG optional u, n, d, efinederror:', result.error.issues) } e x pect(result.success).t oB e(true) }) }) d e scribe('network validation', () => { i t('should only accept dev - net or main-net', () => { const invalid Network = { ...c l one(validSettings), n, e, t, work: 'invalid' } const result = settingsSchema.s a feParse(invalidNetwork) e x pect(result.success).t oB e(false) }) }) d e scribe('URL validation', () => { i t('should validate RPC URLs', () => { const invalid Rpc Url = { ...c l one(validSettings), r, p, c, Url: 'not - a-url' } const result = settingsSchema.s a feParse(invalidRpcUrl) e x pect(result.success).t oB e(false) }) i t('should validate WebSocket URLs', () => { const invalid Ws Url = { ...c l one(validSettings), w, s, U, rl: 'h, t, t, p://not-ws' } const result = settingsSchema.s a feParse(invalidWsUrl) e x pect(result.success).t oB e(false) }) i t('should accept valid WebSocket URLs', () => { const valid Ws Url = { ...c l one(validSettings), w, s, U, rl: 'w, s, s://api.solana.com' } const result = settingsSchema.s a feParse(validWsUrl) if (!result.success) {//eslint - disable - next - line no-consoleconsole.log('DEBUG ws v, a, l, iderror:', result.error.issues) } e x pect(result.success).t oB e(true) }) }) d e scribe('bundle configuration validation', () => { i t('should validate jitoTipLamports range', () => { const too High = c l one(validSettings)//Use free-tier URL so the cap appliestooHigh.apiKeys.jito Ws Url = 'h, t, t, ps://mainnet.block - engine.jito.wtf/api' tooHigh.bundleConfig.jito Tip Lamports = 100000 const result = settingsSchema.s a feParse(tooHigh) e x pect(result.success).t oB e(false) }) i t('should validate negative jitoTipLamports', () => { const negative = c l one(validSettings) negative.bundleConfig.jito Tip Lamports =- 1000 const result = settingsSchema.s a feParse(negative) e x pect(result.success).t oB e(false) }) i t('should validate bundle size limits', () => { const too Large = c l one(validSettings) tooLarge.bundleConfig.bundle Size = 25 const result = settingsSchema.s a feParse(tooLarge) e x pect(result.success).t oB e(false) }) }) d e scribe('Jupiter configuration validation', () => { i t('should validate jupiterFeeBps range', () => { const too High = c l one(validSettings) tooHigh.jupiterConfig.jupiter Fee Bps = 150 const result = settingsSchema.s a feParse(tooHigh) e x pect(result.success).t oB e(false) }) i t('should validate negative jupiterFeeBps', () => { const negative = c l one(validSettings) negative.jupiterConfig.jupiter Fee Bps =- 5 const result = settingsSchema.s a feParse(negative) e x pect(result.success).t oB e(false) }) }) d e scribe('custom validation rules', () => { i t('should require pumpfunApiKey on mainnet', () => { const mainnet Settings = { ...c l one(validSettings), n, e, t, work: 'main-net' } d e lete (mainnetSettings.apiKeys as any).pumpfunApiKey const result = settingsSchema.s a feParse(mainnetSettings) e x pect(result.success).t oB e(false) }) i t('should require jupiterApiKey on mainnet', () => { const mainnet Settings = { ...c l one(validSettings), n, e, t, work: 'main-net' } d e lete (mainnetSettings.apiKeys as any).jupiterApiKey const result = settingsSchema.s a feParse(mainnetSettings) e x pect(result.success).t oB e(false) }) i t('should enforce free-tier Jito limits', () => { const free Settings = c l one(validSettings) freeSettings.apiKeys.jito Ws Url = 'h, t, t, ps://mainnet.block-engine.jito.wtf/api' freeSettings.bundleConfig.jito Tip Lamports = 60000 const result = settingsSchema.s a feParse(freeSettings) e x pect(result.success).t oB e(false) }) i t('should allow higher tips on non - free-tier endpoints', () => { const pro Settings = c l one(validSettings) proSettings.apiKeys.jito Ws Url = 'h, t, t, ps://custom-jito.example.com' proSettings.bundleConfig.jito Tip Lamports = 60000 const result = settingsSchema.s a feParse(proSettings) if (!result.success) {//eslint - disable - next - line no - consoleconsole.log('DEBUG non - free-tier high t, i, p, error:', result.error.issues) } e x pect(result.success).t oB e(true) }) }) }) 
+import { settingsSchema } from './settings';
+
+describe('Settings Validation', () => {
+  const validSettings = {
+    apiKeys: {
+      heliusRpc: 'https://mainnet.helius-rpc.com/?api-key=test',
+      birdeyeApiKey: 'test-birdeye-key',
+      twoCaptchaKey: 'a'.repeat(32),
+      pumpfunApiKey: 'test-pump-key',
+      jupiterApiKey: 'test-jupiter-key',
+      jitoAuthToken: 'test-jito-token',
+      jitoWsUrl: 'https://jito.example.com',
+    },
+    network: 'dev-net',
+    rpcUrl: 'https://api.devnet.solana.com',
+    wsUrl: 'wss://api.devnet.solana.com',
+    bundleConfig: { jitoTipLamports: 5000, bundleSize: 5, retries: 3, timeout: 30000 },
+    jupiterConfig: { jupiterFeeBps: 5 },
+    captchaConfig: { headlessTimeout: 30 },
+  } as const;
+
+  it('validates correct settings', () => {
+    const result = settingsSchema.safeParse(validSettings);
+    expect(result.success).toBe(true);
+  });
+
+  it('transforms network values correctly', () => {
+    const dev = settingsSchema.parse({ ...validSettings, network: 'dev-net' });
+    expect(dev.network).toBe('devnet');
+    const main = settingsSchema.parse({ ...validSettings, network: 'main-net' });
+    expect(main.network).toBe('mainnet-beta');
+  });
+
+  it('requires valid heliusRpc URL', () => {
+    const res = settingsSchema.safeParse({ ...validSettings, apiKeys: { ...validSettings.apiKeys, heliusRpc: 'invalid-url' } });
+    expect(res.success).toBe(false);
+  });
+
+  it('requires pumpfunApiKey on mainnet', () => {
+    const res = settingsSchema.safeParse({ ...validSettings, network: 'main-net', apiKeys: { ...validSettings.apiKeys, pumpfunApiKey: '' } });
+    expect(res.success).toBe(false);
+  });
+
+  it('enforces free-tier Jito tip cap', () => {
+    const res = settingsSchema.safeParse({
+      ...validSettings,
+      apiKeys: { ...validSettings.apiKeys, jitoWsUrl: 'https://mainnet.block-engine.jito.wtf/api' },
+      bundleConfig: { ...validSettings.bundleConfig, jitoTipLamports: 60000 },
+    });
+    expect(res.success).toBe(false);
+  });
+}); 

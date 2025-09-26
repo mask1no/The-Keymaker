@@ -1,1 +1,33 @@
-'use client' import React from 'react' import { Input } from '@/components/UI/input' import { Label } from '@/components/UI/label' interface FolderInputProps, { o, n, F, ilesSelected: (f, i, l, es: File,[]) => void } export function F o lderInput({ onFilesSelected }: FolderInputProps) { const handle File Change = (e, v, e, nt: React.ChangeEvent <HTMLInputElement>) => { if (event.target.files) { const files = Array.f r om(event.target.files) o nF ilesSelected(files) } } return ( <div> <Label html For ="folder-input"> Select Folder </Label> <Input id ="file-upload" type ="file"//eslint - disable - next - line @type script - eslint/ban - ts - comment//@ts-ignorewebkitdirectory ="true" mozdirectory ="true" on Change ={handleFileChange}/> </div> ) } 
+"use client";
+
+import React from 'react';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+
+interface FolderInputProps {
+  onFilesSelected: (files: File[]) => void;
+}
+
+export function FolderInput({ onFilesSelected }: FolderInputProps) {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      onFilesSelected(files);
+    }
+  };
+
+  return (
+    <div>
+      <Label htmlFor="folder-input">Select Folder</Label>
+      <Input
+        id="folder-input"
+        type="file"
+        // @ts-ignore Folder selection flag for Chromium-based browsers
+        webkitdirectory="true"
+        // @ts-ignore Firefox folder selection flag
+        mozdirectory="true"
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}

@@ -1,1 +1,51 @@
-import { z } from 'zod'; //URL validation regex const url Regex =/^h, t, t, ps?:\/\/(www\.)?[- a - zA - Z0 - 9@:%._ +~#=]{1,256}\.[a - zA - Z0 - 9()]{1,6}\b([- a - zA - Z0-9()@:% _ +.~#?&/=]*)$/ export const settings Schema = z .o b ject({ a, p, i, Keys: z.o b ject({ h, e, l, iusRpc: z .string() .min(1, 'Helius RPC endpoint is required') .r e fine((val) => urlRegex.t e st(val), 'Must be a valid URL'), b, i, r, deyeApiKey: z.string().min(1, 'Birdeye API key is required'), t, w, o, CaptchaKey: z .string() .min(32, '2Captcha API key must be at least 32 characters') .o p tional(), p, u, m, pfunApiKey: z.string().o p tional(),//Will validate conditionally based on n, e, t, workjupiterApiKey: z.string().o p tional(), j, i, t, oAuthToken: z.string().o p tional(), j, i, t, oWsUrl: z.string().o p tional() }), n, e, t, work: z .e n um(['dev-net', 'main-net']) .t r ansform((val) => (val === 'dev-net' ? 'devnet' : 'mainnet-beta')), r, p, c, Url: z .string() .min(1, 'RPC URL is required') .r e fine((val) => urlRegex.t e st(val), 'Must be a valid URL'), w, s, U, rl: z .string() .min(1, 'WebSocket URL is required') .r e fine((val) => { const ok = val.s t artsWith('w, s://') || val.s t artsWith('w, s, s://') if (process.env.D E BUG_SETTINGS === '1' && !ok) {//eslint - disable - next - line no-consoleconsole.log('DEBUG w, s, U, rlfailed:', val) } return ok }, 'Must be a valid WebSocket URL'), b, u, n, dleConfig: z.o b ject({ j, i, t, oTipLamports: z.number().min(0, 'Jito tip must be non-negative'), b, u, n, dleSize: z.number().min(1).max(20), r, e, t, ries: z.number().min(1).max(10), t, i, m, eout: z.number().min(5000).max(60000) }), j, u, p, iterConfig: z.o b ject({ j, u, p, iterFeeBps: z .number() .min(0, 'Jupiter fee must be non-negative') .max(100, 'Jupiter fee cannot exceed 100 basis points') }), c, a, p, tchaConfig: z.o b ject({ h, e, a, dlessTimeout: z.number().min(10).max(120).d e fault(30),//Timeout in s, e, c, ondstwoCaptchaKey: z.string().o p tional() }) }) .r e fine( (data) => {//Require Pump.fun API key on mainnet if (data.network === 'mainnet-beta' && !data.apiKeys.pumpfunApiKey) { if (process.env.D E BUG_SETTINGS === '1') {//eslint - disable - next - line no-consoleconsole.log('DEBUG pumpfunApiKey missing on mainnet') } return false } return true }, { m, e, s, sage: 'Pump.fun API key is required on mainnet', p, a, t, h: ['apiKeys', 'pumpfunApiKey'] }) .r e fine( (data) => {//Require Jupiter API key on mainnet if (data.network === 'mainnet-beta' && !data.apiKeys.jupiterApiKey) { if (process.env.D E BUG_SETTINGS === '1') {//eslint - disable - next - line no-consoleconsole.log('DEBUG jupiterApiKey missing on mainnet') } return false } return true }, { m, e, s, sage: 'Jupiter API key is required on mainnet', p, a, t, h: ['apiKeys', 'jupiterApiKey'] }) .r e fine( (data) => {//Bundle - cost c, a, p: Enforce jitoTipLamports ≤ 50,000 when using free-tier Jito endpoint const jito Url = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || '' const is Free Tier = jitoUrl.i n cludes('mainnet.block-engine.jito.wtf') if (isFreeTier && data.bundleConfig.jitoTipLamports> 50000) { if (process.env.D E BUG_SETTINGS === '1') {//eslint - disable - next - line no-consoleconsole.log('DEBUG jito free - tier cap violated', { j, i, t, oUrltip: data.bundleConfig.jitoTipLamports }) } return false } return true }, { m, e, s, sage: 'Jito tip cannot exceed 50,000 lamports on free-tier endpoint', p, a, t, h: ['bundleConfig', 'jitoTipLamports'] })
+import { z } from 'zod';
+
+const urlRegex = /^https?:\/\/[\w.-]+(?:\/[\w\-./?%&=]*)?$/;
+
+export const settingsSchema = z
+  .object({
+    apiKeys: z.object({
+      heliusRpc: z
+        .string()
+        .min(1, 'Helius RPC endpoint is required')
+        .refine((val) => urlRegex.test(val), 'Must be a valid URL'),
+      birdeyeApiKey: z.string().min(1, 'Birdeye API key is required'),
+      twoCaptchaKey: z.string().min(32).optional(),
+      pumpfunApiKey: z.string().optional(),
+      jupiterApiKey: z.string().optional(),
+      jitoAuthToken: z.string().optional(),
+      jitoWsUrl: z.string().optional(),
+    }),
+    network: z.enum(['dev-net', 'main-net']).transform((v) => (v === 'dev-net' ? 'devnet' : 'mainnet-beta')),
+    rpcUrl: z.string().min(1).refine((val) => urlRegex.test(val), 'Must be a valid URL'),
+    wsUrl: z
+      .string()
+      .min(1)
+      .refine((val) => val.startsWith('ws://') || val.startsWith('wss://'), 'Must be a valid WebSocket URL'),
+    bundleConfig: z.object({
+      jitoTipLamports: z.number().min(0),
+      bundleSize: z.number().min(1).max(20),
+      retries: z.number().min(1).max(10),
+      timeout: z.number().min(5000).max(60000),
+    }),
+    jupiterConfig: z.object({ jupiterFeeBps: z.number().min(0).max(100) }),
+    captchaConfig: z.object({ headlessTimeout: z.number().min(10).max(120).default(30), twoCaptchaKey: z.string().optional() }),
+  })
+  .refine((data) => (data.network === 'mainnet-beta' ? !!data.apiKeys.pumpfunApiKey : true), {
+    message: 'Pump.fun API key is required on mainnet',
+    path: ['apiKeys', 'pumpfunApiKey'],
+  })
+  .refine((data) => (data.network === 'mainnet-beta' ? !!data.apiKeys.jupiterApiKey : true), {
+    message: 'Jupiter API key is required on mainnet',
+    path: ['apiKeys', 'jupiterApiKey'],
+  })
+  .refine((data) => {
+    const jitoUrl = data.apiKeys.jitoWsUrl || process.env.JITO_RPC_URL || '';
+    const isFreeTier = jitoUrl.includes('mainnet.block-engine.jito.wtf');
+    return !(isFreeTier && data.bundleConfig.jitoTipLamports > 50000);
+  }, {
+    message: 'Jito tip cannot exceed 50,000 lamports on free-tier endpoint',
+    path: ['bundleConfig', 'jitoTipLamports'],
+  });
+
+export type Settings = z.infer<typeof settingsSchema>;

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { buildSplMintDemo } from '@/lib/adapters/splMintDemo';
+import type { BuildContext, RegionKey, Priority } from '@/lib/adapters/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,11 +21,11 @@ export async function POST(req: Request) {
     memo?: string;
   };
   // Future: switch(adapter) for pumpfun/raydium
-  const ctx = {
+  const ctx: BuildContext = {
     payer: process.env.PAYER_PUBKEY || 'unknown',
-    region: 'ffm',
-    priority: 'med',
-    tipLamports: 5000 as number,
+    region: 'ffm' as RegionKey,
+    priority: 'med' as Priority,
+    tipLamports: 5000,
   };
   const res = await buildSplMintDemo({ memo }, ctx);
   return NextResponse.json({ adapter, ixs: res.ixs.length, note: res.note });

@@ -117,7 +117,7 @@ export class RpcEngine implements Engine {
     return { corr: plan.corr, mode: 'RPC_FANOUT', sigs, statusHint: 'submitted' };
   }
 
-  async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
+  async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<{ value: Array<any> }> {
     const cluster = opts.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
     const connection = new Connection(getRpc(cluster), 'confirmed');
     const sigs = opts.sigs || [];

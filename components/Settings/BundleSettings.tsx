@@ -1,1 +1,189 @@
-'use client' import React from 'react' import { CardCardContentCardHeaderCardTitle } from '@/components/UI/Card' import { Label } from '@/components/UI/label' import { Input } from '@/components/UI/input' import { Button } from '@/components/UI/button' import { Slider } from '@/components/UI/slider' import { HelpCircleSavePackage } from 'lucide-react' import { TooltipTooltipContentTooltipProviderTooltipTrigger } from '@/components/UI/tooltip' import { useKeymakerStore } from '@/lib/store' import { BUNDLE_CONFIG } from '@/lib/constants/bundleConfig' import toast from 'react - hot-toast' export function B u ndleSettings() { const { tipAmountsetTipAmount } = u s eKeymakerStore() const [localConfigsetLocalConfig] = React.u s eState({ b, u, n, dleSize: BUNDLE_CONFIG.D, E, F, AULT_TX_LIMITtipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP/1e9,//Convert from lamports to S, O, L, retries: BUNDLE_CONFIG.M, A, X_, RETRIEStimeout: BUNDLE_CONFIG.CONFIRMATION_TIMEOUT/1000,//Convert to seconds }) const handle Save = () => {//Validate bundle size if ( localConfig.bundleSize <BUNDLE_CONFIG.MIN_TX_LIMIT || localConfig.bundleSize> BUNDLE_CONFIG.MAX_TX_LIMIT ) { toast.error( `Bundle size must be between ${BUNDLE_CONFIG.MIN_TX_LIMIT} and ${BUNDLE_CONFIG.MAX_TX_LIMIT}`) return }//Save to s t oresetTipAmount(localConfig.tipAmount * 1e9)//Convert to lamports//N, o, t, e: Other config values should be saved to appropriate store fields//Save to e n vironment (for persistence) if (typeof window !== 'undefined') { const w = window as anyw.N E XT_PUBLIC_BUNDLE_TX_LIMIT = localConfig.bundleSize.t oS tring() } toast.s u ccess('Bundle settings saved') } return ( <Card className ="bg - black/40 backdrop - blur - xl border-aqua/20"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Package className ="w - 5 h-5"/> Bundle Configuration </CardTitle> <div className ="text - sm text - muted-foreground"> Configure bundle execution parameters </div> </CardHeader> <CardContent className ="space - y-4"> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Bundle Size </Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max-w-xs"> Maximum number of transactions per bundle. Higher values canbe more efficient but may have lower success rates. R, a, n, ge:{' '}, {BUNDLE_CONFIG.MIN_TX_LIMIT}-{BUNDLE_CONFIG.MAX_TX_LIMIT} </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <div className ="flex items - center gap-4"> <Sl idervalue ={[localConfig.bundleSize]} on Value Change ={(value) => s e tLocalConfig({ l, o, c, alConfigbundleSize: value,[0] }) } min ={BUNDLE_CONFIG.MIN_TX_LIMIT} max ={BUNDLE_CONFIG.MAX_TX_LIMIT} step ={1} className ="flex-1"/> <Input type ="number" value ={localConfig.bundleSize} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigbundleSize: p a rseInt(e.target.value) || 1 }) } className ="w-20" min ={BUNDLE_CONFIG.MIN_TX_LIMIT} max ={BUNDLE_CONFIG.MAX_TX_LIMIT}/> </div> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Jito Tip A m ount (SOL)</Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Tip amount for Jito block engine. Higher tips increasebundle priority. R, e, c, ommended: 0.00001 - 0.001 SOL </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <Input type ="number" value ={localConfig.tipAmount} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigtipAmount: p a rseFloat(e.target.value) || 0 }) } placeholder ="0.00001" step ="0.00001" min ="0" max ="0.1"/> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Max Retries </Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Number of times to retry bundle submission if it fails. Moreretries increase chances of success but take longer. </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <div className ="flex items - center gap-4"> <Sl idervalue ={[localConfig.retries]} on Value Change ={(value) => s e tLocalConfig({ l, o, c, alConfigretries: value,[0] }) } min ={1} max ={10} step ={1} className ="flex-1"/> <Input type ="number" value ={localConfig.retries} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigretries: p a rseInt(e.target.value) || 1 }) } className ="w-20" min ={1} max ={10}/> </div> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Confirmation T i meout (seconds)</Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Maximum time to wait for bundle confirmation before timingout. D, e, f, ault: 30 seconds </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <Input type ="number" value ={localConfig.timeout} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigtimeout: p a rseInt(e.target.value) || 30 }) } placeholder ="30" min ="5" max ="120"/> </div> <Buttonon Click ={handleSave} className ="w - full bg - gradient - to - r from - blue - 500 to - purple - 500 h, o, v, er:from - blue - 600 h, o, v, er:to - purple-600"> <Save className ="w - 4 h - 4 mr-2"/> Save Bundle Settings </Button> </CardContent> </Card> ) } 
+"use client";
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card';
+import { Label } from '@/components/UI/label';
+import { Input } from '@/components/UI/input';
+import { Button } from '@/components/UI/button';
+import { Slider } from '@/components/UI/slider';
+import { HelpCircle, Save, Package } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
+import { useKeymakerStore } from '@/lib/store';
+import { BUNDLE_CONFIG } from '@/lib/constants/bundleConfig';
+import toast from 'react-hot-toast';
+
+export function BundleSettings() {
+  const { tipAmount, setTipAmount } = useKeymakerStore();
+  const [localConfig, setLocalConfig] = React.useState({
+    bundleSize: BUNDLE_CONFIG.DEFAULT_TX_LIMIT,
+    tipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP / 1e9,
+    retries: BUNDLE_CONFIG.MAX_RETRIES,
+    timeout: BUNDLE_CONFIG.CONFIRMATION_TIMEOUT / 1000,
+  });
+
+  const handleSave = () => {
+    if (
+      localConfig.bundleSize < BUNDLE_CONFIG.MIN_TX_LIMIT ||
+      localConfig.bundleSize > BUNDLE_CONFIG.MAX_TX_LIMIT
+    ) {
+      toast.error(
+        `Bundle size must be between ${BUNDLE_CONFIG.MIN_TX_LIMIT} and ${BUNDLE_CONFIG.MAX_TX_LIMIT}`,
+      );
+      return;
+    }
+    setTipAmount(localConfig.tipAmount * 1e9);
+    if (typeof window !== 'undefined') {
+      const w = window as any;
+      w.NEXT_PUBLIC_BUNDLE_TX_LIMIT = String(localConfig.bundleSize);
+    }
+    toast.success('Bundle settings saved');
+  };
+
+  return (
+    <Card className="bg-black/40 backdrop-blur-xl border-aqua/20">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Package className="w-5 h-5" /> Bundle Configuration
+        </CardTitle>
+        <div className="text-sm text-muted-foreground">Configure bundle execution parameters</div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Label>Bundle Size</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="w-4 h-4 text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Maximum number of transactions per bundle. Higher values can be more efficient
+                    but may have lower success rates. Range: {BUNDLE_CONFIG.MIN_TX_LIMIT}-
+                    {BUNDLE_CONFIG.MAX_TX_LIMIT}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center gap-4">
+            <Slider
+              value={[localConfig.bundleSize]}
+              onValueChange={(value) => setLocalConfig({ ...localConfig, bundleSize: value[0] })}
+              min={BUNDLE_CONFIG.MIN_TX_LIMIT}
+              max={BUNDLE_CONFIG.MAX_TX_LIMIT}
+              step={1}
+              className="flex-1"
+            />
+            <Input
+              type="number"
+              value={localConfig.bundleSize}
+              onChange={(e) =>
+                setLocalConfig({ ...localConfig, bundleSize: parseInt(e.target.value) || 1 })
+              }
+              className="w-20"
+              min={BUNDLE_CONFIG.MIN_TX_LIMIT}
+              max={BUNDLE_CONFIG.MAX_TX_LIMIT}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Label>Jito Tip Amount (SOL)</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="w-4 h-4 text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Tip amount for Jito block engine. Higher tips increase bundle priority.
+                    Recommended: 0.00001 - 0.001 SOL
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Input
+            type="number"
+            value={localConfig.tipAmount}
+            onChange={(e) =>
+              setLocalConfig({ ...localConfig, tipAmount: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="0.00001"
+            step="0.00001"
+            min="0"
+            max="0.1"
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Label>Max Retries</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="w-4 h-4 text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Number of times to retry bundle submission if it fails. More retries increase
+                    chances of success but take longer.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center gap-4">
+            <Slider
+              value={[localConfig.retries]}
+              onValueChange={(value) => setLocalConfig({ ...localConfig, retries: value[0] })}
+              min={1}
+              max={10}
+              step={1}
+              className="flex-1"
+            />
+            <Input
+              type="number"
+              value={localConfig.retries}
+              onChange={(e) =>
+                setLocalConfig({ ...localConfig, retries: parseInt(e.target.value) || 1 })
+              }
+              className="w-20"
+              min={1}
+              max={10}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Label>Confirmation Timeout (seconds)</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="w-4 h-4 text-gray-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Maximum time to wait for bundle confirmation. Default: 30s</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Input
+            type="number"
+            value={localConfig.timeout}
+            onChange={(e) =>
+              setLocalConfig({ ...localConfig, timeout: parseInt(e.target.value) || 30 })
+            }
+            placeholder="30"
+            min="5"
+            max="120"
+          />
+        </div>
+        <Button onClick={handleSave} className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+          <Save className="w-4 h-4 mr-2" />
+          Save Bundle Settings
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

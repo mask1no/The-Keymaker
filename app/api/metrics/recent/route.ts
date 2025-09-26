@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 export const dynamic = 'force-dynamic';
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const conn = await db;
     const rows = await conn.all(
