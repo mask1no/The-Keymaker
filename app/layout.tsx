@@ -1,5 +1,4 @@
 import './globals.css';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,22 +6,22 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-800/70 bg-zinc-950/70 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
       <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
-        <Link href="/" className="text-xl md:text-2xl font-semibold tracking-wide focusable">
+        <a href="/" className="text-xl md:text-2xl font-semibold tracking-wide focusable">
           Keymaker
-        </Link>
+        </a>
         <nav className="hidden md:flex items-center gap-4 text-sm">
-          <Link className="focusable" href="/engine" prefetch={false}>
+          <a className="focusable" href="/engine">
             Engine
-          </Link>
-          <Link className="focusable" href="/bundle" prefetch={false}>
+          </a>
+          <a className="focusable" href="/bundle">
             Bundler
-          </Link>
-          <Link className="focusable" href="/settings" prefetch={false}>
+          </a>
+          <a className="focusable" href="/settings">
             Settings
-          </Link>
-          <Link className="focusable" href="/dashboard" prefetch={false}>
+          </a>
+          <a className="focusable" href="/dashboard">
             Dashboard
-          </Link>
+          </a>
         </nav>
       </div>
     </header>
@@ -41,14 +40,9 @@ function SideNav() {
     <aside className="w-56 md:w-60 lg:w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
       <nav className="flex flex-col gap-1 text-sm">
         {items.map((x) => (
-          <Link
-            key={x.name}
-            href={x.href}
-            className="pressable rounded-xl px-3 py-2"
-            prefetch={false}
-          >
+          <a key={x.name} href={x.href} className="pressable rounded-xl px-3 py-2">
             {x.name}
-          </Link>
+          </a>
         ))}
       </nav>
     </aside>

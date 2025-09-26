@@ -1,5 +1,5 @@
-'use client';
-export default function SearchStub() {
+export const dynamic = 'force-dynamic';
+export default async function SearchStub() {
   return (
     <div className="container mx-auto p-6">
       {' '}

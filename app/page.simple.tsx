@@ -1,5 +1,5 @@
-'use client';
-export default function SimpleDashboard() {
+export const dynamic = 'force-dynamic';
+export default async function SimpleDashboard() {
   return (
     <div className="min-h-screen bg-background p-8">
       {' '}

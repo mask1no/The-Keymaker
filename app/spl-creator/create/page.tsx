@@ -1,5 +1,5 @@
-'use client';
-export default function CreateSPLTokenPage() {
+export const dynamic = 'force-dynamic';
+export default async function CreateSPLTokenPage() {
   return (
     <div className="container mx-auto py-10">
       {' '}

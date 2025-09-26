@@ -1,5 +1,5 @@
-'use client';
-export default function CreatorPage() {
+export const dynamic = 'force-dynamic';
+export default async function CreatorPage() {
   return (
     <div style={{ padding: 16 }}>
       {' '}
