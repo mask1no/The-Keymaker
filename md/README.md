@@ -51,7 +51,8 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","tipLamports":5000}'
-'
+````
+
 Submit (POST) — RPC example:
 
 ```bash
@@ -59,7 +60,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150]}'
-````
+```
 
 Status (POST):
 
@@ -107,7 +108,7 @@ curl -s ${BASE_URL:-http://localhost:3000}/api/health
 
 ## Market Bento
 
-- `/api/marketcap/[mint]` fetches from Dexscreener. `/bundle` SSR shows Price/24h/FDV/Volume; PnL tile currently disabled with CTA.
+- `/api/market/[mint]` fetches market stats. `/bundle` SSR shows Price/24h/FDV/Liquidity/Volume; PnL tile currently disabled with CTA.
 
 ## Safety
 
@@ -142,20 +143,11 @@ curl -s ${BASE:-http://localhost:3000}/api/ops/arm -H "x-engine-token: $ENGINE_A
 - Engine API is Node runtime and dynamic; guarded by optional `ENGINE_API_TOKEN`, rate limited, size-capped, and schema-validated.
 - Strict security headers via `next.config.js` (CSP, frameguard, no-referrer, nosniff, permissions-policy). No third-party client fetches.
 
-## Non-coder Runbook
+## Docs
 
-PowerShell users: run commands separately (no &&)
+This is the canonical docs home. Related docs:
+- `/md/RUNBOOK.md` — run commands and sanity checks
+- `/md/OPS.md` — operational notes
+- `/md/PRD.md` — product/design spec
 
-```
-pnpm install --ignore-scripts
-pnpm check:node && pnpm core:build
-pnpm dev
-```
-
-## Roadmap
-
-- Pump.fun & Raydium adapters emit instruction arrays only; submission stays in core.
-
-## History
-
-- See docs/archive for prior audits and notes.
+> Merged content from: `md/docs/README.md` (commit preserved via git mv).
