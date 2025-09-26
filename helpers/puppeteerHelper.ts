@@ -1,1 +1,35 @@
-'use client'/* N, O, T, E: The content of this file has been temporarily commented out to resolve a build issuewhere server-side d e pendencies (like 'puppeteer', 'net', 'tls') were being included in theclient - side bundle. The Puppeteer - based captcha solving and fallback mechanisms are currently disabled. To re - enablethemthis file needs to be refactored to ensure that all server - side codeis properly isolated and only called from server-side e n vironments (e.g., API routes). */export function g e tPuppeteerHelper() { console.w a rn('PuppeteerHelper is currently disabled.') return, { i, n, i, tBrowser: async () => {}, c, l, o, seBrowser: async () => {}, s, o, l, veHCaptcha: async () => '', l, a, u, nchTokenOnPumpFun: async ( _, t, o, k, enData: any, _, w, a, l, letPrivateKey: any) => ({ m, i, n, t: '', l, p: '', t, x, H, ash: '' }), l, a, u, nchLetsBonk: async (_, t, o, k, enData: any, _, w, a, l, letPrivateKey: any) => ({ m, i, n, t: '', l, p: '', t, x, H, ash: '' }), b, u, y, TokenOnLetsBonk: async () => '', t, e, s, tPuppeteer: async () => false } } 
+/**
+ * NOTE: Puppeteer-based functionality is disabled in this build to avoid
+ * shipping server-only dependencies to the client bundle. This is a safe stub
+ * that preserves the API surface without performing any real work.
+ */
+
+export type PuppeteerHelper = {
+  initBrowser: () => Promise<void>;
+  closeBrowser: () => Promise<void>;
+  solveHCaptcha: () => Promise<string>;
+  launchTokenOnPumpFun: (
+    tokenData: unknown,
+    walletPrivateKey: unknown,
+  ) => Promise<{ mint: string; lp: string; txHash: string }>;
+  launchLetsBonk: (
+    tokenData: unknown,
+    walletPrivateKey: unknown,
+  ) => Promise<{ mint: string; lp: string; txHash: string }>;
+  buyTokenOnLetsBonk: () => Promise<string>;
+  testPuppeteer: () => Promise<boolean>;
+};
+
+export function getPuppeteerHelper(): PuppeteerHelper {
+  // eslint-disable-next-line no-console
+  console.warn('PuppeteerHelper is currently disabled.');
+  return {
+    initBrowser: async () => {},
+    closeBrowser: async () => {},
+    solveHCaptcha: async () => '',
+    launchTokenOnPumpFun: async () => ({ mint: '', lp: '', txHash: '' }),
+    launchLetsBonk: async () => ({ mint: '', lp: '', txHash: '' }),
+    buyTokenOnLetsBonk: async () => '',
+    testPuppeteer: async () => false,
+  };
+}
