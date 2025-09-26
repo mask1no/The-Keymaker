@@ -46,12 +46,12 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/deposit-address \
 
 Submit (POST) — Jito example:
 
-````bash
+```bash
 curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","tipLamports":5000}'
-````
+```
 
 Submit (POST) — RPC example:
 
@@ -146,6 +146,7 @@ curl -s ${BASE:-http://localhost:3000}/api/ops/arm -H "x-engine-token: $ENGINE_A
 ## Docs
 
 This is the canonical docs home. Related docs:
+
 - `/md/RUNBOOK.md` — run commands and sanity checks
 - `/md/OPS.md` — operational notes
 - `/md/PRD.md` — product/design spec
