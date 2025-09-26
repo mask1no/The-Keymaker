@@ -1,5 +1,8 @@
 /** @jest-environment node */
-import { getComputeUnitPriceLamports, createComputeBudgetInstructions } from '../../lib/priorityFee';
+import {
+  getComputeUnitPriceLamports,
+  createComputeBudgetInstructions,
+} from '../../lib/priorityFee';
 import { ComputeBudgetProgram } from '@solana/web3.js';
 
 describe('priorityFee', () => {

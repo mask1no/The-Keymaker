@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,7 +9,10 @@ interface BundleSpinnerProps {
   message?: string;
 }
 
-export function BundleSpinner({ isVisible, message = 'Bundling transactions...' }: BundleSpinnerProps) {
+export function BundleSpinner({
+  isVisible,
+  message = 'Bundling transactions...',
+}: BundleSpinnerProps) {
   return (
     <AnimatePresence>
       {isVisible && (

@@ -37,7 +37,9 @@ function detectWallets(): DetectedWallet[] {
         acct.icon,
       );
     }
-  } catch {}
+  } catch (_e) {
+    // ignore wallet-standard absence
+  }
   // Common injections
   push('phantom', 'Phantom', w.phantom?.solana || (w.solana?.isPhantom ? w.solana : null));
   push(
@@ -62,7 +64,8 @@ export default function SignInButton() {
   useEffect(() => {
     try {
       // Ensure Buffer exists in browser
-      if (typeof window !== 'undefined' && !(window as any).Buffer) (window as any).Buffer = Buffer as any;
+      if (typeof window !== 'undefined' && !(window as any).Buffer)
+        (window as any).Buffer = Buffer as any;
     } catch (_e) {
       // ignore
     }

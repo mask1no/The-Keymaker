@@ -1,10 +1,13 @@
-"use client";
+'use client';
 
 import * as React from 'react';
 import * as SliderPr from '@radix-ui/react-slider';
 import { cn } from '@/lib/utils';
 
-export function Slider({ className, ...props }: React.ComponentPropsWithoutRef<typeof SliderPr.Root>) {
+export function Slider({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SliderPr.Root>) {
   return (
     <SliderPr.Root
       className={cn('relative flex w-full touch-none select-none items-center', className)}

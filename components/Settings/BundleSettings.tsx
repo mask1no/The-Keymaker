@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card';
@@ -163,7 +163,9 @@ export function BundleSettings() {
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Maximum time to wait for bundle confirmation. Default: 30s</p>
+                  <p className="max-w-xs">
+                    Maximum time to wait for bundle confirmation. Default: 30s
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -179,7 +181,10 @@ export function BundleSettings() {
             max="120"
           />
         </div>
-        <Button onClick={handleSave} className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+        <Button
+          onClick={handleSave}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+        >
           <Save className="w-4 h-4 mr-2" />
           Save Bundle Settings
         </Button>

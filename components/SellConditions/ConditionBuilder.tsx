@@ -1,11 +1,17 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/Card';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Label } from '@/components/UI/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select';
 import { Switch } from '@/components/UI/switch';
 import { Badge } from '@/components/UI/badge';
 import { Plus, Trash2, TrendingUp, TrendingDown, Clock, DollarSign, Activity } from 'lucide-react';
@@ -146,17 +152,23 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
                               type="number"
                               value={condition.value}
                               onChange={(e) =>
-                                updateCondition(condition.id, { value: parseFloat(e.target.value) || 0 })
+                                updateCondition(condition.id, {
+                                  value: parseFloat(e.target.value) || 0,
+                                })
                               }
                               className="flex-1"
                             />
-                            {condition.unit && <span className="text-sm text-gray-400">{condition.unit}</span>}
+                            {condition.unit && (
+                              <span className="text-sm text-gray-400">{condition.unit}</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={condition.enabled}
-                            onCheckedChange={(checked) => updateCondition(condition.id, { enabled: checked })}
+                            onCheckedChange={(checked) =>
+                              updateCondition(condition.id, { enabled: checked })
+                            }
                           />
                           <Button
                             variant="ghost"
@@ -175,7 +187,8 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
                           <Badge variant="outline" className="text-green-400 border-green-400">
                             Active
                           </Badge>
-                          Sell when {condition.type} is {condition.operator} {condition.value} {condition.unit}
+                          Sell when {condition.type} is {condition.operator} {condition.value}{' '}
+                          {condition.unit}
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
@@ -183,7 +196,8 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
                             Disabled
                           </Badge>
                           <span className="line-through">
-                            Sell when {condition.type} is {condition.operator} {condition.value} {condition.unit}
+                            Sell when {condition.type} is {condition.operator} {condition.value}{' '}
+                            {condition.unit}
                           </span>
                         </span>
                       )}
@@ -197,7 +211,8 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
         {conditions.length > 0 && (
           <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-sm text-blue-300">
-              <strong>Logic:</strong> Conditions are evaluated with OR logic. A sell will trigger when ANY condition is met.
+              <strong>Logic:</strong> Conditions are evaluated with OR logic. A sell will trigger
+              when ANY condition is met.
             </p>
           </div>
         )}

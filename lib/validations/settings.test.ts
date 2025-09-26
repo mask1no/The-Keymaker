@@ -32,12 +32,19 @@ describe('Settings Validation', () => {
   });
 
   it('requires valid heliusRpc URL', () => {
-    const res = settingsSchema.safeParse({ ...validSettings, apiKeys: { ...validSettings.apiKeys, heliusRpc: 'invalid-url' } });
+    const res = settingsSchema.safeParse({
+      ...validSettings,
+      apiKeys: { ...validSettings.apiKeys, heliusRpc: 'invalid-url' },
+    });
     expect(res.success).toBe(false);
   });
 
   it('requires pumpfunApiKey on mainnet', () => {
-    const res = settingsSchema.safeParse({ ...validSettings, network: 'main-net', apiKeys: { ...validSettings.apiKeys, pumpfunApiKey: '' } });
+    const res = settingsSchema.safeParse({
+      ...validSettings,
+      network: 'main-net',
+      apiKeys: { ...validSettings.apiKeys, pumpfunApiKey: '' },
+    });
     expect(res.success).toBe(false);
   });
 
@@ -49,4 +56,4 @@ describe('Settings Validation', () => {
     });
     expect(res.success).toBe(false);
   });
-}); 
+});

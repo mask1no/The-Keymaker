@@ -1,4 +1,4 @@
-import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { Connection, VersionedTransaction, type RpcResponseAndContext, type SignatureStatus } from '@solana/web3.js';
 import { Engine, ExecOptions, SubmitPlan, EngineSubmitResult } from './engine';
 import { PRIORITY_TO_MICROLAMPORTS } from './types';
 import { createDailyJournal, logJsonLine } from './journal';
@@ -117,7 +117,10 @@ export class RpcEngine implements Engine {
     return { corr: plan.corr, mode: 'RPC_FANOUT', sigs, statusHint: 'submitted' };
   }
 
-  async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<{ value: Array<any> }> {
+  async pollStatus(
+    _plan: SubmitPlan | null,
+    opts: ExecOptions,
+  ): Promise<RpcResponseAndContext<(SignatureStatus | null)[]>> {
     const cluster = opts.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
     const connection = new Connection(getRpc(cluster), 'confirmed');
     const sigs = opts.sigs || [];

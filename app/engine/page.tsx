@@ -176,8 +176,8 @@ export default async function Page({
           <div className="mb-2">Deposit pubkey: {deposit || 'Not configured'}</div>
           <div className="mb-1">Step 1: Cross-check</div>
           <pre className="text-xs bg-zinc-900 p-2 rounded">
-            PowerShell: solana-keygen pubkey &quot;$Env:KEYPAIR_JSON&quot;{'\n'}macOS/Linux: solana-keygen
-            pubkey ~/keymaker-payer.json
+            PowerShell: solana-keygen pubkey &quot;$Env:KEYPAIR_JSON&quot;{'\n'}macOS/Linux:
+            solana-keygen pubkey ~/keymaker-payer.json
           </pre>
           <div className="mb-1">Step 2: Proof (no funds)</div>
           <pre className="text-xs bg-zinc-900 p-2 rounded">

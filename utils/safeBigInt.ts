@@ -42,8 +42,10 @@ export function safeToBufferLE(value: bigint | number | string, length: number):
   let normalized: bigint = 0n;
   try {
     if (typeof value === 'bigint') normalized = value;
-    else if (typeof value === 'number') normalized = Number.isFinite(value) ? BigInt(Math.max(0, Math.trunc(value))) : 0n;
-    else if (typeof value === 'string') normalized = /^\d+$/.test(value.trim()) ? BigInt(value.trim()) : 0n;
+    else if (typeof value === 'number')
+      normalized = Number.isFinite(value) ? BigInt(Math.max(0, Math.trunc(value))) : 0n;
+    else if (typeof value === 'string')
+      normalized = /^\d+$/.test(value.trim()) ? BigInt(value.trim()) : 0n;
   } catch {
     normalized = 0n;
   }

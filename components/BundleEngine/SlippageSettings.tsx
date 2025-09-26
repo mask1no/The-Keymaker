@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { Label } from '@/components/UI/label';
 import { Slider } from '@/components/UI/slider';
@@ -13,7 +13,12 @@ interface SlippageSettingsProps {
   onMaxSlippageChange: (value: number) => void;
 }
 
-export function SlippageSettings({ slippage, maxSlippage, onSlippageChange, onMaxSlippageChange }: SlippageSettingsProps) {
+export function SlippageSettings({
+  slippage,
+  maxSlippage,
+  onSlippageChange,
+  onMaxSlippageChange,
+}: SlippageSettingsProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -26,8 +31,8 @@ export function SlippageSettings({ slippage, maxSlippage, onSlippageChange, onMa
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  The starting slippage tolerance for swaps. If a swap fails due to insufficient liquidity,
-                  the system will automatically retry with higher slippage.
+                  The starting slippage tolerance for swaps. If a swap fails due to insufficient
+                  liquidity, the system will automatically retry with higher slippage.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -66,8 +71,8 @@ export function SlippageSettings({ slippage, maxSlippage, onSlippageChange, onMa
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  The maximum slippage tolerance. The system will stop retrying once this limit is reached.
-                  Higher values may result in worse execution prices.
+                  The maximum slippage tolerance. The system will stop retrying once this limit is
+                  reached. Higher values may result in worse execution prices.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -97,8 +102,9 @@ export function SlippageSettings({ slippage, maxSlippage, onSlippageChange, onMa
         </div>
       </div>
       <div className="text-xs text-gray-400 mt-2">
-        💡 Tip: For new tokens with low liquidity use higher slippage values (5-10%). For established tokens, lower values (0.5-2%) are usually sufficient.
+        💡 Tip: For new tokens with low liquidity use higher slippage values (5-10%). For
+        established tokens, lower values (0.5-2%) are usually sufficient.
       </div>
     </div>
   );
-} 
+}

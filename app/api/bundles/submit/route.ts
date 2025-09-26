@@ -122,7 +122,9 @@ export async function POST(request: Request) {
         if (lastValidBlockHeight - bh <= 0) {
           return NextResponse.json({ error: 'Stale blockhash' }, { status: 400 });
         }
-      } catch (_e) { void 0; }
+      } catch (_e) {
+        void 0;
+      }
       try {
         for (const tx of transactions) {
           const result = await connection.simulateTransaction(tx, {
@@ -234,7 +236,9 @@ export async function POST(request: Request) {
           slot?: number | null;
           transactions?: { signature: string }[];
         };
-        const statuses = (await getBundleStatuses(region as RegionKey, [bundle_id])) as unknown as JitoBundleStatus[];
+        const statuses = (await getBundleStatuses(region as RegionKey, [
+          bundle_id,
+        ])) as unknown as JitoBundleStatus[];
         const status = statuses?.[0];
         if (status && status.confirmation_status !== 'pending') {
           Sentry.captureMessage('Bundle finalized', {
@@ -259,7 +263,9 @@ export async function POST(request: Request) {
                 JSON.stringify({ bundle_id, slot: status.slot, attempts }),
               ]);
             }
-          } catch (_e) { /* noop on journal write failure */ }
+          } catch (_e) {
+            /* noop on journal write failure */
+          }
           return NextResponse.json({
             bundle_id,
             signatures: status.transactions?.map((tx: { signature: string }) => tx.signature) ?? [],
@@ -295,7 +301,9 @@ export async function POST(request: Request) {
           JSON.stringify({ bundle_id, attempts }),
         ]);
       }
-    } catch (_e) { void 0; }
+    } catch (_e) {
+      void 0;
+    }
     return NextResponse.json({
       bundle_id,
       signatures: transactions.map((tx) => {

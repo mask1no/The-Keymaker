@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { Component, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
@@ -45,7 +45,9 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertCircle className="w-8 h-8 text-red-500" />
               <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
             </div>
-            <p className="text-gray-400 mb-4">An unexpected error occurred. This could be due to:</p>
+            <p className="text-gray-400 mb-4">
+              An unexpected error occurred. This could be due to:
+            </p>
             <ul className="text-sm text-gray-500 space-y-1 mb-6">
               <li>• Network connectivity issues</li>
               <li>• Invalid configuration or missing API keys</li>
@@ -60,11 +62,17 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={this.handleGoHome} className="flex-1 bg-black/50 hover:bg-black/70 border border-white/10 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+              <button
+                onClick={this.handleGoHome}
+                className="flex-1 bg-black/50 hover:bg-black/70 border border-white/10 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
                 <Home className="w-4 h-4" />
                 Go Home
               </button>
-              <button onClick={this.handleReset} className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+              <button
+                onClick={this.handleReset}
+                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
                 <RefreshCw className="w-4 h-4" />
                 Reload
               </button>
