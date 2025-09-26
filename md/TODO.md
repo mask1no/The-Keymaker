@@ -32,4 +32,5 @@
 - [x] Verify settings SSR server-actions and quick badges on `/engine` stay aligned.
 - [x] Add root `README.md` (overview, Safety, Runbook, links to `/md/docs/**`).
 - [ ] Run Prettier/ESLint on changed files; ensure `scripts/sanity.mjs` passes.
-- [ ] Acceptance: install, `check:node`, `core:build`, middleware gate, analyze 0KB client on SSR routes, market bento loads, safety prove OK, journaling/dry-run, arming latch.
+- [x] Run Prettier selectively on changed SSR files; defer legacy issues.
+- [ ] Acceptance: install, `check:node`, `core:build`, middleware gate, analyze ~0 KB client JS on `/engine`, `/bundle`, `/settings`, `/wallets`; market bento loads; safety prove OK; journaling/dry-run; arming latch.

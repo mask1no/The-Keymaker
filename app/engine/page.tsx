@@ -3,6 +3,7 @@ import { join } from 'path';
 import { getUiSettings, setUiSettings } from '@/lib/server/settings';
 import { armedUntil, isArmed } from '@/lib/server/arming';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import type { ExecutionMode } from '@/lib/core/src/engine';
 // SSR-only; avoid client imports
 
@@ -38,25 +39,31 @@ async function submitTestBundle(formData: FormData) {
   const jitterMax = Number(formData.get('jitterMax') || 150);
   const dryRun = String(formData.get('dryRun')) === 'on';
   const cluster = (formData.get('cluster') as string) || 'mainnet-beta';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-engine-token': process.env.ENGINE_API_TOKEN || '',
-    },
-    body: JSON.stringify({
-      mode,
-      region,
-      priority,
-      tipLamports,
-      chunkSize,
-      concurrency,
-      jitterMs: [jitterMin, jitterMax],
-      dryRun,
-      cluster,
-    }),
-  });
-  revalidatePath('/engine');
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+      },
+      body: JSON.stringify({
+        mode,
+        region,
+        priority,
+        tipLamports,
+        chunkSize,
+        concurrency,
+        jitterMs: [jitterMin, jitterMax],
+        dryRun,
+        cluster,
+      }),
+    });
+    revalidatePath('/engine');
+    if (res.ok) return redirect('/engine?ok=submit');
+    return redirect('/engine?err=submit');
+  } catch {
+    return redirect('/engine?err=submit');
+  }
 }
 
 async function toggleMode(formData: FormData) {
@@ -64,6 +71,7 @@ async function toggleMode(formData: FormData) {
   const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
   setUiSettings({ mode });
   revalidatePath('/engine');
+  redirect('/engine?ok=mode');
 }
 
 async function updateSettings(formData: FormData) {
@@ -83,29 +91,40 @@ async function updateSettings(formData: FormData) {
   if (entries.cluster) next.cluster = entries.cluster as any;
   setUiSettings(next);
   revalidatePath('/engine');
+  redirect('/engine?ok=save');
 }
 
 async function armAction(formData: FormData) {
   'use server';
   const minutes = Number(formData.get('minutes') || 15);
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/arm`, {
-    method: 'POST',
-    headers: {
-      'x-engine-token': process.env.ENGINE_API_TOKEN || '',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ minutes }),
-  });
-  revalidatePath('/engine');
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/arm`, {
+      method: 'POST',
+      headers: {
+        'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ minutes }),
+    });
+    revalidatePath('/engine');
+    redirect(res.ok ? '/engine?ok=armed' : '/engine?err=armed');
+  } catch {
+    redirect('/engine?err=armed');
+  }
 }
 
 async function disarmAction() {
   'use server';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/disarm`, {
-    method: 'POST',
-    headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
-  });
-  revalidatePath('/engine');
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/disarm`, {
+      method: 'POST',
+      headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+    });
+    revalidatePath('/engine');
+    redirect(res.ok ? '/engine?ok=disarmed' : '/engine?err=disarmed');
+  } catch {
+    redirect('/engine?err=disarmed');
+  }
 }
 
 function readTodayJournal(): Array<{ time: string; ev: string; summary: string }> {
@@ -134,7 +153,11 @@ function readTodayJournal(): Array<{ time: string; ev: string; summary: string }
   }
 }
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: { ok?: string; err?: string };
+}) {
   const deposit = await getDepositAddress();
   const events = readTodayJournal();
   const ui = getUiSettings();
@@ -143,6 +166,16 @@ export default async function Page() {
   return (
     <div className="prose prose-invert max-w-none">
       <Style />
+      {searchParams?.ok && (
+        <div className="mb-3 text-xs rounded-md border border-green-600/30 bg-green-900/20 px-3 py-2">
+          OK: {searchParams.ok}
+        </div>
+      )}
+      {searchParams?.err && (
+        <div className="mb-3 text-xs rounded-md border border-yellow-600/30 bg-yellow-900/20 px-3 py-2">
+          Error: {searchParams.err}
+        </div>
+      )}
       <h1>Engine</h1>
       <div className="mb-4 text-xs flex items-center gap-3">
         <span className="badge">Execution Mode: {ui.mode}</span>

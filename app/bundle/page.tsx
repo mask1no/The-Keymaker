@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import { Suspense } from 'react';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { getTrackedWallets } from '@/lib/server/wallets';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +54,13 @@ function SkeletonCard() {
 
 export default async function Page() {
   const mint = cookies().get('km_mint')?.value || null;
+  async function setMint(formData: FormData) {
+    'use server';
+    const m = String(formData.get('mint') || '').trim();
+    if (m) cookies().set('km_mint', m, { httpOnly: false, sameSite: 'lax', path: '/' });
+    revalidatePath('/bundle');
+    redirect('/bundle');
+  }
   return (
     <div className="mx-auto max-w-7xl space-y-4">
       <h1 className="h1">Bundler</h1>
@@ -59,6 +68,18 @@ export default async function Page() {
         <div className="card">
           <div className="label mb-1">Market</div>
           <div className="text-sm">
+            <form action={setMint} className="mb-2 flex gap-2">
+              <input
+                type="text"
+                name="mint"
+                defaultValue={mint ?? ''}
+                placeholder="Token mint (base58)"
+                className="input px-2 py-1 bg-zinc-900 w-full"
+              />
+              <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">
+                Set mint
+              </button>
+            </form>
             <Suspense fallback={<SkeletonCard />}>
               {/* @ts-expect-error Async Server Component */}
               <MarketCard mint={mint} />
