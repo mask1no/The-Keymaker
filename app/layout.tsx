@@ -22,6 +22,8 @@ function Header() {
           <a className="focusable" href="/dashboard">
             Dashboard
           </a>
+          {/* Session display kept SSR-only */}
+          <SessionStrip />
         </nav>
       </div>
     </header>
@@ -62,5 +64,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
       </body>
     </html>
+  );
+}
+
+import { getSession, clearSessionCookie } from '@/lib/server/session';
+import { revalidatePath } from 'next/cache';
+
+async function SignOut() {
+  'use server';
+  clearSessionCookie();
+  revalidatePath('/');
+}
+
+function truncate(pk: string) {
+  return pk.length > 10 ? `${pk.slice(0, 4)}…${pk.slice(-4)}` : pk;
+}
+
+async function SessionStrip() {
+  const s = getSession();
+  if (!s) return null;
+  return (
+    <form action={SignOut} className="flex items-center gap-2">
+      <span className="text-xs text-zinc-400">{truncate(s.userPubkey)}</span>
+      <button type="submit" className="text-xs underline">
+        Sign out
+      </button>
+    </form>
   );
 }
