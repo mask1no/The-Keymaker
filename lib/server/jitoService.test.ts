@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import {
-  getTipFloor,
-  sendBundle,
-  getBundleStatuses,
-  validateTipAccount,
-} from './jitoService';
+import { getTipFloor, sendBundle, getBundleStatuses, validateTipAccount } from './jitoService';
 import {
   VersionedTransaction,
   TransactionMessage,

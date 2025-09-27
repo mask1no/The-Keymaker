@@ -130,7 +130,7 @@ export class RpcEngine implements Engine {
     const connection = new Connection(getRpc(cluster), 'confirmed');
     const sigs = opts.sigs || [];
     const t0 = Date.now();
-    const statuses = sigs.length ? await connection.getSignatureStatuses(sigs) : { value: [] };
+    const statuses = await connection.getSignatureStatuses(sigs);
     incCounter('engine_status_total');
     incCounter('engine_status_rpc_total');
     observeLatency('engine_status_ms', Date.now() - t0, { mode: 'RPC_FANOUT' });

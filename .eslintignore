@@ -25,3 +25,14 @@ coverage/**
 dist/**
 **/*.md
 lib/server/auth.ts
+scripts/acceptanceTests.js
+scripts/debugSettings.ts
+scripts/initDb.ts
+scripts/smokeBundle.ts
+scripts/ciServer.js
+services/analyticsService.ts
+services/birdeyeService.ts
+services/i18nService.ts
+services/jupiterService.ts
+services/presetService.ts
+helpers/puppeteerHelper.ts

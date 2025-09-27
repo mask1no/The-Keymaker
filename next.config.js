@@ -16,12 +16,12 @@ const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   eslint: {
-    // Skip ESLint errors during builds so we can verify the bundler
-    ignoreDuringBuilds: true,
+    // Enforce ESLint during builds
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Skip TypeScript type errors during builds (temporary)
-    ignoreBuildErrors: true,
+    // Enforce TypeScript type errors during builds
+    ignoreBuildErrors: false,
   },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   async headers() {
