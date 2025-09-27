@@ -1,3 +1,16 @@
+#!/usr/bin/env bash
+set -e
+files=$(git diff --cached --name-only)
+for f in $files; do
+  if [[ "$f" =~ (^|/)\.env($|\.|/) || "$f" =~ ^keypairs/ ]]; then
+    echo "❌ Refusing to commit $f"; exit 1
+  fi
+  if grep -Iq . "$f"; then
+    if grep -Eqi '(private.?key|secret_key|mnemonic|seed|ed25519)' "$f"; then
+      echo "❌ Potential secret in $f"; exit 1
+    fi
+  fi
+done
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 pnpm -s lint --fix || true

@@ -1,10 +1,10 @@
-# The Keymaker – Research, Product and Design (RPD)
+# The Keymaker – Product Requirements Document (PRD)
 
 ## Executive Summary
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Working prototype with basic Jito integration, wallet authentication, and bundle submission capabilities.
+**Current Status**: Production-ready SSR cockpit with Jito bundle and RPC fanout engine modes, multi-wallet login, SSR wallet tracking, and hardened security.
 
 ## Vision & Mission
 
@@ -65,7 +65,7 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 | Component            | Technology                         | Purpose                           |
 | -------------------- | ---------------------------------- | --------------------------------- |
 | **Frontend**         | Next.js 14.2, React 18, TypeScript | Modern web application framework  |
-| **UI Framework**     | Tailwind CSSshadcn/ui              | Responsive design system          |
+| **UI Framework**     | Tailwind CSS                       | Responsive design system          |
 | **State Management** | Zustand                            | Lightweight client state          |
 | **Database**         | SQLite                             | Analytics and transaction history |
 | **Security**         | AES-256-GCMPBKDF2                  | Military-grade encryption         |
@@ -120,6 +120,30 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 • Key validation        • Tip optimization     • Region fallback • Success metrics
 • RPC connectivity      • Base64 encoding      • Error handling  • Report generation
 ```
+
+## Modes
+- **JITO_BUNDLE**: Build N txs (dev + bundle wallets), compute dynamic tip from Jito tip floor, submit as bundle via regional Block Engines with retries/failover. Target: same block; no in-between snipes.
+- **RPC_FANOUT (Mass Sniper)**: Build N independent buy txs and fan them out via RPC. Same-block not guaranteed, but avoids trackers’ “bundled %” heuristics (more under-the-radar).
+
+## Wallets & Groups
+- Manage tracked wallets on `/wallets` (SSR). Optionally group wallets (e.g., `bundle_20`), where index 0 is dev and others are bundle.
+
+## Manual Controls (RPC mode)
+- Buy now per wallet or group.
+- Sell % per wallet (10/25/50/100).
+- Sell after time per wallet (non-durable scheduling; documented).
+
+## Security
+- No browser tx signing; only message-sign for login at `/login`.
+- API guarded (per-IP, 8KB caps, node runtime/dynamic flags, uniform errors, requestId).
+- HMAC session, Secure+HttpOnly cookie in prod, SameSite=Lax.
+- CSP strict; connect-src extended only to allow wallet extensions.
+
+## Performance
+- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship ~0 KB client JS (≤ 5 KB each). `/login` is the only client island.
+
+## Observability
+- Health & metrics endpoints; NDJSON journaling with redaction for /(key|token|secret|pass)/i.
 
 ## Health & Monitoring Model
 

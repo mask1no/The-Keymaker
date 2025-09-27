@@ -8,7 +8,8 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { join } from 'path';
 import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
 import { submitViaJito, submitViaRpc } from '@/lib/core/src/engineFacade';
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
@@ -91,33 +92,49 @@ export async function POST(request: Request) {
     const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : (ui.dryRun ?? true);
     const cluster = parsed.cluster || ui.cluster || 'mainnet-beta';
 
-    const keyPath = process.env.KEYPAIR_JSON;
-    if (!keyPath) return apiError(400, 'not_configured');
-    const raw = readFileSync(keyPath, 'utf8');
-    const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-
     const conn = new Connection(rpcUrl(), 'confirmed');
     const { blockhash } = await conn.getLatestBlockhash('confirmed');
     // priority mapped to micros; reserved for future use
     // priority mapped to micros; reserved for future logging/metrics
     void PRIORITY_TO_MICROLAMPORTS[priority];
 
-    const ix = SystemProgram.transfer({
-      fromPubkey: payer.publicKey,
-      toPubkey: payer.publicKey,
-      lamports: 0,
-    });
-    const msg = new TransactionMessage({
-      payerKey: payer.publicKey,
-      recentBlockhash: blockhash,
-      instructions: [ix],
-    }).compileToV0Message();
-    const tx = new VersionedTransaction(msg);
-    tx.sign([payer]);
-    const encoded = Buffer.from(tx.serialize()).toString('base64');
-    const corr = createHash('sha256').update(Buffer.from(encoded)).digest('hex');
+    const txs: VersionedTransaction[] = [];
+    // If RPC_FANOUT and a wallet directory is provided, fan out across multiple keypairs
+    const walletDir = process.env.KEYMAKER_WALLET_DIR || 'keypairs';
+    const useWalletDir = mode === 'RPC_FANOUT' && existsSync(walletDir);
+    if (useWalletDir) {
+      const files = readdirSync(walletDir).filter((f) => f.toLowerCase().endsWith('.json'));
+      const selected = files.slice(0, Math.max(1, Math.min(50, files.length)));
+      for (const f of selected) {
+        try {
+          const raw = readFileSync(join(walletDir, f), 'utf8');
+          const kp = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
+          const ix = SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey: kp.publicKey, lamports: 0 });
+          const msg = new TransactionMessage({ payerKey: kp.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+          const tx = new VersionedTransaction(msg);
+          tx.sign([kp]);
+          txs.push(tx);
+        } catch {
+          // skip invalid file
+        }
+      }
+    }
+    // Fallback to single payer if no multi-wallets loaded
+    if (txs.length === 0) {
+      const keyPath = process.env.KEYPAIR_JSON;
+      if (!keyPath) return apiError(400, 'not_configured');
+      const raw = readFileSync(keyPath, 'utf8');
+      const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
+      const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: payer.publicKey, lamports: 0 });
+      const msg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+      const tx = new VersionedTransaction(msg);
+      tx.sign([payer]);
+      txs.push(tx);
+    }
+    const encodedFirst = Buffer.from(txs[0].serialize()).toString('base64');
+    const corr = createHash('sha256').update(Buffer.from(encodedFirst)).digest('hex');
     incCounter('engine_submit_total');
-    const plan = { txs: [tx], corr };
+    const plan = { txs, corr };
     const opts: ExecOptions = {
       mode,
       region,
@@ -130,6 +147,8 @@ export async function POST(request: Request) {
       cluster,
     } as ExecOptions;
     if (!dryRun) {
+      const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
+      if (!allowLive) return apiError(403, 'live_disabled');
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');
     }

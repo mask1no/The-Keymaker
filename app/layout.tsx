@@ -19,6 +19,12 @@ function Header() {
           <a className="focusable" href="/settings">
             Settings
           </a>
+          <a className="focusable" href="/wallets">
+            Wallets
+          </a>
+          <a className="focusable" href="/login">
+            Login
+          </a>
           <a className="focusable" href="/dashboard">
             Dashboard
           </a>

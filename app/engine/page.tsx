@@ -5,6 +5,8 @@ import { armedUntil, isArmed } from '@/lib/server/arming';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ExecutionMode } from '@/lib/core/src/engine';
+import { createDailyJournal, logJsonLine } from '@/lib/core/src/journal';
+import { getTrackedWallets } from '@/lib/server/wallets';
 // SSR-only; avoid client imports
 
 export const dynamic = 'force-dynamic';
@@ -18,8 +20,11 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 async function getDepositAddress(): Promise<string | null> {
   try {
     const d = await fetchJson<{ publicKey: string }>(
-      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/deposit-address`,
-      { cache: 'no-store' },
+      `/api/engine/deposit-address`,
+      {
+        cache: 'no-store',
+        headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+      },
     );
     return d.publicKey;
   } catch {
@@ -40,7 +45,7 @@ async function submitTestBundle(formData: FormData) {
   const dryRun = String(formData.get('dryRun')) === 'on';
   const cluster = (formData.get('cluster') as string) || 'mainnet-beta';
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
+    const res = await fetch(`/api/engine/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +85,7 @@ async function armAction(formData: FormData) {
   'use server';
   const minutes = Number(formData.get('minutes') || 15);
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/arm`, {
+    const res = await fetch(`/api/ops/arm`, {
       method: 'POST',
       headers: {
         'x-engine-token': process.env.ENGINE_API_TOKEN || '',
@@ -98,7 +103,7 @@ async function armAction(formData: FormData) {
 async function disarmAction() {
   'use server';
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ops/disarm`, {
+    const res = await fetch(`/api/ops/disarm`, {
       method: 'POST',
       headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
     });
@@ -106,6 +111,71 @@ async function disarmAction() {
     redirect(res.ok ? '/engine?ok=disarmed' : '/engine?err=disarmed');
   } catch {
     redirect('/engine?err=disarmed');
+  }
+}
+
+async function rpcBuyNow(formData: FormData) {
+  'use server';
+  const mint = String(formData.get('mint') || '').trim();
+  const amountSol = Number(formData.get('amountSol') || 0);
+  const ui = getUiSettings();
+  if (ui.mode !== 'RPC_FANOUT') return redirect('/engine?err=wrong_mode');
+  const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
+  const journal = createDailyJournal('data');
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+      },
+      body: JSON.stringify({
+        mode: 'RPC_FANOUT',
+        dryRun: !allowLive || (ui.dryRun ?? true),
+        cluster: ui.cluster,
+      }),
+    });
+    const j = await res.json().catch(() => ({}));
+    logJsonLine(journal, { ev: 'rpcBuyNow', group: 'tracked', mint, amount: amountSol, requestId: j.requestId });
+    revalidatePath('/engine');
+    return redirect(res.ok ? '/engine?ok=buy' : '/engine?err=buy');
+  } catch {
+    return redirect('/engine?err=buy');
+  }
+}
+
+async function rpcSellPercent(formData: FormData) {
+  'use server';
+  const mint = String(formData.get('mint') || '').trim();
+  const percent = Number(formData.get('percent') || 0);
+  const ui = getUiSettings();
+  if (ui.mode !== 'RPC_FANOUT') return redirect('/engine?err=wrong_mode');
+  const journal = createDailyJournal('data');
+  try {
+    logJsonLine(journal, { ev: 'rpcSellPercent', wallet: getTrackedWallets()[0] || null, mint, percent, requestId: null });
+    revalidatePath('/engine');
+    return redirect('/engine?ok=sell');
+  } catch {
+    return redirect('/engine?err=sell');
+  }
+}
+
+async function rpcSellAfter(formData: FormData) {
+  'use server';
+  const mint = String(formData.get('mint') || '').trim();
+  const percent = Number(formData.get('percent') || 0);
+  const delayMs = Number(formData.get('delayMs') || 0);
+  const ui = getUiSettings();
+  if (ui.mode !== 'RPC_FANOUT') return redirect('/engine?err=wrong_mode');
+  const journal = createDailyJournal('data');
+  try {
+    setTimeout(() => {
+      logJsonLine(journal, { ev: 'rpcSellAfter', wallet: getTrackedWallets()[0] || null, mint, percent, delayMs, scheduled: true });
+    }, Math.max(0, delayMs));
+    revalidatePath('/engine');
+    return redirect('/engine?ok=scheduled');
+  } catch {
+    return redirect('/engine?err=schedule');
   }
 }
 
@@ -223,6 +293,35 @@ export default async function Page({
           </button>
         </form>
       </div>
+      {ui.mode === 'RPC_FANOUT' && (
+        <section className="card mb-4">
+          <div className="label mb-2">Manual RPC Controls</div>
+          <form action={rpcBuyNow} className="mb-2 flex flex-col gap-2">
+            <div className="text-sm">Buy now (all tracked wallets)</div>
+            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <input type="number" step="0.001" name="amountSol" placeholder="Amount SOL per wallet" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Buy now</button>
+          </form>
+          <form action={rpcSellPercent} className="mb-2 flex flex-col gap-2">
+            <div className="text-sm">Sell percent (first tracked wallet)</div>
+            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <select name="percent" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-fit">
+              <option value="10">10%</option>
+              <option value="25">25%</option>
+              <option value="50">50%</option>
+              <option value="100">100%</option>
+            </select>
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Sell</button>
+          </form>
+          <form action={rpcSellAfter} className="flex flex-col gap-2">
+            <div className="text-sm">Sell after delay (first tracked wallet)</div>
+            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <input type="number" name="percent" placeholder="Percent (e.g., 25)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <input type="number" name="delayMs" placeholder="Delay ms (e.g., 60000)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Schedule</button>
+          </form>
+        </section>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <section className="col-span-1 border border-zinc-800 rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Deposit Address</h2>

@@ -11,8 +11,7 @@ async function MarketCard({ mint }: { mint: string | null }) {
     return <div className="text-sm text-zinc-400">No mint selected</div>;
   }
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-    const res = await fetch(`${base}/api/market/${mint}`, {
+    const res = await fetch(`/api/market/${mint}`, {
       cache: 'no-store',
       headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
     });

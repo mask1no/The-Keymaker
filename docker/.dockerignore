@@ -9,12 +9,15 @@ playwright-report
 *.log
 .env
 .env.*
+env
+*.env
 **/*.test.*
 **/__tests__
 **/*.map
 *.local
 /data
 **/keypair*.json 
+keypairs
 dist
 legacy/**
 examples/node_modules
