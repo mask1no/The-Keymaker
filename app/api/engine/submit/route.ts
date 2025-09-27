@@ -10,7 +10,7 @@ import {
 } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
-import { engineSubmit } from '@/lib/core/src/engineFacade';
+import { submitViaJito, submitViaRpc } from '@/lib/core/src/engineFacade';
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');
     }
-    const submit = await engineSubmit(plan, opts);
+    const submit = mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
     const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
     incCounter('engine_2xx_total');
     return res;

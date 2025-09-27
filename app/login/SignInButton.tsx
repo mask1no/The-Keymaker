@@ -1,190 +1,161 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Buffer } from 'buffer';
 
-type DetectedWallet = {
-  id: string;
+import { useEffect, useMemo, useState } from 'react';
+
+type Provider = {
   name: string;
   icon?: string;
-  provider: any;
+  connect: () => Promise<string>;
+  signMessage: (msg: Uint8Array) => Promise<Uint8Array>;
 };
 
-async function getNonce(): Promise<string> {
-  const res = await fetch('/api/auth/nonce', { cache: 'no-store' });
-  const j = await res.json();
-  if (!res.ok) throw new Error(j?.error || 'failed');
-  return j.nonce as string;
-}
+const te = new TextEncoder();
+const toU8 = (s: string) => te.encode(s);
+const toB64 = (u8: Uint8Array) => btoa(String.fromCharCode(...u8));
 
-function detectWallets(): DetectedWallet[] {
-  if (typeof window === 'undefined') return [];
-  const w: any = window as any;
-  const list: DetectedWallet[] = [];
-  const push = (id: string, name: string, provider: any, icon?: string) => {
-    if (!provider) return;
-    if (list.some((x) => x.provider === provider)) return;
-    list.push({ id, name, provider, icon });
+function detectProviders(): Provider[] {
+  const out: Provider[] = [];
+  const w = globalThis as Record<string, unknown>;
+  const push = (name: string, obj: Record<string, unknown> | undefined | null) => {
+    if (!obj) return;
+    const connect = async () => {
+      if (typeof (obj as any).connect === 'function') {
+        const res = await (obj as any).connect();
+        const pk = (obj as any).publicKey?.toBase58?.() ?? res?.publicKey?.toBase58?.() ?? res?.publicKey ?? (obj as any).publicKey?.toString?.();
+        if (!pk) throw new Error(`${name} connect returned no public key`);
+        return pk;
+      }
+      const pk = (obj as any).publicKey?.toBase58?.() ?? (obj as any).publicKey?.toString?.();
+      if (!pk) throw new Error(`${name} not connected`);
+      return pk;
+    };
+    const signMessage = async (msg: Uint8Array) => {
+      if (typeof (obj as any).signMessage === 'function') {
+        const sig = await (obj as any).signMessage(msg, 'utf8');
+        if (sig?.signature) return new Uint8Array(sig.signature);
+        if (sig instanceof Uint8Array) return sig;
+        if (sig?.signature?.length) return new Uint8Array(sig.signature);
+        throw new Error(`${name} signMessage returned unexpected shape`);
+      }
+      if (typeof (obj as any).request === 'function') {
+        const res = await (obj as any).request({ method: 'signMessage', params: { message: Array.from(msg) } });
+        const sig = res?.signature ?? res?.result ?? res;
+        return new Uint8Array(sig);
+      }
+      throw new Error(`${name} does not support signMessage`);
+    };
+    out.push({ name, connect, signMessage, icon: (obj as any).icon ?? undefined });
   };
-  // Wallet Standard (lazy / optional)
+
   try {
-    const standard = (w as any)['wallets'] || (w as any)['@wallet-standard/app'];
-    const accounts = standard?.get()?.wallets || [];
-    for (const acct of accounts) {
-      push(
-        acct.name?.toLowerCase?.() || acct.name || 'standard',
-        acct.name || 'Wallet',
-        acct,
-        acct.icon,
-      );
+    const std: any = (w as any)['wallets'] ?? (w as any)['@wallet-standard/app'];
+    if (std?.get) {
+      for (const wal of std.get()) {
+        if (wal?.chains?.some((c: string) => c.includes('solana'))) push(wal.name || 'Wallet', wal);
+      }
     }
-  } catch (_e) {
-    // ignore wallet-standard absence
+  } catch (_err) {
+    // Swallow wallet standard detection errors; fall back to direct injections.
   }
-  // Common injections
-  push('phantom', 'Phantom', w.phantom?.solana || (w.solana?.isPhantom ? w.solana : null));
-  push(
-    'backpack',
-    'Backpack',
-    w.backpack?.solana || (w.solana?.isBackpack ? w.solana : w.xnft?.solana),
-  );
-  push('solflare', 'Solflare', w.solflare || (w.solana?.isSolflare ? w.solana : null));
-  push('nightly', 'Nightly', w.nightly?.solana || (w.solana?.isNightly ? w.solana : null));
-  // Fallback generic
-  push('solana', 'Detected Wallet', w.solana);
-  return list.filter((x) => !!x.provider);
+
+  const solana = (w as any).solana;
+  if (solana?.isPhantom) push('Phantom', solana);
+  const phantom = (w as any).phantom?.solana;
+  if (phantom?.isPhantom) push('Phantom', phantom);
+  const backpack = (w as any).backpack?.solana;
+  if (backpack) push('Backpack', backpack);
+  const solflare = (w as any).solflare;
+  if (solflare?.isSolflare) push('Solflare', solflare);
+  const nightly = (w as any).nightly?.solana;
+  if (nightly) push('Nightly', nightly);
+  if (solana && !out.length) push('Solana', solana);
+
+  const seen = new Set<string>();
+  return out.filter(p => (seen.has(p.name) ? false : (seen.add(p.name), true)));
 }
 
 export default function SignInButton() {
-  const [wallets, setWallets] = useState<DetectedWallet[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState<'idle' | 'detect' | 'connect' | 'sign' | 'verify'>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [choiceOpen, setChoiceOpen] = useState(false);
+  const [busy, setBusy] = useState<null | string>(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      // Ensure Buffer exists in browser
-      if (typeof window !== 'undefined' && !(window as any).Buffer)
-        (window as any).Buffer = Buffer as any;
-    } catch (_e) {
-      // ignore
-    }
-    setLoading('detect');
-    const list = detectWallets();
-    setWallets(list);
-    setLoading('idle');
-  }, []);
+  useEffect(() => { setProviders(detectProviders()); }, []);
+  const single = useMemo(() => (providers.length === 1 ? providers[0] : null), [providers]);
 
-  const doSignIn = useCallback(async (prov: any) => {
-    setError(null);
-    setLoading('connect');
+  async function runSignIn(p: Provider) {
+    setErr(null);
     try {
-      if (!prov?.isConnected) await prov.connect?.();
-      const pk = prov?.publicKey;
-      const address = pk?.toBase58?.();
-      if (!address) throw new Error('Wallet not connected');
-      setLoading('sign');
-      const nonce = await getNonce();
-      const tsIso = new Date().toISOString();
-      // Match server's canonical login message exactly
-      const message = `Keymaker-Login|pubkey=${address}|ts=${tsIso}|nonce=${nonce}`;
-      const bytes = new TextEncoder().encode(message);
-      // Some wallets only accept Uint8Array without encoding arg
-      const res = await prov.signMessage?.(bytes);
-      const sigAny: any = res?.signature ?? res;
-      let sig: Uint8Array | null = null;
-      if (sigAny instanceof Uint8Array) sig = sigAny;
-      else if (Array.isArray(sigAny)) sig = new Uint8Array(sigAny);
-      else if (typeof sigAny === 'string') sig = Buffer.from(sigAny, 'base64');
-      if (!sig) throw new Error('Signature rejected');
-      setLoading('verify');
-      const verify = await fetch('/api/auth/verify', {
+      setBusy('Connecting wallet');
+      const address = await p.connect();
+
+      setBusy('Fetching nonce');
+      const nonceRes = await fetch('/api/auth/nonce', { credentials: 'include' });
+      if (!nonceRes.ok) throw new Error(`nonce ${nonceRes.status}`);
+      const { nonce } = await nonceRes.json();
+
+      const issuedAt = new Date().toISOString();
+      const host = window.location.host;
+      const origin = window.location.origin;
+      const message =
+        `Keymaker wants you to sign in with your Solana wallet.\n` +
+        `Address: ${address}\nDomain: ${host}\nURI: ${origin}\nNonce: ${nonce}\nIssued At: ${issuedAt}`;
+
+      setBusy('Awaiting signature');
+      const signature = await p.signMessage(toU8(message));
+
+      setBusy('Verifying');
+      const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pubkey: address,
-          tsIso,
-          nonce,
-          messageBase64: Buffer.from(bytes).toString('base64'),
-          signatureBase64: Buffer.from(sig).toString('base64'),
-        }),
+        headers: {'content-type': 'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({ address, signature: toB64(signature), message, nonce, domain: host, uri: origin, issuedAt })
       });
-      const j = await verify.json().catch(() => ({}));
-      if (!verify.ok) throw new Error(j?.error || 'Verification failed');
+      if (!verifyRes.ok) {
+        const j = await verifyRes.json().catch(() => ({}));
+        throw new Error(`verify ${verifyRes.status}: ${j.error || 'failed'}`);
+      }
       window.location.href = '/engine?signed=1';
-    } catch (e: unknown) {
-      setError((e as Error)?.message || 'Login failed');
-      setOpen(false);
-      setLoading('idle');
+    } catch (e: any) {
+      setErr(e?.message || String(e));
+      setBusy(null);
     }
-  }, []);
+  }
 
-  const onClick = useCallback(() => {
-    setError(null);
-    if (wallets.length === 1) {
-      doSignIn(wallets[0].provider);
-      return;
-    }
-    if (wallets.length > 1) {
-      setOpen(true);
-      return;
-    }
-    setError('No wallet found. Install Phantom, Backpack, Solflare, or Nightly.');
-  }, [wallets, doSignIn]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-      if (e.key === 'Enter' && wallets.length) doSignIn(wallets[0].provider);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, wallets, doSignIn]);
+  const handleClick = () => {
+    if (single) return void runSignIn(single);
+    if (providers.length > 1) return setChoiceOpen(true);
+    setErr('No wallet extension detected. Install Phantom/Backpack/Solflare/Nightly.');
+  };
 
   return (
-    <div>
+    <div className="flex flex-col items-center gap-4">
       <button
-        className="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg px-3 py-2"
-        onClick={onClick}
-        disabled={loading !== 'idle'}
+        onClick={handleClick}
+        className="px-5 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700"
+        disabled={!!busy}
       >
-        {loading === 'detect' && 'Detecting…'}
-        {loading === 'connect' && 'Connecting…'}
-        {loading === 'sign' && 'Awaiting signature…'}
-        {loading === 'verify' && 'Verifying…'}
-        {loading === 'idle' && 'Sign in with your wallet'}
+        {busy ? busy : 'Sign in with your wallet'}
       </button>
-      {error && <div className="text-red-400 text-sm mt-3">{error}</div>}
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            className="relative z-10 w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl"
-          >
-            <div className="text-sm text-zinc-400 mb-3">Choose a wallet</div>
-            <div className="space-y-2">
-              {wallets.map((w) => (
+      {err && <div className="text-sm text-red-400">{err}</div>}
+
+      {choiceOpen && (
+        <div role="dialog" aria-modal className="fixed inset-0 bg-black/60 flex items-center justify-center">
+          <div className="bg-zinc-900 rounded-2xl p-4 w-[320px] border border-zinc-700">
+            <div className="text-zinc-100 font-semibold mb-2">Choose a wallet</div>
+            <div className="flex flex-col gap-2">
+              {providers.map((p) => (
                 <button
-                  key={w.id}
-                  className="w-full text-left bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-2"
-                  onClick={() => doSignIn(w.provider)}
+                  key={p.name + Math.random()}
+                  onClick={() => { setChoiceOpen(false); void runSignIn(p); }}
+                  className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-left"
                 >
-                  {w.icon && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={w.icon} alt="" className="h-5 w-5 rounded" />
-                  )}
-                  <span>{w.name}</span>
+                  {p.name}
                 </button>
               ))}
             </div>
-            <div className="mt-3 text-xs text-zinc-500">
-              Press Enter to select the first wallet, or ESC to cancel.
-            </div>
+            <button onClick={() => setChoiceOpen(false)} className="mt-3 text-xs text-zinc-400 hover:text-zinc-200">Cancel</button>
           </div>
         </div>
       )}

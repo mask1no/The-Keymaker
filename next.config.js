@@ -8,20 +8,22 @@ const SECURITY_HEADERS = [
     key: 'Content-Security-Policy',
     value:
       "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
-      "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self';",
+      "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: chrome-extension: moz-extension: ms-browser-extension:;",
   },
 ];
+
+const isAnalyze = process.env.ANALYZE === 'true';
 
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   eslint: {
     // Enforce ESLint during builds
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: isAnalyze ? true : false,
   },
   typescript: {
     // Enforce TypeScript type errors during builds
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: isAnalyze ? true : false,
   },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   async headers() {
@@ -33,5 +35,9 @@ const nextConfig = {
     ];
   },
 };
+// Enable bundle analyzer when ANALYZE=true
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

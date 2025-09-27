@@ -18,3 +18,13 @@ export async function engineSubmit(plan: SubmitPlan, opts: ExecOptions) {
 export async function enginePoll(plan: SubmitPlan | null, opts: ExecOptions) {
   return engines[opts.mode].pollStatus(plan, opts);
 }
+
+export async function submitViaJito(plan: SubmitPlan, opts: ExecOptions) {
+  const nextOpts: ExecOptions = { ...opts, mode: 'JITO_BUNDLE' } as ExecOptions;
+  return engines.JITO_BUNDLE.submit(plan, nextOpts);
+}
+
+export async function submitViaRpc(plan: SubmitPlan, opts: ExecOptions) {
+  const nextOpts: ExecOptions = { ...opts, mode: 'RPC_FANOUT' } as ExecOptions;
+  return engines.RPC_FANOUT.submit(plan, nextOpts);
+}
