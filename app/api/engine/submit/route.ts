@@ -133,7 +133,8 @@ export async function POST(request: Request) {
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');
     }
-    const submit = mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
+    const submit =
+      mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
     const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
     incCounter('engine_2xx_total');
     return res;

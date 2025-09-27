@@ -21,7 +21,11 @@ function detectProviders(): Provider[] {
     const connect = async () => {
       if (typeof (obj as any).connect === 'function') {
         const res = await (obj as any).connect();
-        const pk = (obj as any).publicKey?.toBase58?.() ?? res?.publicKey?.toBase58?.() ?? res?.publicKey ?? (obj as any).publicKey?.toString?.();
+        const pk =
+          (obj as any).publicKey?.toBase58?.() ??
+          res?.publicKey?.toBase58?.() ??
+          res?.publicKey ??
+          (obj as any).publicKey?.toString?.();
         if (!pk) throw new Error(`${name} connect returned no public key`);
         return pk;
       }
@@ -38,7 +42,10 @@ function detectProviders(): Provider[] {
         throw new Error(`${name} signMessage returned unexpected shape`);
       }
       if (typeof (obj as any).request === 'function') {
-        const res = await (obj as any).request({ method: 'signMessage', params: { message: Array.from(msg) } });
+        const res = await (obj as any).request({
+          method: 'signMessage',
+          params: { message: Array.from(msg) },
+        });
         const sig = res?.signature ?? res?.result ?? res;
         return new Uint8Array(sig);
       }
@@ -71,7 +78,7 @@ function detectProviders(): Provider[] {
   if (solana && !out.length) push('Solana', solana);
 
   const seen = new Set<string>();
-  return out.filter(p => (seen.has(p.name) ? false : (seen.add(p.name), true)));
+  return out.filter((p) => (seen.has(p.name) ? false : (seen.add(p.name), true)));
 }
 
 export default function SignInButton() {
@@ -80,7 +87,9 @@ export default function SignInButton() {
   const [busy, setBusy] = useState<null | string>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => { setProviders(detectProviders()); }, []);
+  useEffect(() => {
+    setProviders(detectProviders());
+  }, []);
   const single = useMemo(() => (providers.length === 1 ? providers[0] : null), [providers]);
 
   async function runSignIn(p: Provider) {
@@ -107,9 +116,17 @@ export default function SignInButton() {
       setBusy('Verifying');
       const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
-        headers: {'content-type': 'application/json'},
+        headers: { 'content-type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ address, signature: toB64(signature), message, nonce, domain: host, uri: origin, issuedAt })
+        body: JSON.stringify({
+          address,
+          signature: toB64(signature),
+          message,
+          nonce,
+          domain: host,
+          uri: origin,
+          issuedAt,
+        }),
       });
       if (!verifyRes.ok) {
         const j = await verifyRes.json().catch(() => ({}));
@@ -141,21 +158,33 @@ export default function SignInButton() {
       {err && <div className="text-sm text-red-400">{err}</div>}
 
       {choiceOpen && (
-        <div role="dialog" aria-modal className="fixed inset-0 bg-black/60 flex items-center justify-center">
+        <div
+          role="dialog"
+          aria-modal
+          className="fixed inset-0 bg-black/60 flex items-center justify-center"
+        >
           <div className="bg-zinc-900 rounded-2xl p-4 w-[320px] border border-zinc-700">
             <div className="text-zinc-100 font-semibold mb-2">Choose a wallet</div>
             <div className="flex flex-col gap-2">
               {providers.map((p) => (
                 <button
                   key={p.name + Math.random()}
-                  onClick={() => { setChoiceOpen(false); void runSignIn(p); }}
+                  onClick={() => {
+                    setChoiceOpen(false);
+                    void runSignIn(p);
+                  }}
                   className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-left"
                 >
                   {p.name}
                 </button>
               ))}
             </div>
-            <button onClick={() => setChoiceOpen(false)} className="mt-3 text-xs text-zinc-400 hover:text-zinc-200">Cancel</button>
+            <button
+              onClick={() => setChoiceOpen(false)}
+              className="mt-3 text-xs text-zinc-400 hover:text-zinc-200"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

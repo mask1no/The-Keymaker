@@ -12,7 +12,9 @@ export function getAllowedAuthHosts(): { allowedHosts: Set<string>; allowedOrigi
   const hosts = new Set(parseList(process.env.KEYMAKER_LOGIN_HOSTS));
   const origins = new Set(parseList(process.env.KEYMAKER_LOGIN_ORIGINS));
   if (hosts.size === 0) {
-    const defaultHost = (process.env.NEXT_PUBLIC_BASE_URL || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const defaultHost = (process.env.NEXT_PUBLIC_BASE_URL || '')
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '');
     if (defaultHost) hosts.add(defaultHost);
   }
   if (origins.size === 0) {
@@ -22,4 +24,3 @@ export function getAllowedAuthHosts(): { allowedHosts: Set<string>; allowedOrigi
 
   return { allowedHosts: hosts, allowedOrigins: origins };
 }
-

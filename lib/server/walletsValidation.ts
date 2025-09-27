@@ -11,4 +11,3 @@ export function isValidWalletAddress(value: string): boolean {
     return false;
   }
 }
-
