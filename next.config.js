@@ -7,8 +7,12 @@ const SECURITY_HEADERS = [
   {
     key: 'Content-Security-Policy',
     value:
+      // Loosened to allow Next.js hydration and client-side interactions
       "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
-      "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: chrome-extension: moz-extension: ms-browser-extension:;",
+      "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; " +
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; " +
+      "connect-src 'self' https: chrome-extension: moz-extension: ms-browser-extension:; " +
+      "font-src 'self' data:; worker-src 'self' blob:;",
   },
 ];
 

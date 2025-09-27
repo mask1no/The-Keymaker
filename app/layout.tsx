@@ -51,6 +51,8 @@ function SideNav() {
   );
 }
 
+import { Providers } from './providers';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
@@ -59,7 +61,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="flex min-h-[calc(100vh-56px)]">
           <SideNav />
           <main className="flex-1">
-            <div className="mx-auto max-w-7xl p-4 md:p-6">{children}</div>
+            <Providers>
+              <div className="mx-auto max-w-7xl p-4 md:p-6">{children}</div>
+            </Providers>
           </main>
         </div>
       </body>
