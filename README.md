@@ -2,7 +2,7 @@
 
 Production-ready Solana bundler cockpit built on Next.js 14.
 
-- Docs: see `md/PRD.md`
+- Docs: see `md/PRD.md` (updated). Dev on `PORT=3001` supported; all app API calls use relative `/api/...` paths.
 - Ops notes: see `md/OPS.md` (if present)
 
 ## Dev notes

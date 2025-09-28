@@ -5,6 +5,11 @@ data
 env
 *.env
 keypairs
+keypairs/**
 coverage
 dist
+
+# prevent shipping journals
+data/journal*.ndjson
+data/journal.*.ndjson
 

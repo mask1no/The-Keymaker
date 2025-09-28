@@ -40,14 +40,14 @@ If `ENGINE_API_TOKEN` is set, include the header `-H "x-engine-token: $ENGINE_AP
 Deposit address (GET):
 
 ```bash
-curl -s ${BASE:-http://localhost:3000}/api/engine/deposit-address \
+curl -s ${BASE:-http://localhost:3001}/api/engine/deposit-address \
   -H "x-engine-token: $ENGINE_API_TOKEN"
 ```
 
 Submit (POST) — Jito example:
 
 ```bash
-curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+curl -s ${BASE:-http://localhost:3001}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","tipLamports":5000}'
@@ -56,7 +56,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
 Submit (POST) — RPC example:
 
 ```bash
-curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+curl -s ${BASE:-http://localhost:3001}/api/engine/submit \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150]}'
@@ -65,7 +65,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
 Status (POST):
 
 ```bash
-curl -s ${BASE:-http://localhost:3000}/api/engine/status \
+curl -s ${BASE:-http://localhost:3001}/api/engine/status \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"JITO_BUNDLE","region":"ffm","bundleId":"<ID>"}'
@@ -74,7 +74,7 @@ curl -s ${BASE:-http://localhost:3000}/api/engine/status \
 Adapter demo (POST):
 
 ```bash
-curl -s ${BASE:-http://localhost:3000}/api/adapters/build \
+curl -s ${BASE:-http://localhost:3001}/api/adapters/build \
   -H "content-type: application/json" \
   -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"adapter":"spl-mint-demo","memo":"hello"}'
@@ -83,8 +83,8 @@ curl -s ${BASE:-http://localhost:3000}/api/adapters/build \
 Metrics/Health (GET):
 
 ```bash
-curl -s ${BASE_URL:-http://localhost:3000}/api/metrics
-curl -s ${BASE_URL:-http://localhost:3000}/api/health
+curl -s ${BASE_URL:-http://localhost:3001}/api/metrics
+curl -s ${BASE_URL:-http://localhost:3001}/api/health
 ```
 
 ## Design & Performance
@@ -123,20 +123,20 @@ Example curl:
 
 ```bash
 # Prove control (no funds)
-curl -s ${BASE:-http://localhost:3000}/api/engine/prove -H "x-engine-token: $ENGINE_API_TOKEN"
+curl -s ${BASE:-http://localhost:3001}/api/engine/prove -H "x-engine-token: $ENGINE_API_TOKEN"
 
 # Submit dry-run Jito
-curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+curl -s ${BASE:-http://localhost:3001}/api/engine/submit \
   -H 'Content-Type: application/json' -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"JITO_BUNDLE","region":"ffm","priority":"med","dryRun":true}'
 
 # Submit dry-run RPC (devnet)
-curl -s ${BASE:-http://localhost:3000}/api/engine/submit \
+curl -s ${BASE:-http://localhost:3001}/api/engine/submit \
   -H 'Content-Type: application/json' -H "x-engine-token: $ENGINE_API_TOKEN" \
   -d '{"mode":"RPC_FANOUT","priority":"med","concurrency":4,"jitterMs":[50,150],"dryRun":true,"cluster":"devnet"}'
 
 # Arm live window
-curl -s ${BASE:-http://localhost:3000}/api/ops/arm -H "x-engine-token: $ENGINE_API_TOKEN" -X POST -d '{"minutes":15}'
+curl -s ${BASE:-http://localhost:3001}/api/ops/arm -H "x-engine-token: $ENGINE_API_TOKEN" -X POST -d '{"minutes":15}'
 ```
 
 - No browser keys. Repo private. Logs redact secrets.

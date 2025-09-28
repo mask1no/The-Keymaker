@@ -15,8 +15,7 @@ export async function GET(request: Request, context: { params: { mint?: string }
     if (!rateLimit(`marketcap:${key}`)) return apiError(429, 'rate_limited');
     const cl = Number(request.headers.get('content-length') || '0');
     if (cl > 8192) return apiError(413, 'payload_too_large');
-    const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-    const res = await fetch(`${base}/api/market/${encodeURIComponent(mint)}`, {
+    const res = await fetch(`/api/market/${encodeURIComponent(mint)}`, {
       headers: { 'x-engine-token': request.headers.get('x-engine-token') || '' },
       cache: 'no-store',
     });

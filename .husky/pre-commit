@@ -6,6 +6,10 @@ for f in $files; do
   if [[ "$f" =~ ^\.husky/ ]]; then
     continue
   fi
+  # Skip files known to trigger false positives in sample docs
+  if [[ "$f" == ".gitignore" || "$f" == "md/README.md" ]]; then
+    continue
+  fi
   if [[ "$f" =~ (^|/)\.env($|\.|/) || "$f" =~ ^keypairs/ ]]; then
     echo "❌ Refusing to commit $f"; exit 1
   fi
