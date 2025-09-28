@@ -35,6 +35,11 @@ const Body = z.object({
 
 function requireToken(headers: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
+  if (process.env.NODE_ENV === 'production') {
+    if (!expected) return false;
+    const got = headers.get('x-engine-token');
+    return got === expected;
+  }
   if (!expected) return true;
   const got = headers.get('x-engine-token');
   return got === expected;
@@ -109,8 +114,16 @@ export async function POST(request: Request) {
         try {
           const raw = readFileSync(join(walletDir, f), 'utf8');
           const kp = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-          const ix = SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey: kp.publicKey, lamports: 0 });
-          const msg = new TransactionMessage({ payerKey: kp.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+          const ix = SystemProgram.transfer({
+            fromPubkey: kp.publicKey,
+            toPubkey: kp.publicKey,
+            lamports: 0,
+          });
+          const msg = new TransactionMessage({
+            payerKey: kp.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [ix],
+          }).compileToV0Message();
           const tx = new VersionedTransaction(msg);
           tx.sign([kp]);
           txs.push(tx);
@@ -125,8 +138,16 @@ export async function POST(request: Request) {
       if (!keyPath) return apiError(400, 'not_configured');
       const raw = readFileSync(keyPath, 'utf8');
       const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-      const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: payer.publicKey, lamports: 0 });
-      const msg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [ix] }).compileToV0Message();
+      const ix = SystemProgram.transfer({
+        fromPubkey: payer.publicKey,
+        toPubkey: payer.publicKey,
+        lamports: 0,
+      });
+      const msg = new TransactionMessage({
+        payerKey: payer.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [ix],
+      }).compileToV0Message();
       const tx = new VersionedTransaction(msg);
       tx.sign([payer]);
       txs.push(tx);

@@ -1,22 +1,4 @@
-'use client';
-import { ReactNode, useEffect } from 'react';
-import WalletContext from '@/components/Wallet/WalletContext';
-import { Toaster } from '@/components/UI/sonner';
-import { useSettingsStore } from '@/stores/useSettingsStore';
-import { GlobalHotkeys } from '@/components/UI/GlobalHotkeys';
-
-export function Providers({ children }: { children: ReactNode }) {
-  useEffect(() => {
-    const state = useSettingsStore.getState() as any;
-    (state.fetchSettings || state.fetchSettings)?.();
-  }, []);
-  return (
-    <>
-      <WalletContext>
-        <div className="contents">{children}</div>
-      </WalletContext>
-      <Toaster />
-      <GlobalHotkeys />
-    </>
-  );
+// SSR-only providers stub; avoid client-side providers in core layout
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

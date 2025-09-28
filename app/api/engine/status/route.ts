@@ -20,6 +20,11 @@ const Body = z.object({
 
 function requireToken(headers: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
+  if (process.env.NODE_ENV === 'production') {
+    if (!expected) return false;
+    const got = headers.get('x-engine-token');
+    return got === expected;
+  }
   if (!expected) return true;
   const got = headers.get('x-engine-token');
   return got === expected;

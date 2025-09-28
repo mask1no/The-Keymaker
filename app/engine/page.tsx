@@ -19,13 +19,10 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function getDepositAddress(): Promise<string | null> {
   try {
-    const d = await fetchJson<{ publicKey: string }>(
-      `/api/engine/deposit-address`,
-      {
-        cache: 'no-store',
-        headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
-      },
-    );
+    const d = await fetchJson<{ publicKey: string }>(`/api/engine/deposit-address`, {
+      cache: 'no-store',
+      headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+    });
     return d.publicKey;
   } catch {
     return null;
@@ -123,7 +120,7 @@ async function rpcBuyNow(formData: FormData) {
   const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
   const journal = createDailyJournal('data');
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/submit`, {
+    const res = await fetch(`/api/engine/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -136,7 +133,13 @@ async function rpcBuyNow(formData: FormData) {
       }),
     });
     const j = await res.json().catch(() => ({}));
-    logJsonLine(journal, { ev: 'rpcBuyNow', group: 'tracked', mint, amount: amountSol, requestId: j.requestId });
+    logJsonLine(journal, {
+      ev: 'rpcBuyNow',
+      group: 'tracked',
+      mint,
+      amount: amountSol,
+      requestId: j.requestId,
+    });
     revalidatePath('/engine');
     return redirect(res.ok ? '/engine?ok=buy' : '/engine?err=buy');
   } catch {
@@ -152,7 +155,13 @@ async function rpcSellPercent(formData: FormData) {
   if (ui.mode !== 'RPC_FANOUT') return redirect('/engine?err=wrong_mode');
   const journal = createDailyJournal('data');
   try {
-    logJsonLine(journal, { ev: 'rpcSellPercent', wallet: getTrackedWallets()[0] || null, mint, percent, requestId: null });
+    logJsonLine(journal, {
+      ev: 'rpcSellPercent',
+      wallet: getTrackedWallets()[0] || null,
+      mint,
+      percent,
+      requestId: null,
+    });
     revalidatePath('/engine');
     return redirect('/engine?ok=sell');
   } catch {
@@ -169,9 +178,19 @@ async function rpcSellAfter(formData: FormData) {
   if (ui.mode !== 'RPC_FANOUT') return redirect('/engine?err=wrong_mode');
   const journal = createDailyJournal('data');
   try {
-    setTimeout(() => {
-      logJsonLine(journal, { ev: 'rpcSellAfter', wallet: getTrackedWallets()[0] || null, mint, percent, delayMs, scheduled: true });
-    }, Math.max(0, delayMs));
+    setTimeout(
+      () => {
+        logJsonLine(journal, {
+          ev: 'rpcSellAfter',
+          wallet: getTrackedWallets()[0] || null,
+          mint,
+          percent,
+          delayMs,
+          scheduled: true,
+        });
+      },
+      Math.max(0, delayMs),
+    );
     revalidatePath('/engine');
     return redirect('/engine?ok=scheduled');
   } catch {
@@ -298,27 +317,76 @@ export default async function Page({
           <div className="label mb-2">Manual RPC Controls</div>
           <form action={rpcBuyNow} className="mb-2 flex flex-col gap-2">
             <div className="text-sm">Buy now (all tracked wallets)</div>
-            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <input type="number" step="0.001" name="amountSol" placeholder="Amount SOL per wallet" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Buy now</button>
+            <input
+              type="text"
+              name="mint"
+              placeholder="Token mint (base58)"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <input
+              type="number"
+              step="0.001"
+              name="amountSol"
+              placeholder="Amount SOL per wallet"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <button
+              className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit"
+              type="submit"
+            >
+              Buy now
+            </button>
           </form>
           <form action={rpcSellPercent} className="mb-2 flex flex-col gap-2">
             <div className="text-sm">Sell percent (first tracked wallet)</div>
-            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <select name="percent" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-fit">
+            <input
+              type="text"
+              name="mint"
+              placeholder="Token mint (base58)"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <select
+              name="percent"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 w-fit"
+            >
               <option value="10">10%</option>
               <option value="25">25%</option>
               <option value="50">50%</option>
               <option value="100">100%</option>
             </select>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Sell</button>
+            <button
+              className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit"
+              type="submit"
+            >
+              Sell
+            </button>
           </form>
           <form action={rpcSellAfter} className="flex flex-col gap-2">
             <div className="text-sm">Sell after delay (first tracked wallet)</div>
-            <input type="text" name="mint" placeholder="Token mint (base58)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <input type="number" name="percent" placeholder="Percent (e.g., 25)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <input type="number" name="delayMs" placeholder="Delay ms (e.g., 60000)" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1" />
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit" type="submit">Schedule</button>
+            <input
+              type="text"
+              name="mint"
+              placeholder="Token mint (base58)"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <input
+              type="number"
+              name="percent"
+              placeholder="Percent (e.g., 25)"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <input
+              type="number"
+              name="delayMs"
+              placeholder="Delay ms (e.g., 60000)"
+              className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
+            />
+            <button
+              className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1 w-fit"
+              type="submit"
+            >
+              Schedule
+            </button>
           </form>
         </section>
       )}

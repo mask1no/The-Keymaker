@@ -1,3 +1,9 @@
+legacy/**
+coverage/**
+dist/**
+.next/**
+examples/**
+**/*.min.js
 .next
 node_modules
 coverage

@@ -12,4 +12,3 @@ const outputFile = path.join(outputDirectory, 'challenge-signer.json');
 fs.writeFileSync(outputFile, JSON.stringify(secretKeyBytes));
 
 console.log(keypair.publicKey.toBase58());
-

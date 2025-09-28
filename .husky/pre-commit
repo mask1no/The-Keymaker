@@ -2,6 +2,10 @@
 set -e
 files=$(git diff --cached --name-only)
 for f in $files; do
+  # Skip hooks themselves
+  if [[ "$f" =~ ^\.husky/ ]]; then
+    continue
+  fi
   if [[ "$f" =~ (^|/)\.env($|\.|/) || "$f" =~ ^keypairs/ ]]; then
     echo "❌ Refusing to commit $f"; exit 1
   fi

@@ -6,10 +6,7 @@
 # Environments
 .env
 .env.*
-.env.local
-.env.development.local
-.env.production.local
-.env.test.local
+!/.env.example
 .sentryclirc
 
 # OS/IDE
@@ -52,6 +49,14 @@ data/
 # Private keys and wallets
 wallets/
 *.pem
+keypairs/**
+*.key
+*.p12
+**/*keypair*.json
+**/*private*.json
+
+# Journals
+data/journal*.ndjson
 
 # TypeScript
 

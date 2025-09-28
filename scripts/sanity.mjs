@@ -22,4 +22,5 @@ if (bad.length) {
   console.error('Found imports from legacy/** in active graph:', bad);
   process.exit(1);
 }
+console.log('No imports from legacy/** detected');
 console.log('Sanity OK');

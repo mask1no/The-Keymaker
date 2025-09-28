@@ -4,7 +4,7 @@
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Production-ready SSR cockpit with Jito bundle and RPC fanout engine modes, multi-wallet login, SSR wallet tracking, and hardened security.
+**Current Status**: Production-ready SSR cockpit with Jito bundle and RPC fanout engine modes, multi-wallet sign-in (message-sign only), SSR wallet tracking, hardened security, and near-zero client JS on core routes.
 
 ## Vision & Mission
 
@@ -122,28 +122,43 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 ```
 
 ## Modes
-- **JITO_BUNDLE**: Build N txs (dev + bundle wallets), compute dynamic tip from Jito tip floor, submit as bundle via regional Block Engines with retries/failover. Target: same block; no in-between snipes.
-- **RPC_FANOUT (Mass Sniper)**: Build N independent buy txs and fan them out via RPC. Same-block not guaranteed, but avoids trackers’ “bundled %” heuristics (more under-the-radar).
+
+- **JITO_BUNDLE**: Build N txs (dev + bundle wallets), compute dynamic tip (Jito tipfloor EMA), submit bundle via regional Block Engines with retries/failover. Target: same block; no in-between snipes.
+- **RPC_FANOUT (Mass Sniper)**: Build N independent buy txs and fan them out via RPC with concurrency and jitter.
 
 ## Wallets & Groups
+
 - Manage tracked wallets on `/wallets` (SSR). Optionally group wallets (e.g., `bundle_20`), where index 0 is dev and others are bundle.
 
 ## Manual Controls (RPC mode)
+
 - Buy now per wallet or group.
 - Sell % per wallet (10/25/50/100).
 - Sell after time per wallet (non-durable scheduling; documented).
+All actions are SSR server-actions; journal entries are appended to `data/journal.Y-m-d.ndjson`.
 
 ## Security
-- No browser tx signing; only message-sign for login at `/login`.
-- API guarded (per-IP, 8KB caps, node runtime/dynamic flags, uniform errors, requestId).
-- HMAC session, Secure+HttpOnly cookie in prod, SameSite=Lax.
-- CSP strict; connect-src extended only to allow wallet extensions.
+
+- No browser tx signing; only message-sign for login at `/login`. Browser never signs transactions.
+- API guarded (per-IP token bucket, 8KB caps, runtime=`nodejs`, dynamic=`force-dynamic`, uniform `apiError`, requestId).
+- HMAC session, Secure+HttpOnly cookie in prod, SameSite=Lax; `KEYMAKER_SESSION_SECRET` required in prod.
+- CSP strict; `connect-src` extended only to allow wallet extensions (`chrome-extension:`, `moz-extension:`, `ms-browser-extension:`).
+- Token guard: in production, `/api/engine/*` and `/api/market/*` require `x-engine-token`.
+  Robots disallow `/api/` and `/engine`.
 
 ## Performance
-- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship ~0 KB client JS (≤ 5 KB each). `/login` is the only client island.
+
+- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship ≤ 5 KB first-load JS (≈0 ideal). `/login` is the only client island.
 
 ## Observability
+
 - Health & metrics endpoints; NDJSON journaling with redaction for /(key|token|secret|pass)/i.
+
+## Dev Notes
+
+- Use relative API paths (`/api/...`) so dev on `PORT=3001` works.
+- `.env.example` contains placeholders only; never commit real secrets or use `NEXT_PUBLIC_*` for secrets.
+- `pnpm check:node && pnpm core:build` type-checks core.
 
 ## Health & Monitoring Model
 

@@ -1,3 +1,9 @@
+legacy/**
+coverage/**
+dist/**
+.next/**
+examples/**
+node_modules/**
 # Prettier ignore
 legacy/**
 legacy/app-archive/**
