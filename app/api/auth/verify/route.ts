@@ -51,7 +51,9 @@ export async function POST(request: Request) {
 
       if (!validateAndConsumeNonce(nonce)) return apiError(400, 'invalid_nonce', requestId);
 
-      if (!domain || !allowedHosts.has(domain)) return apiError(400, 'invalid_domain', requestId);
+      const reqHost = new URL(request.url).host;
+      if (!domain || !(allowedHosts.has(domain) || domain === reqHost))
+        return apiError(400, 'invalid_domain', requestId);
       if (!uri || !(allowedOrigins.has(uri) || uri === currentOrigin))
         return apiError(400, 'invalid_origin', requestId);
       if (!issuedAt) return apiError(400, 'bad_request', requestId);

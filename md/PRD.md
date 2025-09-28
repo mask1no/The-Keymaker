@@ -4,7 +4,7 @@
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Production-ready SSR cockpit with Jito bundle and RPC fanout engine modes, multi-wallet sign-in (message-sign only), SSR wallet tracking, hardened security, and near-zero client JS on core routes.
+**Current Status**: Production-ready SSR cockpit with JITO_BUNDLE and RPC_FANOUT modes, multi-wallet sign-in (message-sign only), SSR wallet tracking, hardened security, and near-zero client JS on core routes.
 
 ## Vision & Mission
 
@@ -135,7 +135,7 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 - Buy now per wallet or group.
 - Sell % per wallet (10/25/50/100).
 - Sell after time per wallet (non-durable scheduling; documented).
-All actions are SSR server-actions; journal entries are appended to `data/journal.Y-m-d.ndjson`.
+  All actions are SSR server-actions; journal entries are appended to `data/journal.Y-m-d.ndjson`.
 
 ## Security
 

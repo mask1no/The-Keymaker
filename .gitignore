@@ -55,8 +55,9 @@ keypairs/**
 **/*keypair*.json
 **/*private*.json
 
-# Journals
+# Journals (daily)
 data/journal*.ndjson
+data/journal.*.ndjson
 
 # TypeScript
 

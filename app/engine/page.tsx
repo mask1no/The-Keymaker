@@ -270,9 +270,7 @@ export default async function Page({
           </pre>
           <div className="mb-1">Step 2: Proof (no funds)</div>
           <pre className="text-xs bg-zinc-900 p-2 rounded">
-            curl -s{' '}
-            {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}` + '/api/engine/prove'}{' '}
-            -H &quot;x-engine-token: $ENGINE_API_TOKEN&quot;
+            curl -s /api/engine/prove -H &quot;x-engine-token: $ENGINE_API_TOKEN&quot;
           </pre>
         </div>
       </section>

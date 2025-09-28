@@ -1,4 +1,4 @@
-'use client';
+// Only the SignInButton is a client island; this page stays minimal
 import SignInButton from './SignInButton';
 
 export default function LoginPage() {
