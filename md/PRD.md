@@ -4,7 +4,7 @@
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: Production-ready SSR cockpit with JITO_BUNDLE and RPC_FANOUT modes, multi-wallet sign-in (message-sign only), SSR wallet tracking, hardened security, and near-zero client JS on core routes.
+**Current Status**: SSR cockpit with two modes: JITO_BUNDLE (same-block intent via Block Engines + tip) and RPC_FANOUT (parallel RPC sends). Real Jupiter swaps replace dummy transfers. Multi-wallet sign-in is message-sign only; wallets page manages server keystore groups; core routes are SSR-only with near-zero client JS; APIs are token/rate limited.
 
 ## Vision & Mission
 
@@ -12,7 +12,7 @@ The Keymaker is a Solana bundler application for executing transactions through 
 
 The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
 
-- **Military-grade reliability**
+- High reliability
 - **Crystal-clear guardrails**
 - **Transparent health monitoring**
 - **Lightning-fast workflows**
@@ -23,10 +23,10 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 
 ### Core Objectives
 
-- **Zero Mock Production**: Complete elimination of mock data — all operations execute on mainnet
+- Real swaps with Jupiter; DRY-RUN supported when disarmed
 - **Enterprise Reliability**: 99.9% uptime with comprehensive error handling and recovery
 - **MEV Optimization**: Intelligent tip floor enforcement and bundle success maximization
-- **Security First**: Military-grade encryption and secure key management
+- Security First: strict CSP, HMAC session, token-guarded APIs, server keystore
 - **Performance Excellence**: Sub-3-second bundle execution with intelligent failover
 
 ### Success Metrics
@@ -39,7 +39,7 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 
 ## Architecture Overview
 
-### System Architecture
+### System Architecture (simplified)
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -68,13 +68,13 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 | **UI Framework**     | Tailwind CSS                       | Responsive design system          |
 | **State Management** | Zustand                            | Lightweight client state          |
 | **Database**         | SQLite                             | Analytics and transaction history |
-| **Security**         | AES-256-GCMPBKDF2                  | Military-grade encryption         |
+| **Security**         | HMAC session, CSP, token guard     | Practical web security            |
 | **Monitoring**       | Sentry                             | Error tracking and performance    |
 | **Deployment**       | DockerKubernetes                   | Container orchestration           |
 
 ## Core Workflows
 
-### 1) Standard Bundle Execution
+### 1) Standard Bundle Execution (JITO_BUNDLE)
 
 **Create → Preview → Execute**
 
@@ -95,7 +95,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
 
-### 2) Delayed Bundle Execution
+### 2) RPC Fanout Execution (RPC_FANOUT)
 
 **Arm → Prefetch → Rebuild → Submit**
 
@@ -124,11 +124,11 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 ## Modes
 
 - **JITO_BUNDLE**: Build N txs (dev + bundle wallets), compute dynamic tip (Jito tipfloor EMA), submit bundle via regional Block Engines with retries/failover. Target: same block; no in-between snipes.
-- **RPC_FANOUT (Mass Sniper)**: Build N independent buy txs and fan them out via RPC with concurrency and jitter.
+- **RPC_FANOUT (Mass Sniper)**: Build N independent Jupiter swap txs and fan them out via RPC with concurrency and jitter. Not same-block guaranteed.
 
 ## Wallets & Groups
 
-- Manage tracked wallets on `/wallets` (SSR). Optionally group wallets (e.g., `bundle_20`), where index 0 is dev and others are bundle.
+- Manage tracked wallets on `/wallets` (SSR). Server keystore lives under `keypairs/` (gitignored). CLI can create/list groups: `cli:group:create <name> <n>`, `cli:group:list <name>`.
 
 ## Manual Controls (RPC mode)
 

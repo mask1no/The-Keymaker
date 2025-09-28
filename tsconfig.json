@@ -49,6 +49,7 @@
   "exclude": [
     "node_modules",
     "legacy/**",
+    "legacy/app-archive/**",
     "bonk-mcp",
     "tests",
     "coverage",

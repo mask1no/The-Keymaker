@@ -119,6 +119,7 @@ export default function SignInButton() {
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
+          // server accepts both schemas; use new
           address,
           signature: toB64(signature),
           message,

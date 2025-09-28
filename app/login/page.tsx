@@ -1,6 +1,6 @@
-// Only the SignInButton is a client island; this page stays minimal
+"use client";
+export const dynamic = 'force-dynamic';
 import SignInButton from './SignInButton';
-
 export default function LoginPage() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">

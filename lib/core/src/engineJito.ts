@@ -80,6 +80,7 @@ export class JitoEngine implements Engine {
     }
 
     // Submit serially (small parallelism could be added if needed)
+    // re-use parts
     for (const group of parts) {
       const encoded = group.map(txToBase64);
       const t1 = Date.now();

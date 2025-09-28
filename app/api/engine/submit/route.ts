@@ -1,22 +1,18 @@
 import { NextResponse } from 'next/server';
 import { randomUUID, createHash } from 'crypto';
 import { z } from 'zod';
-import {
-  Connection,
-  Keypair,
-  SystemProgram,
-  TransactionMessage,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { Connection, Keypair, VersionedTransaction, SystemProgram, PublicKey, TransactionMessage } from '@solana/web3.js';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
 import { submitViaJito, submitViaRpc } from '@/lib/core/src/engineFacade';
+import { buildSwapTx, WSOL } from '@/lib/core/src/swapJupiter';
+import { JITO_TIP_ACCOUNTS } from '@/lib/core/src/tip';
+import { cookies } from 'next/headers';
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { incCounter } from '@/lib/server/metricsStore';
-import { getUiSettings } from '@/lib/server/settings';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,6 +28,14 @@ const Body = z.object({
   dryRun: z.boolean().optional(),
   cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
 });
+
+function cookiesTargetMint(): string | null {
+  try {
+    return cookies().get('km_mint')?.value || null;
+  } catch {
+    return null;
+  }
+}
 
 function requireToken(headers: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
@@ -97,15 +101,15 @@ export async function POST(request: Request) {
     const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : (ui.dryRun ?? true);
     const cluster = parsed.cluster || ui.cluster || 'mainnet-beta';
 
-    const conn = new Connection(rpcUrl(), 'confirmed');
-    const { blockhash } = await conn.getLatestBlockhash('confirmed');
+  const conn = new Connection(rpcUrl(), 'confirmed');
+  const { blockhash } = await conn.getLatestBlockhash('confirmed');
     // priority mapped to micros; reserved for future use
     // priority mapped to micros; reserved for future logging/metrics
     void PRIORITY_TO_MICROLAMPORTS[priority];
 
     const txs: VersionedTransaction[] = [];
     // If RPC_FANOUT and a wallet directory is provided, fan out across multiple keypairs
-    const walletDir = process.env.KEYMAKER_WALLET_DIR || 'keypairs';
+      const walletDir = process.env.KEYMAKER_WALLET_DIR || 'keypairs';
     const useWalletDir = mode === 'RPC_FANOUT' && existsSync(walletDir);
     if (useWalletDir) {
       const files = readdirSync(walletDir).filter((f) => f.toLowerCase().endsWith('.json'));
@@ -114,19 +118,21 @@ export async function POST(request: Request) {
         try {
           const raw = readFileSync(join(walletDir, f), 'utf8');
           const kp = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-          const ix = SystemProgram.transfer({
-            fromPubkey: kp.publicKey,
-            toPubkey: kp.publicKey,
-            lamports: 0,
-          });
-          const msg = new TransactionMessage({
-            payerKey: kp.publicKey,
-            recentBlockhash: blockhash,
-            instructions: [ix],
-          }).compileToV0Message();
-          const tx = new VersionedTransaction(msg);
-          tx.sign([kp]);
-          txs.push(tx);
+          const targetMint = cookiesTargetMint();
+          if (targetMint) {
+            const priMicros = PRIORITY_TO_MICROLAMPORTS[priority] ?? 1000;
+            const tx = await buildSwapTx({
+              connection: conn,
+              signerPub: kp.publicKey,
+              inputMint: WSOL,
+              outputMint: targetMint,
+              amount: Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+              slippageBps: 50,
+              priorityMicrolamports: priMicros,
+            });
+            tx.sign([kp]);
+            txs.push(tx);
+          }
         } catch {
           // skip invalid file
         }
@@ -138,24 +144,41 @@ export async function POST(request: Request) {
       if (!keyPath) return apiError(400, 'not_configured');
       const raw = readFileSync(keyPath, 'utf8');
       const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-      const ix = SystemProgram.transfer({
-        fromPubkey: payer.publicKey,
-        toPubkey: payer.publicKey,
-        lamports: 0,
-      });
-      const msg = new TransactionMessage({
-        payerKey: payer.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [ix],
-      }).compileToV0Message();
-      const tx = new VersionedTransaction(msg);
-      tx.sign([payer]);
-      txs.push(tx);
+      const targetMint = cookiesTargetMint();
+      if (targetMint) {
+        const priMicros = PRIORITY_TO_MICROLAMPORTS[priority] ?? 1000;
+        const tx = await buildSwapTx({
+          connection: conn,
+          signerPub: payer.publicKey,
+          inputMint: WSOL,
+          outputMint: targetMint,
+          amount: Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+          slippageBps: 50,
+          priorityMicrolamports: priMicros,
+        });
+        tx.sign([payer]);
+        txs.push(tx);
+      }
     }
-    const encodedFirst = Buffer.from(txs[0].serialize()).toString('base64');
+    // If JITO_BUNDLE, prepend a tip transfer tx from payer to a Jito tip account
+    if (mode === 'JITO_BUNDLE') {
+      const keyPath = process.env.KEYPAIR_JSON;
+      if (!keyPath) return apiError(400, 'not_configured');
+      const raw = readFileSync(keyPath, 'utf8');
+      const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
+      const tipTo = new PublicKey(JITO_TIP_ACCOUNTS[0]);
+      const tipLamportsEff = Math.max(5000, Number(tipLamports ?? 0));
+      const tipIx = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: tipTo, lamports: tipLamportsEff });
+      const tipMsg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [tipIx] }).compileToV0Message();
+      const tipTx = new VersionedTransaction(tipMsg);
+      tipTx.sign([payer]);
+      txs.unshift(tipTx);
+    }
+
+    const encodedFirst = txs.length ? Buffer.from(txs[0].serialize()).toString('base64') : Buffer.from('empty').toString('base64');
     const corr = createHash('sha256').update(Buffer.from(encodedFirst)).digest('hex');
-    incCounter('engine_submit_total');
-    const plan = { txs, corr };
+      incCounter('engine_submit_total');
+      const plan = { txs, corr };
     const opts: ExecOptions = {
       mode,
       region,
@@ -173,12 +196,11 @@ export async function POST(request: Request) {
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');
     }
-    const submit =
-      mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
-    const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
+    const submit = mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
+      const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
     incCounter('engine_2xx_total');
     return res;
-  } catch {
+  } catch (e) {
     incCounter('engine_5xx_total');
     return apiError(500, 'failed');
   }

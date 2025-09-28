@@ -32,6 +32,12 @@ const nextConfig = {
         source: '/(.*)',
         headers: SECURITY_HEADERS,
       },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex' },
+        ],
+      },
     ];
   },
 };

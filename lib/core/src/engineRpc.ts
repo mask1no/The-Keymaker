@@ -6,6 +6,7 @@ import {
 } from '@solana/web3.js';
 import { Engine, ExecOptions, SubmitPlan, EngineSubmitResult } from './engine';
 import { PRIORITY_TO_MICROLAMPORTS } from './types';
+// Swaps must be prebuilt in API submit; core engine does not depend on server-only modules
 import { createDailyJournal, logJsonLine } from './journal';
 import { incCounter, observeLatency } from './metrics';
 

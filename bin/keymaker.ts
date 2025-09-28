@@ -22,6 +22,7 @@ import {
   incCounter,
   observeLatency,
 } from '../lib/core/src';
+import { createGroup, listGroup, resolveGroup } from '../lib/server/keystore';
 
 type Priority = keyof typeof PRIORITY_TO_MICROLAMPORTS;
 
@@ -186,6 +187,19 @@ async function fundCommand(toBase58: string, lamports: number) {
 
 async function main() {
   const [cmd, arg1, arg2, arg3] = process.argv.slice(2);
+  if (cmd === 'group:create') {
+    const name = String(arg1 || 'bundle');
+    const n = Number(arg2 || 1);
+    const pubs = createGroup(name, Math.max(1, n));
+    console.log(JSON.stringify({ group: name, created: pubs.length, pubkeys: pubs }, null, 2));
+    return;
+  }
+  if (cmd === 'group:list') {
+    const name = String(arg1 || resolveGroup());
+    const pubs = listGroup(name);
+    console.log(JSON.stringify({ group: name, count: pubs.length, pubkeys: pubs }, null, 2));
+    return;
+  }
   if (cmd === 'send') {
     const region = (arg1 as RegionKey) || 'ffm';
     const priority = (process.env.PRIORITY as Priority) || 'med';
@@ -206,7 +220,7 @@ async function main() {
     return;
   }
   console.error(
-    'Usage:\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>',
+    'Usage:\n  keymaker group:create <name> <n>\n  keymaker group:list <name>\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>',
   );
   process.exit(1);
 }

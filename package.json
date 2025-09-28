@@ -43,6 +43,8 @@
     "cli:send": "tsx bin/keymaker.ts send",
     "cli:status": "tsx bin/keymaker.ts status",
     "cli:fund": "tsx bin/keymaker.ts fund",
+    "cli:group:create": "tsx bin/keymaker.ts group:create",
+    "cli:group:list": "tsx bin/keymaker.ts group:list",
     "sanity": "node scripts/sanity.mjs",
     "bundle:zip": "node scripts/bundle-zip.mjs",
     "secrets:scan": "gitleaks detect --no-git -v || true"
