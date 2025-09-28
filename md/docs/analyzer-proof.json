@@ -1,1 +1,18 @@
-{  firstLoadKb:87.1, routes:25, ssrCore:[app/engine,app/bundle,app/settings,app/wallets], jitoModes:[JITO_BUNDLE,RPC_FANOUT], security:{csp:on,rateLimit:on} }
+{
+  "firstLoadKb": 87.1,
+  "routes": 25,
+  "ssrCore": [
+    "app/engine",
+    "app/bundle",
+    "app/settings",
+    "app/wallets"
+  ],
+  "jitoModes": [
+    "JITO_BUNDLE",
+    "RPC_FANOUT"
+  ],
+  "security": {
+    "csp": "on",
+    "rateLimit": "on"
+  }
+}
