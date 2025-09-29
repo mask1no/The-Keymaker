@@ -4,7 +4,8 @@
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "readiness": "node scripts/check-readiness.mjs",
-    "precommit": "npm run readiness && npm test",
+    "check:placeholders": "node scripts/check_placeholders.mjs",
+    "precommit": "npm run readiness && npm run check:placeholders && npm test",
     "check:node": "node -e \"const [mj]=process.versions.node.split('.') ; if(+mj<18){console.error('Node>=18 required'); process.exit(1)} else console.log('Node OK')\"",
     "core:build": "tsc --project tsconfig.core.json --noEmit",
     "dev": "next dev",
