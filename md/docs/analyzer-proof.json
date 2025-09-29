@@ -1,10 +1,33 @@
 {
-  "firstLoadKb": 87.1,
-  "routes": 25,
-  "ssrCore": ["app/engine", "app/bundle", "app/settings", "app/wallets"],
-  "jitoModes": ["JITO_BUNDLE", "RPC_FANOUT"],
-  "security": {
-    "csp": "on",
-    "rateLimit": "on"
-  }
+  "timestamp": "2025-09-29T00:00:00.000Z",
+  "version": "1.5.2",
+  "actualBundleSize": {
+    "firstLoadJS": "87.1 kB",
+    "ssrOnlyRoutes": "87.3 kB per route",
+    "loginRoute": "89.4 kB (client-side components)",
+    "middleware": "25.7 kB"
+  },
+  "previousClaim": "≤ 5 KB first-load JS",
+  "actualMultiplier": "17.4x larger than claimed",
+  "honestAssessment": {
+    "ssrCore": ["app/engine", "app/bundle", "app/settings", "app/wallets"],
+    "jitoModes": ["JITO_BUNDLE", "RPC_FANOUT"],
+    "security": {
+      "csp": "implemented",
+      "rateLimit": "partial",
+      "sessions": "HMAC"
+    },
+    "phase0Fixes": {
+      "walletsPageDuplication": "fixed",
+      "versionAlignment": "fixed",
+      "missingFiles": "created",
+      "corruptedPRD": "fixed"
+    }
+  },
+  "nextSteps": [
+    "Implement code splitting to reduce bundle size",
+    "Add real rate limiting",
+    "Replace fake health checks",
+    "Eliminate remaining duplications"
+  ]
 }

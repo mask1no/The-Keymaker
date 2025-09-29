@@ -83,15 +83,15 @@ User Action → Server Processing → External Validation → Bundle Submission
      │              │                        │                      │
      ▼              ▼                        ▼                      ▼
 • Token Creation  • Native v0 Build       • Simulation Gates     • Jito Submission
-• Wal let Setup    • Tip Optimization      • Health Checks        • Status Polling
+• Wallet Setup    • Tip Optimization      • Health Checks        • Status Polling
 • Parameter Config• Region Selection      • Rate Limiting        • Telemetry
 ```
 
-#### Detailed F, l, o, w:
+#### Detailed Flow:
 
-1. **Create**: Optional SPL token creation flow (server-sidereceipt-gated)
-2. **Preview**: Build native v0 transactionssimulate on server (`s, i, m, ulateOnly: true`)
-3. **Validation**: Strict guardrails check (tip accountscompute budgethealth status)
+1. **Create**: Optional SPL token creation flow (server-side receipt-gated)
+2. **Preview**: Build native v0 transactions, simulate on server (`simulateOnly: true`)
+3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
 4. **Execute**: Submit exact base64 set that passed preview
 5. **Monitor**: Status updates from server poller with real-time feedback
 
@@ -100,7 +100,7 @@ User Action → Server Processing → External Validation → Bundle Submission
 **Arm → Prefetch → Rebuild → Submit**
 
 ```
-Operator Arms Timer → T-5, s: Blockhash → T-1, s: Rebuild → T=0: Submit
+Operator Arms Timer → T-5s: Blockhash → T-1s: Rebuild → T=0: Submit
        │                      │                     │                │
        ▼                      ▼                     ▼                ▼
 • Set 30s/60s delay      • Fresh blockhash      • Embed tip       • Jito submit
@@ -116,7 +116,7 @@ Operator Arms Timer → T-5, s: Blockhash → T-1, s: Rebuild → T=0: Submit
 Environment Setup → Bundle Creation → Submission → Monitoring → Verification
        │                     │                    │                │
        ▼                     ▼                    ▼                ▼
-• Wal let funding        • Minimal tx bundle    • Jito endpoint   • Status polling
+• Wallet funding        • Minimal tx bundle    • Jito endpoint   • Status polling
 • Key validation        • Tip optimization     • Region fallback • Success metrics
 • RPC connectivity      • Base64 encoding      • Error handling  • Report generation
 ```
@@ -151,7 +151,7 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 
 ## Performance
 
-- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship ≤ 5 KB first-load JS (≈0 ideal). `/login` is the only client island.
+- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 87.3 KB first-load JS. `/login` loads 89.4 KB (client components).
 
 ## Observability
 
@@ -181,7 +181,7 @@ Health Sources → Aggregation → Caching → Distribution
 
 #### `/api/health` - System Health Endpoint
 
-**Response S, t, r, ucture:**
+**Response Structure:**
 
 ```json
 {

@@ -18,6 +18,7 @@ import { JITO_TIP_ACCOUNTS } from '@/lib/core/src/tip';
 import { cookies } from 'next/headers';
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
+import { getUiSettings } from '@/lib/server/settings';
 import { apiError } from '@/lib/server/apiError';
 import { incCounter } from '@/lib/server/metricsStore';
 import { resolveGroup, listGroup, loadKeypair } from '@/lib/server/keystore';

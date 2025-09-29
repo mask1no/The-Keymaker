@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
-import { Connection } from '@solana/web3.js';
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { getTipFloor } from '@/lib/core/src/jito';
-import { incCounter } from '@/lib/server/metricsStore';
+import { APP_VERSION } from '@/lib/version';
+import { 
+  checkRPC, 
+  checkJito, 
+  checkDatabase, 
+  checkRedis, 
+  checkExternalDependencies 
+} from '@/lib/health/checks';
+import { aggregateHealthChecks } from '@/lib/health/baseCheck';
 import { isTestMode } from '@/lib/testMode';
 
 export const runtime = 'nodejs';
@@ -10,55 +15,60 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const started = Date.now();
-  let rpcLatency = -1;
-  let jitoLatency = -1;
+
+  // In test mode, return mock data for faster tests
   if (isTestMode()) {
     return NextResponse.json({
       ok: true,
-      version: process.env.npm_package_version || 'dev',
+      version: APP_VERSION,
       timestamp: new Date().toISOString(),
+      environment: 'test',
       checks: {
-        rpc: { status: 'healthy', latency_ms: 10 },
-        jito: { status: 'healthy', latency_ms: 5, region: 'ffm' },
-        database: { status: 'healthy' },
+        rpc: { status: 'healthy', latency_ms: 10, note: 'test mode' },
+        jito: { status: 'healthy', latency_ms: 5, region: 'ffm', note: 'test mode' },
+        database: { status: 'healthy', note: 'test mode' },
+        redis: { status: 'healthy', note: 'test mode' },
+        external: { status: 'healthy', note: 'test mode' },
       },
       duration_ms: Date.now() - started,
     });
   }
-  const connection = new Connection(NEXT_PUBLIC_HELIUS_RPC, 'confirmed');
-  try {
-    const t0 = Date.now();
-    await connection.getSlot();
-    rpcLatency = Date.now() - t0;
-  } catch (e) {
-    rpcLatency = -1;
-  }
 
-  try {
-    const t1 = Date.now();
-    await getTipFloor('ffm');
-    jitoLatency = Date.now() - t1;
-  } catch (e) {
-    jitoLatency = -1;
-  }
-
-  // No DB dependency in lean mode
-
-  const res = NextResponse.json({
-    ok: rpcLatency >= 0 && jitoLatency >= 0,
-    version: process.env.npm_package_version || 'dev',
-    timestamp: new Date().toISOString(),
-    checks: {
-      rpc: { status: rpcLatency >= 0 ? 'healthy' : 'down', latency_ms: rpcLatency },
-      jito: {
-        status: jitoLatency >= 0 ? 'healthy' : 'down',
-        latency_ms: jitoLatency,
-        region: 'ffm',
-      },
-      database: { status: 'n/a' },
+  // Run all health checks using aggregation system
+  const healthResult = await aggregateHealthChecks(
+    {
+      rpc: checkRPC,
+      jito: checkJito,
+      database: checkDatabase,
+      redis: checkRedis,
+      external: checkExternalDependencies,
     },
+    {
+      criticalServices: ['rpc', 'jito'], // These must be healthy
+      parallel: true,
+    }
+  );
+
+  const response = {
+    ok: healthResult.overall !== 'down',
+    status: healthResult.overall,
+    version: APP_VERSION,
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    checks: healthResult.checks,
     duration_ms: Date.now() - started,
+    summary: healthResult.summary,
+  };
+
+  // Return appropriate HTTP status
+  const httpStatus = healthResult.overall === 'down' ? 503 : 200;
+  
+  return NextResponse.json(response, { 
+    status: httpStatus,
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    }
   });
-  incCounter('engine_2xx_total');
-  return res;
 }
