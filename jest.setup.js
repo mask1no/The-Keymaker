@@ -28,3 +28,73 @@ if (typeof Response !== 'undefined' && !(/** @type any */ (Response).json)) {
       ...init,
     });
 }
+
+// Mock Solana Web3.js to fix import issues
+jest.mock('@solana/web3.js', () => ({
+  Connection: jest.fn().mockImplementation(() => ({
+    getSlot: jest.fn().mockResolvedValue(12345),
+    getLatestBlockhash: jest.fn().mockResolvedValue({
+      blockhash: 'mock-blockhash',
+      lastValidBlockHeight: 100
+    })
+  })),
+  PublicKey: jest.fn().mockImplementation((key) => ({
+    toString: () => key || 'mock-public-key',
+    toBase58: () => key || 'mock-public-key'
+  })),
+  VersionedTransaction: {
+    deserialize: jest.fn().mockReturnValue({
+      signatures: [new Uint8Array(64)]
+    })
+  },
+  ComputeBudgetProgram: {
+    programId: {
+      toBase58: jest.fn().mockReturnValue('ComputeBudget111111111111111111111111111111')
+    },
+    setComputeUnitLimit: jest.fn().mockReturnValue({
+      keys: [],
+      programId: {
+        toBase58: jest.fn().mockReturnValue('ComputeBudget111111111111111111111111111111')
+      },
+      data: new Uint8Array()
+    }),
+    setComputeUnitPrice: jest.fn().mockReturnValue({
+      keys: [],
+      programId: {
+        toBase58: jest.fn().mockReturnValue('ComputeBudget111111111111111111111111111111')
+      }, 
+      data: new Uint8Array()
+    })
+  }
+}));
+
+// Mock Jito core modules
+jest.mock('@/lib/core/src/jito', () => ({
+  getTipFloor: jest.fn().mockResolvedValue(1000000)
+}));
+
+// Mock Next.js server components
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((data, init) => ({
+      status: init?.status || 200,
+      headers: new Map(Object.entries(init?.headers || {})),
+      json: jest.fn().mockResolvedValue(data)
+    })),
+    next: jest.fn(() => ({
+      headers: new Map()
+    })),
+    redirect: jest.fn((url) => ({
+      status: 307,
+      headers: new Map([['location', url]])
+    }))
+  },
+  NextRequest: jest.fn().mockImplementation((url, init) => ({
+    url,
+    method: init?.method || 'GET',
+    headers: new Map(Object.entries(init?.headers || {})),
+    json: jest.fn().mockResolvedValue(init?.body ? JSON.parse(init.body) : {}),
+    text: jest.fn().mockResolvedValue(init?.body || ''),
+    clone: jest.fn()
+  }))
+}));

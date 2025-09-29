@@ -1,4 +1,10 @@
-import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+// Dynamically import motion to reduce initial bundle
+const motion = dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion })), {
+  ssr: false,
+  loading: () => <div className="p-4 sm:p-6 md:p-8 opacity-50">Loading...</div>
+});
 
 const DashboardWrapper = () => {
   return (

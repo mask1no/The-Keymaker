@@ -27,45 +27,97 @@ const nextConfig = {
   },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   experimental: {
-    optimizePackageImports: ['@solana/web3.js', '@radix-ui/react-dialog', 'lucide-react'],
+    optimizePackageImports: [
+      '@solana/web3.js',
+      '@solana/wallet-adapter-base',
+      '@solana/wallet-adapter-react',
+      '@solana/wallet-adapter-react-ui',
+      '@solana/wallet-adapter-wallets',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-label',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-switch',
+      'lucide-react',
+      'framer-motion',
+      'recharts',
+      'react-grid-layout',
+      'react-hook-form',
+      'react-hot-toast',
+      'react-hotkeys-hook',
+      'react-markdown'
+    ],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Bundle size optimization
+      // Aggressive bundle splitting and optimization
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           chunks: 'all',
+          minSize: 20000,
+          maxSize: 50000,
           cacheGroups: {
+            default: false,
+            vendors: false,
+            // Framework chunk (React/Next.js) - keep essential
+            framework: {
+              chunks: 'all',
+              name: 'framework',
+              test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            // Critical vendor libraries - combine into one chunk
             vendor: {
               test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
+              name: 'vendor',
               chunks: 'all',
               priority: 10,
-            },
-            solana: {
-              test: /[\\/]node_modules[\\/]@solana[\\/]/,
-              name: 'solana',
-              chunks: 'all',
-              priority: 20,
-            },
-            radix: {
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              name: 'radix',
-              chunks: 'all',
-              priority: 15,
+              minChunks: 2, // Only if used by 2+ modules
+              reuseExistingChunk: true,
             },
           },
         },
       };
       
-      // Bundle size monitoring
+      // Tree shaking optimization
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+      
+      // Bundle size monitoring - getting closer to target
       config.performance = {
-        maxAssetSize: 60000, // 60KB (slightly above current to avoid build failures)
-        maxEntrypointSize: 60000,
-        hints: 'warning', // Warn but don't fail
+        maxAssetSize: 45000, // 45KB - we're at 53.6KB for largest chunk
+        maxEntrypointSize: 45000,
+        hints: 'warning', // Warn but don't fail build
       };
+
+      // Externalize heavy Node.js modules that shouldn't be in browser
+      config.externals = config.externals || [];
+      config.externals.push({
+        'puppeteer': 'commonjs puppeteer',
+        'playwright': 'commonjs playwright',
+        'fs': 'commonjs fs',
+        'path': 'commonjs path',
+        'crypto': 'commonjs crypto',
+      });
     }
+
+    // Resolve aliases for better tree shaking
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Use ES modules when available
+      'react-hot-toast': 'react-hot-toast/dist/index.esm.js',
+    };
+
     return config;
   },
   async headers() {
@@ -81,6 +133,7 @@ const nextConfig = {
     ];
   },
 };
+
 // Enable bundle analyzer when ANALYZE=true
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',

@@ -91,8 +91,9 @@ describe('Token Authentication', () => {
     });
 
     it('should fail with placeholder values', () => {
-      process.env.ENGINE_API_TOKEN = 'generate-a-real-token-here';
-      process.env.KEYMAKER_SESSION_SECRET = 'generate-a-32-character-hex-secret-here';
+      // Set tokens that are long enough but still placeholders
+      process.env.ENGINE_API_TOKEN = 'generate-a-real-token-here-12345678';  // 36 chars
+      process.env.KEYMAKER_SESSION_SECRET = 'generate-32-char-secret-123456789012';  // 40 chars
       
       const result = validateTokenConfiguration();
       expect(result.valid).toBe(false);

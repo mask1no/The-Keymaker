@@ -1,7 +1,13 @@
 'use client';
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import dynamic from 'next/dynamic';
+
+// Dynamically import entire chart component to reduce bundle size
+const DynamicChart = dynamic(() => import('./ChartComponent'), { 
+  ssr: false,
+  loading: () => <div className="h-64 bg-zinc-900 rounded animate-pulse" />
+});
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
 import { Skeleton } from '@/components/UI/skeleton';
 import useSWR from 'swr';

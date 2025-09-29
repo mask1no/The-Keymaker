@@ -1,15 +1,17 @@
 # The Keymaker
 
-Production-ready Solana bundler cockpit built on Next.js 14.
+Solana bundler cockpit built on Next.js 14.
+**⚠️ Current Status: Development/Testing - NOT Production Ready**
 
-- Docs: see [PRD](md/PRD.md). Dev on `PORT=3001` supported; all app API calls use relative `/api/...` paths.
-- Ops notes: see `md/OPS.md` (if present)
+- Docs: see [PRD](md/PRD.md) for architecture
+- Ops: see [OPS](md/OPS.md) for deployment guide
+- Status: 5.5/10 - See [AUDIT_REPORT.md](md/AUDIT_REPORT.md)
 
 ## Dev notes
 
 - Port: set `PORT=3001` for local dev if desired. All app fetches use relative paths (`/api/...`) so port changes do not break auth.
 - Run sanity checks: `pnpm sanity`
-- Only `/login` is a client island. Core routes (`/engine`, `/bundle`, `/settings`, `/wallets`) are SSR-only.
+- Only `/login` is a client island. Core routes (`/engine`, `/bundle`, `/settings`, `/wallets`) use SSR but ship ~166KB JS bundle (optimization needed).
 
 ### Environment
 

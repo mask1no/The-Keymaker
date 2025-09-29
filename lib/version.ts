@@ -12,10 +12,10 @@ export function getVersion(): string {
 }
 
 /**
- * Version information object
+ * Version information object (immutable)
  */
-export const VERSION_INFO = {
+export const VERSION_INFO = Object.freeze({
   version: APP_VERSION,
   buildDate: new Date().toISOString(),
   nodeVersion: process.version,
-} as const;
+} as const);

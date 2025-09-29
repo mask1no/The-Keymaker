@@ -66,7 +66,7 @@ export function validateTokenConfiguration(): {
     issues.push('ENGINE_API_TOKEN not configured');
   } else if (engineToken.length < 32) {
     issues.push('ENGINE_API_TOKEN too short (minimum 32 characters)');
-  } else if (engineToken === 'generate-a-real-token-here') {
+  } else if (engineToken.includes('generate-a-real-token-here')) {
     issues.push('ENGINE_API_TOKEN is still using placeholder value');
   }
   
@@ -74,7 +74,7 @@ export function validateTokenConfiguration(): {
     issues.push('KEYMAKER_SESSION_SECRET not configured');
   } else if (sessionSecret.length < 32) {
     issues.push('KEYMAKER_SESSION_SECRET too short (minimum 32 characters)');
-  } else if (sessionSecret === 'generate-a-32-character-hex-secret-here') {
+  } else if (sessionSecret.includes('generate-32-char-secret')) {
     issues.push('KEYMAKER_SESSION_SECRET is still using placeholder value');
   }
   

@@ -2,9 +2,11 @@
 
 ## Executive Summary
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working prototype with core bundling functionality.
 
-**Current Status**: SSR cockpit with two modes: JITO_BUNDLE (same-block intent via Block Engines + tip) and RPC_FANOUT (parallel RPC sends). Real Jupiter swaps replace dummy transfers. Multi-wallet sign-in is message-sign only; `/wallets` page manages server keystore groups; core routes are SSR-only with near-zero client JS; APIs are token/rate limited.
+**Current Status**: SSR cockpit with two modes: JITO_BUNDLE and RPC_FANOUT. Real Jupiter swaps supported. Multi-wallet sign-in is message-sign only. Core routes ship 166KB JS (optimization needed). APIs are token/rate limited.
+
+**⚠️ Note**: This is a development prototype. Performance metrics and reliability claims are targets, not current achievements.
 
 ## Vision & Mission
 
@@ -17,22 +19,24 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 - **Transparent health monitoring**
 - **Lightning-fast workflows**
 
-### Mission StatementTo provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
+### Mission Statement
+
+To provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
 
 ## Product Objectives
 
 ### Core Objectives
 
 - Real swaps with Jupiter; DRY-RUN supported when disarmed
-- **Enterprise Reliability**: 99.9% uptime with comprehensive error handling and recovery
+- **Target Reliability**: 99.9% uptime goal with comprehensive error handling and recovery (in development)
 - **MEV Optimization**: Intelligent tip floor enforcement and bundle success maximization
 - Security First: strict CSP, HMAC session, token-guarded APIs, server keystore
 - **Performance Excellence**: Sub-3-second bundle execution with intelligent failover
 
 ### Success Metrics
 
-- **Bundle Success Rate**: ≥ 85% landing rate
-- **System Availability**: ≥ 99.9% uptime
+- **Bundle Success Rate**: Target ≥85% landing rate (under development)
+- **System Availability**: Target ≥99.9% uptime (not achieved yet)
 - **Average Latency**: ≤ 3 seconds per bundle
 - **Security Incidents**: Zero security breaches
 - **Operator Efficiency**: 10x faster workflow vs manual execution
@@ -70,7 +74,7 @@ The Keymaker is the definitive thin cockpit for Solana execution. The UI orchest
 | **Database**         | SQLite                             | Analytics and transaction history |
 | **Security**         | HMAC session, CSP, token guard     | Practical web security            |
 | **Monitoring**       | Sentry                             | Error tracking and performance    |
-| **Deployment**       | DockerKubernetes                   | Container orchestration           |
+| **Deployment**       | Docker, Kubernetes                 | Container orchestration           |
 
 ## Core Workflows
 
@@ -151,7 +155,9 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 
 ## Performance
 
-- Core SSR-only routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 87.3 KB first-load JS. `/login` loads 89.4 KB (client components).
+- Core SSR routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 166 KB first-load JS. `/login` loads similar (client components).
+- **Current Performance**: 166KB total bundle size (target: <50KB)
+- **Bundle Breakdown**: 164KB vendor chunk + ~175B per route
 
 ## Observability
 
@@ -186,7 +192,7 @@ Health Sources → Aggregation → Caching → Distribution
 ```json
 {
   "ok": true,
-  "version": "1.5.0",
+  "version": "1.5.2",
   "timestamp": "2025-01-01, T00:00:00.000Z",
   "checks": {
     "rpc": {

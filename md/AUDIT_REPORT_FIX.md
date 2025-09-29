@@ -1,570 +1,557 @@
-# The Keymaker - Critical Path to Production (3.5/10 → 10/10)
+# The Keymaker - Critical Fix Path (5.5/10 → 10/10)
 
 ## Executive Summary
 
-This document provides a **NO-NONSENSE, CRITICAL PATH** to fix the dumpster fire that is The Keymaker. Follow this exactly or continue living with your 3.5/10 prototype.
+Based on the comprehensive audit completed on Monday, September 29, 2025, this document provides a **PRIORITIZED ACTION PLAN** to transform The Keymaker from its current 5.5/10 state to production-ready 10/10.
 
-**Estimated Timeline: 6-8 weeks with 2 developers**
-**Current Score: 3.5/10**
-**Target Score: 10/10**
+**Current State**: Partially fixed prototype with major discrepancies between claims and reality  
+**Target State**: Honest, production-ready application  
+**Timeline**: 8-10 weeks for excellence (4-5 weeks for basic production readiness)
 
 ---
 
-## PHASE 0: STOP THE BLEEDING (Week 1)
-*Before you write another line of code, fix what's actively broken*
+## PHASE 0: STOP THE LIES (Week 1)
+*Fix the disconnect between documentation and reality*
 
-### 🔥 P0 - EMERGENCY FIXES (48 hours)
+### 🚨 P0 - Critical Documentation Fixes (24 hours)
 
-#### 1. Fix the Wallets Page Disaster
-**Problem**: THREE implementations in one file (470 lines of duplicated chaos)
+#### 0. Fix PRD.md and README.md Quality Issues
+**Problem**: Both documents are riddled with typos, false claims, and unprofessional formatting
+
+**PRD.md Critical Issues**:
+- [ ] Line 5: "implementationarchitecture decisionsand" - fix spacing
+- [ ] Line 7: Remove "near-zero client JS" claim (it's 166KB!)
+- [ ] Line 20: "Mission StatementTo" - add space
+- [ ] Line 50: "Wal let Mgmt" - fix spacing
+- [ ] Line 73: "DockerKubernetes" - add comma/space
+- [ ] Line 154: Update to "166 KB first-load JS" (not 87.3KB)
+- [ ] Line 189: Change version from "1.5.0" to "1.5.2"
+- [ ] Lines 195, 202: Fix "h, t, t, ps://" URL formatting
+- [ ] Remove unproven claims: "99.9% uptime", "≥85% success rate", "institutional-grade"
+- [ ] Stop claiming "enterprise reliability" with 48% test coverage
+
+**README.md Critical Issues**:
+- [ ] Line 3: Remove "Production-ready" claim
+- [ ] Line 5: Change "md/OPS.md (if present)" to "md/OPS.md"
+- [ ] Line 12: Remove "SSR-only" claim (they ship 166KB)
+- [ ] Add honest disclaimer about current state
+
+**Rewrite README.md Header**:
+```markdown
+# The Keymaker
+
+Solana bundler cockpit built on Next.js 14.
+**⚠️ Current Status: Development/Testing - NOT Production Ready**
+
+- Docs: see [PRD](md/PRD.md) for architecture
+- Ops: see [OPS](md/OPS.md) for deployment guide
+- Status: 5.5/10 - See [AUDIT_REPORT.md](md/AUDIT_REPORT.md)
+```
+
+**Fix PRD Executive Summary**:
+```markdown
+## Executive Summary
+
+The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working prototype with core bundling functionality.
+
+**Current Status**: SSR cockpit with two modes: JITO_BUNDLE and RPC_FANOUT. Real Jupiter swaps supported. Multi-wallet sign-in is message-sign only. Core routes ship 166KB JS (optimization needed). APIs are token/rate limited.
+
+**⚠️ Note**: This is a development prototype. Performance metrics and reliability claims are targets, not current achievements.
+```
+
+#### 1. Update Performance Claims
+**Problem**: Claiming ≤5KB while shipping 166KB  
+**Actions**:
+- [ ] Update PRD.md to reflect ACTUAL bundle sizes
+- [ ] Remove all "near-zero JS" claims from README
+- [ ] Add honest bundle analysis to documentation
+- [ ] Document the 164KB vendor bundle issue
+
+**New Documentation**:
+```markdown
+## Current Performance Metrics (v1.5.2)
+- First Load JS: 166KB (working to reduce to <50KB)
+- Vendor Bundle: 164KB (needs optimization)
+- Route-specific: ~175B per page
+- Target: <50KB total (in progress)
+```
+
+#### 2. Fix Version Inconsistency
+**Problem**: PRD shows version 1.5.0 in JSON example
 **Fix**:
 ```bash
-# Step 1: Backup the mess
-cp app/wallets/page.tsx app/wallets/page.tsx.backup
-
-# Step 2: Delete everything
-rm app/wallets/page.tsx
-
-# Step 3: Implement ONCE, correctly
+# Update PRD.md line 189
+sed -i 's/"version": "1.5.0"/"version": "1.5.2"/' md/PRD.md
 ```
-- [ ] Choose the BEST of the 3 implementations (probably lines 1-162)
-- [ ] Delete the other 2 completely
-- [ ] Add unit tests
+
+#### 3. Document What Actually Works
+- [ ] Remove false claims about features
+- [ ] Add "Known Issues" section
+- [ ] Create honest roadmap
+- [ ] Add warning badges where appropriate
+
+---
+
+## PHASE 1: FIX THE TESTS (Week 1-2)
+*48% coverage with failures is unacceptable*
+
+### 🔧 P1 - Test Infrastructure Repair
+
+#### 1. Fix Failing Tests Immediately
+```bash
+# Fix version immutability test
+# In lib/version.ts, make VERSION_INFO truly immutable:
+export const VERSION_INFO = Object.freeze({
+  version: APP_VERSION,
+  buildDate: new Date().toISOString(),
+  nodeVersion: process.version,
+} as const);
+
+# Fix token test expectations
+# Update test to match actual error messages
+
+# Fix health check test import issues
+# Mock @solana/web3.js properly in tests
+```
+
+#### 2. Increase Coverage to 80%
+- [ ] Add tests for all API routes
+- [ ] Test security implementations
+- [ ] Test error scenarios
 - [ ] Add integration tests
-- [ ] Code review by someone who didn't write it
-- [ ] Document WHY this happened and how to prevent it
+- [ ] Add E2E tests for critical paths
 
-#### 2. Version Number Alignment
-**Problem**: package.json says 1.5.2, tests check for 1.1.2
-**Fix**:
-- [ ] Decide on ONE version: 1.5.2
-- [ ] Update ALL references:
-  - [ ] package.json
-  - [ ] All acceptance tests
-  - [ ] Health endpoints
-  - [ ] Documentation
-  - [ ] Docker files
-- [ ] Create version.ts with single source of truth:
-```typescript
-export const APP_VERSION = '1.5.2';
+#### 3. Set Up CI to Enforce Standards
+```yaml
+# .github/workflows/ci.yml
+- name: Test Coverage
+  run: |
+    pnpm test:coverage
+    if [ $(cat coverage/coverage-summary.json | jq '.total.statements.pct') -lt 80 ]; then
+      echo "Coverage below 80%"
+      exit 1
+    fi
 ```
-- [ ] Import and use everywhere
-
-#### 3. Create Missing Critical Files
-**Problem**: Documentation references files that don't exist
-**Fix**:
-- [ ] Create `.env.example` with ALL environment variables:
-```env
-# RPC Configuration
-HELIUS_RPC_URL=https://rpc.helius.xyz/?api-key=YOUR_KEY
-PUBLIC_RPC_URL=https://api.mainnet-beta.solana.com
-
-# Jito Configuration
-JITO_BLOCK_ENGINES_JSON=[{"region":"ffm","url":"https://ffm.mainnet.block-engine.jito.wtf"}]
-
-# Security Keys (NEVER commit real values)
-KEYPAIR_JSON=[]
-ENGINE_API_TOKEN=generate-a-real-token-here
-KEYMAKER_SESSION_SECRET=generate-32-char-secret
-KEYMAKER_GROUP=bundle
-
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-
-# Monitoring
-SENTRY_DSN=
-SENTRY_AUTH_TOKEN=
-```
-- [ ] Create `md/OPS.md` with actual operational documentation
-- [ ] Update README to reflect reality
-
-#### 4. Fix the Corrupted PRD
-**Problem**: PRD.md has text like "F, l, o, w" everywhere
-**Fix**:
-- [ ] Rewrite PRD.md from scratch - NO COPY PASTE
-- [ ] Use proper markdown
-- [ ] Spell check
-- [ ] Grammar check
-- [ ] Have someone else read it
-- [ ] Version control it properly
 
 ---
 
-## PHASE 1: STOP LYING (Week 1-2)
-*Fix every false claim in your documentation*
+## PHASE 2: FIX THE BUNDLE (Week 2-3)
+*166KB for "SSR-only" pages is absurd*
 
-### 📊 Bundle Size Truth Campaign
+### 📦 P2 - Bundle Optimization
 
-#### 5. Measure and Fix Real Bundle Size
-**Current Lie**: ≤5KB claimed, 87.1KB actual
-**Fix**:
-- [ ] Run proper bundle analysis:
+#### 1. Analyze the Vendor Bundle
 ```bash
-ANALYZE=true pnpm build
+# Current vendor bundle breakdown:
+pnpm analyze
+# 164KB vendor chunk contains unnecessary client-side code
 ```
-- [ ] Document ACTUAL sizes for each route
-- [ ] Implement code splitting:
-  - [ ] Dynamic imports for heavy components
-  - [ ] Lazy load non-critical features
-  - [ ] Tree-shake unused code
-  - [ ] Remove duplicate dependencies
-- [ ] Target realistic goals:
-  - [ ] First Load JS: <50KB (achievable)
-  - [ ] Per-route JS: <20KB
-- [ ] Update documentation with REAL numbers
-- [ ] Add automated bundle size checks in CI:
+
+#### 2. Implement Code Splitting
 ```javascript
 // next.config.js
 module.exports = {
   experimental: {
-    webpackBuildWorker: true,
+    optimizeCss: true,
+    optimizePackageImports: [
+      '@solana/web3.js',
+      '@solana/wallet-adapter-base',
+      'lucide-react',
+    ],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.performance = {
-        maxAssetSize: 50000, // 50KB
-        maxEntrypointSize: 50000,
-        hints: 'error'
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          framework: {
+            chunks: 'all',
+            name: 'framework',
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            priority: 40,
+            enforce: true,
+          },
+          lib: {
+            test: /[\\/]node_modules[\\/]/,
+            chunks: 'all',
+            name(module, chunks, cacheGroupKey) {
+              const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)[\\/]/)?.[1];
+              return `lib-${packageName.replace('@', '')}`;
+            },
+            priority: 30,
+            minChunks: 1,
+            reuseExistingChunk: true,
+          },
+        },
       };
     }
     return config;
+  },
+};
+```
+
+#### 3. Remove Unnecessary Dependencies
+- [ ] Audit all dependencies with `pnpm why [package]`
+- [ ] Remove unused packages
+- [ ] Replace heavy libraries with lighter alternatives
+- [ ] Use dynamic imports for non-critical features
+
+#### 4. Implement True SSR-Only Pages
+```typescript
+// For SSR-only pages, ensure NO client JS:
+// app/engine/page.tsx
+import 'server-only'; // This should actually work!
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+// Disable client-side hydration for this page
+export const config = {
+  unstable_runtimeJS: false, // Experimental but worth trying
+};
+```
+
+---
+
+## PHASE 3: PRODUCTION HARDENING (Week 3-4)
+*Make it actually production-ready*
+
+### 🛡️ P3 - Security & Reliability
+
+#### 1. Make Redis Mandatory
+```typescript
+// lib/rateLimit.ts
+if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Redis configuration required in production');
   }
+  console.warn('Using in-memory rate limiting (development only)');
 }
 ```
 
-### 🔒 Security Reality Check
-
-#### 6. Implement REAL Security
-**Problem**: Empty tokens, fake rate limiting, theater
-**Fix**:
-
-##### 6.1 Token Authentication
-- [ ] Generate real tokens:
+#### 2. Add Proper Monitoring
 ```typescript
-// lib/auth/tokens.ts
-import crypto from 'crypto';
+// lib/monitoring.ts
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
+import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
 
-export function generateApiToken(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
+const exporter = new PrometheusExporter({ port: 9090 });
+const meterProvider = new MeterProvider({ exporter });
 
-export function validateToken(token: string): boolean {
-  if (!token || token.length < 32) return false;
-  return constantTimeCompare(token, process.env.ENGINE_API_TOKEN);
+export const metrics = {
+  bundleSubmissions: meter.createCounter('bundle_submissions_total'),
+  bundleSuccess: meter.createCounter('bundle_success_total'),
+  apiLatency: meter.createHistogram('api_latency_seconds'),
+  activeUsers: meter.createUpDownCounter('active_users'),
+};
+```
+
+#### 3. Implement Audit Logging
+```typescript
+// lib/audit.ts
+export async function auditLog(event: AuditEvent) {
+  await db.auditLogs.create({
+    data: {
+      timestamp: new Date(),
+      userId: event.userId,
+      action: event.action,
+      resource: event.resource,
+      ip: event.ip,
+      userAgent: event.userAgent,
+      result: event.result,
+      metadata: event.metadata,
+    },
+  });
 }
 ```
-- [ ] Enforce token validation EVERYWHERE:
+
+#### 4. Add Circuit Breakers
 ```typescript
-// middleware.ts
-export function middleware(req: Request) {
-  if (req.url.includes('/api/engine/')) {
-    const token = req.headers.get('x-engine-token');
-    if (!validateToken(token)) {
-      return new Response('Unauthorized', { status: 401 });
+// lib/circuitBreaker.ts
+export class CircuitBreaker {
+  private failures = 0;
+  private lastFailTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+  
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailTime > this.timeout) {
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
+    }
+    
+    try {
+      const result = await fn();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
     }
   }
 }
 ```
-- [ ] Document token generation process
-- [ ] Add token rotation mechanism
-
-##### 6.2 Real Rate Limiting
-- [ ] Install and configure rate limiter:
-```bash
-pnpm add @upstash/ratelimit @upstash/redis
-```
-- [ ] Implement actual rate limiting:
-```typescript
-// lib/rateLimit.ts
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-export const rateLimiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, "10 s"), // 10 requests per 10 seconds
-  analytics: true,
-});
-
-// In API routes
-export async function POST(req: Request) {
-  const identifier = req.ip || 'anonymous';
-  const { success, limit, reset, remaining } = await rateLimiter.limit(identifier);
-  
-  if (!success) {
-    return new Response('Too Many Requests', {
-      status: 429,
-      headers: {
-        'X-RateLimit-Limit': limit.toString(),
-        'X-RateLimit-Remaining': remaining.toString(),
-        'X-RateLimit-Reset': new Date(reset).toISOString(),
-      },
-    });
-  }
-  // Continue with request
-}
-```
-
-##### 6.3 Content Security Policy
-- [ ] Fix CSP headers to actually work:
-```javascript
-// next.config.js
-const CSP = `
-  default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' data: https:;
-  font-src 'self';
-  connect-src 'self' https://*.solana.com https://*.helius.xyz https://*.jito.wtf;
-  frame-ancestors 'none';
-  base-uri 'self';
-  form-action 'self';
-`.replace(/\n/g, '');
-```
 
 ---
 
-## PHASE 2: MAKE IT REAL (Week 2-3)
-*Replace fake implementations with real ones*
+## PHASE 4: OPERATIONAL EXCELLENCE (Week 4-5)
+*Build the infrastructure for sustained success*
 
-### 🏥 Health Monitoring Reality
+### 🚀 P4 - DevOps & Deployment
 
-#### 7. Implement Real Health Checks
-**Problem**: Hardcoded fake values
-**Fix**:
-- [ ] Create real health check system:
-```typescript
-// app/api/health/route.ts
-export async function GET() {
-  const checks = await Promise.allSettled([
-    checkRPC(),
-    checkJito(),
-    checkDatabase(),
-    checkRedis(),
-  ]);
-  
-  const results = {
-    rpc: checks[0].status === 'fulfilled' ? checks[0].value : { status: 'down' },
-    jito: checks[1].status === 'fulfilled' ? checks[1].value : { status: 'down' },
-    database: checks[2].status === 'fulfilled' ? checks[2].value : { status: 'down' },
-    redis: checks[3].status === 'fulfilled' ? checks[3].value : { status: 'down' },
-  };
-  
-  const allHealthy = Object.values(results).every(r => r.status === 'healthy');
-  
-  return NextResponse.json({
-    ok: allHealthy,
-    timestamp: new Date().toISOString(),
-    version: APP_VERSION,
-    checks: results,
-  }, {
-    status: allHealthy ? 200 : 503,
-  });
-}
-
-async function checkRPC(): Promise<HealthCheck> {
-  const start = Date.now();
-  try {
-    const connection = new Connection(process.env.HELIUS_RPC_URL);
-    await connection.getSlot();
-    return {
-      status: 'healthy',
-      latency_ms: Date.now() - start,
-      endpoint: process.env.HELIUS_RPC_URL.split('?')[0],
-    };
-  } catch (error) {
-    return {
-      status: 'down',
-      error: error.message,
-      latency_ms: Date.now() - start,
-    };
-  }
-}
-```
-- [ ] Add database health checks
-- [ ] Add dependency health checks
-- [ ] Create monitoring dashboard
-- [ ] Set up alerting
-
-### 📊 Real Metrics
-
-#### 8. Implement Actual Monitoring
-- [ ] Set up Prometheus metrics:
-```typescript
-// lib/metrics.ts
-import { Registry, Counter, Histogram, Gauge } from 'prom-client';
-
-export const register = new Registry();
-
-export const httpRequestDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status_code'],
-  registers: [register],
-});
-
-export const bundleSubmissions = new Counter({
-  name: 'bundle_submissions_total',
-  help: 'Total number of bundle submissions',
-  labelNames: ['status', 'mode'],
-  registers: [register],
-});
-
-export const activeConnections = new Gauge({
-  name: 'active_connections',
-  help: 'Number of active connections',
-  registers: [register],
-});
-```
-- [ ] Add Grafana dashboards
-- [ ] Set up log aggregation (ELK or similar)
-- [ ] Implement distributed tracing
-
----
-
-## PHASE 3: CLEAN HOUSE (Week 3-4)
-*Remove all technical debt and duplications*
-
-### 🧹 Code Quality Overhaul
-
-#### 9. Eliminate ALL Duplications
-- [ ] Audit entire codebase for duplications:
-```bash
-npx jscpd . --min-tokens 30 --reporters "html,console"
-```
-- [ ] Create shared components library
-- [ ] Implement DRY principle everywhere
-- [ ] Add pre-commit hooks to prevent duplications:
-```json
-// .husky/pre-commit
-#!/bin/sh
-npx jscpd . --min-tokens 30 --threshold 5
-```
-
-#### 10. Fix Test Infrastructure
-**Problem**: Tests check wrong versions, have corrupted code
-**Fix**:
-- [ ] Rewrite ALL acceptance tests from scratch
-- [ ] Add comprehensive test suites:
-  - [ ] Unit tests (>80% coverage)
-  - [ ] Integration tests
-  - [ ] E2E tests
-  - [ ] Performance tests
-  - [ ] Security tests
-- [ ] Set up CI/CD pipeline:
+#### 1. Set Up Proper CI/CD
 ```yaml
-# .github/workflows/ci.yml
-name: CI
-on: [push, pull_request]
+# .github/workflows/deploy.yml
+name: Deploy to Production
+on:
+  push:
+    branches: [main]
+    
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
       - run: pnpm install
+      - run: pnpm test:coverage
       - run: pnpm lint
       - run: pnpm type-check
-      - run: pnpm test:coverage
+      
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm audit
+      - run: pnpm secrets:scan
+      
+  bundle-check:
+    runs-on: ubuntu-latest
+    steps:
       - run: pnpm build
       - run: pnpm analyze
       - name: Check bundle size
         run: |
-          if [ $(stat -f%z .next/static/chunks/*.js | awk '{s+=$1} END {print s}') -gt 50000 ]; then
-            echo "Bundle size exceeds 50KB!"
+          MAX_SIZE=51200 # 50KB
+          ACTUAL_SIZE=$(du -b .next/static/chunks/*.js | awk '{sum+=$1} END {print sum}')
+          if [ $ACTUAL_SIZE -gt $MAX_SIZE ]; then
+            echo "Bundle too large: $ACTUAL_SIZE > $MAX_SIZE"
             exit 1
           fi
+          
+  deploy:
+    needs: [test, security, bundle-check]
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm deploy:production
 ```
 
----
+#### 2. Implement Blue-Green Deployment
+```bash
+# scripts/deploy-blue-green.sh
+#!/bin/bash
+CURRENT=$(kubectl get service keymaker -o jsonpath='{.spec.selector.deployment}')
+NEW=$([[ "$CURRENT" == "blue" ]] && echo "green" || echo "blue")
 
-## PHASE 4: PRODUCTION HARDENING (Week 4-5)
-*Make it bulletproof*
+# Deploy to inactive color
+kubectl set image deployment/keymaker-$NEW keymaker=keymaker:$VERSION
+kubectl wait --for=condition=available deployment/keymaker-$NEW
 
-### 🛡️ Production Infrastructure
+# Run health checks
+./scripts/health-check.sh $NEW || exit 1
 
-#### 11. Implement Proper Error Handling
-- [ ] Global error boundary
-- [ ] Graceful degradation
-- [ ] Retry mechanisms with exponential backoff
-- [ ] Circuit breakers for external services
-- [ ] Dead letter queues for failed operations
+# Switch traffic
+kubectl patch service keymaker -p '{"spec":{"selector":{"deployment":"'$NEW'"}}}'
 
-#### 12. Add Observability
-- [ ] Structured logging:
+# Wait and verify
+sleep 10
+./scripts/verify-deployment.sh || (
+  kubectl patch service keymaker -p '{"spec":{"selector":{"deployment":"'$CURRENT'"}}}'
+  exit 1
+)
+```
+
+#### 3. Add Performance Monitoring
 ```typescript
-// lib/logger.ts
-import winston from 'winston';
-
-export const logger = winston.createLogger({
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json(),
-  ),
-  transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
-  ],
-});
+// lib/performance.ts
+export function measurePerformance(name: string) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = async function (...args: any[]) {
+      const start = performance.now();
+      try {
+        const result = await originalMethod.apply(this, args);
+        const duration = performance.now() - start;
+        
+        metrics.apiLatency.record(duration / 1000, {
+          method: propertyKey,
+          status: 'success',
+        });
+        
+        return result;
+      } catch (error) {
+        const duration = performance.now() - start;
+        
+        metrics.apiLatency.record(duration / 1000, {
+          method: propertyKey,
+          status: 'error',
+        });
+        
+        throw error;
+      }
+    };
+  };
+}
 ```
-- [ ] Distributed tracing with OpenTelemetry
-- [ ] Custom business metrics
-- [ ] Performance monitoring
-- [ ] User behavior analytics
-
-#### 13. Database and Caching
-- [ ] Implement proper database migrations
-- [ ] Add Redis caching layer
-- [ ] Connection pooling
-- [ ] Query optimization
-- [ ] Backup and recovery procedures
 
 ---
 
-## PHASE 5: PERFORMANCE EXCELLENCE (Week 5-6)
-*Make it fast*
+## PHASE 5: DOCUMENTATION & TRANSPARENCY (Week 5-6)
+*Be honest about what you have*
 
-### ⚡ Performance Optimization
+### 📚 P5 - Honest Documentation
 
-#### 14. Frontend Performance
-- [ ] Implement proper code splitting
-- [ ] Add resource hints (preconnect, prefetch, preload)
-- [ ] Optimize images with next/image
-- [ ] Implement virtual scrolling for lists
-- [ ] Add service worker for offline support
-- [ ] Enable HTTP/2 push
+#### 1. Create Accurate README
+```markdown
+# The Keymaker
 
-#### 15. Backend Performance
-- [ ] Implement caching strategy:
-  - [ ] CDN for static assets
-  - [ ] Redis for API responses
-  - [ ] In-memory caching for hot data
-- [ ] Database query optimization
-- [ ] Connection pooling
-- [ ] Async/await optimization
-- [ ] Worker threads for CPU-intensive tasks
+## Current State (v1.5.2)
+A Solana bundler application in active development.
+
+### What Works:
+- ✅ Basic bundle submission via Jito
+- ✅ Rate limiting with Redis/memory fallback
+- ✅ Token authentication
+- ✅ Health monitoring
+- ✅ SSR-based UI
+
+### Known Issues:
+- ⚠️ Bundle size larger than optimal (166KB, working to reduce)
+- ⚠️ Test coverage at 48% (target: 80%)
+- ⚠️ No production monitoring yet
+- ⚠️ Redis optional (required for production)
+
+### Not Production Ready
+This application is NOT ready for production use. See [ROADMAP.md](ROADMAP.md) for timeline.
+```
+
+#### 2. Create Honest Metrics Dashboard
+```typescript
+// app/metrics/page.tsx
+export default async function MetricsPage() {
+  const metrics = await getMetrics();
+  
+  return (
+    <div>
+      <h1>Honest Metrics</h1>
+      <div className="metrics-grid">
+        <Metric name="Bundle Size" value="166KB" target="<50KB" status="poor" />
+        <Metric name="Test Coverage" value="48%" target="80%" status="poor" />
+        <Metric name="API Latency" value={metrics.p95} target="<200ms" />
+        <Metric name="Error Rate" value={metrics.errorRate} target="<0.1%" />
+        <Metric name="Uptime" value={metrics.uptime} target="99.9%" />
+      </div>
+    </div>
+  );
+}
+```
 
 ---
 
-## PHASE 6: DOCUMENTATION & DEPLOYMENT (Week 6-7)
-*Make it maintainable*
+## Success Metrics & Validation
 
-### 📚 Documentation Overhaul
+### Checkpoints for Each Score Level
 
-#### 16. Create Real Documentation
-- [ ] API documentation with OpenAPI/Swagger
-- [ ] Architecture diagrams
-- [ ] Deployment guides
-- [ ] Troubleshooting guides
-- [ ] Performance tuning guide
-- [ ] Security best practices
-- [ ] Contribution guidelines
-- [ ] Code style guide
+#### 6/10 Checkpoint (Week 2):
+- [ ] All tests passing
+- [ ] Test coverage > 60%
+- [ ] Bundle size documented honestly
+- [ ] Version consistency fixed
 
-#### 17. Deployment Pipeline
-- [ ] Multi-environment setup (dev/staging/prod)
-- [ ] Blue-green deployment
-- [ ] Rollback procedures
-- [ ] Health check gates
-- [ ] Automated security scanning
-- [ ] Load testing before deployment
+#### 7/10 Checkpoint (Week 3):
+- [ ] Bundle size < 100KB (honestly measured)
+- [ ] Test coverage > 70%
+- [ ] Redis mandatory in production
+- [ ] Basic monitoring implemented
 
----
-
-## PHASE 7: FINAL VALIDATION (Week 7-8)
-*Prove it's actually 10/10*
-
-### ✅ Acceptance Criteria
-
-#### 18. Performance Validation
-- [ ] Bundle size < 50KB (honest measurement)
-- [ ] Time to interactive < 3s
-- [ ] API response time p95 < 200ms
-- [ ] 100% uptime for 7 days straight
-
-#### 19. Security Validation
-- [ ] Pass OWASP security scan
-- [ ] Pass penetration testing
-- [ ] No secrets in codebase
-- [ ] All endpoints authenticated
-- [ ] Rate limiting working
-
-#### 20. Quality Gates
-- [ ] 0 duplicate code blocks
-- [ ] >80% test coverage
-- [ ] 0 console errors in production
+#### 8/10 Checkpoint (Week 5):
+- [ ] Bundle size < 50KB
+- [ ] Test coverage > 80%
+- [ ] Full monitoring suite
+- [ ] Zero failing tests
 - [ ] All documentation accurate
-- [ ] Version numbers consistent everywhere
+
+#### 9/10 Checkpoint (Week 7):
+- [ ] Performance benchmarks met
+- [ ] Security audit passed
+- [ ] 99.9% uptime achieved
+- [ ] Automated deployment working
+
+#### 10/10 Checkpoint (Week 10):
+- [ ] All of the above
+- [ ] Load tested to 1000 req/s
+- [ ] Disaster recovery tested
+- [ ] Full observability
+- [ ] Team trained on operations
 
 ---
 
-## Success Metrics
+## 🚨 IMMEDIATE ACTION REQUIRED
 
-### From 3.5/10 to 10/10
+### Documentation Emergency (Do This TODAY)
 
-| Metric | Current (3.5/10) | Target (10/10) | Validation Method |
-|--------|------------------|----------------|-------------------|
-| Bundle Size | 87.1KB (lying about 5KB) | <50KB (honest) | Bundle analyzer |
-| Code Duplication | 470 lines (3x wallets) | 0 duplications | JSCPD scan |
-| Test Coverage | ~0% | >80% | Jest coverage |
-| Documentation Accuracy | ~30% true | 100% true | Manual audit |
-| Health Checks | Fake/hardcoded | Real-time actual | API testing |
-| Security Score | F (empty tokens) | A+ | OWASP scan |
-| Version Consistency | 3+ different versions | 1 version | Grep search |
-| Error Rate | Unknown | <0.1% | Sentry metrics |
-| API Response Time | Unknown | <200ms p95 | APM tools |
-| Uptime | Unknown | 99.99% | Monitoring |
+Your PRD and README are **EMBARRASSINGLY UNPROFESSIONAL**. Fix these NOW:
+
+1. **PRD.md has TYPOS EVERYWHERE**:
+   - "implementationarchitecture" (no spaces)
+   - "proto type" (should be "prototype")
+   - "Mission StatementTo" (no space)
+   - "Wal let Mgmt" (space in middle of word)
+   - "DockerKubernetes" (no separator)
+   - "h, t, t, ps://" (mangled URLs)
+
+2. **Both documents LIE about capabilities**:
+   - Claiming "production-ready" with 48% test coverage
+   - Claiming "near-zero JS" while shipping 166KB
+   - Claiming "SSR-only" while shipping massive vendor bundle
+   - Claiming "99.9% uptime" with no monitoring
+   - Claiming "institutional-grade" with failing tests
+
+3. **Version inconsistencies**:
+   - PRD shows version 1.5.0 in JSON example (should be 1.5.2)
+   - PRD claims 87.3KB bundle (actual: 166KB)
+
+**This is your FIRST impression to users and investors. It's currently a disaster.**
 
 ---
 
 ## The Non-Negotiables
 
-**IF YOU SKIP ANY OF THESE, YOU'RE BACK TO 3.5/10:**
+**These MUST be fixed before ANY production deployment:**
 
-1. **NO LIES** - Every metric must be real and measurable
-2. **NO DUPLICATES** - Not a single duplicated implementation
-3. **NO FAKE DATA** - All health checks, metrics, and monitoring must be real
-4. **NO MISSING FILES** - If you document it, it must exist
-5. **NO SECURITY THEATER** - Real security or nothing
-6. **NO UNTESTED CODE** - If it's not tested, it's broken
-7. **NO CORRUPTED DOCS** - Professional documentation only
-8. **NO VERSION CONFUSION** - One version, everywhere
-9. **NO HIDDEN FAILURES** - All errors logged and monitored
-10. **NO EXCUSES** - Either it's 10/10 or it's not production
-
----
-
-## Timeline Summary
-
-- **Week 1**: Emergency fixes + Stop lying
-- **Week 2-3**: Real implementations
-- **Week 3-4**: Clean house
-- **Week 4-5**: Production hardening
-- **Week 5-6**: Performance excellence
-- **Week 6-7**: Documentation & deployment
-- **Week 7-8**: Final validation
-
-**Total: 8 weeks to go from embarrassment to excellence**
+1. **Bundle size** - Get it under 50KB or stop claiming "near-zero"
+2. **Test coverage** - Minimum 80% with ZERO failures
+3. **Documentation** - Every claim must be verifiable
+4. **Security** - Redis must be mandatory in production
+5. **Monitoring** - You must know when things break
+6. **Honesty** - Stop lying about capabilities
 
 ---
 
 ## Final Words
 
-This is not a wish list. This is the MINIMUM required to claim "production-ready" with a straight face. Every single checkbox must be completed. No shortcuts. No lies. No excuses.
+You have a choice:
+1. **Be Honest**: Admit it's a 5.5/10 prototype and work towards 10/10
+2. **Fix It Fast**: Follow this guide religiously for 4-5 weeks
+3. **Continue Lying**: Keep claiming "production-ready" and lose all credibility
 
-**Current State**: A prototype pretending to be production
-**Target State**: Actually production-ready
-
-**The choice is yours**: Follow this guide completely, or keep your 3.5/10 score.
+The path from 5.5 to 10 is clear. The question is: will you take it?
 
 ---
 
-*Document Created: Monday, September 29, 2025*
-*Purpose: Transform The Keymaker from disaster to excellence*
-*No compromises. No shortcuts. Just results.*
+*Document Created: Monday, September 29, 2025*  
+*Purpose: Transform The Keymaker from prototype to production*  
+*Requirement: Complete honesty and commitment to excellence*
