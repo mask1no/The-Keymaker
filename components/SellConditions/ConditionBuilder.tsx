@@ -187,7 +187,7 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
                           <Badge variant="outline" className="text-green-400 border-green-400">
                             Active
                           </Badge>
-                          Sell when {condition.type} is {condition.operator} {condition.value}{' '}
+                          Sell when {condition.type} is {condition.operator} {condition.value}
                           {condition.unit}
                         </span>
                       ) : (
@@ -196,7 +196,7 @@ export function ConditionBuilder({ conditions, onConditionsChange }: ConditionBu
                             Disabled
                           </Badge>
                           <span className="line-through">
-                            Sell when {condition.type} is {condition.operator} {condition.value}{' '}
+                            Sell when {condition.type} is {condition.operator} {condition.value}
                             {condition.unit}
                           </span>
                         </span>

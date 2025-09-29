@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { Radio, Server, Zap } from 'lucide-react';
 const Chip = ({ ok, label, Icon }: { ok: boolean; label: string; Icon: any }) => (
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs bg-card">
-    {' '}
-    <Icon className="h-3.5 w-3.5 opacity-90" />{' '}
-    <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>{' '}
+    
+    <Icon className="h-3.5 w-3.5 opacity-90" />
+    <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
   </div>
 );
 export default function NavStatus() {
@@ -45,9 +45,9 @@ export default function NavStatus() {
   }, []);
   return (
     <div className="grid grid-cols-2 gap-2">
-      {' '}
-      <Chip ok={rpc} label="RPC" Icon={Server} /> <Chip ok={ws} label="WebSocket" Icon={Radio} />{' '}
-      <Chip ok={jito} label="JITO" Icon={Zap} /> <Chip ok label={net} Icon={Server} />{' '}
+      
+      <Chip ok={rpc} label="RPC" Icon={Server} /> <Chip ok={ws} label="WebSocket" Icon={Radio} />
+      <Chip ok={jito} label="JITO" Icon={Zap} /> <Chip ok label={net} Icon={Server} />
     </div>
   );
 }

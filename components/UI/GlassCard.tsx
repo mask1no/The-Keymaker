@@ -14,8 +14,8 @@ export function GlassCard({ children, className }: GlassCardProps) {
         className,
       )}
     >
-      {' '}
-      {children}{' '}
+      
+      {children}
     </motion.div>
   );
 }

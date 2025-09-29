@@ -39,7 +39,7 @@ export default function BundlePresets({ onApply }: { onApply: (p: Preset) => voi
   );
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-      {' '}
+      
       {presets.map((p) => (
         <Button
           key={p.id}
@@ -48,14 +48,14 @@ export default function BundlePresets({ onApply }: { onApply: (p: Preset) => voi
           onClick={() => onApply(p)}
           aria-label={`Apply preset ${p.name}`}
         >
-          {' '}
+          
           <div className="text-left">
-            {' '}
-            <div className="text-sm font-medium">{p.name}</div>{' '}
-            <div className="text-xs text-zinc-400">{p.description}</div>{' '}
-          </div>{' '}
+            
+            <div className="text-sm font-medium">{p.name}</div>
+            <div className="text-xs text-zinc-400">{p.description}</div>
+          </div>
         </Button>
-      ))}{' '}
+      ))}
     </div>
   );
 }

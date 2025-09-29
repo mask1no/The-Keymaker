@@ -126,7 +126,7 @@ export default async function Page() {
             if (!wallets.length)
               return (
                 <div className="text-sm text-zinc-400">
-                  No tracked wallets.{' '}
+                  No tracked wallets.
                   <a className="underline" href="/wallets">
                     Configure →
                   </a>
@@ -134,7 +134,7 @@ export default async function Page() {
               );
             return (
               <div className="text-sm text-zinc-400">
-                Shard PnL — temporarily disabled. Using wallets: {wallets.length}.{' '}
+                Shard PnL — temporarily disabled. Using wallets: {wallets.length}.
                 <a className="underline" href="/wallets">
                   Edit →
                 </a>

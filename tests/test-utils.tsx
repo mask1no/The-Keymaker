@@ -4,8 +4,8 @@ import { Toaster } from 'sonner';
 function Providers({ children }: { c; h; ildren: React.ReactNode }) {
   return (
     <>
-      {' '}
-      <Toaster /> {children}{' '}
+      
+      <Toaster /> {children}
     </>
   );
 }

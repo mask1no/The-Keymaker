@@ -18,16 +18,16 @@ export default function RecentRunsPanel() {
   if (!recent.length) return <div className="text-xs text-zinc-500">No recent runs</div>;
   return (
     <div className="space-y-2">
-      {' '}
+      
       {recent.map((r) => (
         <div
           key={r.id}
           className="flex items-center justify-between rounded-lg border border-zinc-800 bg-black/30 px-2 py-1 text-xs"
         >
-          {' '}
+          
           <div className="truncate">
-            {' '}
-            <span className="text-zinc-400 mr-2">#{r.id}</span>{' '}
+            
+            <span className="text-zinc-400 mr-2">#{r.id}</span>
             <span
               className={
                 r.status === 'landed'
@@ -37,13 +37,13 @@ export default function RecentRunsPanel() {
                     : 'text-red-400'
               }
             >
-              {' '}
-              {r.status}{' '}
-            </span>{' '}
-          </div>{' '}
-          <div className="text-zinc-500">{new Date(r.executed_at).toLocaleTimeString()}</div>{' '}
+              
+              {r.status}
+            </span>
+          </div>
+          <div className="text-zinc-500">{new Date(r.executed_at).toLocaleTimeString()}</div>
         </div>
-      ))}{' '}
+      ))}
     </div>
   );
 }

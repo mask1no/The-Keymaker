@@ -17,9 +17,9 @@ export default function SideNav() {
   const pathname = usePathname();
   return (
     <aside className="w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
-      {' '}
+      
       <nav className="flex flex-col gap-1">
-        {' '}
+        
         {NAV.map((x) => {
           const active = pathname === x.href;
           const Icon = x.icon as any;
@@ -34,16 +34,16 @@ export default function SideNav() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-card/50',
               )}
             >
-              {' '}
-              <Icon className="h-4.5 w-4.5" /> <span>{x.name}</span>{' '}
+              
+              <Icon className="h-4.5 w-4.5" /> <span>{x.name}</span>
             </Link>
           );
-        })}{' '}
-      </nav>{' '}
+        })}
+      </nav>
       <div className="mt-6">
-        {' '}
-        <NavStatus />{' '}
-      </div>{' '}
+        
+        <NavStatus />
+      </div>
     </aside>
   );
 }
