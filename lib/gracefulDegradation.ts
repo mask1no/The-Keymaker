@@ -96,7 +96,7 @@ export async function healthWithDegradation(): Promise<{
         criticalFailures++;
       }
     } catch (error) {
-      services[service] = { status: 'down', error: error.message };
+      services[service] = { status: 'down', error: (error as Error).message };
       criticalFailures++;
     }
   }
@@ -115,7 +115,7 @@ export async function healthWithDegradation(): Promise<{
         degradedServices.push(service);
       }
     } catch (error) {
-      services[service] = { status: 'down', error: error.message };
+      services[service] = { status: 'down', error: (error as Error).message };
       degradedServices.push(service);
     }
   }

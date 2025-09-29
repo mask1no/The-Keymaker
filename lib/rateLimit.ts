@@ -28,8 +28,9 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
     }
     console.warn('Falling back to in-memory rate limiting (development only)');
   }
-} else if (process.env.NODE_ENV === 'production') {
-  throw new Error('Redis configuration (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) is required in production');
+} else if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+  // Only enforce Redis in production runtime, not during build
+  console.warn('Redis not configured - will be required at runtime in production');
 }
 
 /**

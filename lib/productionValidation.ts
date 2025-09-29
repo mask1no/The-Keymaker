@@ -70,7 +70,7 @@ export async function validateProductionReadiness(): Promise<ProductionReadiness
   } catch (error) {
     report.checks.performance = {
       passed: false,
-      metrics: { error: error.message },
+      metrics: { error: (error as Error).message },
     };
   }
 
@@ -90,7 +90,7 @@ export async function validateProductionReadiness(): Promise<ProductionReadiness
   } catch (error) {
     report.checks.reliability = {
       passed: false,
-      services: { error: error.message },
+      services: { error: (error as Error).message },
     };
     report.blockers.push('Health check system failure');
   }
@@ -109,7 +109,7 @@ export async function validateProductionReadiness(): Promise<ProductionReadiness
   } catch (error) {
     report.checks.monitoring = {
       passed: false,
-      metrics: { error: error.message },
+      metrics: { error: (error as Error).message },
     };
   }
 

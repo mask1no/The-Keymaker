@@ -1,55 +1,58 @@
-import winston from 'winston';
+// Simple production logger without winston dependency
 import { format } from 'date-fns';
 
-// Production logging configuration
-const logFormat = winston.format.combine(
-  winston.format.timestamp(),
-  winston.format.errors({ stack: true }),
-  winston.format.json(),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    return JSON.stringify({
-      timestamp,
+interface LogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+  service: string;
+  version: string;
+  [key: string]: any;
+}
+
+// Simple console-based logger for now (can be enhanced with winston later)
+class SimpleLogger {
+  log(level: 'info' | 'warn' | 'error' | 'debug', message: string, meta: Record<string, any> = {}) {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
       level,
       message,
-      ...meta,
       service: 'keymaker',
       version: '1.5.2',
-    });
-  })
-);
+      ...meta,
+    };
 
-// Create logger instance
-export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: { service: 'keymaker' },
-  transports: [
-    // Error log file
-    new winston.transports.File({
-      filename: `logs/error-${format(new Date(), 'yyyy-MM-dd')}.log`,
-      level: 'error',
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 30, // Keep 30 days
-    }),
-    
-    // Combined log file
-    new winston.transports.File({
-      filename: `logs/combined-${format(new Date(), 'yyyy-MM-dd')}.log`,
-      maxsize: 50 * 1024 * 1024, // 50MB
-      maxFiles: 7, // Keep 1 week
-    }),
-    
-    // Console for development
-    ...(process.env.NODE_ENV !== 'production' ? [
-      new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        )
-      })
-    ] : []),
-  ],
-});
+    if (process.env.NODE_ENV === 'production') {
+      // In production, log as JSON
+      console.log(JSON.stringify(entry));
+    } else {
+      // In development, log human-readable
+      console.log(`[${level.toUpperCase()}] ${message}`, meta);
+    }
+  }
+
+  info(message: string, meta?: Record<string, any>) {
+    this.log('info', message, meta);
+  }
+
+  warn(message: string, meta?: Record<string, any>) {
+    this.log('warn', message, meta);
+  }
+
+  error(message: string, meta?: Record<string, any>) {
+    this.log('error', message, meta);
+  }
+
+  debug(message: string, meta?: Record<string, any>) {
+    this.log('debug', message, meta);
+  }
+
+  end(callback: () => void) {
+    callback();
+  }
+}
+
+export const logger = new SimpleLogger();
 
 // Structured logging helpers
 export const log = {

@@ -94,7 +94,7 @@ class AlertManager {
     this.activeAlerts.set(alertId, alert);
 
     // Log the alert
-    log.error(`ALERT: ${message}`, {
+    log.error(`ALERT: ${message}`, undefined, {
       alertId,
       alertName: config.name,
       severity: config.severity,
@@ -152,7 +152,7 @@ class AlertManager {
           })
         });
       } catch (error) {
-        log.error('Failed to send Slack alert', error);
+        log.error('Failed to send Slack alert', error as Error);
       }
     }
 
