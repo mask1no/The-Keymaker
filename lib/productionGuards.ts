@@ -55,7 +55,9 @@ export function validateProductionStartup(): void {
   console.log('✅ Production startup validation passed');
 }
 
-// Auto-validate on module load in production
+// Auto-validate on module load in production (server-side only)
 if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
   validateProductionStartup();
 }
+
+export default validateProductionStartup;

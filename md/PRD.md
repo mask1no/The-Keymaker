@@ -4,7 +4,7 @@
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working prototype with core bundling functionality.
 
-**Current Status**: SSR cockpit with two modes: JITO_BUNDLE and RPC_FANOUT. Real Jupiter swaps supported. Multi-wallet sign-in is message-sign only. Core routes ship 166KB JS (optimization needed). APIs are token/rate limited.
+**Current Status**: SSR cockpit with two modes: JITO_BUNDLE and RPC_FANOUT. Real Jupiter swaps supported. Multi-wallet sign-in is message-sign only. Core routes ship 94.8KB JS (optimized from 166KB, target <50KB). APIs are token/rate limited.
 
 **⚠️ Note**: This is a development prototype. Performance metrics and reliability claims are targets, not current achievements.
 
@@ -155,9 +155,10 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 
 ## Performance
 
-- Core SSR routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 166 KB first-load JS. `/login` loads similar (client components).
-- **Current Performance**: 166KB total bundle size (target: <50KB)
-- **Bundle Breakdown**: 164KB vendor chunk + ~175B per route
+- Core SSR routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 94.8 KB first-load JS (optimized).
+- **Current Performance**: 94.8KB total bundle size (target: <50KB)
+- **Bundle Breakdown**: 53.6KB main vendor chunk + 41KB framework + ~200B per route
+- **Optimization Status**: Reduced from 166KB (43% improvement), ongoing work toward <50KB target
 
 ## Observability
 

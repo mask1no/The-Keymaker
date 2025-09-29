@@ -18,11 +18,12 @@ const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   eslint: {
-    // Temporarily ignore ESLint for 10/10 push
-    ignoreDuringBuilds: true,
+    // Enforce ESLint during builds (fixes applied)
+    ignoreDuringBuilds: false,
   },
   typescript: {
     // Enforce TypeScript type errors during builds
+    // Only ignore for analyzer to prevent type-check overhead
     ignoreBuildErrors: isAnalyze ? true : false,
   },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,

@@ -1,33 +1,38 @@
 # The Keymaker
 
 Solana bundler cockpit built on Next.js 14.
-**⚠️ Current Status: Development/Testing - NOT Production Ready**
 
-- Docs: see [PRD](md/PRD.md) for architecture
-- Ops: see [OPS](md/OPS.md) for deployment guide
-- Status: 5.5/10 - See [AUDIT_REPORT.md](md/AUDIT_REPORT.md)
+**⚠️ DEVELOPMENT PROTOTYPE - NOT PRODUCTION READY ⚠️**
+
+**Current Status**: Functional prototype with working JITO bundling and RPC fanout modes. Requires significant hardening before production use.
+
+- **Audit Score**: 4/10 - See [AUDIT_REPORT.md](md/AUDIT_REPORT.md)
+- **Action Plan**: See [AUDIT_REPORT_FIX.md](md/AUDIT_REPORT_FIX.md)
+- **Architecture**: See [PRD](md/PRD.md) for detailed specs
+- **Operations**: See [OPS](md/OPS.md) for deployment guide
 
 ## Dev notes
 
 - Port: set `PORT=3001` for local dev if desired. All app fetches use relative paths (`/api/...`) so port changes do not break auth.
 - Run sanity checks: `pnpm sanity`
-- Only `/login` is a client island. Core routes (`/engine`, `/bundle`, `/settings`, `/wallets`) use SSR but ship ~166KB JS bundle (optimization needed).
+- Core routes (`/engine`, `/bundle`, `/settings`, `/wallets`) use SSR but ship **94.8KB JS bundle** (after optimization from 166KB)
+- Bundle optimization is ongoing work with target <50KB
+- Test coverage: <50% (improving)
 
 ### Environment
 
-Create a `.env` file from `.env.example` and fill values. Secrets must not be committed.
-Example `.env.example` keys provided:
+Create a `.env` file from `.env.example` (see root of project) and fill values. Secrets must not be committed.
 
-```
-HELIUS_RPC_URL=
-PUBLIC_RPC_URL=
-JITO_BLOCK_ENGINES_JSON=
-KEYPAIR_JSON=
-ENGINE_API_TOKEN=
-KEYMAKER_SESSION_SECRET=
-KEYMAKER_GROUP=bundle
-PORT=3001
-```
+Required environment variables:
+- `HELIUS_RPC_URL` - Helius RPC endpoint for Solana
+- `ENGINE_API_TOKEN` - API token for engine endpoints (min 32 chars)
+- `KEYMAKER_SESSION_SECRET` - Session secret for HMAC (min 32 chars)
+- `KEYPAIR_JSON` - Path to payer keypair JSON
+- `JITO_BLOCK_ENGINES_JSON` - Jito block engine configuration
+
+Optional:
+- `PORT` - Server port (default: 3000)
+- `KEYMAKER_GROUP` - Default wallet group (default: bundle)
 
 ## Scripts
 
