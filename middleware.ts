@@ -31,7 +31,7 @@ export async function middleware(req: Request) {
     }
     
     // Protected API endpoints require token validation
-    if (path.startsWith('/api/engine/') || path.startsWith('/api/market/')) {
+    if (path.startsWith('/api/engine/') || path.startsWith('/api/market/') || path.startsWith('/api/auth/')) {
       const token = req.headers.get('x-engine-token');
       if (!validateToken(token)) {
         return new NextResponse('Unauthorized - Invalid or missing API token', { 

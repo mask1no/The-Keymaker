@@ -108,6 +108,8 @@ const nextConfig = {
         'fs': 'commonjs fs',
         'path': 'commonjs path',
         'crypto': 'commonjs crypto',
+        '@sentry/node': 'commonjs @sentry/node',
+        'prom-client': 'commonjs prom-client',
       });
     }
 

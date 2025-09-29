@@ -9,6 +9,7 @@ import {
 } from '@/lib/health/checks';
 import { aggregateHealthChecks } from '@/lib/health/baseCheck';
 import { isTestMode } from '@/lib/testMode';
+import { healthCheckWithTimeout } from '@/lib/errorRecovery';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,15 +35,17 @@ export async function GET() {
     });
   }
 
-  // Run all health checks using aggregation system
+  // Run all health checks with timeouts in production
+  const healthChecks = {
+    rpc: () => healthCheckWithTimeout(checkRPC, 800),
+    jito: () => healthCheckWithTimeout(checkJito, 800), 
+    database: () => healthCheckWithTimeout(checkDatabase, 500),
+    redis: () => healthCheckWithTimeout(checkRedis, 300),
+    external: () => healthCheckWithTimeout(checkExternalDependencies, 1000),
+  };
+
   const healthResult = await aggregateHealthChecks(
-    {
-      rpc: checkRPC,
-      jito: checkJito,
-      database: checkDatabase,
-      redis: checkRedis,
-      external: checkExternalDependencies,
-    },
+    healthChecks,
     {
       criticalServices: ['rpc', 'jito'], // These must be healthy
       parallel: true,
