@@ -198,6 +198,32 @@ async function rpcSellAfter(formData: FormData) {
   }
 }
 
+function getSuccessMessage(code: string): string {
+  const messages: Record<string, string> = {
+    submit: 'Bundle submitted successfully! Check your wallet for confirmation.',
+    mode: 'Execution mode updated successfully.',
+    armed: 'System armed successfully. Live operations enabled.',
+    disarmed: 'System disarmed. Live operations disabled.',
+    buy: 'Buy order submitted successfully.',
+    sell: 'Sell order submitted successfully.',
+  };
+  return messages[code] || `Operation completed: ${code}`;
+}
+
+function getErrorMessage(code: string): string {
+  const messages: Record<string, string> = {
+    submit: 'Failed to submit bundle. Check your configuration and try again.',
+    armed: 'Failed to arm system. Ensure KEYMAKER_DISABLE_LIVE is not set to YES.',
+    disarmed: 'Failed to disarm system. Please try again.',
+    wrong_mode: 'Wrong execution mode. Switch to RPC_FANOUT mode for this operation.',
+    buy: 'Failed to submit buy order. Check mint address and wallet balance.',
+    sell: 'Failed to submit sell order. Verify token holdings and try again.',
+    live_disabled: 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.',
+    not_armed: 'System requires arming. Click "Arm 15m" button above.',
+  };
+  return messages[code] || `Error occurred: ${code}. Please check logs and try again.`;
+}
+
 function readTodayJournal(): Array<{ time: string; ev: string; summary: string }> {
   try {
     const now = new Date();
@@ -238,13 +264,13 @@ export default async function Page({
     <div className="prose prose-invert max-w-none">
       <Style />
       {searchParams?.ok && (
-        <div className="mb-3 text-xs rounded-md border border-green-600/30 bg-green-900/20 px-3 py-2">
-          OK: {searchParams.ok}
+        <div className="mb-3 text-sm rounded-md border border-green-600/30 bg-green-900/20 px-4 py-3">
+          ✓ {getSuccessMessage(searchParams.ok)}
         </div>
       )}
       {searchParams?.err && (
-        <div className="mb-3 text-xs rounded-md border border-yellow-600/30 bg-yellow-900/20 px-3 py-2">
-          Error: {searchParams.err}
+        <div className="mb-3 text-sm rounded-md border border-red-600/30 bg-red-900/20 px-4 py-3">
+          ✗ {getErrorMessage(searchParams.err)}
         </div>
       )}
       <h1>Engine</h1>
@@ -288,8 +314,12 @@ export default async function Page({
           </button>
         </form>
         <div className="text-xs text-zinc-400 mt-2">
-          Live submits require KEYMAKER_ALLOW_LIVE=YES and an armed window. DryRun bypasses arming
-          and never sends funds.
+          <p className="mb-1">
+            <strong>Note:</strong> Operations work by default. Arming is optional unless KEYMAKER_REQUIRE_ARMING=YES is set.
+          </p>
+          <p>
+            DryRun mode (enabled in Settings) simulates operations without sending real transactions.
+          </p>
         </div>
       </section>
       <div className="bento mb-4">
