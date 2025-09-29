@@ -157,7 +157,7 @@ This is the canonical docs home. Related docs:
 
 Server-side keystore supports named wallet groups under `keypairs/<group>`. The active group resolves as:
 
-1) cookie `km_group` → 2) `KEYMAKER_GROUP` env → 3) `'bundle'`.
+1. cookie `km_group` → 2) `KEYMAKER_GROUP` env → 3) `'bundle'`.
 
 - Manage at `/wallets` (SSR-only): create group, set active, list pubkeys, remove entries. No secrets are ever rendered.
 - Engine submit uses the active group to build and sign real Jupiter swap transactions server-side. Journaled events include the `group` field.

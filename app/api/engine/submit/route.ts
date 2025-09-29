@@ -279,7 +279,12 @@ export async function POST(request: Request) {
     }
     const submit =
       mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
-    const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId, group: activeGroup });
+    const res = NextResponse.json({
+      ...submit,
+      status: submit.statusHint,
+      requestId,
+      group: activeGroup,
+    });
     incCounter('engine_2xx_total');
     return res;
   } catch (e) {
