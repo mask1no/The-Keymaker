@@ -90,10 +90,6 @@ const nextConfig = {
         },
       };
       
-      // Tree shaking optimization
-      config.optimization.usedExports = true;
-      config.optimization.sideEffects = false;
-      
       // Bundle size monitoring - getting closer to target
       config.performance = {
         maxAssetSize: 45000, // 45KB - we're at 53.6KB for largest chunk
