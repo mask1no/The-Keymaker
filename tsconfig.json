@@ -29,6 +29,7 @@
     "components/layout/**/*.{ts,tsx}",
     "components/Dashboard/**/*.{ts,tsx}",
     "components/Settings/**/*.{ts,tsx}",
+    "components/UI/**/*.{ts,tsx}",
     "lib/**/*.ts",
     "lib/**/*.tsx",
     "app/api/bundles/**/*.ts",
