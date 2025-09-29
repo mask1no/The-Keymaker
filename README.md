@@ -4,12 +4,19 @@ Solana bundler cockpit built on Next.js 14.
 
 **⚠️ DEVELOPMENT PROTOTYPE - NOT PRODUCTION READY ⚠️**
 
-**Current Status**: Functional prototype with working JITO bundling and RPC fanout modes. Requires significant hardening before production use.
+**Current Status**: Functional development build with working JITO bundling and RPC fanout modes. Recently improved for better usability.
 
-- **Audit Score**: 4/10 - See [AUDIT_REPORT.md](md/AUDIT_REPORT.md)
-- **Action Plan**: See [AUDIT_REPORT_FIX.md](md/AUDIT_REPORT_FIX.md)
+**Recent Improvements (Sept 2025)**:
+- ✅ Removed armed requirement - operations work by default now
+- ✅ Better error messages with actionable feedback
+- ✅ Removed "coming soon" placeholders
+- ✅ Mobile navigation fully functional
+- ✅ Clean code structure with proper client/server separation
+
+**Documentation**:
 - **Architecture**: See [PRD](md/PRD.md) for detailed specs
 - **Operations**: See [OPS](md/OPS.md) for deployment guide
+- **Audits**: See [AUDIT_REPORT.md](md/AUDIT_REPORT.md) for security/code review
 
 ## Dev notes
 
@@ -33,6 +40,8 @@ Required environment variables:
 Optional:
 - `PORT` - Server port (default: 3000)
 - `KEYMAKER_GROUP` - Default wallet group (default: bundle)
+- `KEYMAKER_DISABLE_LIVE` - Set to `YES` to disable live operations (default: NO)
+- `KEYMAKER_REQUIRE_ARMING` - Set to `YES` to require manual arming (default: NO)
 
 ## Scripts
 

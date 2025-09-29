@@ -273,10 +273,24 @@ export async function POST(request: Request) {
       group: activeGroup,
     } as ExecOptions;
     if (!dryRun) {
-      const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
-      if (!allowLive) return apiError(403, 'live_disabled');
-      const { isArmed } = await import('@/lib/server/arming');
-      if (!isArmed()) return apiError(403, 'not_armed');
+      // Check if live operations are explicitly disabled
+      const liveDisabled = process.env.KEYMAKER_DISABLE_LIVE === 'YES';
+      if (liveDisabled) {
+        return apiError(403, { 
+          error: 'live_disabled', 
+          message: 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.' 
+        });
+      }
+      // Check arming only if explicitly required
+      if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
+        const { isArmed } = await import('@/lib/server/arming');
+        if (!isArmed()) {
+          return apiError(403, { 
+            error: 'not_armed', 
+            message: 'System requires arming. Call POST /api/ops/arm to enable operations.' 
+          });
+        }
+      }
     }
     const submit =
       mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);

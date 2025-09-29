@@ -134,9 +134,9 @@ export default async function Page() {
               );
             return (
               <div className="text-sm text-zinc-400">
-                Shard PnL — temporarily disabled. Using wallets: {wallets.length}.
-                <a className="underline" href="/wallets">
-                  Edit →
+                <div className="mb-1">Using {wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</div>
+                <a className="underline text-sky-400 hover:text-sky-300" href="/wallets">
+                  Manage Wallets →
                 </a>
               </div>
             );
