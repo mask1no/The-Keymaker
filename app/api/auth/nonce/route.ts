@@ -1,18 +1,40 @@
 import { NextResponse } from 'next/server';
-import { generateNonce } from '@/lib/server/session';
-import { rateLimit } from '@/lib/server/rateLimit';
+import { generateNonce } from '@/lib/auth/siws';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
-  const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
-  const key = fwd || 'anon';
-  if (!rateLimit(key)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+const NonceRequestSchema = z.object({
+  pubkey: z.string().min(32).max(44), // Base58 Solana pubkey
+});
+
+/**
+ * POST /api/auth/nonce
+ * Generate a nonce for SIWS challenge
+ */
+export async function POST(request: Request) {
   try {
-    const nonce = generateNonce();
-    return NextResponse.json({ nonce });
-  } catch {
-    return NextResponse.json({ error: 'failed' }, { status: 500 });
+    const body = await request.json();
+    const { pubkey } = NonceRequestSchema.parse(body);
+    
+    const nonce = generateNonce(pubkey);
+    
+    return NextResponse.json({
+      nonce,
+      expiresIn: 300, // 5 minutes in seconds
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: error.errors },
+        { status: 400 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to generate nonce' },
+      { status: 500 }
+    );
   }
 }

@@ -99,7 +99,12 @@ export default function SignInButton() {
       const address = await p.connect();
 
       setBusy('Fetching nonce');
-      const nonceRes = await fetch('/api/auth/nonce', { credentials: 'include' });
+      const nonceRes = await fetch('/api/auth/nonce', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ pubkey: address }),
+      });
       if (!nonceRes.ok) throw new Error(`nonce ${nonceRes.status}`);
       const { nonce } = await nonceRes.json();
 
