@@ -1,32 +1,9 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-sh scripts/pre-commit
+# Cross-platform secret/keys guard (Node CJS)
+node scripts/precommit-guard.cjs || exit 1
 
-#!/usr/bin/env bash
-set -e
-files=$(git diff --cached --name-only)
-for f in $files; do
-  # Skip hooks themselves
-  if [[ "$f" =~ ^\.husky/ ]]; then
-    continue
-  fi
-  # Skip files known to trigger false positives in sample docs
-  if [[ "$f" == ".gitignore" || "$f" == "md/README.md" ]]; then
-    continue
-  fi
-  if [[ "$f" =~ (^|/)\.env($|\.|/) || "$f" =~ ^keypairs/ ]]; then
-    echo "❌ Refusing to commit $f"; exit 1
-  fi
-  if grep -Iq . "$f"; then
-    if grep -Eqi '(private.?key|secret_key|mnemonic|seed|ed25519)' "$f"; then
-      echo "❌ Potential secret in $f"; exit 1
-    fi
-  fi
-done
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# Gentle hygiene (never block commits)
 pnpm -s lint --fix || true
 pnpm -s format || true
-# Re-enable strict after green:
-# npx ts-prune --error
