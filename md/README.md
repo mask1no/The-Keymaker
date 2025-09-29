@@ -10,7 +10,7 @@
 6. pnpm cli:send # -> {"bundleId": "..."} or mode-specific ids/sigs, then a status map
 7. pnpm cli:status ffm <bundleId>
 8. tail -n 5 data/journal\*.ndjson
-9. pnpm dev && open http://localhost:3000/engine
+9. pnpm dev && open http://localhost:${PORT:-3001}/engine
 10. (optional) curl /api/metrics | curl /api/health
 
 PowerShell: run commands separately instead of chaining with &&

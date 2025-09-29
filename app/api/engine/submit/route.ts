@@ -13,6 +13,7 @@ import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { incCounter } from '@/lib/server/metricsStore';
+import { resolveGroup, listGroup, loadKeypair } from '@/lib/server/keystore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,6 +33,30 @@ const Body = z.object({
 function cookiesTargetMint(): string | null {
   try {
     return cookies().get('km_mint')?.value || null;
+  } catch {
+    return null;
+  }
+}
+
+function cookiesAmountLamports(): number | null {
+  try {
+    const v = cookies().get('km_amt')?.value;
+    if (!v) return null;
+    const sol = Number(v);
+    if (!Number.isFinite(sol) || sol <= 0) return null;
+    return Math.floor(sol * 1_000_000_000);
+  } catch {
+    return null;
+  }
+}
+
+function cookiesSlippageBps(): number | null {
+  try {
+    const v = cookies().get('km_slp')?.value;
+    if (!v) return null;
+    const bps = Number(v);
+    if (!Number.isFinite(bps) || bps < 1) return null;
+    return Math.floor(bps);
   } catch {
     return null;
   }
@@ -108,33 +133,61 @@ export async function POST(request: Request) {
     void PRIORITY_TO_MICROLAMPORTS[priority];
 
     const txs: VersionedTransaction[] = [];
-    // If RPC_FANOUT and a wallet directory is provided, fan out across multiple keypairs
-      const walletDir = process.env.KEYMAKER_WALLET_DIR || 'keypairs';
-    const useWalletDir = mode === 'RPC_FANOUT' && existsSync(walletDir);
-    if (useWalletDir) {
-      const files = readdirSync(walletDir).filter((f) => f.toLowerCase().endsWith('.json'));
-      const selected = files.slice(0, Math.max(1, Math.min(50, files.length)));
-      for (const f of selected) {
-        try {
-          const raw = readFileSync(join(walletDir, f), 'utf8');
-          const kp = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
-          const targetMint = cookiesTargetMint();
-          if (targetMint) {
-            const priMicros = PRIORITY_TO_MICROLAMPORTS[priority] ?? 1000;
+    // Group-aware: build swaps for all wallets in the active group
+    const activeGroup = (() => { try { return cookies().get('km_group')?.value || resolveGroup(); } catch { return resolveGroup(); } })();
+    const groupPubs = listGroup(activeGroup);
+    if (groupPubs.length > 0) {
+      const targetMint = cookiesTargetMint();
+      if (targetMint) {
+        const priMicros = PRIORITY_TO_MICROLAMPORTS[priority] ?? 1000;
+        for (const pub of groupPubs) {
+          try {
+            const kp = loadKeypair(pub);
             const tx = await buildSwapTx({
               connection: conn,
               signerPub: kp.publicKey,
               inputMint: WSOL,
               outputMint: targetMint,
-              amount: Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
-              slippageBps: 50,
+              amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+              slippageBps: cookiesSlippageBps() ?? 50,
               priorityMicrolamports: priMicros,
             });
             tx.sign([kp]);
             txs.push(tx);
+          } catch {
+            // skip missing/corrupt key
           }
-        } catch {
-          // skip invalid file
+        }
+      }
+    }
+    // Backward-compat fallback: scan KEYMAKER_WALLET_DIR only if no group wallets
+    if (txs.length === 0 && mode === 'RPC_FANOUT') {
+      const walletDir = process.env.KEYMAKER_WALLET_DIR || 'keypairs';
+      if (existsSync(walletDir)) {
+        const files = readdirSync(walletDir).filter((f) => f.toLowerCase().endsWith('.json'));
+        const selected = files.slice(0, Math.max(1, Math.min(50, files.length)));
+        for (const f of selected) {
+          try {
+            const raw = readFileSync(join(walletDir, f), 'utf8');
+            const kp = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
+            const targetMint = cookiesTargetMint();
+            if (targetMint) {
+              const priMicros = PRIORITY_TO_MICROLAMPORTS[priority] ?? 1000;
+              const tx = await buildSwapTx({
+                connection: conn,
+                signerPub: kp.publicKey,
+                inputMint: WSOL,
+                outputMint: targetMint,
+                amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+                slippageBps: cookiesSlippageBps() ?? 50,
+                priorityMicrolamports: priMicros,
+              });
+              tx.sign([kp]);
+              txs.push(tx);
+            }
+          } catch {
+            // skip invalid file
+          }
         }
       }
     }
@@ -152,8 +205,8 @@ export async function POST(request: Request) {
           signerPub: payer.publicKey,
           inputMint: WSOL,
           outputMint: targetMint,
-          amount: Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
-          slippageBps: 50,
+          amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+          slippageBps: cookiesSlippageBps() ?? 50,
           priorityMicrolamports: priMicros,
         });
         tx.sign([payer]);

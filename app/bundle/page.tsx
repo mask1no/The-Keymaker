@@ -57,11 +57,18 @@ function SkeletonCard() {
 }
 
 export default async function Page() {
-  const mint = cookies().get('km_mint')?.value || null;
+  const c = cookies();
+  const mint = c.get('km_mint')?.value || null;
+  const amt = c.get('km_amt')?.value || '';
+  const slp = c.get('km_slp')?.value || '';
   async function setMint(formData: FormData) {
     'use server';
     const m = String(formData.get('mint') || '').trim();
+    const amount = String(formData.get('amount') || '').trim();
+    const slippage = String(formData.get('slippage') || '').trim();
     if (m) cookies().set('km_mint', m, { httpOnly: false, sameSite: 'lax', path: '/' });
+    if (amount) cookies().set('km_amt', amount, { httpOnly: false, sameSite: 'lax', path: '/' });
+    if (slippage) cookies().set('km_slp', slippage, { httpOnly: false, sameSite: 'lax', path: '/' });
     revalidatePath('/bundle');
     redirect('/bundle');
   }
@@ -72,17 +79,11 @@ export default async function Page() {
         <div className="card">
           <div className="label mb-1">Market</div>
           <div className="text-sm">
-            <form action={setMint} className="mb-2 flex gap-2">
-              <input
-                type="text"
-                name="mint"
-                defaultValue={mint ?? ''}
-                placeholder="Token mint (base58)"
-                className="input px-2 py-1 bg-zinc-900 w-full"
-              />
-              <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">
-                Set mint
-              </button>
+            <form action={setMint} className="mb-2 grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+              <input type="text" name="mint" defaultValue={mint ?? ''} placeholder="Token mint (base58)" className="input px-2 py-1 bg-zinc-900 w-full col-span-2" />
+              <input type="number" step="0.001" name="amount" defaultValue={amt} placeholder="Amount SOL per wallet" className="input px-2 py-1 bg-zinc-900 w-full" />
+              <input type="number" step="1" name="slippage" defaultValue={slp} placeholder="Slippage bps" className="input px-2 py-1 bg-zinc-900 w-full" />
+              <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700 col-span-1 md:col-auto">Save</button>
             </form>
             <Suspense fallback={<SkeletonCard />}>
               <MarketCard mint={mint} />

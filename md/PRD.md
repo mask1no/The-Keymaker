@@ -4,7 +4,7 @@
 
 The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementationarchitecture decisionsand development roadmap for a working proto type with core bundling functionality.
 
-**Current Status**: SSR cockpit with two modes: JITO_BUNDLE (same-block intent via Block Engines + tip) and RPC_FANOUT (parallel RPC sends). Real Jupiter swaps replace dummy transfers. Multi-wallet sign-in is message-sign only; wallets page manages server keystore groups; core routes are SSR-only with near-zero client JS; APIs are token/rate limited.
+**Current Status**: SSR cockpit with two modes: JITO_BUNDLE (same-block intent via Block Engines + tip) and RPC_FANOUT (parallel RPC sends). Real Jupiter swaps replace dummy transfers. Multi-wallet sign-in is message-sign only; `/wallets` page manages server keystore groups; core routes are SSR-only with near-zero client JS; APIs are token/rate limited.
 
 ## Vision & Mission
 
@@ -128,7 +128,9 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 
 ## Wallets & Groups
 
-- Manage tracked wallets on `/wallets` (SSR). Server keystore lives under `keypairs/` (gitignored). CLI can create/list groups: `cli:group:create <name> <n>`, `cli:group:list <name>`.
+- Execution wallets come from server keystore groups under `keypairs/<group>`.
+- The active group is selected by a cookie `km_group`; default resolves from `resolveGroup()` which uses `KEYMAKER_GROUP` env or `bundle`.
+- Manage wallets on `/wallets` (SSR): create group, remove pubkeys, set active group. No secrets rendered to the client.
 
 ## Manual Controls (RPC mode)
 
@@ -145,6 +147,7 @@ Environment Setup → Bundle Creation → Submission → Monitoring → Verifica
 - CSP strict; `connect-src` extended only to allow wallet extensions (`chrome-extension:`, `moz-extension:`, `ms-browser-extension:`).
 - Token guard: in production, `/api/engine/*` and `/api/market/*` require `x-engine-token`.
   Robots disallow `/api/` and `/engine`.
+  Environment example provided in `.env.example` (placeholders only).
 
 ## Performance
 

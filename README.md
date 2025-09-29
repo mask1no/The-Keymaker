@@ -14,6 +14,18 @@ Production-ready Solana bundler cockpit built on Next.js 14.
 ### Environment
 
 Create a `.env` file from `.env.example` and fill values. Secrets must not be committed.
+Example `.env.example` keys provided:
+
+```
+HELIUS_RPC_URL=
+PUBLIC_RPC_URL=
+JITO_BLOCK_ENGINES_JSON=
+KEYPAIR_JSON=
+ENGINE_API_TOKEN=
+KEYMAKER_SESSION_SECRET=
+KEYMAKER_GROUP=bundle
+PORT=3001
+```
 
 ## Scripts
 
@@ -22,6 +34,4 @@ Create a `.env` file from `.env.example` and fill values. Secrets must not be co
 
 ### CLI
 
-- Create a group of N server wallets and list them:
-  - `pnpm cli:group:create bundle_5 5`
-  - `pnpm cli:group:list bundle_5`
+- Group-aware wallets live on the server under `keypairs/<group>`. Manage via `/wallets` (SSR): create groups, set active group, remove pubkeys. Active group is stored in a `km_group` cookie. Execution wallets are read from the active group by engine submit.
