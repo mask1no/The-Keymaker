@@ -7,7 +7,7 @@ const cache = new Map<string, { count: number; resetTime: number }>();
 // Redis-based rate limiter for production
 let rateLimiter: Ratelimit | null = null;
 
-// Initialize Redis rate limiter if credentials are available
+// Initialize Redis rate limiter - MANDATORY in production
 if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
   try {
     const redis = new Redis({
@@ -22,8 +22,14 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
       prefix: "keymaker_ratelimit",
     });
   } catch (error) {
-    console.warn('Failed to initialize Redis rate limiter, falling back to in-memory:', error);
+    console.error('Failed to initialize Redis rate limiter:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Redis rate limiter is required in production');
+    }
+    console.warn('Falling back to in-memory rate limiting (development only)');
   }
+} else if (process.env.NODE_ENV === 'production') {
+  throw new Error('Redis configuration (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) is required in production');
 }
 
 /**

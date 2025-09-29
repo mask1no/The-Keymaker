@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMetrics } from '@/lib/metrics/prometheus';
+import { metricsRegistry } from '@/lib/monitoring';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,25 +10,20 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   try {
-    const metrics = await getMetrics();
+    const metrics = await metricsRegistry.metrics();
     
     return new NextResponse(metrics, {
       status: 200,
       headers: {
-        'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+        'Content-Type': metricsRegistry.contentType,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
       },
     });
   } catch (error) {
-    console.error('Failed to generate metrics:', error);
+    console.error('Failed to generate Prometheus metrics:', error);
     
     return NextResponse.json(
-      {
-        error: 'Failed to generate metrics',
-        timestamp: new Date().toISOString(),
-      },
+      { error: 'Failed to generate metrics' },
       { status: 500 }
     );
   }

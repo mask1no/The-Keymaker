@@ -128,7 +128,13 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.ALLOWED_ORIGINS || 'same-origin' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, x-engine-token' },
+          { key: 'Access-Control-Max-Age', value: '86400' },
+        ],
       },
     ];
   },
