@@ -5,9 +5,14 @@ export default function AppHeader() {
         <a href="/" className="text-xl md:text-2xl font-semibold tracking-wide px-1">
           The Keymaker
         </a>
-        <a href="/login" className="rounded-2xl border border-zinc-800 leading-none px-3 py-2">
-          Login
-        </a>
+        <nav className="flex items-center gap-2">
+          <a href="/wallets" className="rounded-2xl border border-zinc-800 leading-none px-3 py-2">
+            Wallets
+          </a>
+          <a href="/login" className="rounded-2xl border border-zinc-800 leading-none px-3 py-2">
+            Login
+          </a>
+        </nav>
       </div>
     </header>
   );

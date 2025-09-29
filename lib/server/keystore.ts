@@ -88,5 +88,3 @@ export function loadKeypair(pubkey: string): Keypair {
 export function resolveGroup(name?: string): string {
   return name && name.trim() ? name.trim() : process.env.KEYMAKER_GROUP || 'bundle';
 }
-
-

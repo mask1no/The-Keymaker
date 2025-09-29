@@ -30,7 +30,9 @@ interface SwapResponse {
 
 function base64ToBytes(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
-    return Uint8Array.from((Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'));
+    return Uint8Array.from(
+      (Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'),
+    );
   }
   const binary = typeof atob !== 'undefined' ? atob(base64) : '';
   const len = binary.length;
@@ -44,7 +46,7 @@ export async function getQuote(
   outputMint: string,
   amount: number, // in lamports/smallest units
   slippageBps = 50, // 0.5% default
-  swapMode = 'ExactIn'
+  swapMode = 'ExactIn',
 ): Promise<QuoteResponse> {
   try {
     const params = new URLSearchParams({
@@ -54,15 +56,12 @@ export async function getQuote(
       slippageBps: slippageBps.toString(),
       swapMode,
       onlyDirectRoutes: 'false',
-      asLegacyTransaction: 'false'
+      asLegacyTransaction: 'false',
     });
-    const response = await axios.get(
-      `${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`,
-      {
-        headers: { Accept: 'application/json' },
-        timeout: 10000
-      }
-    );
+    const response = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`, {
+      headers: { Accept: 'application/json' },
+      timeout: 10000,
+    });
     return response.data;
   } catch (error: any) {
     console.error('Jupiter quote error:', error.response?.data || error.message);
@@ -77,7 +76,7 @@ export async function getSwapTransaction(
   feeAccount?: string,
   prioritizationFeeLamports?: number,
   feeBps?: number,
-  asLegacyTransaction = false
+  asLegacyTransaction = false,
 ): Promise<SwapResponse> {
   try {
     const body: any = {
@@ -86,7 +85,7 @@ export async function getSwapTransaction(
       wrapAndUnwrapSol,
       asLegacyTransaction,
       computeUnitPriceMicroLamports: 'auto',
-      dynamicComputeUnitLimit: true
+      dynamicComputeUnitLimit: true,
     };
     if (feeAccount) {
       body.feeAccount = feeAccount;
@@ -97,18 +96,16 @@ export async function getSwapTransaction(
     if (feeBps && feeBps > 0) {
       body.feeBps = feeBps;
     }
-    const response = await axios.post(
-      `${NEXT_PUBLIC_JUPITER_API_URL}/swap`,
-      body,
-      {
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        timeout: 10000
-      }
-    );
+    const response = await axios.post(`${NEXT_PUBLIC_JUPITER_API_URL}/swap`, body, {
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      timeout: 10000,
+    });
     return response.data;
   } catch (error: any) {
     console.error('Jupiter swap error:', error.response?.data || error.message);
-    throw new Error(`Failed to get swap transaction: ${error.response?.data?.error || error.message}`);
+    throw new Error(
+      `Failed to get swap transaction: ${error.response?.data?.error || error.message}`,
+    );
   }
 }
 
@@ -120,12 +117,20 @@ export async function buildSwapTransaction(
   slippageBps = 50,
   priorityFee?: number,
   feeBps?: number,
-  asLegacyTransaction = false
+  asLegacyTransaction = false,
 ): Promise<VersionedTransaction> {
   // Get quote
   const quote = await getQuote(inputMint, outputMint, amountLamports, slippageBps);
   // Get swap transaction
-  const swap = await getSwapTransaction(quote, userPublicKey, true, undefined, priorityFee, feeBps, asLegacyTransaction);
+  const swap = await getSwapTransaction(
+    quote,
+    userPublicKey,
+    true,
+    undefined,
+    priorityFee,
+    feeBps,
+    asLegacyTransaction,
+  );
   // Deserialize the transaction
   const swapTransactionBuf = base64ToBytes(swap.swapTransaction);
   const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
@@ -139,12 +144,20 @@ export async function buildSwapLegacyTransaction(
   userPublicKey: string,
   slippageBps = 50,
   priorityFee?: number,
-  feeBps?: number
+  feeBps?: number,
 ): Promise<Transaction> {
   // Get quote
   const quote = await getQuote(inputMint, outputMint, amountLamports, slippageBps);
   // Get legacy swap transaction
-  const swap = await getSwapTransaction(quote, userPublicKey, true, undefined, priorityFee, feeBps, true);
+  const swap = await getSwapTransaction(
+    quote,
+    userPublicKey,
+    true,
+    undefined,
+    priorityFee,
+    feeBps,
+    true,
+  );
   const swapTransactionBuf = base64ToBytes(swap.swapTransaction);
   const transaction = Transaction.from(swapTransactionBuf);
   return transaction;
@@ -156,8 +169,8 @@ export async function getTokenPrice(tokenMint: string, vsToken = 'USDC'): Promis
       `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}&vsToken=${vsToken}`,
       {
         headers: { Accept: 'application/json' },
-        timeout: 5000
-      }
+        timeout: 5000,
+      },
     );
     const data = response.data.data;
     if (data && data[tokenMint]) {
@@ -182,4 +195,4 @@ export function convertFromLamports(lamports: number, decimals = 9): number {
   return lamports / Math.pow(10, decimals);
 }
 
-export { WSOL_MINT }; 
+export { WSOL_MINT };

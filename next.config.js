@@ -34,9 +34,7 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        headers: [
-          { key: 'X-Robots-Tag', value: 'noindex' },
-        ],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
       },
     ];
   },

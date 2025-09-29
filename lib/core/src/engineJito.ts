@@ -52,6 +52,7 @@ export class JitoEngine implements Engine {
             const sim = await connection.simulateTransaction(tx, { sigVerify: false });
             logJsonLine(journal, {
               ev: 'simulate_jito',
+              group: opts.group || undefined,
               region,
               txCount: 1,
               corr: plan.corr,
@@ -61,6 +62,7 @@ export class JitoEngine implements Engine {
           } catch (e: any) {
             logJsonLine(journal, {
               ev: 'simulate_jito',
+              group: opts.group || undefined,
               region,
               txCount: 1,
               corr: plan.corr,
@@ -91,6 +93,7 @@ export class JitoEngine implements Engine {
       bundleIds.push(bundle_id);
       logJsonLine(journal, {
         ev: 'submit_jito',
+        group: opts.group || undefined,
         region,
         bundleId: bundle_id,
         tipLamports: effectiveTip,

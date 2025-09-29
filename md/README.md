@@ -95,7 +95,7 @@ curl -s ${BASE_URL:-http://localhost:3001}/api/health
 
 ## Login
 
-- Visit `/login` and sign the canonical message with Phantom only (no tx signing in browser):
+- Visit `/login` and sign the canonical message with your wallet (no tx signing in browser):
   `Keymaker-Login|pubkey=<BASE58>|ts=<ISO>|nonce=<hex>` → server verifies ed25519 and issues httpOnly session cookie.
 - Middleware gates all routes except `/login` and `/api/**`.
 
@@ -152,3 +152,13 @@ This is the canonical docs home. Related docs:
 - `/md/PRD.md` — product/design spec
 
 > Merged content from: `md/docs/README.md` (commit preserved via git mv).
+
+## Wallet Groups (SSR)
+
+Server-side keystore supports named wallet groups under `keypairs/<group>`. The active group resolves as:
+
+1) cookie `km_group` → 2) `KEYMAKER_GROUP` env → 3) `'bundle'`.
+
+- Manage at `/wallets` (SSR-only): create group, set active, list pubkeys, remove entries. No secrets are ever rendered.
+- Engine submit uses the active group to build and sign real Jupiter swap transactions server-side. Journaled events include the `group` field.
+- All internal fetches use relative `/api/...` paths; deployments respect `PORT`/proxy.

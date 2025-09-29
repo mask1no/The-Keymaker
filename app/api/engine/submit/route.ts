@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { randomUUID, createHash } from 'crypto';
 import { z } from 'zod';
-import { Connection, Keypair, VersionedTransaction, SystemProgram, PublicKey, TransactionMessage } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  VersionedTransaction,
+  SystemProgram,
+  PublicKey,
+  TransactionMessage,
+} from '@solana/web3.js';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { PRIORITY_TO_MICROLAMPORTS } from '@/lib/core/src/types';
@@ -126,15 +133,21 @@ export async function POST(request: Request) {
     const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : (ui.dryRun ?? true);
     const cluster = parsed.cluster || ui.cluster || 'mainnet-beta';
 
-  const conn = new Connection(rpcUrl(), 'confirmed');
-  const { blockhash } = await conn.getLatestBlockhash('confirmed');
+    const conn = new Connection(rpcUrl(), 'confirmed');
+    const { blockhash } = await conn.getLatestBlockhash('confirmed');
     // priority mapped to micros; reserved for future use
     // priority mapped to micros; reserved for future logging/metrics
     void PRIORITY_TO_MICROLAMPORTS[priority];
 
     const txs: VersionedTransaction[] = [];
     // Group-aware: build swaps for all wallets in the active group
-    const activeGroup = (() => { try { return cookies().get('km_group')?.value || resolveGroup(); } catch { return resolveGroup(); } })();
+    const activeGroup = (() => {
+      try {
+        return cookies().get('km_group')?.value || resolveGroup();
+      } catch {
+        return resolveGroup();
+      }
+    })();
     const groupPubs = listGroup(activeGroup);
     if (groupPubs.length > 0) {
       const targetMint = cookiesTargetMint();
@@ -148,7 +161,8 @@ export async function POST(request: Request) {
               signerPub: kp.publicKey,
               inputMint: WSOL,
               outputMint: targetMint,
-              amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+              amount:
+                cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
               slippageBps: cookiesSlippageBps() ?? 50,
               priorityMicrolamports: priMicros,
             });
@@ -178,7 +192,9 @@ export async function POST(request: Request) {
                 signerPub: kp.publicKey,
                 inputMint: WSOL,
                 outputMint: targetMint,
-                amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+                amount:
+                  cookiesAmountLamports() ??
+                  Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
                 slippageBps: cookiesSlippageBps() ?? 50,
                 priorityMicrolamports: priMicros,
               });
@@ -205,7 +221,8 @@ export async function POST(request: Request) {
           signerPub: payer.publicKey,
           inputMint: WSOL,
           outputMint: targetMint,
-          amount: cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
+          amount:
+            cookiesAmountLamports() ?? Number(process.env.KEYMAKER_AMOUNT_LAMPORTS || 1000000),
           slippageBps: cookiesSlippageBps() ?? 50,
           priorityMicrolamports: priMicros,
         });
@@ -221,17 +238,27 @@ export async function POST(request: Request) {
       const payer = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(raw)));
       const tipTo = new PublicKey(JITO_TIP_ACCOUNTS[0]);
       const tipLamportsEff = Math.max(5000, Number(tipLamports ?? 0));
-      const tipIx = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: tipTo, lamports: tipLamportsEff });
-      const tipMsg = new TransactionMessage({ payerKey: payer.publicKey, recentBlockhash: blockhash, instructions: [tipIx] }).compileToV0Message();
+      const tipIx = SystemProgram.transfer({
+        fromPubkey: payer.publicKey,
+        toPubkey: tipTo,
+        lamports: tipLamportsEff,
+      });
+      const tipMsg = new TransactionMessage({
+        payerKey: payer.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [tipIx],
+      }).compileToV0Message();
       const tipTx = new VersionedTransaction(tipMsg);
       tipTx.sign([payer]);
       txs.unshift(tipTx);
     }
 
-    const encodedFirst = txs.length ? Buffer.from(txs[0].serialize()).toString('base64') : Buffer.from('empty').toString('base64');
+    const encodedFirst = txs.length
+      ? Buffer.from(txs[0].serialize()).toString('base64')
+      : Buffer.from('empty').toString('base64');
     const corr = createHash('sha256').update(Buffer.from(encodedFirst)).digest('hex');
-      incCounter('engine_submit_total');
-      const plan = { txs, corr };
+    incCounter('engine_submit_total');
+    const plan = { txs, corr };
     const opts: ExecOptions = {
       mode,
       region,
@@ -242,6 +269,7 @@ export async function POST(request: Request) {
       jitterMs,
       dryRun,
       cluster,
+      group: activeGroup,
     } as ExecOptions;
     if (!dryRun) {
       const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
@@ -249,8 +277,9 @@ export async function POST(request: Request) {
       const { isArmed } = await import('@/lib/server/arming');
       if (!isArmed()) return apiError(403, 'not_armed');
     }
-    const submit = mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
-      const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId });
+    const submit =
+      mode === 'JITO_BUNDLE' ? await submitViaJito(plan, opts) : await submitViaRpc(plan, opts);
+    const res = NextResponse.json({ ...submit, status: submit.statusHint, requestId, group: activeGroup });
     incCounter('engine_2xx_total');
     return res;
   } catch (e) {

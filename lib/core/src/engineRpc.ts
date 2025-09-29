@@ -58,6 +58,7 @@ export class RpcEngine implements Engine {
           const sim = await connection.simulateTransaction(tx, { sigVerify: false });
           logJsonLine(journal, {
             ev: 'simulate_rpc',
+            group: opts.group || undefined,
             corr: plan.corr,
             ms: Date.now() - t1,
             logs: sim?.value?.logs?.slice(0, 10) || undefined,
@@ -65,6 +66,7 @@ export class RpcEngine implements Engine {
         } catch (e: unknown) {
           logJsonLine(journal, {
             ev: 'simulate_rpc',
+            group: opts.group || undefined,
             corr: plan.corr,
             ms: Date.now() - t1,
             error: String((e as Error)?.message || e),
@@ -94,6 +96,7 @@ export class RpcEngine implements Engine {
       incCounter('engine_submit_rpc_total');
       logJsonLine(journal, {
         ev: 'submit_rpc',
+        group: opts.group || undefined,
         sig,
         corr: plan.corr,
         ms: Date.now() - t1,

@@ -19,7 +19,9 @@ for (const f of files) {
   const norm = f.replace(/\\/g, '/');
   if (s.includes("from 'legacy/") || s.includes('from "legacy/')) bad.push(norm);
   if (
-    /wallet-adapter|WalletMultiButton|useWallet|window\.solana|phantom|backpack|solflare|nightly|wallet-standard/.test(s) &&
+    /wallet-adapter|WalletMultiButton|useWallet|window\.solana|phantom|backpack|solflare|nightly|wallet-standard/.test(
+      s,
+    ) &&
     !(norm.startsWith('app/login/') || norm.startsWith('app/api/'))
   ) {
     bad.push(norm + ' (wallet-adapter outside /login)');

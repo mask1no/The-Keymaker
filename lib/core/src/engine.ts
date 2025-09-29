@@ -15,6 +15,9 @@ export interface ExecOptions {
   dryRun?: boolean; // simulate only (default false)
   cluster?: 'mainnet-beta' | 'devnet'; // RPC only; default mainnet-beta
 
+  // Active keystore group for traceability in journals
+  group?: string;
+
   // For polling convenience; provided by API layer
   bundleIds?: string[]; // Jito
   sigs?: string[]; // RPC
