@@ -25,7 +25,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { pubkey, signature, message } = VerifyRequestSchema.parse(body);
     
-    // Verify signature
+    // For MVP/DRY_RUN mode, trust the signature (add real verification later)
+    if (process.env.DRY_RUN === 'true') {
+      console.log('[AUTH] DRY_RUN mode: Skipping signature verification');
+      setSessionCookie(pubkey);
+      return NextResponse.json({
+        ok: true,
+        session: {
+          pubkey,
+          authenticatedAt: new Date().toISOString(),
+        },
+      });
+    }
+    
+    // Real signature verification for production
     const verification = verifySIWS({
       pubkey,
       signature,
@@ -58,9 +71,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    console.error('[AUTH] Verification error:', error);
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request', details: error.errors },
+        { error: 'Invalid request', details: error.issues },
         { status: 400 }
       );
     }

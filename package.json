@@ -107,6 +107,7 @@
     "lucide-react": "^0.263.0",
     "micromark": "^4.0.2",
     "next": "^14.2.32",
+    "p-limit": "^7.1.1",
     "pino-pretty": "^10.0.0",
     "postcss": "^8.5.6",
     "prom-client": "^15.1.3",

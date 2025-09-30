@@ -44,7 +44,7 @@ export async function checkRateLimit(identifier: string): Promise<{
   retryAfter?: number;
 }> {
   // In production, Redis is mandatory
-  if (process.env.NODE_ENV === 'production' && !redis) {
+  if (process.env.NODE_ENV === 'production' && !rateLimiter) {
     throw new Error('Redis is required for rate limiting in production');
   }
   // Use Redis rate limiter if available

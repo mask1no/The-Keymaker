@@ -276,19 +276,21 @@ export async function POST(request: Request) {
       // Check if live operations are explicitly disabled
       const liveDisabled = process.env.KEYMAKER_DISABLE_LIVE === 'YES';
       if (liveDisabled) {
-        return apiError(403, { 
+        return NextResponse.json({ 
           error: 'live_disabled', 
-          message: 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.' 
-        });
+          message: 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.',
+          requestId
+        }, { status: 403 });
       }
       // Check arming only if explicitly required
       if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
         const { isArmed } = await import('@/lib/server/arming');
         if (!isArmed()) {
-          return apiError(403, { 
+          return NextResponse.json({ 
             error: 'not_armed', 
-            message: 'System requires arming. Call POST /api/ops/arm to enable operations.' 
-          });
+            message: 'System requires arming. Call POST /api/ops/arm to enable operations.',
+            requestId
+          }, { status: 403 });
         }
       }
     }

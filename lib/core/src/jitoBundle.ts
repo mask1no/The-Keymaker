@@ -8,7 +8,7 @@ import type { JitoBundleOptions, EngineResult, EngineOutcome } from './types/eng
 import { chunkArray } from './bundleChunker';
 import { selectTipLamports, type TipFloorData } from './tipCalculator';
 import { createDailyJournal, logJsonLine } from './journal';
-import { Connection, VersionedTransaction } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 
 // Jito regions
 const JITO_REGIONS = {
@@ -303,7 +303,9 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
         chunk.forEach(() => {
           outcomes.push({
             wallet: 'bundled', // In bundle, individual wallets not tracked here
-            status: result.status,
+            status: result.status === 'LANDED' ? 'LANDED' : 
+                    result.status === 'DROPPED' ? 'DROPPED' :
+                    result.status === 'EXPIRED' ? 'TIMEOUT' : 'ERROR',
             slot: result.slot,
           });
         });

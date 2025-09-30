@@ -16,7 +16,7 @@ export interface ApiError {
  */
 export function createApiError(
   message: string,
-  status: number = 500,
+  status = 500,
   code?: string,
   details?: Record<string, any>
 ): NextResponse {

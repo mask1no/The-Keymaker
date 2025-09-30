@@ -6,16 +6,12 @@
 import {
   Connection,
   Keypair,
-  PublicKey,
   Transaction,
   VersionedTransaction,
-  TransactionMessage,
-  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import { createDailyJournal, logJsonLine } from './journal';
 
 const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'https://quote-api.jup.ag/v6';
-const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
 interface JupiterQuote {
   inputMint: string;
@@ -261,9 +257,7 @@ export async function simulateTransaction(params: {
     await transaction.sign(wallet);
     
     // Simulate
-    const simulation = await connection.simulateTransaction(transaction, {
-      sigVerify: true,
-    });
+    const simulation = await connection.simulateTransaction(transaction);
     
     if (simulation.value.err) {
       return {

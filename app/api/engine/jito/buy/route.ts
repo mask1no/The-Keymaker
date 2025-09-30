@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Keypair } from '@solana/web3.js';
 import { executeJitoBundle } from '@/lib/core/src/jitoBundle';
 import { getWalletGroup } from '@/lib/server/walletGroups';
 import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
-import { generateIntentHash } from '@/lib/core/src/idempotency';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -84,7 +82,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request', details: error.errors },
+        { error: 'Invalid request', details: error.issues },
         { status: 400 }
       );
     }

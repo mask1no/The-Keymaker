@@ -1,5 +1,4 @@
 // Simple production logger without winston dependency
-import { format } from 'date-fns';
 
 interface LogEntry {
   timestamp: string;

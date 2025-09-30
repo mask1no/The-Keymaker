@@ -134,7 +134,7 @@ export async function jitoWithRecovery<T>(
  */
 export async function healthCheckWithTimeout<T>(
   check: () => Promise<T>,
-  timeoutMs: number = 5000,
+  timeoutMs = 5000,
   fallbackValue?: T
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {

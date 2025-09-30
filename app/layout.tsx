@@ -29,17 +29,23 @@ function truncate(pk: string) {
   return pk.length > 10 ? `${pk.slice(0, 4)}…${pk.slice(-4)}` : pk;
 }
 
-async function SessionStrip() {
-  const s = getSession();
-  if (!s) return null;
-  return (
-    <form action={SignOut} className="flex items-center gap-2">
-      <span className="text-xs text-zinc-400">{truncate(s.userPubkey)}</span>
-      <button type="submit" className="text-xs underline hover:text-zinc-200">
-        Sign out
-      </button>
-    </form>
-  );
+function SessionStrip() {
+  try {
+    const s = getSession();
+    if (!s) return null;
+    return (
+      <form action={SignOut} className="flex items-center gap-2">
+        <span className="text-xs text-zinc-400">{truncate(s.userPubkey)}</span>
+        <button type="submit" className="text-xs underline hover:text-zinc-200">
+          Sign out
+        </button>
+      </form>
+    );
+  } catch (error) {
+    // Gracefully handle session errors
+    console.error('[Layout] Session error:', error);
+    return null;
+  }
 }
 
 function Header() {

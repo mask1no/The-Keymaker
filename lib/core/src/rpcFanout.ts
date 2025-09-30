@@ -6,11 +6,7 @@
 
 import {
   Connection,
-  Keypair,
-  Transaction,
-  sendAndConfirmTransaction,
   ComputeBudgetProgram,
-  PublicKey,
 } from '@solana/web3.js';
 import pLimit from 'p-limit';
 import { randomUUID } from 'crypto';

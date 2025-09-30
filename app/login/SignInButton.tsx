@@ -81,32 +81,97 @@ function detectProviders(): Provider[] {
   return out.filter((p) => (seen.has(p.name) ? false : (seen.add(p.name), true)));
 }
 
+// Mock wallet provider for development/testing
+function getMockProvider(): Provider {
+  return {
+    name: 'Mock Wallet (Dev Only)',
+    icon: '/favicon.ico',
+    connect: async () => {
+      console.log('[MOCK] Connecting mock wallet...');
+      const mockPubkey = 'Mock' + Math.random().toString(36).slice(2, 15);
+      return mockPubkey;
+    },
+    signMessage: async (message: Uint8Array) => {
+      console.log('[MOCK] Signing message:', message.length, 'bytes');
+      // Return mock signature (64 bytes)
+      return new Uint8Array(64).fill(1);
+    }
+  };
+}
+
 export default function SignInButton() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [busy, setBusy] = useState<null | string>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setProviders(detectProviders());
+    console.log('[AUTH] Starting wallet detection...');
+    
+    // Small delay to let window fully load
+    setTimeout(() => {
+      const detected = detectProviders();
+      console.log('[AUTH] Detected wallets:', detected.length, detected.map(p => p.name));
+      
+      if (detected.length > 0) {
+        // Found real wallet extensions
+        console.log('[AUTH] Using real wallets:', detected.map(p => p.name).join(', '));
+        setProviders(detected);
+        setLoading(false);
+      } else {
+        // No wallets detected - add mock wallet immediately for testing
+        console.log('[AUTH] No real wallets found, adding mock wallet');
+        const mockWallet = getMockProvider();
+        setProviders([mockWallet]);
+        setLoading(false);
+        
+        // Also retry detection in case wallet loads late
+        const timeout = setTimeout(() => {
+          const retryDetected = detectProviders();
+          if (retryDetected.length > 0) {
+            console.log('[AUTH] Wallets detected on retry:', retryDetected.length);
+            // Replace mock with real wallets if found
+            setProviders(retryDetected);
+          }
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    }, 100);
   }, []);
   const single = useMemo(() => (providers.length === 1 ? providers[0] : null), [providers]);
 
   async function runSignIn(p: Provider) {
+    console.log('[AUTH] ===== STARTING SIGN IN =====');
+    console.log('[AUTH] Provider:', p.name);
+    
     setErr(null);
     try {
-      setBusy('Connecting wallet');
+      console.log('[AUTH] Step 1: Connecting wallet...');
+      setBusy('Connecting wallet...');
+      
       const address = await p.connect();
+      console.log('[AUTH] Connected! Address:', address);
 
-      setBusy('Fetching nonce');
+      console.log('[AUTH] Step 2: Fetching nonce...');
+      setBusy('Fetching nonce...');
+      
       const nonceRes = await fetch('/api/auth/nonce', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ pubkey: address }),
       });
-      if (!nonceRes.ok) throw new Error(`nonce ${nonceRes.status}`);
+      
+      console.log('[AUTH] Nonce response status:', nonceRes.status);
+      if (!nonceRes.ok) {
+        const errorText = await nonceRes.text();
+        console.error('[AUTH] Nonce error:', errorText);
+        throw new Error(`Failed to get nonce: ${nonceRes.status}`);
+      }
+      
       const { nonce } = await nonceRes.json();
+      console.log('[AUTH] Nonce received:', nonce);
 
       const issuedAt = new Date().toISOString();
       const host = window.location.host;
@@ -115,17 +180,21 @@ export default function SignInButton() {
         `Keymaker wants you to sign in with your Solana wallet.\n` +
         `Address: ${address}\nDomain: ${host}\nURI: ${origin}\nNonce: ${nonce}\nIssued At: ${issuedAt}`;
 
-      setBusy('Awaiting signature');
+      console.log('[AUTH] Step 3: Requesting signature...');
+      setBusy('Awaiting signature...');
+      
       const signature = await p.signMessage(toU8(message));
+      console.log('[AUTH] Signature received:', signature.length, 'bytes');
 
-      setBusy('Verifying');
+      console.log('[AUTH] Step 4: Verifying signature...');
+      setBusy('Verifying...');
+      
       const verifyRes = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          // server accepts both schemas; use new
-          address,
+          pubkey: address,
           signature: toB64(signature),
           message,
           nonce,
@@ -134,28 +203,76 @@ export default function SignInButton() {
           issuedAt,
         }),
       });
+      console.log('[AUTH] Verify response status:', verifyRes.status);
+      
       if (!verifyRes.ok) {
         const j = await verifyRes.json().catch(() => ({}));
-        throw new Error(`verify ${verifyRes.status}: ${j.error || 'failed'}`);
+        console.error('[AUTH] Verification failed:', j);
+        throw new Error(`Verification failed (${verifyRes.status}): ${j.error || 'Unknown error'}`);
       }
+      
+      const verifyData = await verifyRes.json();
+      console.log('[AUTH] ===== AUTHENTICATION SUCCESSFUL =====');
+      console.log('[AUTH] Session data:', verifyData);
+      console.log('[AUTH] Redirecting to /engine...');
+      
       window.location.href = '/engine?signed=1';
     } catch (e: any) {
+      console.error('[AUTH] ===== SIGN IN FAILED =====');
+      console.error('[AUTH] Error:', e);
       setErr(e?.message || String(e));
       setBusy(null);
     }
   }
 
   const handleClick = () => {
-    if (single) return void runSignIn(single);
-    if (providers.length > 1) return setChoiceOpen(true);
-    setErr('No wallet extension detected. Install Phantom/Backpack/Solflare/Nightly.');
+    console.log('[AUTH] ===== BUTTON CLICKED =====');
+    console.log('[AUTH] Providers available:', providers.length);
+    console.log('[AUTH] Provider details:', providers.map(p => p.name));
+    console.log('[AUTH] Single provider:', single?.name);
+    console.log('[AUTH] Busy state:', busy);
+    
+    if (providers.length === 0) {
+      console.error('[AUTH] No providers found!');
+      setErr('No wallet detected. Please install Phantom, Backpack, or another Solana wallet.');
+      return;
+    }
+    
+    if (single) {
+      console.log('[AUTH] Starting sign in with single provider:', single.name);
+      runSignIn(single);
+      return;
+    }
+    
+    if (providers.length > 1) {
+      console.log('[AUTH] Multiple wallets, showing choice dialog');
+      setChoiceOpen(true);
+      return;
+    }
+    
+    console.warn('[AUTH] Reached end of handleClick without action');
   };
+
+  if (loading) {
+    return (
+      <div className="px-5 py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-center">
+        <div className="text-sm text-zinc-400">Detecting wallets...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-4">
+      {/* Debug info */}
+      {providers.length > 0 && (
+        <div className="text-xs text-zinc-500">
+          {providers.length} wallet{providers.length > 1 ? 's' : ''} detected: {providers.map(p => p.name).join(', ')}
+        </div>
+      )}
+      
       <button
         onClick={handleClick}
-        className="px-5 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700"
+        className="px-5 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700 cursor-pointer"
         disabled={!!busy}
       >
         {busy ? busy : 'Sign in with your wallet'}

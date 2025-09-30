@@ -206,12 +206,13 @@ export async function aggregateHealthChecks(
     // Run all checks in parallel
     const entries = Object.entries(checks);
     const settled = await Promise.allSettled(
-      entries.map(([name, checkFn]) => checkFn())
+      entries.map(([_name, checkFn]) => checkFn())
     );
     
     results = {};
-    entries.forEach(([name], index) => {
+    entries.forEach(([_name], index) => {
       const result = settled[index];
+      const name = entries[index][0];
       results[name] = result.status === 'fulfilled' 
         ? result.value 
         : { status: 'down', error: 'Check failed to execute' };

@@ -64,7 +64,7 @@ export async function cacheJournalEntry(entry: Omit<JournalEntry, 'id'>): Promis
 /**
  * Get recent entries
  */
-export async function getRecentEntries(limit: number = 100): Promise<JournalEntry[]> {
+export async function getRecentEntries(limit = 100): Promise<JournalEntry[]> {
   const db = await openDB();
   
   return new Promise((resolve, reject) => {
@@ -110,7 +110,7 @@ export async function getEntriesByRunId(runId: string): Promise<JournalEntry[]> 
 /**
  * Clear old entries (keep last N days)
  */
-export async function cleanupOldEntries(daysToKeep: number = 7): Promise<number> {
+export async function cleanupOldEntries(daysToKeep = 7): Promise<number> {
   const db = await openDB();
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);

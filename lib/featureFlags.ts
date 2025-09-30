@@ -18,9 +18,13 @@ export const FEATURE_FLAGS = {
   // Engine modes
   RPC_FANOUT_ENABLED: true,
   JITO_BUNDLE_ENABLED: true,
+  ENABLE_SLOT_TARGETING: process.env.ENABLE_SLOT_TARGETING === 'true', // Default: false
 } as const;
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;
+
+// Export individual flags for convenience
+export const ENABLE_SLOT_TARGETING = FEATURE_FLAGS.ENABLE_SLOT_TARGETING;
 
 /**
  * Check if a feature is enabled

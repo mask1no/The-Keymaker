@@ -17,9 +17,9 @@ export interface AuditEvent {
 
 class AuditLogger {
   private logStream: WriteStream | null = null;
-  private currentDate: string = '';
+  private currentDate = '';
 
-  constructor(private logDir: string = 'logs') {}
+  constructor(private logDir = 'logs') {}
 
   private ensureLogStream(): WriteStream {
     const today = format(new Date(), 'yyyy-MM-dd');

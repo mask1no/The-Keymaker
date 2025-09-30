@@ -1,198 +1,132 @@
-import { VersionedTransaction, Transaction } from '@solana/web3.js';
-import axios from 'axios';
-import { NEXT_PUBLIC_JUPITER_API_URL } from '../constants';
+/**
+ * Jupiter Service
+ * Handles Jupiter aggregator integration for token swaps
+ */
 
-const WSOL_MINT = 'So11111111111111111111111111111111111111112';
+const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'https://quote-api.jup.ag/v6';
 
-interface QuoteResponse {
+interface JupiterQuoteParams {
   inputMint: string;
   outputMint: string;
-  inAmount: number;
-  outAmount: number;
-  priceImpactPct: string;
-  slippageBps: number;
-  otherAmountThreshold: string;
-  swapMode: string;
-  fees: {
-    signatureFee: number;
-    openOrdersDeposits: number[];
-    ataDeposits: number[];
-    totalFeeAndDeposits: number;
-    minimumSOLForTransaction: number;
-  };
+  amount: number;
+  slippageBps?: number;
 }
 
-interface SwapResponse {
-  swapTransaction: string;
-  lastValidBlockHeight: number;
-  prioritizationFeeLamports?: number;
+interface JupiterQuote {
+  inputMint: string;
+  outputMint: string;
+  inAmount: string;
+  outAmount: string;
+  priceImpactPct: number;
+  route: any[];
 }
 
-function base64ToBytes(base64: string): Uint8Array {
-  if (typeof Buffer !== 'undefined' && typeof (Buffer as any).from === 'function') {
-    return Uint8Array.from(
-      (Buffer as unknown as { from: (s: string, enc: string) => Buffer }).from(base64, 'base64'),
-    );
-  }
-  const binary = typeof atob !== 'undefined' ? atob(base64) : '';
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-export async function getQuote(
-  inputMint: string,
-  outputMint: string,
-  amount: number, // in lamports/smallest units
-  slippageBps = 50, // 0.5% default
-  swapMode = 'ExactIn',
-): Promise<QuoteResponse> {
-  try {
-    const params = new URLSearchParams({
-      inputMint,
-      outputMint,
-      amount: amount.toString(),
-      slippageBps: slippageBps.toString(),
-      swapMode,
-      onlyDirectRoutes: 'false',
-      asLegacyTransaction: 'false',
-    });
-    const response = await axios.get(`${NEXT_PUBLIC_JUPITER_API_URL}/quote?${params}`, {
-      headers: { Accept: 'application/json' },
-      timeout: 10000,
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error('Jupiter quote error:', error.response?.data || error.message);
-    throw new Error(`Failed to get quote: ${error.response?.data?.error || error.message}`);
-  }
-}
-
-export async function getSwapTransaction(
-  quote: QuoteResponse,
-  userPublicKey: string,
-  wrapAndUnwrapSol = true,
-  feeAccount?: string,
-  prioritizationFeeLamports?: number,
-  feeBps?: number,
-  asLegacyTransaction = false,
-): Promise<SwapResponse> {
-  try {
-    const body: any = {
-      quoteResponse: quote,
-      userPublicKey,
-      wrapAndUnwrapSol,
-      asLegacyTransaction,
-      computeUnitPriceMicroLamports: 'auto',
-      dynamicComputeUnitLimit: true,
+/**
+ * Get quote from Jupiter aggregator
+ */
+export async function getJupiterQuote(params: JupiterQuoteParams): Promise<JupiterQuote> {
+  // Use mock in dev/dry-run mode
+  if (process.env.DRY_RUN === 'true') {
+    console.log('[Jupiter] DRY_RUN mode: Returning mock quote');
+    
+    return {
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: params.amount.toString(),
+      outAmount: Math.floor(params.amount * 0.95).toString(), // 5% slippage simulation
+      priceImpactPct: 0.05,
+      route: [],
     };
-    if (feeAccount) {
-      body.feeAccount = feeAccount;
-    }
-    if (prioritizationFeeLamports) {
-      body.prioritizationFeeLamports = prioritizationFeeLamports;
-    }
-    if (feeBps && feeBps > 0) {
-      body.feeBps = feeBps;
-    }
-    const response = await axios.post(`${NEXT_PUBLIC_JUPITER_API_URL}/swap`, body, {
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      timeout: 10000,
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error('Jupiter swap error:', error.response?.data || error.message);
-    throw new Error(
-      `Failed to get swap transaction: ${error.response?.data?.error || error.message}`,
-    );
   }
-}
-
-export async function buildSwapTransaction(
-  inputMint: string,
-  outputMint: string,
-  amountLamports: number,
-  userPublicKey: string,
-  slippageBps = 50,
-  priorityFee?: number,
-  feeBps?: number,
-  asLegacyTransaction = false,
-): Promise<VersionedTransaction> {
-  // Get quote
-  const quote = await getQuote(inputMint, outputMint, amountLamports, slippageBps);
-  // Get swap transaction
-  const swap = await getSwapTransaction(
-    quote,
-    userPublicKey,
-    true,
-    undefined,
-    priorityFee,
-    feeBps,
-    asLegacyTransaction,
-  );
-  // Deserialize the transaction
-  const swapTransactionBuf = base64ToBytes(swap.swapTransaction);
-  const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
-  return transaction;
-}
-
-export async function buildSwapLegacyTransaction(
-  inputMint: string,
-  outputMint: string,
-  amountLamports: number,
-  userPublicKey: string,
-  slippageBps = 50,
-  priorityFee?: number,
-  feeBps?: number,
-): Promise<Transaction> {
-  // Get quote
-  const quote = await getQuote(inputMint, outputMint, amountLamports, slippageBps);
-  // Get legacy swap transaction
-  const swap = await getSwapTransaction(
-    quote,
-    userPublicKey,
-    true,
-    undefined,
-    priorityFee,
-    feeBps,
-    true,
-  );
-  const swapTransactionBuf = base64ToBytes(swap.swapTransaction);
-  const transaction = Transaction.from(swapTransactionBuf);
-  return transaction;
-}
-
-export async function getTokenPrice(tokenMint: string, vsToken = 'USDC'): Promise<number> {
+  
+  // Real Jupiter API call
   try {
-    const response = await axios.get(
-      `${NEXT_PUBLIC_JUPITER_API_URL}/price?ids=${tokenMint}&vsToken=${vsToken}`,
-      {
-        headers: { Accept: 'application/json' },
-        timeout: 5000,
+    const url = new URL(`${JUPITER_API_BASE}/quote`);
+    url.searchParams.append('inputMint', params.inputMint);
+    url.searchParams.append('outputMint', params.outputMint);
+    url.searchParams.append('amount', params.amount.toString());
+    url.searchParams.append('slippageBps', (params.slippageBps || 50).toString());
+    url.searchParams.append('swapMode', 'ExactIn');
+    
+    console.log('[Jupiter] Fetching quote:', url.toString());
+    
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Accept': 'application/json',
       },
-    );
-    const data = response.data.data;
-    if (data && data[tokenMint]) {
-      return data[tokenMint].price;
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Jupiter quote failed: ${response.status} ${response.statusText}`);
     }
-    throw new Error('Price not found');
-  } catch (error: any) {
-    console.error('Failed to get token price:', error);
-    throw error;
+    
+    const data = await response.json();
+    
+    console.log('[Jupiter] Quote received:', {
+      inAmount: data.inAmount,
+      outAmount: data.outAmount,
+      priceImpact: data.priceImpactPct,
+    });
+    
+    return data;
+  } catch (error) {
+    console.error('[Jupiter] Quote fetch error:', error);
+    throw new Error(`Failed to get Jupiter quote: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-export async function calculatePriceImpact(quote: QuoteResponse): Promise<number> {
-  return parseFloat(quote.priceImpactPct);
+/**
+ * Get swap instructions from Jupiter
+ */
+export async function getJupiterSwapInstructions(params: {
+  quoteResponse: JupiterQuote;
+  userPublicKey: string;
+  wrapAndUnwrapSol?: boolean;
+}): Promise<any> {
+  // Use mock in dev/dry-run mode
+  if (process.env.DRY_RUN === 'true') {
+    console.log('[Jupiter] DRY_RUN mode: Returning mock instructions');
+    
+    return {
+      computeBudgetInstructions: [],
+      setupInstructions: [],
+      swapInstruction: { mock: true, type: 'swap' },
+      cleanupInstruction: null,
+      addressLookupTableAddresses: [],
+    };
+  }
+  
+  // Real Jupiter API call
+  try {
+    const url = `${JUPITER_API_BASE}/swap-instructions`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        quoteResponse: params.quoteResponse,
+        userPublicKey: params.userPublicKey,
+        wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
+        dynamicComputeUnitLimit: true,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Jupiter swap instructions failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    console.log('[Jupiter] Swap instructions received');
+    
+    return data;
+  } catch (error) {
+    console.error('[Jupiter] Swap instructions error:', error);
+    throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
-
-export function convertToLamports(amount: number, decimals = 9): number {
-  return Math.floor(amount * Math.pow(10, decimals));
-}
-
-export function convertFromLamports(lamports: number, decimals = 9): number {
-  return lamports / Math.pow(10, decimals);
-}
-
-export { WSOL_MINT };

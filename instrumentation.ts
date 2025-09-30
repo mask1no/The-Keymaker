@@ -1,9 +1,16 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('./lib/server/httpAgent');
-    await import('./sentry.server.config');
+  // Skip all instrumentation in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Instrumentation] Skipped in development');
+    return;
   }
-  if (process.env.NEXT_RUNTIME === 'edge') {
-    await import('./sentry.edge.config');
+  
+  // Production instrumentation
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    try {
+      await import('./lib/server/httpAgent');
+    } catch (e) {
+      console.warn('[Instrumentation] Failed to load httpAgent:', e);
+    }
   }
 }

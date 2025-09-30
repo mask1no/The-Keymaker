@@ -6,10 +6,7 @@
 import {
   Connection,
   PublicKey,
-  Transaction,
   Keypair,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
 } from '@solana/web3.js';
 import {
   TOKEN_PROGRAM_ID,

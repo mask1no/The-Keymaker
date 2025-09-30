@@ -10,7 +10,7 @@ import { recordError } from './monitoring';
  */
 export async function submitWithRegionFallback(
   submission: (region: string) => Promise<any>,
-  primaryRegion: string = 'ffm'
+  primaryRegion = 'ffm'
 ): Promise<any> {
   const regions = ['ffm', 'ams', 'ny', 'tokyo'];
   const fallbackRegions = regions.filter(r => r !== primaryRegion);
@@ -184,26 +184,31 @@ export async function dbWithCacheFallback<T>(
 // Helper function to check individual services
 async function checkService(service: string): Promise<any> {
   switch (service) {
-    case 'rpc':
+    case 'rpc': {
       // Import and check RPC
       const { checkRPC } = await import('@/lib/health/checks');
       return checkRPC();
+    }
       
-    case 'jito':
+    case 'jito': {
       const { checkJito } = await import('@/lib/health/checks');
       return checkJito();
+    }
       
-    case 'database':
+    case 'database': {
       const { checkDatabase } = await import('@/lib/health/checks');
       return checkDatabase();
+    }
       
-    case 'redis':
+    case 'redis': {
       const { checkRedis } = await import('@/lib/health/checks');
       return checkRedis();
+    }
       
-    case 'external':
+    case 'external': {
       const { checkExternalDependencies } = await import('@/lib/health/checks');
       return checkExternalDependencies();
+    }
       
     default:
       throw new Error(`Unknown service: ${service}`);
