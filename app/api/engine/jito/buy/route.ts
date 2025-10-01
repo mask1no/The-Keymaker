@@ -49,7 +49,10 @@ export async function POST(request: Request) {
     }
     
     // Load keypairs
-    const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys);
+    if (!group.masterWallet) {
+      return NextResponse.json({ error: 'Group missing masterWallet' }, { status: 400 });
+    }
+    const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) {
       return NextResponse.json(
         { error: 'Failed to load wallet keypairs' },

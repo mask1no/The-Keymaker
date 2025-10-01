@@ -7,6 +7,7 @@ import {
   createWalletGroup,
   updateWalletGroup,
   deleteWalletGroup,
+  getWalletGroup,
 } from '@/lib/server/walletGroups';
 // Optional: attempt to list existing pubkeys from keystore if present
 let listGroup: ((name: string) => string[]) | null = null;
@@ -17,14 +18,14 @@ try {
   listGroup = null;
 }
 import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
+import { getSession } from '@/lib/server/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const CreateGroupSchema = z.object({
   name: z.string().min(1).max(50),
-  masterWallet: z.string().optional(),
-  numberOfWallets: z.number().min(1).max(WALLET_GROUP_CONSTRAINTS.MAX_WALLETS_PER_GROUP),
+  numberOfWallets: z.number().min(0).max(WALLET_GROUP_CONSTRAINTS.MAX_WALLETS_PER_GROUP).default(0),
 });
 
 const UpdateGroupSchema = z.object({
@@ -48,7 +49,9 @@ const DeleteGroupSchema = z.object({
  */
 export async function GET() {
   try {
-    const groups = loadWalletGroups();
+    const session = getSession();
+    const user = session?.userPubkey || null;
+    const groups = loadWalletGroups().filter((g) => !user || g.masterWallet === user);
     return NextResponse.json({ groups });
   } catch (error) {
     try { Sentry.captureException(error instanceof Error ? error : new Error('groups_get_failed'), { extra: { route: '/api/groups' } }); } catch {}
@@ -64,6 +67,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validated = CreateGroupSchema.parse(body);
+    const session = getSession();
+    const user = session?.userPubkey;
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     
     // Get wallets from keystore group (if exists) or generate new ones
     let executionWallets: string[] = [];
@@ -78,7 +84,7 @@ export async function POST(request: Request) {
       executionWallets = [];
     }
     
-    const group = createWalletGroup(validated, executionWallets);
+    const group = createWalletGroup({ ...validated, masterWallet: user }, executionWallets);
     
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
@@ -98,7 +104,12 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json();
     const validated = UpdateGroupSchema.parse(body);
-    
+    const session = getSession();
+    const user = session?.userPubkey;
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    const existing = getWalletGroup(validated.id);
+    if (!existing) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
+    if (existing.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     const group = updateWalletGroup(validated);
     
     return NextResponse.json({ group });
@@ -119,7 +130,12 @@ export async function DELETE(request: Request) {
   try {
     const body = await request.json();
     const { id } = DeleteGroupSchema.parse(body);
-    
+    const session = getSession();
+    const user = session?.userPubkey;
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    const existing = getWalletGroup(id);
+    if (!existing) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
+    if (existing.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     const deleted = deleteWalletGroup(id);
     
     if (!deleted) {

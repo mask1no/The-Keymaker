@@ -1,4 +1,36 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { buildMetadata, uploadMetadataJson } from '@/lib/adapters/storage';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const BuildSchema = z.object({
+  name: z.string().min(1).max(64),
+  symbol: z.string().min(1).max(16),
+  description: z.string().max(280).optional(),
+  image: z.string().url().optional().default(''),
+  website: z.string().url().optional(),
+  twitter: z.string().url().optional(),
+  telegram: z.string().url().optional(),
+});
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const params = BuildSchema.parse(body);
+    const meta = buildMetadata(params);
+    const uri = await uploadMetadataJson(meta);
+    return NextResponse.json({ ok: true, uri, meta });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ ok: false, error: 'invalid_request', details: error.issues }, { status: 400 });
+    }
+    return NextResponse.json({ ok: false, error: (error as Error).message }, { status: 500 });
+  }
+}
+
+import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { buildSplMintDemo } from '@/lib/adapters/splMintDemo';

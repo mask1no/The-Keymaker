@@ -17,17 +17,15 @@ import bs58 from 'bs58';
 export async function loadKeypairsForGroup(
   groupName: string,
   walletPubkeys: string[],
-  masterPubkey?: string,
+  masterPubkey: string,
 ): Promise<Keypair[]> {
   const keypairs: Keypair[] = [];
-  const groupDir = masterPubkey
-    ? join(process.cwd(), 'keypairs', masterPubkey, groupName)
-    : join(process.cwd(), 'keypairs', groupName);
+  const groupDir = join(process.cwd(), 'keypairs', masterPubkey, groupName);
   
   for (const pubkey of walletPubkeys) {
     try {
       // Try loading from group directory by pubkey
-      const path = masterPubkey ? keypairPath(masterPubkey, groupName, pubkey) : join(groupDir, `${pubkey}.json`);
+      const path = keypairPath(masterPubkey, groupName, pubkey);
       const keypairData = JSON.parse(readFileSync(path, 'utf8'));
       
       let secretKey: Uint8Array;
@@ -69,7 +67,6 @@ export async function loadKeypairsForGroup(
 /**
  * Load single keypair by public key
  */
-export async function loadKeypair(groupName: string, pubkey: string): Promise<Keypair | null> {
-  const keypairs = await loadKeypairsForGroup(groupName, [pubkey]);
-  return keypairs[0] || null;
+export async function loadKeypair(): Promise<Keypair | null> {
+  throw new Error('Use loadKeypairsForGroup(master namespacing required)');
 }

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-commonjs */
 /** @type {import('next').NextConfig} */
 const isProdEnv = process.env.NODE_ENV === 'production';
 const CSP_PROD =
@@ -16,7 +17,7 @@ const SECURITY_HEADERS = [
   { key: 'Content-Security-Policy', value: isProdEnv ? CSP_PROD : CSP_DEV },
 ];
 
-const isAnalyze = process.env.ANALYZE === 'true';
+// Analyzer toggle is read directly from env below
 
 const nextConfig = {
   poweredByHeader: false,
@@ -59,6 +60,12 @@ const nextConfig = {
       'react-hotkeys-hook',
       'react-markdown'
     ],
+  },
+  async redirects() {
+    return [
+      { source: '/creator', destination: '/coin', permanent: false },
+      { source: '/search', destination: '/coin-library', permanent: false },
+    ];
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -142,9 +149,4 @@ const nextConfig = {
   },
 };
 
-// Enable bundle analyzer when ANALYZE=true
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;

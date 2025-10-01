@@ -16,7 +16,7 @@ async function fetcher(url: string): Promise<HealthResponse> {
 }
 export function useHealth() {
   const { data, error, isLoading, mutate } = useSWR<HealthResponse>('/api/health', fetcher, {
-    refreshInterval: 10000,
+    refreshInterval: 3000,
     revalidateOnFocus: false,
   });
   return {

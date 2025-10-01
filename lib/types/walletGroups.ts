@@ -8,7 +8,7 @@ export interface WalletGroup {
   name: string;
   createdAt: string;
   updatedAt: string;
-  masterWallet?: string; // The controlling/signing wallet
+  masterWallet: string; // The controlling/signing wallet
   devWallet?: string; // Development/testing wallet
   sniperWallets: string[]; // Max 3 sniper wallets
   executionWallets: string[]; // Remaining execution wallets
@@ -17,7 +17,7 @@ export interface WalletGroup {
 
 export interface CreateGroupRequest {
   name: string;
-  masterWallet?: string;
+  masterWallet: string;
   numberOfWallets: number; // Will be distributed as execution wallets
 }
 

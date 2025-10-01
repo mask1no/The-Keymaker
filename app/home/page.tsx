@@ -1,4 +1,4 @@
-import StatusCluster from '@/components/layout/StatusCluster';
+import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
 
 export default function HomePage() {
   return (
@@ -7,7 +7,7 @@ export default function HomePage() {
         <h1 className="text-xl font-semibold">Home</h1>
         <p className="text-sm text-muted-foreground">Live status of Jito, RPC, WS, and Solana Mainnet.</p>
         <div className="mt-4">
-          <StatusCluster />
+          <StatusBentoPanel />
         </div>
       </div>
     </div>
