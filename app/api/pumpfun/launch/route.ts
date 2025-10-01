@@ -5,6 +5,7 @@ import { apiError } from '@/lib/server/apiError';
 import { getUiSettings } from '@/lib/server/settings';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { randomUUID } from 'crypto';
+import { buildMetadata, uploadMetadataJson } from '@/lib/adapters/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,8 +14,21 @@ const Body = z.object({
   name: z.string().min(1).max(32),
   symbol: z.string().min(1).max(10),
   uri: z.string().url().optional(),
+  image: z.string().url().optional(),
+  description: z.string().max(512).optional(),
+  website: z.string().url().optional(),
+  twitter: z.string().url().optional(),
+  telegram: z.string().url().optional(),
   initialSol: z.number().min(0).max(5).default(0),
   dryRun: z.boolean().optional(),
+  // Post-create options
+  devBuySol: z.number().min(0).max(5).default(0),
+  autoMultiBuy: z.boolean().default(false),
+  groupId: z.string().uuid().optional(),
+  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).default('JITO_BUNDLE'),
+  slippageBps: z.number().min(0).max(10000).default(150),
+  priorityFeeMicrolamports: z.number().min(0).optional(),
+  jitoTipLamports: z.number().min(0).optional(),
 });
 
 export async function POST(request: Request) {
@@ -31,15 +45,18 @@ export async function POST(request: Request) {
     const ui = getUiSettings();
     const dryRun = typeof parsed.dryRun === 'boolean' ? parsed.dryRun : (ui.dryRun ?? true);
 
-    // Simulate-only build: return proof payload (no secrets)
+    // Simulate-only build: build metadata object and return simulated tx payload
     if (dryRun) {
-      const proof = {
+      const metadata = buildMetadata({
         name: parsed.name,
         symbol: parsed.symbol,
-        uri: parsed.uri || null,
-        initialSol: parsed.initialSol,
-        corr: requestId,
-      };
+        description: parsed.description,
+        image: parsed.image || '',
+        website: parsed.website,
+        twitter: parsed.twitter,
+        telegram: parsed.telegram,
+      });
+      const proof = { metadata, simulated: true, corr: requestId };
       return NextResponse.json({ ok: true, simulated: true, proof, requestId });
     }
 
@@ -62,8 +79,80 @@ export async function POST(request: Request) {
       if (!isArmed()) return apiError(403, 'not_armed', requestId, 'POST /api/ops/arm to proceed.');
     }
 
-    // Placeholder: not wired to pump.fun in MVP
-    return apiError(501, 'not_implemented', requestId, 'Pump.fun live launch not implemented.');
+    // Minimal live path: call Pump.fun REST if API key provided
+    if (!process.env.PUMPFUN_API_KEY) {
+      return apiError(501, 'not_configured', requestId, 'Missing PUMPFUN_API_KEY.');
+    }
+    let uri = parsed.uri || '';
+    if (!uri) {
+      // Attempt metadata upload if configured
+      const md = buildMetadata({
+        name: parsed.name,
+        symbol: parsed.symbol,
+        description: parsed.description,
+        image: parsed.image || '',
+        website: parsed.website,
+        twitter: parsed.twitter,
+        telegram: parsed.telegram,
+      });
+      const uploaded = await uploadMetadataJson(md);
+      if (!uploaded) return apiError(500, 'metadata_upload_failed', requestId, 'Configure IPFS_JSON_ENDPOINT');
+      uri = uploaded;
+    }
+    const body = { name: parsed.name, symbol: parsed.symbol, uri } as Record<string, unknown>;
+    const res = await fetch('https://pumpportal.fun/api/create', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${process.env.PUMPFUN_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return apiError(502, 'pumpfun_failed', requestId, await res.text());
+    const json = await res.json();
+    const createdMint = (json?.mint as string | undefined) || undefined;
+
+    // Optional: Dev buy and/or auto multi-buy
+    if (createdMint && parsed.devBuySol > 0) {
+      try {
+        // For a dev buy, we can reuse the RPC fanout with a single wallet if needed later
+      } catch {}
+    }
+    if (createdMint && parsed.autoMultiBuy && parsed.groupId) {
+      try {
+        if (parsed.mode === 'JITO_BUNDLE') {
+          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/jito/buy`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              groupId: parsed.groupId,
+              mint: createdMint,
+              amountSol: parsed.devBuySol > 0 ? parsed.devBuySol : 0.01,
+              slippageBps: parsed.slippageBps,
+              tipLamports: parsed.jitoTipLamports,
+              chunkSize: 5,
+              dryRun: ui.dryRun ?? true,
+            }),
+          });
+        } else {
+          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/engine/rpc/buy`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              groupId: parsed.groupId,
+              mint: createdMint,
+              amountSol: parsed.devBuySol > 0 ? parsed.devBuySol : 0.01,
+              slippageBps: parsed.slippageBps,
+              priorityFeeMicrolamports: parsed.priorityFeeMicrolamports,
+              concurrency: 5,
+              dryRun: ui.dryRun ?? true,
+            }),
+          });
+        }
+      } catch {}
+    }
+
+    return NextResponse.json({ ok: true, tx: json?.tx || null, mint: createdMint || null, requestId });
   } catch (e: unknown) {
     try {
       Sentry.captureException(e instanceof Error ? e : new Error('pump_launch_failed'), {

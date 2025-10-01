@@ -35,6 +35,13 @@ export function loadWalletGroups(): WalletGroup[] {
 }
 
 /**
+ * Namespaced keypair path helper: keypairs/<master>/<group>/<pubkey>.json
+ */
+export function keypairPath(masterPubkey: string, groupName: string, pubkey: string): string {
+  return join(process.cwd(), 'keypairs', masterPubkey, groupName, `${pubkey}.json`);
+}
+
+/**
  * Save wallet groups
  */
 function saveWalletGroups(groups: WalletGroup[]): void {

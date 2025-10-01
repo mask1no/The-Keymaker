@@ -165,6 +165,13 @@ export default async function SettingsPage() {
             These defaults are used by the Engine UI and API when optional fields are not provided.
           </p>
         </section>
+        <section className="card">
+          <div className="label mb-2">Logs & Exports</div>
+          <div className="flex items-center gap-3 text-sm">
+            <a href="/api/logs/download" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Download logs (NDJSON)</a>
+            <a href="/api/pnl/export" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Export P&L (CSV)</a>
+          </div>
+        </section>
       </div>
     </div>
   );

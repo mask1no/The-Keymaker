@@ -4,6 +4,8 @@ import { executeJitoBundle } from '@/lib/core/src/jitoBundle';
 import { getWalletGroup } from '@/lib/server/walletGroups';
 import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
+import { getUiSettings } from '@/lib/server/settings';
+import { enforceTipCeiling } from '@/lib/server/productionGuards';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,6 +57,10 @@ export async function POST(request: Request) {
       );
     }
     
+    // Enforce settings ceilings
+    const ui = getUiSettings();
+    const tip = enforceTipCeiling(params.tipLamports ?? (ui.tipLamports ?? 0), 200_000);
+
     // Build all transactions
     const transactions = await Promise.all(
       keypairs.map(async (wallet) => {
@@ -72,7 +78,7 @@ export async function POST(request: Request) {
     // Execute bundle
     const result = await executeJitoBundle({
       transactions,
-      tipLamports: params.tipLamports,
+      tipLamports: tip,
       region: params.region,
       chunkSize: params.chunkSize,
       dryRun: params.dryRun,

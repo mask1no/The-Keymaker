@@ -1,24 +1,14 @@
 'use client';
 import useSWR from 'swr';
-type HealthStatus = 'healthy' | 'degraded' | 'down';
+import type { HealthStatus } from '@/lib/types/health';
+
 export interface HealthResponse {
   ok: boolean;
   version: string;
   timestamp: string;
-  checks: {
-    rpc: { status: HealthStatus; latency_ms: number; endpoint?: string; last_check?: string };
-    jito: {
-      status: HealthStatus;
-      latency_ms: number;
-      region?: string;
-      endpoint?: string;
-      last_check?: string;
-    };
-    database?: { status: HealthStatus };
-    puppeteer?: { status: HealthStatus };
-  };
-  duration_ms?: number;
+  status: HealthStatus;
 }
+
 async function fetcher(url: string): Promise<HealthResponse> {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch health');
@@ -30,10 +20,12 @@ export function useHealth() {
     revalidateOnFocus: false,
   });
   return {
-    health: data,
-    healthy: !!data?.ok,
-    rpcHealthy: data?.checks.rpc.status === 'healthy',
-    jitoHealthy: data?.checks.jito.status === 'healthy',
+    health: data?.status,
+    healthy: !!data?.ok && data?.status?.rpc?.light === 'green',
+    rpcLight: data?.status?.rpc?.light,
+    jitoLight: data?.status?.jito?.light,
+    wsLight: data?.status?.ws?.light,
+    smLight: data?.status?.sm?.light,
     loading: isLoading,
     error,
     refresh: mutate,

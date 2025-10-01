@@ -34,21 +34,13 @@ export default function MobileMenu() {
                 <X className="h-6 w-6" />
               </button>
               <nav className="flex flex-col gap-2">
-                <a href="/engine" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
-                  Engine
-                </a>
-                <a href="/bundle" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
-                  Bundler
-                </a>
-                <a href="/settings" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
-                  Settings
-                </a>
-                <a href="/wallets" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
-                  Wallets
-                </a>
-                <a href="/login" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
-                  Login
-                </a>
+                <a href="/home" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Home</a>
+                <a href="/coin" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Coin</a>
+                <a href="/coin-library" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Coin Library</a>
+                <a href="/wallets" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Wallets</a>
+                <a href="/pnl" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">P&L</a>
+                <a href="/settings" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Settings</a>
+                <a href="/login" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">Login</a>
               </nav>
             </div>
           </div>

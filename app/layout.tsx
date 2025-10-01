@@ -56,12 +56,13 @@ function Header() {
           Keymaker
         </a>
         <nav className="hidden md:flex items-center gap-4 text-sm">
-          <a href="/engine">Engine</a>
-          <a href="/bundle">Bundler</a>
-          <a href="/settings">Settings</a>
+          <a href="/home">Home</a>
+          <a href="/coin">Coin</a>
+          <a href="/coin-library">Coin Library</a>
           <a href="/wallets">Wallets</a>
+          <a href="/pnl">P&L</a>
+          <a href="/settings">Settings</a>
           <a href="/login">Login</a>
-          <a href="/dashboard">Dashboard</a>
           <SessionStrip />
         </nav>
         <MobileMenu />
@@ -77,11 +78,12 @@ function Header() {
 
 function SideNav() {
   const items = [
-    { name: 'Bundler', href: '/bundle' },
+    { name: 'Home', href: '/home' },
+    { name: 'Coin', href: '/coin' },
+    { name: 'Coin Library', href: '/coin-library' },
     { name: 'Wallets', href: '/wallets' },
+    { name: 'P&L', href: '/pnl' },
     { name: 'Settings', href: '/settings' },
-    { name: 'Guide', href: '/guide' },
-    { name: 'Engine', href: '/engine' },
   ];
   return (
     <aside className="hidden md:block w-56 md:w-60 lg:w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">

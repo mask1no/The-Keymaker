@@ -7,6 +7,7 @@ import 'server-only';
 import { Keypair } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { keypairPath } from './walletGroups';
 import bs58 from 'bs58';
 
 /**
@@ -15,16 +16,19 @@ import bs58 from 'bs58';
  */
 export async function loadKeypairsForGroup(
   groupName: string,
-  walletPubkeys: string[]
+  walletPubkeys: string[],
+  masterPubkey?: string,
 ): Promise<Keypair[]> {
   const keypairs: Keypair[] = [];
-  const groupDir = join(process.cwd(), 'keypairs', groupName);
+  const groupDir = masterPubkey
+    ? join(process.cwd(), 'keypairs', masterPubkey, groupName)
+    : join(process.cwd(), 'keypairs', groupName);
   
   for (const pubkey of walletPubkeys) {
     try {
       // Try loading from group directory by pubkey
-      const keypairPath = join(groupDir, `${pubkey}.json`);
-      const keypairData = JSON.parse(readFileSync(keypairPath, 'utf8'));
+      const path = masterPubkey ? keypairPath(masterPubkey, groupName, pubkey) : join(groupDir, `${pubkey}.json`);
+      const keypairData = JSON.parse(readFileSync(path, 'utf8'));
       
       let secretKey: Uint8Array;
       

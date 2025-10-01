@@ -2,7 +2,7 @@ import 'server-only';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { Keypair } from '@solana/web3.js';
-import { getWalletGroup, addWalletToGroup } from './walletGroups';
+import { getWalletGroup, addWalletToGroup, keypairPath } from './walletGroups';
 import { createDailyJournal, logJsonLine } from '@/lib/core/src/journal';
 
 export type GeneratedWalletsResult = {
@@ -18,7 +18,7 @@ export function generateWalletsForGroup(groupId: string, count: number): Generat
   const group = getWalletGroup(groupId);
   if (!group) throw new Error('Group not found');
 
-  const dir = join(process.cwd(), 'keypairs', group.name);
+  const dir = join(process.cwd(), 'keypairs', group.masterWallet || 'unassigned', group.name);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
   const currentTotal =
@@ -31,7 +31,7 @@ export function generateWalletsForGroup(groupId: string, count: number): Generat
   for (let i = 0; i < alloc; i++) {
     const kp = Keypair.generate();
     const pub = kp.publicKey.toBase58();
-    const file = join(dir, `${pub}.json`);
+    const file = keypairPath(group.masterWallet || 'unassigned', group.name, pub);
     // Persist as Uint8Array array (standard Solana format)
     writeFileSync(file, JSON.stringify(Array.from(kp.secretKey), null, 2), 'utf8');
     // Register to group execution wallets

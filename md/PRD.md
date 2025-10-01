@@ -1,226 +1,90 @@
-# The Keymaker – Product Requirements Document (PRD)
+<!-- PRD.md vNext -->
 
-## Executive Summary
+### Executive Summary
 
-The Keymaker is a Solana bundler application for executing transactions through Jito Block Engine. This document outlines the current implementation, architecture decisions, and development roadmap for a working prototype with core bundling functionality.
+The Keymaker is a **local, non-custodial Solana execution cockpit** with two send paths:
+- **JITO_BUNDLE** for atomic bursts (≤5 tx per bundle, chunked for >5).
+- **RPC_FANOUT** for parallel sends with priority fees (non-atomic).
 
-**Current Status**: SSR cockpit with two modes: JITO_BUNDLE and RPC_FANOUT. Real Jupiter swaps supported. Multi-wallet sign-in is message-sign only. Core routes ship 94.8KB JS (optimized from 166KB, target <50KB). APIs are token/rate limited.
+The app is a **private tool** for creating meme coins (Pump.fun first), performing dev/multi-wallet buys, and exiting positions, with **folders of up to 20 wallets** per group. Workspaces are **namespaced by the login wallet** (Phantom/Backpack public key), so Wallets/Groups/History for Wallet X are invisible to Wallet Z.
 
-**⚠️ Note**: This is a development prototype. Performance metrics and reliability claims are targets, not current achievements.
+### Navigation & Information Architecture
 
-## Vision & Mission
+Left nav (fixed):
+- **Home** — 4 live status lights (Jito, RPC, WS, Solana Mainnet), recent activity.
+- **Coin** — Create token (Pump.fun), dev buy, configure and run JITO/RPC multi-buy; live market-cap panel.
+- **Coin Library** — Bento grid of “copy-from-CA” templates (DexScreener/Birdeye/Metaplex sourced) with **Copy to Coin** prefill.
+- **Wallets** — Namespaced folders (≤20 wallets); create/import; random funding from master wallet; role pickers (dev + up to 3 sniper); switch active folder.
+- **P&L** — Realized/unrealized per coin and group; export CSV.
+- **Settings** — Mode switch (JITO/RPC), fee/tip ceilings, dry-run/simulate toggles, vault export/import, “remember this device”.
 
-### Product Vision
+### Engines & Limits
 
-The Keymaker is the definitive thin cockpit for Solana execution. The UI orchestrates while the server handles all heavy lifting. It delivers an **operator-grade experience** for planning and launching bundles with:
+- **JITO_BUNDLE**
+  - ≤5 signed tx per bundle; chunk N wallets into groups of 5.
+  - Tip slider with ceilings; simulate-before-send optional; leader-aware timing.
+- **RPC_FANOUT**
+  - Parallel Jupiter swaps with priority fees; WS confirms; throttle + backoff.
+  - Not atomic; suitable for “as-fast-as-possible” buys/sells across many wallets.
 
-- High reliability
-- **Crystal-clear guardrails**
-- **Transparent health monitoring**
-- **Lightning-fast workflows**
+### Status & Health (Home)
 
-### Mission Statement
+Four independent probes with green/amber/red lights:
+- **Jito:** `tip_floor` + lightweight bundle simulation reachability.
+- **RPC:** `getLatestBlockhash` round-trip + `getHealth`.
+- **WS:** `slotSubscribe` heartbeat with missed-beat thresholds.
+- **Solana Mainnet:** derived from RPC health + last slot delta; optional “Next Jito leader in ~N slots”.
 
-To provide institutional-grade Solana execution tools that eliminate operational complexity while maximizing performance and security.
+### Wallets & Persistence
 
-## Product Objectives
+- **Namespace = login wallet public key** (Phantom/Backpack SIWS).
+- Wallet groups stored per namespace; only visible when signed in with that wallet.
+- Max 20 wallets per group; create/import; file layout `keypairs/<masterPubkey>/<group>/<pubkey>.json`.
+- Randomized funding from master wallet (extension) — the app never holds the master private key.
 
-### Core Objectives
+### Coin (Create → Buy)
 
-- Real swaps with Jupiter; DRY-RUN supported when disarmed
-- **Target Reliability**: 99.9% uptime goal with comprehensive error handling and recovery (in development)
-- **MEV Optimization**: Intelligent tip floor enforcement and bundle success maximization
-- Security First: strict CSP, HMAC session, token-guarded APIs, server keystore
-- **Performance Excellence**: Sub-3-second bundle execution with intelligent failover
+- **Pump.fun live creation** (V1): metadata (image + JSON) built and uploaded (IPFS/Arweave), produce URI, invoke Pump.fun program.
+- Optional **Dev buy** immediately after create.
+- **Multi-wallet buy:**
+  - **JITO mode:** chunk wallets into bundles of 5; tip and timing controls.
+  - **RPC mode:** parallel buys with priority fees.
+- **Market-cap panel:**
+  - Bonding phase: approximate from bonding-curve state or spot × fixed supply (1B).
+  - After pool: FDV/MC from DexScreener/Birdeye; linkouts.
 
-### Success Metrics
+### Coin Library
 
-- **Bundle Success Rate**: Target ≥85% landing rate (under development)
-- **System Availability**: Target ≥99.9% uptime (not achieved yet)
-- **Average Latency**: ≤ 3 seconds per bundle
-- **Security Incidents**: Zero security breaches
-- **Operator Efficiency**: 10x faster workflow vs manual execution
+- Paste a **CA** or select a discovered coin → fetch:
+  - **DexScreener**: name/symbol, pair URL, FDV/price, sometimes socials.
+  - **Birdeye**: token info (logo/socials) where available.
+  - **Metaplex** on-chain metadata URI → image/description.
+- Normalize to a `CoinDraft { name, symbol, image, website?, twitter?, telegram?, description? }`.
+- **Copy to Coin**: prefill the Coin page for a fresh Pump.fun create (we **don’t** reuse other tokens’ URIs).
 
-## Architecture Overview
+### Sells
 
-### System Architecture (simplified)
+- **Global** or **per-wallet** sells.
+- **RPC mode**: per-wallet “Positions” table with actions **Sell All**, **Sell %**, **Sell after T**.
+- **JITO mode**: batch up to 5 wallets per bundle for atomic sell bursts.
+- All sells use **Jupiter quote/swap** under the hood; simulate optional.
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Client    │    │   Next.js API   │    │   External APIs │
-│   (React/TS)    │◄──►│   (Serverless)  │◄──►│   (JitoRPC)   │
-│                 │    │                 │    │                 │
-│ • Dashboard UI  │    │ • Bundle Engine │    │ • Jito Block    │
-│ • Wal let Mgmt   │    │ • Status Poller │    │   Engine        │
-│ • Analytics     │    │ • Health Checks │    │ • Helius RPC    │
-│ • Settings      │    │ • Rate Limiting │    │ • Jupiter API    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 ▼
-                    ┌─────────────────┐
-                    │   SQLite DB     │
-                    │   (Analytics)   │
-                    └─────────────────┘
-```
+### Security
 
-### Technology Stack
+- Master wallet remains in the browser extension; **never** exported.
+- Sub-wallet keys stored locally on your machine (server-side file store in V1; browser-encrypted vault optional later).
+- DRY_RUN default true; “Live Mode” requires env + explicit arming in UI.
+- Tip/priority fee ceilings; concurrency throttles; full journaling (bundle IDs, sigs, slots, timings).
 
-| Component            | Technology                         | Purpose                           |
-| -------------------- | ---------------------------------- | --------------------------------- |
-| **Frontend**         | Next.js 14.2, React 18, TypeScript | Modern web application framework  |
-| **UI Framework**     | Tailwind CSS                       | Responsive design system          |
-| **State Management** | Zustand                            | Lightweight client state          |
-| **Database**         | SQLite                             | Analytics and transaction history |
-| **Security**         | HMAC session, CSP, token guard     | Practical web security            |
-| **Monitoring**       | Sentry                             | Error tracking and performance    |
-| **Deployment**       | Docker, Kubernetes                 | Container orchestration           |
+### Acceptance Criteria (MVP)
 
-## Core Workflows
+1) **Login** with Phantom/Backpack → workspace switches by wallet; Wallets page shows only that wallet’s groups.
+2) **Home** shows 4 status lights; toggling RPC URL/Jito URL flips lights accordingly.
+3) **Coin Library** paste CA → preview → Copy to Coin → Coin form prefilled.
+4) **Coin** create (dry-run) builds metadata; Live Mode actually creates Pump.fun token and returns sig.
+5) **Multi-buy** in JITO and RPC modes both execute (dry-run first, then live) with visible logs.
+6) **Manual per-wallet sells** work in RPC mode; JITO sells batch ≤5.
+7) **P&L** shows realized/unrealized per coin/group; export works.
+8) **Logs** downloadable; each action logged with ids, fees, and outcomes.
 
-### 1) Standard Bundle Execution (JITO_BUNDLE)
 
-**Create → Preview → Execute**
-
-```
-User Action → Server Processing → External Validation → Bundle Submission
-     │              │                        │                      │
-     ▼              ▼                        ▼                      ▼
-• Token Creation  • Native v0 Build       • Simulation Gates     • Jito Submission
-• Wallet Setup    • Tip Optimization      • Health Checks        • Status Polling
-• Parameter Config• Region Selection      • Rate Limiting        • Telemetry
-```
-
-#### Detailed Flow:
-
-1. **Create**: Optional SPL token creation flow (server-side receipt-gated)
-2. **Preview**: Build native v0 transactions, simulate on server (`simulateOnly: true`)
-3. **Validation**: Strict guardrails check (tip accounts, compute budget, health status)
-4. **Execute**: Submit exact base64 set that passed preview
-5. **Monitor**: Status updates from server poller with real-time feedback
-
-### 2) RPC Fanout Execution (RPC_FANOUT)
-
-**Arm → Prefetch → Rebuild → Submit**
-
-```
-Operator Arms Timer → T-5s: Blockhash → T-1s: Rebuild → T=0: Submit
-       │                      │                     │                │
-       ▼                      ▼                     ▼                ▼
-• Set 30s/60s delay      • Fresh blockhash      • Embed tip       • Jito submit
-• Health verification     • Region selection     • Simulate again  • Status poll
-• Parameter freeze        • Connection test      • Guardrail check • Success confirm
-```
-
-### 3) Smoke Testing Workflow
-
-**Validate → Test → Verify**
-
-```
-Environment Setup → Bundle Creation → Submission → Monitoring → Verification
-       │                     │                    │                │
-       ▼                     ▼                    ▼                ▼
-• Wallet funding        • Minimal tx bundle    • Jito endpoint   • Status polling
-• Key validation        • Tip optimization     • Region fallback • Success metrics
-• RPC connectivity      • Base64 encoding      • Error handling  • Report generation
-```
-
-## Modes
-
-- **JITO_BUNDLE**: Build N txs (dev + bundle wallets), compute dynamic tip (Jito tipfloor EMA), submit bundle via regional Block Engines with retries/failover. Target: same block; no in-between snipes.
-- **RPC_FANOUT (Mass Sniper)**: Build N independent Jupiter swap txs and fan them out via RPC with concurrency and jitter. Not same-block guaranteed.
-
-## Wallets & Groups
-
-- Execution wallets come from server keystore groups under `keypairs/<group>`.
-- The active group is selected by a cookie `km_group`; default resolves from `resolveGroup()` which uses `KEYMAKER_GROUP` env or `bundle`.
-- Manage wallets on `/wallets` (SSR): create group, remove pubkeys, set active group. No secrets rendered to the client.
-
-## Manual Controls (RPC mode)
-
-- Buy now per wallet or group.
-- Sell % per wallet (10/25/50/100).
-- Sell after time per wallet (non-durable scheduling; documented).
-  All actions are SSR server-actions; journal entries are appended to `data/journal.Y-m-d.ndjson`.
-
-## Security
-
-- No browser tx signing; only message-sign for login at `/login`. Browser never signs transactions.
-- API guarded (per-IP token bucket, 8KB caps, runtime=`nodejs`, dynamic=`force-dynamic`, uniform `apiError`, requestId).
-- HMAC session, Secure+HttpOnly cookie in prod, SameSite=Lax; `KEYMAKER_SESSION_SECRET` required in prod.
-- CSP strict; `connect-src` extended only to allow wallet extensions (`chrome-extension:`, `moz-extension:`, `ms-browser-extension:`).
-- Token guard: in production, `/api/engine/*` and `/api/market/*` require `x-engine-token`.
-  Robots disallow `/api/` and `/engine`.
-  Environment example provided in `.env.example` (placeholders only).
-
-## Performance
-
-- Core SSR routes (`/engine`, `/bundle`, `/settings`, `/wallets`) ship 94.8 KB first-load JS (optimized).
-- **Current Performance**: 94.8KB total bundle size (target: <50KB)
-- **Bundle Breakdown**: 53.6KB main vendor chunk + 41KB framework + ~200B per route
-- **Optimization Status**: Reduced from 166KB (43% improvement), ongoing work toward <50KB target
-
-## Observability
-
-- Health & metrics endpoints; NDJSON journaling with redaction for /(key|token|secret|pass)/i.
-
-## Dev Notes
-
-- Use relative API paths (`/api/...`) so dev on `PORT=3001` works.
-- `.env.example` contains placeholders only; never commit real secrets or use `NEXT_PUBLIC_*` for secrets.
-- `pnpm check:node && pnpm core:build` type-checks core.
-
-## Health & Monitoring Model
-
-### System Health Architecture
-
-```
-Health Sources → Aggregation → Caching → Distribution
-       │              │             │              │
-       ▼              ▼             ▼              ▼
-• RPC Health      • Single source  • 30s cache    • UI Dashboard
-• Jito Status     • Server-driven  • Auto-refresh • API Endpoints
-• Database        • No client      • Error bounds • Alert System
-• Puppeteer       • Direct calls   • Fallback     • Monitoring
-```
-
-### Health Check Specification
-
-#### `/api/health` - System Health Endpoint
-
-**Response Structure:**
-
-```json
-{
-  "ok": true,
-  "version": "1.5.2",
-  "timestamp": "2025-01-01, T00:00:00.000Z",
-  "checks": {
-    "rpc": {
-      "status": "healthy|degraded|down",
-      "latency_ms": 45,
-      "endpoint": "h, t, t, ps://mainnet.helius-rpc.com",
-      "last_check": "2025-01-01, T00:00:00.000Z"
-    },
-    "jito": {
-      "status": "healthy|degraded|down",
-      "latency_ms": 23,
-      "region": "ffm",
-      "endpoint": "h, t, t, ps://ffm.mainnet.block-engine.jito.wtf",
-      "last_check": "2025-01-01, T00:00:00.000Z"
-    },
-    "database": {
-      "status": "healthy|degraded|down",
-      "connections": 2,
-      "last_backup": "2025-01-01, T00:00:00.000Z"
-    },
-    "puppeteer": {
-      "status": "healthy|degraded|down",
-      "browser_version": "Chromium 120.0.6099.0",
-      "last_check": "2025-01-01, T00:00:00.000Z"
-    }
-  }
-}
-```
-
-... (truncated for brevity; content preserved from original PRD.md)

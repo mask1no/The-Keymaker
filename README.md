@@ -1,69 +1,147 @@
 # The Keymaker (MVP)
 
-Solana bundler cockpit built on Next.js 14.
+A **local, non-custodial Solana bundler cockpit**. Create tokens (Pump.fun), do dev/multi-wallet buys, and exit positions—using either **JITO bundles** (atomic ≤5) or **RPC fan-out** (fast, non-atomic).
 
-**⚠️ DEVELOPMENT PROTOTYPE - NOT PRODUCTION READY ⚠️**
+**Status:** Development prototype. **DRY_RUN is ON by default.** You must explicitly arm “Live Mode.”
 
-This MVP includes:
-- SIWS (nonce + verify) via `/api/auth/nonce` and `/api/auth/verify`, server session cookie `km_session`.
-- Wallet Groups persisted at `data/wallet-groups.json` (≤20 wallets/group; roles master/dev/snipers≤3).
-- RPC Fan-Out simulate-only endpoint at `/api/engine/rpc/buy` that builds harmless no-op tx per wallet and simulates with `sigVerify:true`.
-- DRY_RUN mode default ON; live sends gated by `KEYMAKER_ALLOW_LIVE=false`.
-- Health: `/api/v1/health` returns `{ ok, ts, dryRun, ... }`.
+## Navigation
 
-**Current Status**: Functional development build with working JITO bundling and RPC fanout modes. Recently improved for better usability.
+- **Home** — Status lights: Jito / RPC / WS / Solana Mainnet
+- **Coin** — Create (Pump.fun), dev buy, multi-wallet buy, market-cap panel
+- **Coin Library** — Paste CA or pick a coin → **Copy to Coin** (prefill)
+- **Wallets** — Namespaced folders (≤20 wallets), create/import, random funding, roles
+- **P&L** — Realized/unrealized per coin/group; CSV export
+- **Settings** — JITO/RPC switch, tip/fee ceilings, dry-run/simulate, vault export/import
 
-**Recent Improvements (Sept 2025)**:
-- ✅ Removed armed requirement - operations work by default now
-- ✅ Better error messages with actionable feedback
-- ✅ Removed "coming soon" placeholders
-- ✅ Mobile navigation fully functional
-- ✅ Clean code structure with proper client/server separation
+## Requirements
 
-**Documentation**:
-- **Architecture**: See [PRD](md/PRD.md) for detailed specs
-- **Operations**: See [OPS](md/OPS.md) for deployment guide
-- **Audits**: See [AUDIT_REPORT.md](md/AUDIT_REPORT.md) for security/code review
+- Node 20+, pnpm 9+
+- Phantom or Backpack wallet extension
+- **ENV:** Helius RPC/WS, Jito endpoint, Jupiter, Birdeye (optional), IPFS/Arweave creds for live create
 
-## Dev notes
+## Environment
 
-- Port: set `PORT=3001` for local dev if desired. All app fetches use relative paths (`/api/...`) so port changes do not break auth.
-- Run sanity checks: `pnpm sanity`
-- Core routes (`/engine`, `/bundle`, `/settings`, `/wallets`) use SSR but ship **94.8KB JS bundle** (after optimization from 166KB)
-- Bundle optimization is ongoing work with target <50KB
-- Test coverage: <50% (improving)
+Copy `.env.example` → `.env.local` and set:
 
-### Environment
+```
 
-Create a `.env` file from `.env.example` (see root of project) and fill values. Secrets must not be committed.
+APP_NETWORK=mainnet-beta
 
-Quick start:
+# RPC / WS
+
+HELIUS_RPC_URL=
+HELIUS_WS_URL=
+
+# Jito Block Engine
+
+JITO_HTTP_URL=
+JITO_REGION=auto
+JITO_TIP_LAMPORTS_DEFAULT=100000
+
+# Jupiter
+
+JUPITER_QUOTE_API=[https://quote-api.jup.ag/v6](https://quote-api.jup.ag/v6)
+
+# Market data (optional)
+
+BIRDEYE_API_KEY=
+
+# Safety
+
+KEYMAKER_ALLOW_LIVE=NO
+KEYMAKER_REQUIRE_ARMING=YES
+DRY_RUN_DEFAULT=YES
+
+# Defaults
+
+KEYMAKER_GROUP=bundle
+PORT=3000
+
+````
+
+## Run
 
 ```bash
 pnpm i
 pnpm dev
+# open http://localhost:3000
+````
+
+* Sign in with your wallet (SIWS). Workspace **namespace** = your login wallet pubkey.
+* Create/import wallet groups under **Wallets** (max 20 per group).
+* **Home** shows real status lights (Jito/RPC/WS/SM).
+* **Coin Library** paste a CA → **Copy to Coin**.
+* **Coin** can create on Pump.fun (dry-run unless Live Mode), then dev/multi-buy via **JITO** or **RPC**.
+* **P&L** aggregates realized/unrealized; export CSV.
+
+## Live Mode & Safety
+
+* Live sends are blocked unless **both**:
+
+  * `KEYMAKER_ALLOW_LIVE=YES` in env, **and**
+  * You toggle **Arm Live** in Settings.
+* Tip/fee ceilings and concurrency throttles protect you in volatile periods.
+* Simulation toggles exist for bundles and swaps.
+
+## Known Limits
+
+* **Jito bundle size:** max **5 tx per bundle**, chunked for larger sets.
+* **RPC fan-out:** not atomic; near-simultaneous with WS confirms.
+* **Pump.fun:** metadata must be built/uploaded (we do that for you); do not reuse other tokens’ URIs.
+
 ```
 
-Open `/login`, connect Phantom, sign the SIWS message, and you will be redirected to `/engine`. On first verified login your wallet is auto-set as master for the first group (if none).
+---
 
-Required environment variables:
-- `HELIUS_RPC_URL` - Helius RPC endpoint for Solana
-- `ENGINE_API_TOKEN` - API token for engine endpoints (min 32 chars)
-- `KEYMAKER_SESSION_SECRET` - Session secret for HMAC (min 32 chars)
-- `KEYPAIR_JSON` - Path to payer keypair JSON
-- `JITO_BLOCK_ENGINES_JSON` - Jito block engine configuration
+## Env example (append or ensure these keys exist)
 
-Optional:
-- `PORT` - Server port (default: 3000)
-- `KEYMAKER_GROUP` - Default wallet group (default: bundle)
-- `KEYMAKER_DISABLE_LIVE` - Set to `YES` to disable live operations (default: NO)
-- `KEYMAKER_REQUIRE_ARMING` - Set to `YES` to require manual arming (default: NO)
+```
 
-## Scripts
+APP_NETWORK=mainnet-beta
+HELIUS_RPC_URL=
+HELIUS_WS_URL=
+JITO_HTTP_URL=
+JITO_REGION=auto
+JITO_TIP_LAMPORTS_DEFAULT=100000
+JUPITER_QUOTE_API=[https://quote-api.jup.ag/v6](https://quote-api.jup.ag/v6)
+BIRDEYE_API_KEY=
+KEYMAKER_ALLOW_LIVE=NO
+KEYMAKER_REQUIRE_ARMING=YES
+DRY_RUN_DEFAULT=YES
+KEYMAKER_GROUP=bundle
+PORT=3000
 
-- Type-check core only: `pnpm check:node` and `pnpm core:build`
-- Analyzer: `pnpm analyze`
+```
 
-### CLI
+---
 
-- Group-aware wallets live on the server under `keypairs/<group>`. Manage via `/wallets` (SSR): create groups, set active group, remove pubkeys. Active group is stored in a `km_group` cookie. Execution wallets are read from the active group by engine submit.
+## Code quality rules
+
+- Type everything. No `any`.
+- Keep business logic in `lib/core` (adapters for Jito, Jupiter, Pump.fun, Birdeye, DexScreener).
+- UI components in `components/*` with clean props; pages minimal and declarative.
+- API routes return typed JSON and never block on unbounded concurrency.
+- Logs are structured and redact secrets.
+- Don’t remove existing working features; refactor gradually, guarded by flags.
+
+---
+
+## Deliverables
+
+- Updated routes & side nav.
+- Working 4-light status panel.
+- Namespaced wallet groups (per login wallet).
+- Coin Library with Copy-to-Coin.
+- Coin create (Pump.fun) with metadata build; dev buy; multi-buy modes.
+- Manual per-wallet sells in RPC mode; batched JITO sells.
+- P&L with CSV export.
+- Updated `md/PRD.md` and `README.md` exactly as above.
+
+---
+
+**End of master prompt.**
+
+---
+
+You’re set. Paste that into Cursor, run it against your repo, and you’ll get code changes + updated docs that match everything we agreed. When you’re ready for the next pass (fee heuristics, bonding-curve precision, or Tauri vault hardening), we can extend the prompt with those modules.
+
