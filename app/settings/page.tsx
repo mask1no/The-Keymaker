@@ -13,6 +13,7 @@ async function update(formData: FormData) {
   const jitterMax = Number(formData.get('jitterMax') || 150);
   const mode = String(formData.get('mode') || 'JITO_BUNDLE') as any;
   const dryRun = String(formData.get('dryRun') || '') === 'on';
+  const liveMode = String(formData.get('liveMode') || '') === 'on';
   const cluster = String(formData.get('cluster') || 'mainnet-beta') as any;
   setUiSettings({
     mode,
@@ -24,6 +25,7 @@ async function update(formData: FormData) {
     jitterMs: [jitterMin, jitterMax],
     dryRun,
     cluster,
+    liveMode,
   });
 }
 
@@ -85,6 +87,13 @@ export default async function SettingsPage() {
               <label className="text-sm">Dry Run</label>
               <input type="checkbox" name="dryRun" defaultChecked={ui.dryRun ?? true} />
             </div>
+          <div>
+            <label className="text-sm">Live Mode (requires env + arming)</label>
+            <input type="checkbox" name="liveMode" defaultChecked={ui.liveMode ?? false} />
+            <div className="text-xs text-yellow-400 mt-1">
+              Live sends require: KEYMAKER_ALLOW_LIVE=YES and (optional) arming.
+            </div>
+          </div>
             <div>
               <label className="text-sm">Cluster (RPC)</label>
               <select

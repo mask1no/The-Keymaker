@@ -66,6 +66,11 @@ function Header() {
         </nav>
         <MobileMenu />
       </div>
+      {process.env.DRY_RUN === 'true' && (
+        <div className="w-full bg-amber-600/15 text-amber-300 text-center text-xs py-1 border-t border-amber-500/30">
+          DRY RUN MODE — No live transactions will be sent.
+        </div>
+      )}
     </header>
   );
 }

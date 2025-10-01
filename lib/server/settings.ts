@@ -12,6 +12,7 @@ export interface UiSettings {
   jitterMs?: [number, number];
   dryRun?: boolean;
   cluster?: 'mainnet-beta' | 'devnet';
+  liveMode?: boolean; // explicit user intent to allow live sends (still gated by env + arming)
 }
 
 const COOKIE_NAME = 'keymaker_ui_settings';
@@ -40,6 +41,7 @@ export function getUiSettings(): UiSettings {
       : [50, 150];
     const dryRun = typeof raw.dryRun === 'boolean' ? raw.dryRun : true;
     const cluster = raw.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
+    const liveMode = raw.liveMode === true;
     return {
       mode,
       region,
@@ -50,6 +52,7 @@ export function getUiSettings(): UiSettings {
       jitterMs,
       dryRun,
       cluster,
+      liveMode,
     };
   } catch {
     return {
@@ -61,6 +64,7 @@ export function getUiSettings(): UiSettings {
       jitterMs: [50, 150],
       dryRun: true,
       cluster: 'mainnet-beta',
+      liveMode: false,
     };
   }
 }

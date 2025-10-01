@@ -101,6 +101,17 @@ export class JitoEngine implements Engine {
         corr: plan.corr,
         ms: Date.now() - t1,
       });
+      // Compatibility event for UI summary table
+      logJsonLine(journal, {
+        ev: 'submit',
+        group: opts.group || undefined,
+        region,
+        bundleId: bundle_id,
+        tipLamports: effectiveTip,
+        txCount: encoded.length,
+        corr: plan.corr,
+        ms: Date.now() - t1,
+      });
     }
 
     observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
@@ -115,6 +126,15 @@ export class JitoEngine implements Engine {
     incCounter('engine_status_total');
     incCounter('engine_status_jito_total');
     observeLatency('engine_status_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
+    if (bundleIds.length) {
+      const journal = createDailyJournal('data');
+      logJsonLine(journal, {
+        ev: 'status',
+        region,
+        bundleIds,
+        statuses,
+      });
+    }
     return statuses;
   }
 }

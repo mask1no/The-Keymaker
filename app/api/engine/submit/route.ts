@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { randomUUID, createHash } from 'crypto';
 import { z } from 'zod';
 import {
@@ -273,24 +274,22 @@ export async function POST(request: Request) {
       group: activeGroup,
     } as ExecOptions;
     if (!dryRun) {
+      // Require explicit UI liveMode AND env var KEYMAKER_ALLOW_LIVE=YES
+      const uiLive = ui.liveMode === true;
+      const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
+      if (!uiLive || !envLive) {
+        return apiError(403, 'live_disabled', requestId, 'Turn on Live Mode in Settings and set KEYMAKER_ALLOW_LIVE=YES.');
+      }
       // Check if live operations are explicitly disabled
       const liveDisabled = process.env.KEYMAKER_DISABLE_LIVE === 'YES';
       if (liveDisabled) {
-        return NextResponse.json({ 
-          error: 'live_disabled', 
-          message: 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.',
-          requestId
-        }, { status: 403 });
+        return apiError(403, 'live_disabled', requestId, 'Live operations are disabled. Set KEYMAKER_DISABLE_LIVE=NO to enable.');
       }
       // Check arming only if explicitly required
       if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
         const { isArmed } = await import('@/lib/server/arming');
         if (!isArmed()) {
-          return NextResponse.json({ 
-            error: 'not_armed', 
-            message: 'System requires arming. Call POST /api/ops/arm to enable operations.',
-            requestId
-          }, { status: 403 });
+          return apiError(403, 'not_armed', requestId, 'System requires arming. POST /api/ops/arm.');
         }
       }
     }
@@ -304,7 +303,14 @@ export async function POST(request: Request) {
     });
     incCounter('engine_2xx_total');
     return res;
-  } catch (e) {
+  } catch (e: unknown) {
+    try {
+      Sentry.captureException(e instanceof Error ? e : new Error('engine_submit_failed'), {
+        extra: {
+          route: '/api/engine/submit',
+        },
+      });
+    } catch {}
     incCounter('engine_5xx_total');
     return apiError(500, 'failed');
   }

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import { generateFundingPlan } from '@/lib/server/walletGroups';
+import { apiError } from '@/lib/server/apiError';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,15 +27,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ plan });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: error.issues },
-        { status: 400 }
-      );
+      return apiError(400, 'invalid_request');
     }
-    
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    try { Sentry.captureException(error instanceof Error ? error : new Error('funding_plan_failed'), { extra: { route: '/api/groups/funding-plan' } }); } catch {}
+    return apiError(400, (error as Error).message || 'failed');
   }
 }

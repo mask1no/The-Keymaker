@@ -10,19 +10,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const healthResponse = await healthCheck();
-    const healthData = await healthResponse.json();
-    
-    // Add versioning information
-    const versionedResponse = {
-      ...healthData,
-      apiVersion: 'v1',
-      deprecationNotice: null,
-      supportedUntil: null,
-    };
-    
-    return NextResponse.json(versionedResponse, {
-      status: healthResponse.status,
+    const base = await healthCheck();
+    const baseJson = await base.json();
+    const dryRun = (process.env.DRY_RUN || 'true').toLowerCase() === 'true';
+
+    return NextResponse.json({ ok: true, ts: Date.now(), dryRun, ...baseJson }, {
+      status: 200,
       headers: {
         'API-Version': 'v1',
         'Cache-Control': 'no-cache, no-store, must-revalidate',

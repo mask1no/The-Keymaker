@@ -11,7 +11,34 @@ type Provider = {
 
 const te = new TextEncoder();
 const toU8 = (s: string) => te.encode(s);
-const toB64 = (u8: Uint8Array) => btoa(String.fromCharCode(...u8));
+const toB58 = (u8: Uint8Array) => {
+  // Avoid exposing in global; lazy import not allowed in client hook here
+  // Use base58 encoding via a minimal inline implementation
+  // For compatibility, we will use window.btoa on hex and let server handle b58 if provided
+  // But SIWS server expects base58; implement a simple base58 with alphabet
+  const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  const bytes = Array.from(u8);
+  let zeros = 0;
+  for (const b of bytes) {
+    if (b === 0) zeros++; else break;
+  }
+  const carryArr = [...bytes];
+  const encoded: string[] = [];
+  while (carryArr.length && carryArr.some((b) => b !== 0)) {
+    let remainder = 0;
+    const next: number[] = [];
+    for (const byte of carryArr) {
+      const acc = (remainder << 8) + byte;
+      const div = Math.floor(acc / 58);
+      remainder = acc % 58;
+      if (next.length || div !== 0) next.push(div);
+    }
+    encoded.push(ALPHABET[remainder]);
+    carryArr.splice(0, carryArr.length, ...next);
+  }
+  for (let i = 0; i < zeros; i++) encoded.push('1');
+  return encoded.reverse().join('');
+};
 
 function detectProviders(): Provider[] {
   const out: Provider[] = [];
@@ -76,6 +103,7 @@ function detectProviders(): Provider[] {
   const nightly = (w as any).nightly?.solana;
   if (nightly) push('Nightly', nightly);
   if (solana && !out.length) push('Solana', solana);
+  // Auto-connect if Phantom is authorized previously
 
   const seen = new Set<string>();
   return out.filter((p) => (seen.has(p.name) ? false : (seen.add(p.name), true)));
@@ -141,6 +169,7 @@ export default function SignInButton() {
   }, []);
   const single = useMemo(() => (providers.length === 1 ? providers[0] : null), [providers]);
 
+  // idle → connecting → walletConnected → verifying → ready
   async function runSignIn(p: Provider) {
     console.log('[AUTH] ===== STARTING SIGN IN =====');
     console.log('[AUTH] Provider:', p.name);
@@ -195,7 +224,7 @@ export default function SignInButton() {
         credentials: 'include',
         body: JSON.stringify({
           pubkey: address,
-          signature: toB64(signature),
+          signature: toB58(signature),
           message,
           nonce,
           domain: host,

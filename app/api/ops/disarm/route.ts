@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { disarm, armedUntil } from '@/lib/server/arming';
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     disarm();
     return NextResponse.json({ ok: true, disarmed: true, armedUntil: armedUntil() });
   } catch {
+    try { Sentry.captureMessage('disarm_failed', { level: 'error' }); } catch {}
     return apiError(500, 'failed');
   }
 }

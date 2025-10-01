@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { verifySIWS } from '@/lib/auth/siws';
 import { setSessionCookie } from '@/lib/server/session';
 import { autoSetMasterWallet } from '@/lib/server/masterWallet';
@@ -22,23 +23,12 @@ const VerifyRequestSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const key = `authv:${fwd || 'anon'}`;
     const body = await request.json();
     const { pubkey, signature, message } = VerifyRequestSchema.parse(body);
     
-    // For MVP/DRY_RUN mode, trust the signature (add real verification later)
-    if (process.env.DRY_RUN === 'true') {
-      console.log('[AUTH] DRY_RUN mode: Skipping signature verification');
-      setSessionCookie(pubkey);
-      return NextResponse.json({
-        ok: true,
-        session: {
-          pubkey,
-          authenticatedAt: new Date().toISOString(),
-        },
-      });
-    }
-    
-    // Real signature verification for production
+    // Verify signature
     const verification = verifySIWS({
       pubkey,
       signature,
@@ -46,10 +36,7 @@ export async function POST(request: Request) {
     });
     
     if (!verification.valid) {
-      return NextResponse.json(
-        { error: verification.error || 'Invalid signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: verification.error || 'Invalid signature' }, { status: 401 });
     }
     
     // Create session
@@ -71,7 +58,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error('[AUTH] Verification error:', error);
+    try {
+      Sentry.captureException(error instanceof Error ? error : new Error('auth_verify_failed'), {
+        extra: { route: '/api/auth/verify' },
+      });
+    } catch {}
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -80,9 +71,6 @@ export async function POST(request: Request) {
       );
     }
     
-    return NextResponse.json(
-      { error: 'Verification failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }

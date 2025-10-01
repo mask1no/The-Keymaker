@@ -13,6 +13,21 @@ export default function LoginPage() {
           Sign a short message with your wallet to continue. No on-chain tx.
         </p>
         <SignInButton />
+        {process.env.NODE_ENV !== 'production' && (
+          <button
+            className="mt-3 text-xs text-zinc-400 hover:text-zinc-200"
+            onClick={async () => {
+              try {
+                await fetch('/api/auth/dev-login', { method: 'POST', credentials: 'include' });
+                window.location.href = '/engine?signed=1';
+              } catch {
+                // noop
+              }
+            }}
+          >
+            Dev login (no wallet)
+          </button>
+        )}
       </div>
     </div>
   );

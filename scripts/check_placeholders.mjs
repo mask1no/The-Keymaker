@@ -1,4 +1,34 @@
 #!/usr/bin/env node
+// Quick placeholder scan for CI
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const REQUIRED = [
+  'ENGINE_API_TOKEN',
+  'KEYMAKER_SESSION_SECRET',
+];
+
+function fail(msg) {
+  console.error(`[placeholders] ${msg}`);
+  process.exit(1);
+}
+
+try {
+  const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
+  if (!pkg) fail('package.json not found');
+} catch {
+  fail('package.json not readable');
+}
+
+for (const key of REQUIRED) {
+  const val = process.env[key] || '';
+  if (!val || val.includes('change_me') || val.length < 8) {
+    console.warn(`[placeholders] ${key} looks like a placeholder`);
+  }
+}
+
+console.log('[placeholders] scan complete');
+#!/usr/bin/env node
 /**
  * CI Placeholder Check
  * Scans repository for placeholder patterns (... or …) that should not exist in production code

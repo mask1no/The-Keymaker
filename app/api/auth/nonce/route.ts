@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateNonce } from '@/lib/auth/siws';
+import { rateLimit } from '@/lib/server/rateLimit';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
@@ -15,6 +16,10 @@ const NonceRequestSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const key = `auth:${fwd || 'anon'}`;
+    const rl = await rateLimit(request);
+    if (rl) return rl;
     const body = await request.json();
     const { pubkey } = NonceRequestSchema.parse(body);
     

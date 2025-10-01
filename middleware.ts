@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { validateToken } from './lib/auth/tokens';
 import { checkRateLimit, getRateLimitIdentifier } from './lib/rateLimit';
 
 export const config = {
@@ -30,10 +29,17 @@ export async function middleware(req: Request) {
       });
     }
     
-    // Protected API endpoints require token validation
-    if (path.startsWith('/api/engine/') || path.startsWith('/api/market/') || path.startsWith('/api/auth/')) {
+    // Allow unauthenticated SIWS endpoints
+    const isPublicAuthEndpoint =
+      path === '/api/auth/nonce' || path === '/api/auth/verify';
+
+    // Protected API endpoints require token validation (Edge-safe)
+    // Auth endpoints are public (nonce/verify/dev-login) and do not require engine token
+    if (path.startsWith('/api/engine/') || path.startsWith('/api/market/')) {
       const token = req.headers.get('x-engine-token');
-      if (!validateToken(token)) {
+      const expected = process.env.ENGINE_API_TOKEN;
+      const valid = !!token && !!expected && token.length >= 32 && expected.length >= 32 && token === expected;
+      if (!valid) {
         return new NextResponse('Unauthorized - Invalid or missing API token', { 
           status: 401,
           headers: {
@@ -56,8 +62,8 @@ export async function middleware(req: Request) {
     return response;
   }
   
-  // Allow login route without session
-  if (path === '/login') return NextResponse.next();
+  // Allow login route and SIWS endpoints without session
+  if (path === '/login' || path.startsWith('/api/auth/')) return NextResponse.next();
   
   // Gate all other routes by presence of valid session cookie
   const hasSession = (req.headers.get('cookie') || '').includes('km_session=');

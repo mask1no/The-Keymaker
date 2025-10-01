@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { getUiSettings, setUiSettings } from '@/lib/server/settings';
+import { loadWalletGroups } from '@/lib/server/walletGroups';
 import { armedUntil, isArmed } from '@/lib/server/arming';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -60,11 +61,80 @@ async function submitTestBundle(formData: FormData) {
         cluster,
       }),
     });
+    // Persist last bundleIds for quick polling UX if Jito
+    try {
+      const j = (await res.json().catch(() => ({}))) as any;
+      if (Array.isArray(j?.bundleIds) && j.bundleIds.length) {
+        // store in server cookie via settings util to avoid client bundle
+        const ids = String(j.bundleIds.join(','));
+        // Reuse settings cookie bag for simplicity (SSR only); not security-sensitive
+        setUiSettings({} as any); // ensure cookie exists
+        // Direct cookie write via headers is not available here; journal instead for UI table
+        const journal = createDailyJournal('data');
+        logJsonLine(journal, { ev: 'ui_last_bundleIds', bundleIds: j.bundleIds });
+      }
+    } catch {
+      // non-fatal
+    }
     revalidatePath('/engine');
     if (res.ok) return redirect('/engine?ok=submit');
     return redirect('/engine?err=submit');
   } catch {
     return redirect('/engine?err=submit');
+  }
+}
+async function pollJitoStatus(formData: FormData) {
+  'use server';
+  const bundleId = String(formData.get('bundleId') || '').trim();
+  const bundleIds = bundleId.split(',').map((s) => s.trim()).filter(Boolean);
+  if (!bundleIds.length) return redirect('/engine?err=status');
+  try {
+    const res = await fetch(`/api/engine/status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+      },
+      body: JSON.stringify({ mode: 'JITO_BUNDLE', region: getUiSettings().region, bundleIds }),
+    });
+    revalidatePath('/engine');
+    return redirect(res.ok ? '/engine?ok=status' : '/engine?err=status');
+  } catch {
+    return redirect('/engine?err=status');
+  }
+}
+async function testRpcSimulate() {
+  'use server';
+  try {
+    const groups = loadWalletGroups();
+    const groupId = groups[0]?.id;
+    if (!groupId) {
+      return redirect('/engine?err=simulate');
+    }
+    const res = await fetch(`/api/engine/rpc/buy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-engine-token': process.env.ENGINE_API_TOKEN || '',
+      },
+      body: JSON.stringify({
+        groupId,
+        mint: 'So11111111111111111111111111111111111111112',
+        amountSol: 0.001,
+        priorityFeeMicrolamports: 0,
+        concurrency: 3,
+        timeoutMs: 10000,
+        dryRun: true,
+        cluster: getUiSettings().cluster,
+      }),
+    });
+    const j = await res.json().catch(() => ({}));
+    const journal = createDailyJournal('data');
+    logJsonLine(journal, { ev: 'ui_test_rpc_simulate', ok: res.ok, result: j });
+    revalidatePath('/engine');
+    return redirect(res.ok ? '/engine?ok=simulate' : '/engine?err=simulate');
+  } catch {
+    return redirect('/engine?err=simulate');
   }
 }
 
@@ -242,7 +312,9 @@ function readTodayJournal(): Array<{ time: string; ev: string; summary: string }
       if (ev === 'submit') summary = `bundleId=${o.bundleId} tip=${o.tipLamports}`;
       else if (ev === 'status')
         summary = `bundleId=${o.bundleId} statuses=${o.statuses?.length || 0}`;
+      else if (ev === 'ui_last_bundleIds') summary = `last=${(o.bundleIds||[]).join(',')}`;
       else if (ev === 'fund') summary = `txSig=${o.txSig} lamports=${o.lamports}`;
+      else if (ev === 'wallet_generated') summary = `group=${o.group} pub=${(o.pub || '').slice(0,8)}…`;
       return { time, ev, summary };
     });
   } catch {
@@ -343,6 +415,17 @@ export default async function Page({
       {ui.mode === 'RPC_FANOUT' && (
         <section className="card mb-4">
           <div className="label mb-2">Manual RPC Controls</div>
+          <form action={pollJitoStatus} className="mb-3 flex items-center gap-2">
+            <input name="bundleId" placeholder="Jito bundleId" className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 flex-1" />
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1" type="submit">
+              Poll Jito Status
+            </button>
+          </form>
+          <form action={testRpcSimulate} className="mb-3">
+            <button className="bg-zinc-800 hover:bg-zinc-700 text-xs rounded px-2 py-1" type="submit">
+              Test RPC Simulate
+            </button>
+          </form>
           <form action={rpcBuyNow} className="mb-2 flex flex-col gap-2">
             <div className="text-sm">Buy now (all tracked wallets)</div>
             <input

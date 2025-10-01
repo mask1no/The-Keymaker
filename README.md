@@ -1,8 +1,15 @@
-# The Keymaker
+# The Keymaker (MVP)
 
 Solana bundler cockpit built on Next.js 14.
 
 **⚠️ DEVELOPMENT PROTOTYPE - NOT PRODUCTION READY ⚠️**
+
+This MVP includes:
+- SIWS (nonce + verify) via `/api/auth/nonce` and `/api/auth/verify`, server session cookie `km_session`.
+- Wallet Groups persisted at `data/wallet-groups.json` (≤20 wallets/group; roles master/dev/snipers≤3).
+- RPC Fan-Out simulate-only endpoint at `/api/engine/rpc/buy` that builds harmless no-op tx per wallet and simulates with `sigVerify:true`.
+- DRY_RUN mode default ON; live sends gated by `KEYMAKER_ALLOW_LIVE=false`.
+- Health: `/api/v1/health` returns `{ ok, ts, dryRun, ... }`.
 
 **Current Status**: Functional development build with working JITO bundling and RPC fanout modes. Recently improved for better usability.
 
@@ -29,6 +36,15 @@ Solana bundler cockpit built on Next.js 14.
 ### Environment
 
 Create a `.env` file from `.env.example` (see root of project) and fill values. Secrets must not be committed.
+
+Quick start:
+
+```bash
+pnpm i
+pnpm dev
+```
+
+Open `/login`, connect Phantom, sign the SIWS message, and you will be redirected to `/engine`. On first verified login your wallet is auto-set as master for the first group (if none).
 
 Required environment variables:
 - `HELIUS_RPC_URL` - Helius RPC endpoint for Solana

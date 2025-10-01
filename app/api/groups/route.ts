@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/server/apiError';
+import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import {
   loadWalletGroups,
@@ -6,7 +8,14 @@ import {
   updateWalletGroup,
   deleteWalletGroup,
 } from '@/lib/server/walletGroups';
-import { listGroup } from '@/lib/server/keystore';
+// Optional: attempt to list existing pubkeys from keystore if present
+let listGroup: ((name: string) => string[]) | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  listGroup = require('@/lib/server/keystore').listGroup as (name: string) => string[];
+} catch {
+  listGroup = null;
+}
 import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
 
 export const runtime = 'nodejs';
@@ -23,7 +32,10 @@ const UpdateGroupSchema = z.object({
   name: z.string().min(1).max(50).optional(),
   masterWallet: z.string().optional(),
   devWallet: z.string().optional(),
-  sniperWallets: z.array(z.string()).max(WALLET_GROUP_CONSTRAINTS.MAX_SNIPER_WALLETS).optional(),
+  sniperWallets: z
+    .array(z.string())
+    .max(WALLET_GROUP_CONSTRAINTS.MAX_SNIPER_WALLETS)
+    .optional(),
 });
 
 const DeleteGroupSchema = z.object({
@@ -39,10 +51,8 @@ export async function GET() {
     const groups = loadWalletGroups();
     return NextResponse.json({ groups });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to load groups' },
-      { status: 500 }
-    );
+    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_get_failed'), { extra: { route: '/api/groups' } }); } catch {}
+    return apiError(500, 'failed');
   }
 }
 
@@ -58,11 +68,13 @@ export async function POST(request: Request) {
     // Get wallets from keystore group (if exists) or generate new ones
     let executionWallets: string[] = [];
     
-    try {
-      // Try to load from existing keystore group
-      executionWallets = listGroup(validated.name);
-    } catch {
-      // Group doesn't exist in keystore yet - will be created separately
+    if (listGroup) {
+      try {
+        executionWallets = listGroup(validated.name);
+      } catch {
+        executionWallets = [];
+      }
+    } else {
       executionWallets = [];
     }
     
@@ -71,16 +83,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: error.issues },
-        { status: 400 }
-      );
+      return apiError(400, 'invalid_request');
     }
-    
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_post_failed'), { extra: { route: '/api/groups' } }); } catch {}
+    return apiError(400, (error as Error).message || 'failed');
   }
 }
 
@@ -98,16 +104,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ group });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: error.issues },
-        { status: 400 }
-      );
+      return apiError(400, 'invalid_request');
     }
-    
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_put_failed'), { extra: { route: '/api/groups' } }); } catch {}
+    return apiError(400, (error as Error).message || 'failed');
   }
 }
 
@@ -132,15 +132,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: error.issues },
-        { status: 400 }
-      );
+      return apiError(400, 'invalid_request');
     }
-    
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_delete_failed'), { extra: { route: '/api/groups' } }); } catch {}
+    return apiError(400, (error as Error).message || 'failed');
   }
 }

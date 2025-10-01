@@ -1,6 +1,6 @@
 const buckets = new Map<string, { tokens: number; ts: number }>();
 
-export function rateLimit(key: string, cap = 30, refillPerSec = 10): boolean {
+export function rateLimit(key: string, cap = 60, refillPerSec = 20): boolean {
   const now = Date.now();
   const b = buckets.get(key) ?? { tokens: cap, ts: now };
   const elapsed = (now - b.ts) / 1000;
