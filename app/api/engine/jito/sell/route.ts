@@ -43,18 +43,23 @@ export async function POST(request: Request) {
       walletToAmount[pub] = Number(amount);
     }
 
-    const transactions = await Promise.all(
-      keypairs.map(async (wallet) =>
-        buildJupiterSellTx({
-          wallet,
-          inputMint: params.mint,
-          outputMint: 'So11111111111111111111111111111111111111112',
-          amountTokens: Math.floor(((walletToAmount[wallet.publicKey.toBase58()] || 0) * params.percent) / 100),
-          slippageBps: params.slippageBps,
-          cluster: params.cluster,
+    const transactions = (
+      await Promise.all(
+        keypairs.map(async (wallet) => {
+          const base = walletToAmount[wallet.publicKey.toBase58()] || 0;
+          const amountTokens = Math.floor((base * params.percent) / 100);
+          if (!amountTokens || amountTokens <= 0) return null;
+          return buildJupiterSellTx({
+            wallet,
+            inputMint: params.mint,
+            outputMint: 'So11111111111111111111111111111111111111112',
+            amountTokens,
+            slippageBps: params.slippageBps,
+            cluster: params.cluster,
+          });
         })
       )
-    );
+    ).filter(Boolean) as any[];
 
     const result = await executeJitoBundle({
       transactions,

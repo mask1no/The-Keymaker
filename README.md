@@ -91,8 +91,6 @@ pnpm dev
 
 ```
 
----
-
 ## Env example (append or ensure these keys exist)
 
 ```
@@ -103,7 +101,7 @@ HELIUS_WS_URL=
 JITO_HTTP_URL=
 JITO_REGION=auto
 JITO_TIP_LAMPORTS_DEFAULT=100000
-JUPITER_QUOTE_API=[https://quote-api.jup.ag/v6](https://quote-api.jup.ag/v6)
+JUPITER_QUOTE_API=https://quote-api.jup.ag/v6
 BIRDEYE_API_KEY=
 KEYMAKER_ALLOW_LIVE=NO
 KEYMAKER_REQUIRE_ARMING=YES
@@ -135,9 +133,4 @@ PORT=3000
 - Coin create (Pump.fun) with metadata build; dev buy; multi-buy modes.
 - Manual per-wallet sells in RPC mode; batched JITO sells.
 - P&L with CSV export.
-- Updated `md/PRD.md` and `README.md` exactly as above.
-
----
-
- 
-
+- Updated `md/PRD.md` and `README.md`.

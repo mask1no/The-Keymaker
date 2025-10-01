@@ -65,16 +65,23 @@ export async function POST(request: Request) {
       dryRun: params.dryRun,
       cluster: params.cluster,
       intentHash: `sell:${params.mint}:${params.percent}:${params.slippageBps}`,
-      buildTx: async (wallet) =>
-        buildJupiterSellTx({
+      buildTx: async (wallet) => {
+        const base = walletToAmount[wallet.publicKey.toBase58()] || 0;
+        const amountTokens = Math.floor((base * params.percent) / 100);
+        if (!amountTokens || amountTokens <= 0) {
+          // Skip building tx for zero balance
+          throw new Error('skip_zero_balance');
+        }
+        return buildJupiterSellTx({
           wallet,
           inputMint: params.mint,
           outputMint: 'So11111111111111111111111111111111111111112',
-          amountTokens: Math.floor(((walletToAmount[wallet.publicKey.toBase58()] || 0) * params.percent) / 100),
+          amountTokens,
           slippageBps: params.slippageBps,
           cluster: params.cluster,
           priorityFeeMicrolamports: params.priorityFeeMicrolamports,
-        }),
+        });
+      },
     });
 
     return NextResponse.json(result);
