@@ -25,7 +25,11 @@ export const dynamic = 'force-dynamic';
 
 const CreateGroupSchema = z.object({
   name: z.string().min(1).max(50),
-  numberOfWallets: z.number().min(0).max(WALLET_GROUP_CONSTRAINTS.MAX_WALLETS_PER_GROUP).default(0),
+  numberOfWallets: z
+    .number()
+    .min(0)
+    .max(WALLET_GROUP_CONSTRAINTS.MAX_WALLETS_PER_GROUP)
+    .default(0),
 });
 
 const UpdateGroupSchema = z.object({
@@ -71,6 +75,7 @@ export async function POST(request: Request) {
     const user = session?.userPubkey;
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     
+    // Namespacing: force masterWallet from session; ignore client-provided masterWallet
     // Get wallets from keystore group (if exists) or generate new ones
     let executionWallets: string[] = [];
     

@@ -6,6 +6,8 @@ import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
 import { getUiSettings } from '@/lib/server/settings';
 import { enforcePriorityFeeCeiling, enforceConcurrencyCeiling } from '@/lib/server/productionGuards';
+import { Connection } from '@solana/web3.js';
+import { getSplTokenBalance } from '@/lib/core/src/balances';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,9 +41,15 @@ export async function POST(request: Request) {
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
-    // TODO: Determine per-wallet token balance to compute amountTokens by percent.
-    // For now, assume amountTokens is signaled via percent of a placeholder balance (to be wired later).
-    const placeholderAmount = 1_000_000; // replace with actual token balance resolution
+    // Resolve per-wallet token balances for the input mint
+    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpc, 'confirmed');
+    const walletToAmount: Record<string, number> = {};
+    for (const kp of keypairs) {
+      const pub = kp.publicKey.toBase58();
+      const { amount } = await getSplTokenBalance(connection, pub, params.mint);
+      walletToAmount[pub] = Number(amount);
+    }
 
     if (params.afterMs && params.afterMs > 0) {
       await new Promise((r) => setTimeout(r, Math.min(params.afterMs, 60_000)));
@@ -62,7 +70,7 @@ export async function POST(request: Request) {
           wallet,
           inputMint: params.mint,
           outputMint: 'So11111111111111111111111111111111111111112',
-          amountTokens: Math.floor((placeholderAmount * params.percent) / 100),
+          amountTokens: Math.floor(((walletToAmount[wallet.publicKey.toBase58()] || 0) * params.percent) / 100),
           slippageBps: params.slippageBps,
           cluster: params.cluster,
           priorityFeeMicrolamports: params.priorityFeeMicrolamports,

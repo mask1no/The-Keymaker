@@ -139,9 +139,5 @@ PORT=3000
 
 ---
 
-**End of master prompt.**
-
----
-
-You’re set. Paste that into Cursor, run it against your repo, and you’ll get code changes + updated docs that match everything we agreed. When you’re ready for the next pass (fee heuristics, bonding-curve precision, or Tauri vault hardening), we can extend the prompt with those modules.
+ 
 

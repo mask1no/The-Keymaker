@@ -103,6 +103,9 @@ export default function CreateForm() {
       const j = await res.json();
       if (!res.ok || j.error) throw new Error(j.error || 'launch_failed');
       setResult({ mint: j.mint || null, simulated: j.simulated || false });
+      if (j.mint) {
+        useDraftStore.getState().setLastMint(j.mint);
+      }
     } catch (e: any) {
       setResult({ error: e?.message || 'launch_failed' });
     } finally {

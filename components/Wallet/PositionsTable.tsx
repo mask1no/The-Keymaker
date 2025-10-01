@@ -1,15 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Position = {
   wallet: string;
   mint: string;
   sizeTokens?: number;
-  avgEntry?: number;
-  pnlPct?: number;
+  decimals?: number;
+  uiAmount?: number;
 };
 
-export default function PositionsTable({ groupId }: { groupId: string }) {
+export default function PositionsTable({ groupId, mint }: { groupId: string; mint: string }) {
   const [positions, setPositions] = useState<Position[]>([]);
   const [percent, setPercent] = useState(100);
   const [afterMs, setAfterMs] = useState(0);
@@ -17,10 +17,35 @@ export default function PositionsTable({ groupId }: { groupId: string }) {
   const [priorityFee, setPriorityFee] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const hasParams = useMemo(() => !!groupId && !!mint, [groupId, mint]);
+
   useEffect(() => {
-    // TODO: fetch actual positions when backend aggregated
-    setPositions([]);
-  }, [groupId]);
+    let abort = false;
+    async function run() {
+      if (!hasParams) {
+        setPositions([]);
+        return;
+      }
+      try {
+        const url = `/api/positions?groupId=${encodeURIComponent(groupId)}&mint=${encodeURIComponent(mint)}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+          setPositions([]);
+          return;
+        }
+        const j = await res.json();
+        if (abort) return;
+        const ps = (j.positions || []) as Position[];
+        setPositions(ps);
+      } catch {
+        if (!abort) setPositions([]);
+      }
+    }
+    run();
+    return () => {
+      abort = true;
+    };
+  }, [groupId, mint, hasParams]);
 
   async function sellAll(p: Position) {
     await sell(p, 100, 0);
@@ -46,6 +71,7 @@ export default function PositionsTable({ groupId }: { groupId: string }) {
           slippageBps,
           priorityFeeMicrolamports: priorityFee || undefined,
           dryRun: true,
+          wallets: [p.wallet],
         }),
       });
       await res.json();
@@ -75,7 +101,7 @@ export default function PositionsTable({ groupId }: { groupId: string }) {
             <div className="flex items-center gap-2">
               <span className="font-mono">{p.wallet.slice(0, 6)}…{p.wallet.slice(-6)}</span>
               <span className="text-zinc-400">{p.mint.slice(0, 4)}…{p.mint.slice(-4)}</span>
-              {typeof p.sizeTokens === 'number' && <span>{p.sizeTokens} tokens</span>}
+              {typeof p.uiAmount === 'number' && <span>{p.uiAmount} tokens</span>}
             </div>
             <div className="flex items-center gap-2">
               <button disabled={loading} onClick={() => sellAll(p)} className="button bg-zinc-800 hover:bg-zinc-700 px-2 py-1">Sell All</button>

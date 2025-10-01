@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDraftStore } from '@/stores/useDraftStore';
 
 type Market = {
   mint: string;
@@ -12,10 +13,15 @@ type Market = {
 };
 
 export default function MarketPanel() {
+  const draft = useDraftStore((s) => s.draft);
   const [mint, setMint] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [market, setMarket] = useState<Market | null>(null);
+
+  useEffect(() => {
+    if (draft?.lastMint) setMint(draft.lastMint);
+  }, [draft?.lastMint]);
 
   async function fetchMarket(e: React.FormEvent) {
     e.preventDefault();
