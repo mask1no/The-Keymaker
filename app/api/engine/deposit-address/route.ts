@@ -21,6 +21,9 @@ function requireToken(headers: Headers) {
 
 export async function GET(request: Request) {
   try {
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      return apiError(503, 'live_disabled');
+    }
     if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';

@@ -1,32 +1,6 @@
 /* eslint-disable import/no-commonjs */
 /** @type {import('next').NextConfig} */
 const isProdEnv = process.env.NODE_ENV === 'production';
-const CSP_PROD =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
-  "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: chrome-extension: moz-extension: ms-browser-extension:;";
-// Relaxed for Next.js dev: allow unsafe-eval and websocket HMR
-const CSP_DEV =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
-  "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'; connect-src 'self' https: http: ws: wss: chrome-extension: moz-extension: ms-browser-extension:;";
-
-const SECURITY_HEADERS = [
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'Referrer-Policy', value: 'no-referrer' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-  { key: 'Content-Security-Policy', value: isProdEnv ? CSP_PROD : CSP_DEV },
-  // Add HSTS only in production
-  ...(isProdEnv
-    ? [
-        {
-          key: 'Strict-Transport-Security',
-          value: 'max-age=31536000; includeSubDomains; preload',
-        },
-      ]
-    : []),
-];
-
-// Analyzer toggle is read directly from env below
 
 const nextConfig = {
   poweredByHeader: false,
@@ -139,19 +113,18 @@ const nextConfig = {
     return config;
   },
   async headers() {
+    if (!isProdEnv) return [];
     return [
       {
         source: '/(.*)',
-        headers: SECURITY_HEADERS,
-      },
-      {
-        source: '/api/:path*',
         headers: [
-          { key: 'X-Robots-Tag', value: 'noindex' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.ALLOWED_ORIGINS || 'same-origin' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, x-engine-token' },
-          { key: 'Access-Control-Max-Age', value: '86400' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'Content-Security-Policy', value:
+            "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" },
         ],
       },
     ];

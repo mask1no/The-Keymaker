@@ -54,8 +54,9 @@ export async function POST(request: Request) {
       walletToAmount[pub] = Number(amount);
     }
 
-    if (params.afterMs && params.afterMs > 0) {
-      await new Promise((r) => setTimeout(r, Math.min(params.afterMs, 60_000)));
+    if (typeof params.afterMs === 'number' && params.afterMs > 0) {
+      const delay = Math.min(params.afterMs as number, 60_000);
+      await new Promise((r) => setTimeout(r, delay));
     }
 
     // Read UI settings only if needed later

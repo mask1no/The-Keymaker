@@ -55,6 +55,7 @@
     "coverage",
     "dist",
     "components/WalletManager/**",
+    "components/UI/StatusBentoPanel.tsx",
     "hooks/useJupiter.ts",
     "hooks/useSystemStatus.ts",
     "helpers/puppeteerHelper.ts",

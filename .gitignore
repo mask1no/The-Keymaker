@@ -44,10 +44,14 @@ logs/
 *.tsbuildinfo
 next-env.d.ts
 
+# Local tools/runtime bundles (do not commit)
+.tools/
+
 # Database and data
 *.db
 *.db-journal
 data/
+data/*.db
 
 # Private keys and wallets
 wallets/
@@ -57,6 +61,9 @@ keypairs/**
 *.p12
 **/*keypair*.json
 **/*private*.json
+
+# Local challenge signer (do not commit generated secret)
+config/challenge-signer.json
 
 # Journals (daily)
 data/journal*.ndjson

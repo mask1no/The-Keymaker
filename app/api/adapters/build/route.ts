@@ -26,9 +26,9 @@ export async function POST(req: Request) {
     symbol: z.string().min(1).max(16),
     description: z.string().max(280).optional(),
     image: z.string().url().optional().default(''),
-    website: z.string().url().optional().nullable().optional(),
-    twitter: z.string().url().optional().nullable().optional(),
-    telegram: z.string().url().optional().nullable().optional(),
+    website: z.string().url().optional(),
+    twitter: z.string().url().optional(),
+    telegram: z.string().url().optional(),
   });
   try {
     const params = BuildSchema.parse(body);

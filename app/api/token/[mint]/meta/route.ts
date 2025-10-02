@@ -62,14 +62,14 @@ async function fetchBirdeye(mint: string, apiKey?: string) {
 async function fetchMetaplexOnchain(mint: string) {
   try {
     const { PublicKey, Connection } = await import('@solana/web3.js');
-    const { Metadata } = await import('@metaplex-foundation/mpl-token-metadata');
+    const mpl = await import('@metaplex-foundation/mpl-token-metadata');
     const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const mintPk = new PublicKey(mint);
-    const pdas = await Metadata.pda(mintPk);
+    const pdas = await (mpl as any).Metadata.pda(mintPk);
     const acc = await connection.getAccountInfo(pdas, 'confirmed');
     if (!acc) return null;
-    const meta = Metadata.fromAccountInfo(acc)[0];
+    const meta = (mpl as any).Metadata.fromAccountInfo(acc)[0];
     const uri = meta?.data?.uri?.trim();
     if (!uri) return null;
     const res = await fetch(uri, { next: { revalidate: 300 } });

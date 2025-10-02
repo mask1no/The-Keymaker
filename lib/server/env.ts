@@ -1,3 +1,19 @@
+export function requireEnv(key: string): string {
+  const v = process.env[key];
+  if (!v) throw new Error(`Missing env: ${key}`);
+  return v;
+}
+
+export function warnEnv(key: string): void {
+  if (!process.env[key]) console.warn(`[warn] Optional env not set: ${key}`);
+}
+
+export function assertServerOnly(keys: string[]): void {
+  for (const k of keys) {
+    if (k.startsWith('NEXT_PUBLIC_')) throw new Error(`Server-only keys must not be NEXT_PUBLIC: ${k}`);
+  }
+}
+
 import 'server-only';
 
 type EnvIssue = { level: 'error' | 'warn'; message: string };

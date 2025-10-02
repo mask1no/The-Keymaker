@@ -2,6 +2,7 @@ import 'server-only';
 import { Connection, Commitment } from '@solana/web3.js';
 import type { HealthStatus, HealthLight } from '@/lib/types/health';
 import { getTipFloor } from '@/lib/core/src/jito';
+import { reportRpcHealth } from '@/lib/network';
 
 // Persistent WS heartbeat state (process scoped)
 type HeartbeatState = {
@@ -141,6 +142,7 @@ export async function probeHealth(): Promise<HealthStatus> {
   const [rpc, jito] = await Promise.all([probeRpc(), probeJito()]);
   const ws = probeWs();
   const sm = await probeSm(rpc.slot);
+  try { reportRpcHealth(rpc.light); } catch {}
   return {
     jito: { light: jito.light, latencyMs: jito.latencyMs, tipFloor: jito.tipFloor, lastAt: jito.lastAt, message: jito.message },
     rpc: { light: rpc.light, latencyMs: rpc.latencyMs, endpoint: rpc.endpoint, lastAt: rpc.lastAt, message: rpc.message },

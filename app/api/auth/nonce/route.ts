@@ -16,10 +16,10 @@ const NonceRequestSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
-    const key = `auth:${fwd || 'anon'}`;
-    const rl = await rateLimit(request);
-    if (rl) return rl;
+    const rl = await rateLimit((request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon');
+    if (!rl) {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    }
     const body = await request.json();
     const { pubkey } = NonceRequestSchema.parse(body);
     
