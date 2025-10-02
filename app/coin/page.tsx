@@ -1,10 +1,9 @@
+"use client";
 export const dynamic = 'force-dynamic';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useEffect, useState } from 'react';
 import MarketPanel from '@/components/Coin/MarketPanel';
 import PositionsTable from '@/components/Wallet/PositionsTable';
-import { useEffect, useState } from 'react';
-import { useDraftStore } from '@/stores/useDraftStore';
 import CreateForm from '@/components/Coin/CreateForm';
 
 export default function CoinPage() {
