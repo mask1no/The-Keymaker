@@ -1,34 +1,26 @@
-# 🔧 REMAINING FIXES & IMPROVEMENTS - The Keymaker
-**Based on:** 5th Comprehensive Audit  
-**Priority:** Post-deployment iterations  
-**Approach:** Ship first, enhance based on real usage
+## Production Hardening Audit (Latest)
 
----
+- Security headers: CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy, and HSTS (prod) configured in `next.config.js`.
+- Auth/session: SIWS session cookie is HttpOnly, Secure in prod, SameSite=Lax in `lib/server/session.ts`.
+- API keys: Env validator `lib/server/env.ts` ensures server-only keys are not exposed via `NEXT_PUBLIC_*` and warns/errors on risky values.
+- Kill switch: `KEYMAKER_DISABLE_LIVE_NOW=YES` blocks all `/api/engine/*` in `middleware.ts` and inside route handlers with 503.
+- Rate limiting: In-memory limiter on engine and pumpfun routes with per-route prefixes; global header-based limiter in middleware.
+- Logging redaction: `lib/core/src/journal.ts` sanitizer redacts secrets/tokens/authorization and long opaque strings.
+- RPC failover: `HELIUS_RPC_URL` → `SECONDARY_RPC_URL` → public fallback in `lib/server/rpc.ts`, engine RPC helpers updated.
+- WS reconnect: Client WS heartbeat uses exponential backoff with jitter (max 30s) in `components/layout/StatusCluster.tsx`.
+- Readiness: `/api/ready` returns 503 if RPC or WS lights are not green, based on `probeHealth()`.
+- Type safety: Fixed compile error in `lib/server/health.ts`; tightened regex escapes in env/journal.
 
-## CONGRATULATIONS! 🎉
-**The critical fixes from the 48-hour guide have been implemented.**  
-The app now runs, builds, and is deployable. The remaining items are **enhancements**, not blockers.
+Quick checks:
+- No uses of `eval`, `new Function`, or `dangerouslySetInnerHTML` found.
+- `child_process` usage limited to dev scripts; not reachable in runtime.
+- Plain http:// URLs only in test/dev contexts.
+- No embedded large binary/base64 blobs found in source.
 
----
-
-## Priority 0: DEPLOY FIRST ✅
-
-### You're Ready to Deploy Now
-```bash
-# Verify one more time
-node scripts/validate-production.mjs
-
-# Should show: ✅ ALL CHECKS PASSED (7/7)
-
-# Deploy to Vercel (easiest)
-vercel --prod
-```
-
-**Keep these settings for safety:**
-```env
-DRY_RUN=true
-KEYMAKER_DISABLE_LIVE=YES
-```
+Recommended follow-ups:
+- Add log rotation/retention for `data/journal.ndjson`.
+- Optionally enable Redis-backed rate limiting in prod path.
+- Expand unit tests for kill switch and readiness.
 
 ---
 
