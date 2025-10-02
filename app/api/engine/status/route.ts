@@ -35,6 +35,10 @@ function requireToken(headers: Headers) {
 export async function POST(request: Request) {
   try {
     const requestId = randomUUID();
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      incCounter('engine_4xx_total');
+      return apiError(503, 'live_disabled', requestId);
+    }
     if (!requireToken(request.headers)) {
       incCounter('token_missing_total');
       incCounter('engine_4xx_total');
@@ -46,7 +50,7 @@ export async function POST(request: Request) {
     }
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(key)) {
+    if (!rateLimit(`engine:${key}`)) {
       incCounter('rate_limited_total');
       return apiError(429, 'rate_limited', requestId);
     }

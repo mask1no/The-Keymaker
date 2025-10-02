@@ -22,10 +22,21 @@ export function createDailyJournal(dir: string): string {
 function sanitize(obj: any): any {
   if (obj == null || typeof obj !== 'object') return obj;
   const out: any = Array.isArray(obj) ? [] : {};
-  const re = /(key|secret|token|pass)/i;
+  const keyRe = /(key|secret|token|pass|authorization|cookie|set-cookie)/i;
   for (const [k, v] of Object.entries(obj)) {
-    if (re.test(k)) out[k] = '[redacted]';
-    else out[k] = typeof v === 'object' ? sanitize(v as any) : v;
+    if (keyRe.test(k)) {
+      out[k] = '[redacted]';
+    } else if (typeof v === 'string') {
+      // Remove long opaque tokens embedded in strings
+      let s = v.replace(/(api[-_ ]?key=)[^&\s]+/gi, '$1[redacted]');
+      s = s.replace(/(authorization:?)\s*bearer\s+[A-Za-z0-9._-]+/gi, '$1 Bearer [redacted]');
+      s = s.replace(/[A-Za-z0-9_-]{48,}/g, '[redacted]');
+      out[k] = s;
+    } else if (typeof v === 'object') {
+      out[k] = sanitize(v as any);
+    } else {
+      out[k] = v;
+    }
   }
   return out;
 }

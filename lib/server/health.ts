@@ -82,7 +82,8 @@ async function probeRpc(): Promise<{ light: HealthLight; latencyMs?: number; end
     slot = await conn.getSlot('processed');
     latency = Date.now() - t0;
     try {
-      await conn.getHealth();
+      // Some providers expose getHealth; optional and not typed in web3.js
+      await (conn as any).getHealth?.();
     } catch {}
   } catch (e: any) {
     message = e?.message || 'RPC unreachable';

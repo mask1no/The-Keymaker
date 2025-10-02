@@ -11,6 +11,13 @@ export async function middleware(req: Request) {
   
   // Handle API routes with rate limiting and token validation
   if (path.startsWith('/api/')) {
+    // Global kill switch for engine routes
+    if (path.startsWith('/api/engine/')) {
+      const kill = (process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES';
+      if (kill) {
+        return NextResponse.json({ ok: false, error: 'live_disabled' }, { status: 503 });
+      }
+    }
     // Apply rate limiting to all API routes
     const identifier = getRateLimitIdentifier(req);
     const rateLimitResult = await checkRateLimit(identifier);

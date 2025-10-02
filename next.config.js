@@ -15,6 +15,15 @@ const SECURITY_HEADERS = [
   { key: 'Referrer-Policy', value: 'no-referrer' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'Content-Security-Policy', value: isProdEnv ? CSP_PROD : CSP_DEV },
+  // Add HSTS only in production
+  ...(isProdEnv
+    ? [
+        {
+          key: 'Strict-Transport-Security',
+          value: 'max-age=31536000; includeSubDomains; preload',
+        },
+      ]
+    : []),
 ];
 
 // Analyzer toggle is read directly from env below

@@ -34,6 +34,7 @@ const Body = z.object({
 export async function POST(request: Request) {
   const requestId = randomUUID();
   try {
+    // Per-route limiter key
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
     if (!rateLimit(`pump:${key}`, 15, 5)) return apiError(429, 'rate_limited', requestId);

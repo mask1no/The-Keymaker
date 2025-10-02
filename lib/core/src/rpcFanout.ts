@@ -16,9 +16,13 @@ import { createDailyJournal, logJsonLine } from './journal';
 
 function getRpcUrl(cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): string {
   if (cluster === 'devnet') {
-    return process.env.HELIUS_RPC_DEVNET_URL || process.env.PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
+    const primary = process.env.HELIUS_RPC_DEVNET_URL || '';
+    const secondary = process.env.SECONDARY_RPC_DEVNET_URL || '';
+    return primary || secondary || process.env.PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
   }
-  return process.env.HELIUS_RPC_URL || process.env.PUBLIC_RPC_URL || 'https://api.mainnet-beta.solana.com';
+  const primary = process.env.HELIUS_RPC_URL || '';
+  const secondary = process.env.SECONDARY_RPC_URL || '';
+  return primary || secondary || process.env.PUBLIC_RPC_URL || 'https://api.mainnet-beta.solana.com';
 }
 
 /**

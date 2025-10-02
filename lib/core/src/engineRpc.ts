@@ -22,17 +22,15 @@ function sleep(ms: number) {
 
 function getRpc(cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): string {
   if (cluster === 'devnet') {
-    return (
-      process.env.HELIUS_RPC_DEVNET_URL ||
-      process.env.NEXT_PUBLIC_HELIUS_RPC_DEVNET ||
-      'https://api.devnet.solana.com'
-    );
+    const primary = process.env.HELIUS_RPC_DEVNET_URL || '';
+    const secondary = process.env.SECONDARY_RPC_DEVNET_URL || '';
+    const pub = process.env.NEXT_PUBLIC_HELIUS_RPC_DEVNET || '';
+    return primary || secondary || pub || 'https://api.devnet.solana.com';
   }
-  return (
-    process.env.HELIUS_RPC_URL ||
-    process.env.NEXT_PUBLIC_HELIUS_RPC ||
-    'https://api.mainnet-beta.solana.com'
-  );
+  const primary = process.env.HELIUS_RPC_URL || process.env.RPC_URL || '';
+  const secondary = process.env.SECONDARY_RPC_URL || process.env.PUBLIC_RPC_URL || '';
+  const pub = process.env.NEXT_PUBLIC_HELIUS_RPC || '';
+  return primary || secondary || pub || 'https://api.mainnet-beta.solana.com';
 }
 
 export class RpcEngine implements Engine {

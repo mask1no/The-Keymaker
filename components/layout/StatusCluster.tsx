@@ -27,20 +27,45 @@ export default function StatusCluster() {
     setNet(rpcUrl.includes('devnet') ? 'DEVNET' : rpcUrl ? 'MAINNET' : 'UNKNOWN');
     const wsUrl = (process.env.NEXT_PUBLIC_HELIUS_WS || '').trim();
     if (!wsUrl) return setWsLight('red');
-    try {
-      const s = new WebSocket(wsUrl);
-      let opened = false;
-      s.onopen = () => {
-        opened = true;
-        setWsLight('green');
-        s.close();
-      };
-      s.onerror = () => {
-        if (!opened) setWsLight('red');
-      };
-    } catch {
-      setWsLight('red');
-    }
+    let attempt = 0;
+    let stopped = false;
+
+    const connect = () => {
+      if (stopped) return;
+      try {
+        const s = new WebSocket(wsUrl);
+        let opened = false;
+        s.onopen = () => {
+          opened = true;
+          attempt = 0;
+          setWsLight('green');
+          s.close();
+        };
+        s.onerror = () => {
+          if (!opened) setWsLight('red');
+        };
+        s.onclose = () => {
+          if (stopped) return;
+          // exponential backoff with jitter up to 30s
+          attempt += 1;
+          const base = Math.min(30_000, 500 * 2 ** attempt);
+          const jitter = Math.floor(Math.random() * 300);
+          const delay = Math.min(30_000, base + jitter);
+          setTimeout(connect, delay);
+        };
+      } catch {
+        setWsLight('red');
+        attempt += 1;
+        const base = Math.min(30_000, 500 * 2 ** attempt);
+        const jitter = Math.floor(Math.random() * 300);
+        const delay = Math.min(30_000, base + jitter);
+        setTimeout(connect, delay);
+      }
+    };
+    connect();
+    return () => {
+      stopped = true;
+    };
   }, []);
 
   const rpc = health?.rpc;

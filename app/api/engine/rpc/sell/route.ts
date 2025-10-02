@@ -27,6 +27,9 @@ const RpcSellSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
+    }
     const body = await request.json();
     const params = RpcSellSchema.parse(body);
 
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
       await new Promise((r) => setTimeout(r, Math.min(params.afterMs, 60_000)));
     }
 
-    const ui = getUiSettings();
+    // Read UI settings only if needed later
     const pri = enforcePriorityFeeCeiling(params.priorityFeeMicrolamports || 0, 1_000_000);
     const conc = enforceConcurrencyCeiling(params.concurrency, 16);
     const result = await executeRpcFanout({

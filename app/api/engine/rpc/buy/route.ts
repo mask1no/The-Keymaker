@@ -23,6 +23,9 @@ const RpcBuySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
+    }
     const body = await request.json();
     const params = RpcBuySchema.parse(body);
 
@@ -36,7 +39,7 @@ export async function POST(request: Request) {
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
-    const ui = getUiSettings();
+    // Read UI settings only if needed later
     const pri = enforcePriorityFeeCeiling(params.priorityFeeMicrolamports || 0, 1_000_000);
     const conc = enforceConcurrencyCeiling(params.concurrency, 16);
     const result = await executeRpcFanout({

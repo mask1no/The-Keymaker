@@ -28,6 +28,9 @@ const JitoBuySchema = z.object({
  */
 export async function POST(request: Request) {
   try {
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
+    }
     const body = await request.json();
     const params = JitoBuySchema.parse(body);
     
