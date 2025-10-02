@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import MobileMenu from '@/components/layout/MobileMenu';
+import TopPills from '@/components/layout/TopPills';
 import { getSession, clearSessionCookie } from '@/lib/server/session';
 import { revalidatePath } from 'next/cache';
 
@@ -49,29 +50,30 @@ function SessionStrip() {
 }
 
 function Header() {
+  const dry = (process.env.DRY_RUN_DEFAULT || 'YES').toUpperCase() === 'YES';
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-800/70 bg-zinc-950/70 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
-      <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+      <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-4">
         <a href="/" className="text-xl md:text-2xl font-semibold tracking-wide">
           Keymaker
         </a>
-        <nav className="hidden md:flex items-center gap-4 text-sm">
-          <a href="/home">Home</a>
-          <a href="/coin">Coin</a>
-          <a href="/coin-library">Coin Library</a>
-          <a href="/wallets">Wallets</a>
-          <a href="/pnl">P&L</a>
-          <a href="/settings">Settings</a>
-          <a href="/login">Login</a>
-          <SessionStrip />
-        </nav>
-        <MobileMenu />
-      </div>
-      {process.env.DRY_RUN === 'true' && (
-        <div className="w-full bg-amber-600/15 text-amber-300 text-center text-xs py-1 border-t border-amber-500/30">
-          DRY RUN MODE — No live transactions will be sent.
+        <div className="mx-auto text-xs">
+          {dry ? (
+            <div className="px-3 py-1 rounded-md border border-amber-500/30 text-amber-300 bg-amber-600/10">
+              DRY RUN MODE — No live transactions will be sent.
+            </div>
+          ) : (
+            <div className="px-3 py-1 rounded-md border border-red-500/30 text-red-300 bg-red-600/10">
+              LIVE ARMED — Funds at risk.
+            </div>
+          )}
         </div>
-      )}
+        <TopPills />
+        <div className="ml-2 flex items-center gap-3 text-sm">
+          <SessionStrip />
+          <MobileMenu />
+        </div>
+      </div>
     </header>
   );
 }
@@ -88,11 +90,23 @@ function SideNav() {
   return (
     <aside className="hidden md:block w-56 md:w-60 lg:w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
       <nav className="flex flex-col gap-1 text-sm">
-        {items.map((x) => (
-          <a key={x.name} href={x.href} className="rounded-xl px-3 py-2 hover:bg-zinc-800/50 transition-colors">
-            {x.name}
-          </a>
-        ))}
+        {items.map((x) => {
+          const isActive = typeof location !== 'undefined' && location.pathname === x.href;
+          return (
+            <a
+              key={x.name}
+              href={x.href}
+              className={`relative rounded-xl px-3 py-2 transition-colors ${
+                isActive ? 'bg-zinc-900/60 font-semibold' : 'hover:bg-zinc-800/50'
+              }`}
+            >
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-violet-500 rounded-full" />
+              )}
+              {x.name}
+            </a>
+          );
+        })}
       </nav>
     </aside>
   );

@@ -1,3 +1,18 @@
+## UI API Endpoints
+
+These endpoints back the cockpit UI and are safe in dry-run by default:
+
+- `GET /api/ui/settings` – Returns current UI settings cookie (mode, dryRun, cluster, liveMode)
+- `POST /api/ui/settings` – Update UI settings (body: `{ mode?: 'JITO_BUNDLE'|'RPC_FANOUT', dryRun?: boolean, cluster?: 'mainnet-beta'|'devnet', liveMode?: boolean }`)
+- `GET /api/ops/status` – Returns `{ armed: boolean, armedUntil: number }`
+- `POST /api/ops/arm` – Arm live mode for minutes `{ minutes: number }` (still gated by env & middleware)
+- `POST /api/ops/disarm` – Disarm live mode immediately
+- `GET /api/journal/recent` – Last 10 events of the current-day journal
+
+Notes:
+- Live operations remain blocked unless env and middleware allow (KEYMAKER_DISABLE_LIVE_NOW, KEYMAKER_REQUIRE_ARMING, KEYMAKER_ALLOW_LIVE).
+- Dry-run should remain ON by default; toggle is available in the header pills.
+
 # The Keymaker (MVP)
 
 A **local, non-custodial Solana bundler cockpit**. Create tokens (Pump.fun), do dev/multi-wallet buys, and exit positions—using either **JITO bundles** (atomic ≤5) or **RPC fan-out** (fast, non-atomic).

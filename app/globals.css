@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --k-bg:#0b0b0c; --k-surface:#111113; --k-border:#222326;
+  --k-text:#e7e7ea; --k-muted:#9a9aa3;
+  --k-success:#10b981; --k-warn:#f59e0b; --k-danger:#ef4444; --k-accent:#8b5cf6;
   --radius: 1.25rem;
 
   /* Theme tokens (HSL) */
@@ -37,8 +40,8 @@
 
 html,
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--k-bg);
+  color: var(--k-text);
 }
 
 a {
@@ -135,6 +138,8 @@ a:hover {
 }
 
 /* Utilities */
+.border-k{border-color:var(--k-border)}
+.text-muted{color:var(--k-muted)}
 .divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);

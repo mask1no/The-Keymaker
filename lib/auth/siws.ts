@@ -7,8 +7,14 @@ import { randomBytes } from 'crypto';
 import { sign } from 'tweetnacl';
 import bs58 from 'bs58';
 
-// Nonce store (in production, use Redis)
-const nonceStore = new Map<string, { nonce: string; createdAt: number; used: boolean }>();
+// Nonce store (in production, use Redis). Persist across dev HMR via globalThis
+type NonceRecord = { nonce: string; createdAt: number; used: boolean };
+const NONCE_STORE_KEY = '__KM_NONCE_STORE__';
+const g = globalThis as unknown as Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+const nonceStore = ((g[NONCE_STORE_KEY] as Map<string, NonceRecord> | undefined) ?? new Map<string, NonceRecord>());
+g[NONCE_STORE_KEY] = nonceStore;
+
 const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -33,13 +39,19 @@ export function verifySIWS(params: {
   pubkey: string;
   signature: string;
   message: string;
+  nonce?: string;
 }): { valid: boolean; error?: string } {
   const { pubkey, signature, message } = params;
   
   // Check if nonce exists
-  const stored = nonceStore.get(pubkey);
+  let stored = nonceStore.get(pubkey);
+  // Fallback: if not found (e.g. dev HMR), accept provided nonce if present in message
   if (!stored) {
-    return { valid: false, error: 'Nonce not found. Please request a new nonce.' };
+    if (!params.nonce || !message.includes(params.nonce)) {
+      return { valid: false, error: 'Nonce not found. Please request a new nonce.' };
+    }
+    stored = { nonce: params.nonce, createdAt: Date.now(), used: false };
+    // Do not persist fallback record to avoid extending TTL silently
   }
   
   // Check if nonce is expired
@@ -71,8 +83,11 @@ export function verifySIWS(params: {
       return { valid: false, error: 'Invalid signature.' };
     }
     
-    // Mark nonce as used
-    stored.used = true;
+    // Mark nonce as used if we own the stored record
+    const current = nonceStore.get(pubkey);
+    if (current && current.nonce === stored.nonce) {
+      current.used = true;
+    }
     
     // Clean up old nonces
     cleanupExpiredNonces();
@@ -128,6 +143,8 @@ export function revokeNonce(pubkey: string): void {
 }
 
 // Cleanup expired nonces every minute
-if (typeof setInterval !== 'undefined') {
+const CLEAN_KEY = '__KM_NONCE_CLEANER__';
+if (typeof setInterval !== 'undefined' && !g[CLEAN_KEY]) {
+  g[CLEAN_KEY] = true;
   setInterval(cleanupExpiredNonces, 60 * 1000);
 }

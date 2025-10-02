@@ -15,6 +15,7 @@ const VerifyRequestSchema = z.object({
   domain: z.string().optional(),
   uri: z.string().optional(),
   issuedAt: z.string().optional(),
+  nonce: z.string().optional(),
 });
 
 /**
@@ -26,13 +27,14 @@ export async function POST(request: Request) {
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = `authv:${fwd || 'anon'}`;
     const body = await request.json();
-    const { pubkey, signature, message } = VerifyRequestSchema.parse(body);
+    const { pubkey, signature, message, nonce } = VerifyRequestSchema.parse(body);
     
     // Verify signature
     const verification = verifySIWS({
       pubkey,
       signature,
       message,
+      nonce,
     });
     
     if (!verification.valid) {
