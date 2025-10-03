@@ -63,8 +63,19 @@ export async function POST(request: Request) {
       );
     }
     
-    // Enforce settings ceilings
+    // Enforce settings ceilings & LIVE gating
     const ui = getUiSettings();
+    const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
+    if (!params.dryRun) {
+      if (!ui.liveMode || !envLive) {
+        return NextResponse.json({ error: 'live_disabled' }, { status: 501 });
+      }
+      if ((process.env.KEYMAKER_REQUIRE_ARMING || '').toUpperCase() === 'YES') {
+        const { isArmed } = await import('@/lib/server/arming');
+        if (!isArmed()) return NextResponse.json({ error: 'not_armed' }, { status: 403 });
+      }
+    }
+    // Enforce tip ceiling
     const tip = enforceTipCeiling(params.tipLamports ?? (ui.tipLamports ?? 0), 200_000);
 
     // Build all transactions

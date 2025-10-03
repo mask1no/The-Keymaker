@@ -1,6 +1,7 @@
 import 'server-only';
 import { Connection, Commitment } from '@solana/web3.js';
 import type { HealthStatus, HealthLight } from '@/lib/types/health';
+import { getUiSettings } from '@/lib/server/settings';
 
 type HeartbeatState = {
   started: boolean;
@@ -20,8 +21,9 @@ function lightFromLatency(ms: number | undefined, healthy: number, degraded: num
 }
 
 function getRpcUrls(): { rpcUrl: string; wsUrl?: string } {
-  const rpcUrl = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
-  const wsUrl  = process.env.HELIUS_WS_URL  || process.env.NEXT_PUBLIC_HELIUS_WS  || undefined;
+  const ui = getUiSettings();
+  const rpcUrl = ui.rpcHttp || process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+  const wsUrl  = ui.wsUrl || process.env.HELIUS_WS_URL  || process.env.NEXT_PUBLIC_HELIUS_WS  || undefined;
   return { rpcUrl, wsUrl };
 }
 

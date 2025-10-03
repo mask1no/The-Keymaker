@@ -42,6 +42,19 @@ export async function POST(request: Request) {
     // Read UI settings only if needed later
     const pri = enforcePriorityFeeCeiling(params.priorityFeeMicrolamports || 0, 1_000_000);
     const conc = enforceConcurrencyCeiling(params.concurrency, 16);
+    // Enforce LIVE gating
+    const ui = getUiSettings();
+    const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
+    if (!params.dryRun) {
+      if (!ui.liveMode || !envLive) {
+        return NextResponse.json({ error: 'live_disabled' }, { status: 501 });
+      }
+      if ((process.env.KEYMAKER_REQUIRE_ARMING || '').toUpperCase() === 'YES') {
+        const { isArmed } = await import('@/lib/server/arming');
+        if (!isArmed()) return NextResponse.json({ error: 'not_armed' }, { status: 403 });
+      }
+    }
+
     const result = await executeRpcFanout({
       wallets: keypairs,
       concurrency: conc,

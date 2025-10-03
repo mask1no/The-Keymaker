@@ -21,6 +21,61 @@ cp .env.example .env
 - `KEYMAKER_SESSION_SECRET`: Generate with `openssl rand -hex 32`
 - `KEYPAIR_JSON`: Your execution keypair
 
+### DRY → LIVE Runbook
+
+1) Configure environment
+
+Add to `.env` (safe defaults):
+
+```
+DRY_RUN_DEFAULT=YES
+KEYMAKER_REQUIRE_ARMING=YES
+KEYMAKER_ALLOW_LIVE=NO
+NEXT_PUBLIC_APP_ORIGIN=https://app.example.com
+NEXT_PUBLIC_HELIUS_RPC=<your read RPC>
+HELIUS_RPC_URL=<your write or same RPC>
+HELIUS_WS_URL=<your WS>
+```
+
+2) Preflight & typecheck
+
+```
+pnpm preflight
+pnpm typecheck
+```
+
+3) Start and smoke locally
+
+```
+pnpm dev -p 3001
+pnpm smoke:local
+```
+
+4) Sign in and verify health
+
+- Open `/home`; ensure 4 lights show and WS is green if WS URL set
+- Check DRY RUN banner is visible
+
+5) Arm for live (when ready)
+
+- Click Arm 15m in the top bar → banner shows LIVE ARMED with countdown
+- Set `KEYMAKER_ALLOW_LIVE=YES` in env (and redeploy if needed)
+
+6) Send dust buy
+
+- Run a tiny Jito/RPC buy; confirm inclusion via RPC and WS
+- Disarm and flip `KEYMAKER_ALLOW_LIVE=NO` to return to DRY
+
+7) Official sites
+
+- Token creation uses Pump.fun’s official endpoint
+- Open Raydium swap via the official domain with a confirmation prompt
+
+8) Troubleshooting
+
+- If WS is amber/red: verify `HELIUS_WS_URL`
+- If live disabled: ensure UI Live Mode is ON and env `KEYMAKER_ALLOW_LIVE=YES`, and arming is active
+
 ### Deployment Options
 
 #### Option 1: Docker Deployment

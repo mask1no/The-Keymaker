@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { loadWalletGroups, createWalletGroup, updateWalletGroup, deleteWalletGroup } from '@/lib/server/walletGroups';
+import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,17 @@ export async function PUT(req: Request) {
   const parsed = UpdateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   try {
-    const g = updateWalletGroup(parsed.data);
+    // Enforce sniper count limit
+    const snipers = parsed.data.sniperWallets || [];
+    if (snipers.length > WALLET_GROUP_CONSTRAINTS.maxSnipers) {
+      return NextResponse.json({ error: 'too_many_snipers' }, { status: 400 });
+    }
+    const g = updateWalletGroup({ id: parsed.data.id, name: parsed.data.name, devWallet: parsed.data.devWallet || null, sniperWallets: snipers });
+    // Enforce overall wallet cap
+    const total = (g.masterWallet ? 1 : 0) + (g.devWallet ? 1 : 0) + g.sniperWallets.length + g.executionWallets.length;
+    if (total > WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup) {
+      return NextResponse.json({ error: 'too_many_wallets' }, { status: 400 });
+    }
     return NextResponse.json(g, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'update_failed' }, { status: 400 });

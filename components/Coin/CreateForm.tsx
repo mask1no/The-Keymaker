@@ -78,6 +78,11 @@ export default function CreateForm() {
     setLaunching(true);
     setResult(null);
     try {
+      // Confirm official sites for live actions
+      if (!dryRun) {
+        const ok = window.confirm('Live launch will be performed via the official Pump.fun endpoint. Continue?');
+        if (!ok) throw new Error('cancelled');
+      }
       const res = await fetch('/api/pumpfun/launch', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -206,11 +211,48 @@ export default function CreateForm() {
         </div>
       </div>
 
+      {/* Official sites quick-links (read-only helpers) */}
+      <div className="rounded-xl border border-zinc-800 p-4 bg-zinc-950/40">
+        <div className="text-sm font-medium mb-2">Official sites</div>
+        <div className="text-xs text-zinc-400">Always use the real domains:</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <a
+            href="https://pump.fun"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => { if (!window.confirm('Open the official Pump.fun site in a new tab?')) e.preventDefault(); }}
+            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+          >pump.fun</a>
+          <a
+            href="https://raydium.io/swap/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => { if (!window.confirm('Open the official Raydium site in a new tab?')) e.preventDefault(); }}
+            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+          >raydium.io</a>
+        </div>
+      </div>
+
       {result && (
         <div className="text-sm">
           {result.error && <div className="text-red-400">Error: {result.error}</div>}
           {!result.error && result.simulated && <div className="text-zinc-300">Simulated successfully.</div>}
-          {!result.error && !result.simulated && <div className="text-emerald-400">Launched! Mint: {result.mint || 'unknown'}</div>}
+          {!result.error && !result.simulated && (
+            <div className="text-emerald-400">
+              Launched! Mint: {result.mint || 'unknown'}
+              {result.mint ? (
+                <span className="ml-2 inline-flex items-center gap-2">
+                  <a
+                    href={`https://raydium.io/swap/?inputMint=So11111111111111111111111111111111111111112&outputMint=${result.mint}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => { if (!window.confirm('Open the official Raydium swap for this mint?')) e.preventDefault(); }}
+                    className="underline text-emerald-300 hover:text-emerald-200"
+                  >Open on Raydium</a>
+                </span>
+              ) : null}
+            </div>
+          )}
         </div>
       )}
     </div>
