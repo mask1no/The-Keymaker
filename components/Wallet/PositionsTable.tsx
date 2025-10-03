@@ -99,8 +99,8 @@ export default function PositionsTable({ groupId, mint }: { groupId: string; min
         {positions.map((p) => (
           <div key={`${p.wallet}:${p.mint}`} className="flex items-center justify-between border border-zinc-800 rounded px-2 py-1 text-xs">
             <div className="flex items-center gap-2">
-              <span className="font-mono">{p.wallet.slice(0, 6)}…{p.wallet.slice(-6)}</span>
-              <span className="text-zinc-400">{p.mint.slice(0, 4)}…{p.mint.slice(-4)}</span>
+              <span className="font-mono">{p.wallet.slice(0, 6)}...{p.wallet.slice(-6)}</span>
+              <span className="text-zinc-400">{p.mint.slice(0, 4)}...{p.mint.slice(-4)}</span>
               {typeof p.uiAmount === 'number' && <span>{p.uiAmount} tokens</span>}
             </div>
             <div className="flex items-center gap-2">

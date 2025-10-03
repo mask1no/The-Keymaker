@@ -3,51 +3,23 @@
  * For managing multi-wallet execution groups
  */
 
-export interface WalletGroup {
+export type WalletGroup = {
   id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  masterWallet: string; // The controlling/signing wallet
-  devWallet?: string; // Development/testing wallet
-  sniperWallets: string[]; // Max 3 sniper wallets
-  executionWallets: string[]; // Remaining execution wallets
-  maxWallets: number; // Max 20 total
-}
-
-export interface CreateGroupRequest {
   name: string;
   masterWallet: string;
-  numberOfWallets: number; // Will be distributed as execution wallets
-}
+  devWallet?: string | null;
+  sniperWallets: string[];       // up to 3
+  executionWallets: string[];    // the rest up to 20 - (dev + snipers)
+  createdAt: number;
+  updatedAt: number;
+};
 
-export interface UpdateGroupRequest {
-  id: string;
-  name?: string;
-  masterWallet?: string;
-  devWallet?: string;
-  sniperWallets?: string[];
-}
+export const WALLET_GROUP_CONSTRAINTS = Object.freeze({
+  maxWalletsPerGroup: 20,
+  maxSnipers: 3,
+});
 
-export interface FundingDistribution {
-  wallet: string;
-  amount: number; // In SOL
-  purpose: 'master' | 'dev' | 'sniper' | 'execution';
-}
-
-export interface FundingPlan {
-  groupId: string;
-  totalSOL: number;
-  distribution: FundingDistribution[];
-  strategy: 'equal' | 'weighted' | 'random';
-}
-
-/**
- * Validation constraints
- */
-export const WALLET_GROUP_CONSTRAINTS = {
-  MAX_WALLETS_PER_GROUP: 20,
-  MAX_SNIPER_WALLETS: 3,
-  MIN_GROUP_NAME_LENGTH: 1,
-  MAX_GROUP_NAME_LENGTH: 50,
-} as const;
+export type CreateGroupRequest = { name: string };
+export type UpdateGroupRequest = { id: string; name: string; devWallet?: string | null; sniperWallets?: string[] };
+export type FundingPlan = { to: string; lamports: number }[];
+export type FundingDistribution = 'equal' | 'random';

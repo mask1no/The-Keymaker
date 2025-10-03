@@ -57,7 +57,7 @@ export default function CoinLibraryPage() {
             className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 w-full max-w-xl"
           />
           <button disabled={loading || !mint} className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" type="submit">
-            {loading ? 'Loading…' : 'Fetch'}
+            {loading ? 'Loading' : 'Fetch'}
           </button>
         </form>
         {error && <div className="mt-2 text-sm text-red-400">{error}</div>}

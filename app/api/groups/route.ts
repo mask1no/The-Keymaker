@@ -1,161 +1,42 @@
 import { NextResponse } from 'next/server';
-import { apiError } from '@/lib/server/apiError';
-import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
-import {
-  loadWalletGroups,
-  createWalletGroup,
-  updateWalletGroup,
-  deleteWalletGroup,
-  getWalletGroup,
-} from '@/lib/server/walletGroups';
-// Optional: attempt to list existing pubkeys from keystore if present
-let listGroup: ((name: string) => string[]) | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  listGroup = require('@/lib/server/keystore').listGroup as (name: string) => string[];
-} catch {
-  listGroup = null;
-}
-import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
-import { getSession } from '@/lib/server/session';
+import { loadWalletGroups, createWalletGroup, updateWalletGroup, deleteWalletGroup } from '@/lib/server/walletGroups';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const CreateGroupSchema = z.object({
-  name: z.string().min(1).max(50),
-  numberOfWallets: z
-    .number()
-    .min(0)
-    .max(WALLET_GROUP_CONSTRAINTS.MAX_WALLETS_PER_GROUP)
-    .default(0),
-});
+const CreateSchema = z.object({ name: z.string().min(1).max(64) });
+const UpdateSchema = z.object({ id: z.string().uuid(), name: z.string().min(1).max(64), devWallet: z.string().optional().nullable(), sniperWallets: z.array(z.string()).optional() });
 
-const UpdateGroupSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1).max(50).optional(),
-  masterWallet: z.string().optional(),
-  devWallet: z.string().optional(),
-  sniperWallets: z
-    .array(z.string())
-    .max(WALLET_GROUP_CONSTRAINTS.MAX_SNIPER_WALLETS)
-    .optional(),
-});
-
-const DeleteGroupSchema = z.object({
-  id: z.string().uuid(),
-});
-
-/**
- * GET /api/groups
- * List all wallet groups
- */
 export async function GET() {
+  return NextResponse.json({ groups: loadWalletGroups() }, { status: 200 });
+}
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const parsed = CreateSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
+  const masterWallet = (req.headers.get('x-master-wallet') || '').trim();
+  if (!masterWallet) return NextResponse.json({ error: 'no_master' }, { status: 400 });
+  const g = createWalletGroup(masterWallet, { name: parsed.data.name });
+  return NextResponse.json(g, { status: 201 });
+}
+
+export async function PUT(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const parsed = UpdateSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   try {
-    const session = getSession();
-    const user = session?.userPubkey || null;
-    const groups = loadWalletGroups().filter((g) => !user || g.masterWallet === user);
-    return NextResponse.json({ groups });
-  } catch (error) {
-    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_get_failed'), { extra: { route: '/api/groups' } }); } catch {}
-    return apiError(500, 'failed');
+    const g = updateWalletGroup(parsed.data);
+    return NextResponse.json(g, { status: 200 });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || 'update_failed' }, { status: 400 });
   }
 }
 
-/**
- * POST /api/groups
- * Create a new wallet group
- */
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const validated = CreateGroupSchema.parse(body);
-    const session = getSession();
-    const user = session?.userPubkey;
-    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    
-    // Namespacing: force masterWallet from session; ignore client-provided masterWallet
-    // Get wallets from keystore group (if exists) or generate new ones
-    let executionWallets: string[] = [];
-    
-    if (listGroup) {
-      try {
-        executionWallets = listGroup(validated.name);
-      } catch {
-        executionWallets = [];
-      }
-    } else {
-      executionWallets = [];
-    }
-    
-    const group = createWalletGroup({ ...validated, masterWallet: user }, executionWallets);
-    
-    return NextResponse.json({ group }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return apiError(400, 'invalid_request');
-    }
-    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_post_failed'), { extra: { route: '/api/groups' } }); } catch {}
-    return apiError(400, (error as Error).message || 'failed');
-  }
-}
-
-/**
- * PUT /api/groups
- * Update wallet group
- */
-export async function PUT(request: Request) {
-  try {
-    const body = await request.json();
-    const validated = UpdateGroupSchema.parse(body);
-    const session = getSession();
-    const user = session?.userPubkey;
-    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const existing = getWalletGroup(validated.id);
-    if (!existing) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (existing.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-    const group = updateWalletGroup(validated);
-    
-    return NextResponse.json({ group });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return apiError(400, 'invalid_request');
-    }
-    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_put_failed'), { extra: { route: '/api/groups' } }); } catch {}
-    return apiError(400, (error as Error).message || 'failed');
-  }
-}
-
-/**
- * DELETE /api/groups
- * Delete wallet group
- */
-export async function DELETE(request: Request) {
-  try {
-    const body = await request.json();
-    const { id } = DeleteGroupSchema.parse(body);
-    const session = getSession();
-    const user = session?.userPubkey;
-    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const existing = getWalletGroup(id);
-    if (!existing) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (existing.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-    const deleted = deleteWalletGroup(id);
-    
-    if (!deleted) {
-      return NextResponse.json(
-        { error: 'Group not found' },
-        { status: 404 }
-      );
-    }
-    
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return apiError(400, 'invalid_request');
-    }
-    try { Sentry.captureException(error instanceof Error ? error : new Error('groups_delete_failed'), { extra: { route: '/api/groups' } }); } catch {}
-    return apiError(400, (error as Error).message || 'failed');
-  }
+export async function DELETE(req: Request) {
+  const id = new URL(req.url).searchParams.get('id') || '';
+  if (!id) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
+  deleteWalletGroup(id);
+  return NextResponse.json({ ok: true }, { status: 200 });
 }

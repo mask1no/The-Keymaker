@@ -314,7 +314,7 @@ function readTodayJournal(): Array<{ time: string; ev: string; summary: string }
         summary = `bundleId=${o.bundleId} statuses=${o.statuses?.length || 0}`;
       else if (ev === 'ui_last_bundleIds') summary = `last=${(o.bundleIds||[]).join(',')}`;
       else if (ev === 'fund') summary = `txSig=${o.txSig} lamports=${o.lamports}`;
-      else if (ev === 'wallet_generated') summary = `group=${o.group} pub=${(o.pub || '').slice(0,8)}…`;
+      else if (ev === 'wallet_generated') summary = `group=${o.group} pub=${(o.pub || '').slice(0,8)}...`;
       return { time, ev, summary };
     });
   } catch {

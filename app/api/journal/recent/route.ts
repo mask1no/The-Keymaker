@@ -25,7 +25,7 @@ export async function GET() {
         else if (ev === 'status') summary = `bundleId=${o.bundleId} statuses=${(o.statuses || []).length}`;
         else if (ev === 'ui_last_bundleIds') summary = `last=${(o.bundleIds || []).join(',')}`;
         else if (ev === 'fund') summary = `txSig=${o.txSig} lamports=${o.lamports}`;
-        else if (ev === 'wallet_generated') summary = `group=${o.group} pub=${String(o.pub || '').slice(0, 8)}…`;
+        else if (ev === 'wallet_generated') summary = `group=${o.group} pub=${String(o.pub || '').slice(0, 8)}...`;
         return { time, event: ev, summary };
       } catch {
         return null;

@@ -13,7 +13,7 @@ export default function RecentRunsPanel() {
     { refreshInterval: 10000, revalidateOnFocus: false },
   );
   if (error) return <div className="text-xs text-zinc-500">Failed to load recent runs</div>;
-  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading…</div>;
+  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;
   const recent = data.recent;
   if (!recent.length) return <div className="text-xs text-zinc-500">No recent runs</div>;
   return (

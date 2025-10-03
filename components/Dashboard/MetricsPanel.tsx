@@ -18,7 +18,7 @@ export default function MetricsPanel() {
     revalidateOnFocus: false,
   });
   if (error) return <div className="text-xs text-zinc-500">Failed to load metrics</div>;
-  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading…</div>;
+  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;
   return (
     <div className="text-xs text-zinc-300 grid grid-cols-2 gap-2">
       

@@ -202,7 +202,7 @@ export default function CreateForm() {
           {uri && <span className="text-xs text-zinc-400 truncate">{uri}</span>}
         </div>
         <div className="flex items-end">
-          <button disabled={launchDisabled || launching} onClick={launch} className="button bg-sky-700 hover:bg-sky-600 px-3 py-2 disabled:opacity-60">{launching ? 'Launching…' : dryRun ? 'Simulate Launch' : 'Launch'}</button>
+          <button disabled={launchDisabled || launching} onClick={launch} className="button bg-sky-700 hover:bg-sky-600 px-3 py-2 disabled:opacity-60">{launching ? 'Launching' : dryRun ? 'Simulate Launch' : 'Launch'}</button>
         </div>
       </div>
 

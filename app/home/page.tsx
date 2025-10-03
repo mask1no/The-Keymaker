@@ -1,113 +1,79 @@
 "use client";
 import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
-import EngineHeader from '@/components/engine/EngineHeader';
-import VerifyPanel from '@/components/engine/VerifyPanel';
-import SafetyPanel from '@/components/engine/SafetyPanel';
-import ModeTiles from '@/components/engine/ModeTiles';
-import TestBundleForm from '@/components/engine/TestBundleForm';
-import EventTable from '@/components/engine/EventTable';
 import KCard from '@/components/ui/KCard';
-import { useEffect, useState } from 'react';
+import BadgePill from '@/components/ui/BadgePill';
+import CodeBlock from '@/components/ui/CodeBlock';
 
-export default function HomePage() {
-  const [mode, setMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
-  const [dryRun, setDryRun] = useState(true);
-  const [cluster, setCluster] = useState<'mainnet-beta' | 'devnet'>('mainnet-beta');
-  const [armedUntilLabel, setArmedUntilLabel] = useState('');
-  const [events, setEvents] = useState<Array<{ time: string; event: string; summary: string }>>([]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const ui = await fetch('/api/ui/settings', { cache: 'no-store' }).then((r) => r.json());
-        if (!alive) return;
-        setMode(ui.mode || 'JITO_BUNDLE');
-        setDryRun(typeof ui.dryRun === 'boolean' ? ui.dryRun : true);
-        setCluster(ui.cluster || 'mainnet-beta');
-      } catch {}
-      try {
-        const st = await fetch('/api/ops/status', { cache: 'no-store' }).then((r) => r.json());
-        if (!alive) return;
-        if (st.armed && st.armedUntil) {
-          const t = new Date(st.armedUntil).toLocaleTimeString();
-          setArmedUntilLabel(t);
-        } else {
-          setArmedUntilLabel('');
-        }
-      } catch {}
-      try {
-        const jr = await fetch('/api/journal/recent', { cache: 'no-store' }).then((r) => r.json());
-        if (!alive) return;
-        setEvents(Array.isArray(jr.events) ? jr.events : []);
-      } catch {}
-    })();
-    const id = setInterval(() => {
-      void fetch('/api/journal/recent', { cache: 'no-store' })
-        .then((r) => r.json())
-        .then((jr) => setEvents(Array.isArray(jr.events) ? jr.events : []))
-        .catch(() => {});
-    }, 5000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, []);
+export default function HomePage(){
+  const cross = `PowerShell:  solana-keygen pubkey "$Env:KEYPAIR_JSON"
+macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
+  const proof = `curl -s /api/engine/prove -H "x-engine-token: $ENGINE_API_TOKEN"`;
 
   return (
-    <div className="p-6">
-      <EngineHeader
-        mode={mode}
-        dryRun={dryRun}
-        cluster={cluster}
-        armedUntilLabel={armedUntilLabel}
-        onOpenSettings={() => (location.href = '/settings')}
-      />
+    <div className="p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <h1 className="text-xl font-semibold">Engine</h1>
+        <BadgePill tone="accent">Execution: JITO_BUNDLE</BadgePill>
+        <BadgePill tone="warn">DryRun: ON</BadgePill>
+        <BadgePill>Cluster: mainnet-beta</BadgePill>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
         <div className="xl:col-span-8 space-y-4">
-          <VerifyPanel />
-          <SafetyPanel
-            onArm={async (mins) => {
-              try {
-                await fetch('/api/ops/arm', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ minutes: mins }) });
-                // eslint-disable-next-line no-alert
-                alert('Armed');
-                const st = await fetch('/api/ops/status', { cache: 'no-store' }).then((r) => r.json());
-                if (st.armed && st.armedUntil) setArmedUntilLabel(new Date(st.armedUntil).toLocaleTimeString());
-              } catch {
-                // noop
-              }
-            }}
-            onDisarm={async () => {
-              try {
-                await fetch('/api/ops/disarm', { method: 'POST' });
-                // eslint-disable-next-line no-alert
-                alert('Disarmed');
-                setArmedUntilLabel('');
-              } catch {
-                // noop
-              }
-            }}
-            armedUntil={armedUntilLabel}
-          />
-          <ModeTiles
-            mode={mode}
-            setMode={(m) => {
-              setMode(m);
-              void fetch('/api/ui/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: m }) });
-            }}
-          />
-          <TestBundleForm defaultMode={mode} />
           <KCard>
-            <div className="text-sm font-medium mb-2">Deposit Address</div>
-            <div className="text-xs text-muted">Not configured</div>
+            <div className="text-sm font-medium mb-2">Verify Deposit & Proof</div>
+            <div className="text-xs text-zinc-500 mb-1">Deposit pubkey: Not configured</div>
+            <div className="text-sm">Step 1: Cross-check</div>
+            <CodeBlock code={cross}/>
+            <div className="mt-2 text-sm">Step 2: Proof (no funds)</div>
+            <CodeBlock code={proof}/>
+          </KCard>
+
+          <KCard>
+            <div className="text-sm font-medium mb-2">Safety</div>
+            <div className="flex items-center gap-2">
+              <button className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm">Arm 15m</button>
+              <button className="border border-zinc-800 hover:bg-zinc-900 rounded px-3 py-2 text-sm">Disarm</button>
+              <div className="ml-2 text-xs text-zinc-500">Arming enables live sends for a limited window. Disarm to return to simulation.</div>
+            </div>
+          </KCard>
+
+          <KCard>
+            <div className="text-sm font-medium mb-2">Run Test Bundle</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-zinc-500">Mode</label>
+                <select className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm">
+                  <option>JITO_BUNDLE</option><option>RPC_FANOUT</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500">Amount per wallet (SOL)</label>
+                <input className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" defaultValue="0.001"/>
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500">Slippage (bps)</label>
+                <input className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" defaultValue="100"/>
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500">Tip / Priority Fee</label>
+                <input className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" defaultValue="100000"/>
+              </div>
+              <div className="md:col-span-2">
+                <button className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm">Run Test</button>
+              </div>
+            </div>
           </KCard>
         </div>
+
         <div className="xl:col-span-4 space-y-4">
-          <EventTable rows={events} />
           <KCard>
             <div className="text-sm font-medium mb-2">Live Health</div>
             <StatusBentoPanel />
+          </KCard>
+          <KCard>
+            <div className="text-sm font-medium mb-2">Last 10 Events</div>
+            <div className="text-xs text-zinc-500">No events yet</div>
           </KCard>
         </div>
       </div>

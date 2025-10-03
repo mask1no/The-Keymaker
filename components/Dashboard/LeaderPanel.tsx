@@ -12,7 +12,7 @@ export default function LeaderPanel() {
     revalidateOnFocus: false,
   });
   if (error) return <div className="text-xs text-zinc-500">Failed to load leader schedule</div>;
-  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading…</div>;
+  if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;
   return (
     <div className="text-xs text-zinc-300 space-y-1">
       

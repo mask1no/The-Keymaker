@@ -5,14 +5,8 @@ const isProdEnv = process.env.NODE_ENV === 'production';
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  eslint: {
-    // Do not block builds on lint warnings from legacy code
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Allow production builds despite type warnings from legacy code
-    ignoreBuildErrors: true,
-  },
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   experimental: {
     optimizePackageImports: [
@@ -52,7 +46,6 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Aggressive bundle splitting and optimization
       config.optimization = {
         ...config.optimization,
         splitChunks: {
@@ -62,7 +55,6 @@ const nextConfig = {
           cacheGroups: {
             default: false,
             vendors: false,
-            // Framework chunk (React/Next.js) - keep essential
             framework: {
               chunks: 'all',
               name: 'framework',
@@ -70,27 +62,18 @@ const nextConfig = {
               priority: 40,
               enforce: true,
             },
-            // Critical vendor libraries - combine into one chunk
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendor',
               chunks: 'all',
               priority: 10,
-              minChunks: 2, // Only if used by 2+ modules
+              minChunks: 2,
               reuseExistingChunk: true,
             },
           },
         },
       };
-      
-      // Bundle size monitoring - getting closer to target
-      config.performance = {
-        maxAssetSize: 45000, // 45KB - we're at 53.6KB for largest chunk
-        maxEntrypointSize: 45000,
-        hints: 'warning', // Warn but don't fail build
-      };
-
-      // Externalize heavy Node.js modules that shouldn't be in browser
+      config.performance = { maxAssetSize: 45000, maxEntrypointSize: 45000, hints: 'warning' };
       config.externals = config.externals || [];
       config.externals.push({
         'puppeteer': 'commonjs puppeteer',
@@ -102,32 +85,24 @@ const nextConfig = {
         'prom-client': 'commonjs prom-client',
       });
     }
-
-    // Resolve aliases for better tree shaking
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      // Use ES modules when available
-      'react-hot-toast': 'react-hot-toast/dist/index.esm.js',
-    };
-
+    config.resolve.alias = { ...config.resolve.alias, 'react-hot-toast': 'react-hot-toast/dist/index.esm.js' };
     return config;
   },
   async headers() {
     if (!isProdEnv) return [];
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'no-referrer' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-          { key: 'Content-Security-Policy', value:
-            "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" },
-        ],
-      },
-    ];
+    return [{
+      source: '/(.*)',
+      headers: [
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Referrer-Policy', value: 'no-referrer' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+        { key: 'Content-Security-Policy', value:
+          "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+      ],
+    }];
   },
 };
 

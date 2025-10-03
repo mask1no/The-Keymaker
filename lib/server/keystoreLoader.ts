@@ -5,8 +5,8 @@
 
 import 'server-only';
 import { Keypair } from '@solana/web3.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
 import { keypairPath } from './walletGroups';
 import bs58 from 'bs58';
 
@@ -20,7 +20,6 @@ export async function loadKeypairsForGroup(
   masterPubkey: string,
 ): Promise<Keypair[]> {
   const keypairs: Keypair[] = [];
-  const groupDir = join(process.cwd(), 'keypairs', masterPubkey, groupName);
   
   for (const pubkey of walletPubkeys) {
     try {
@@ -64,9 +63,16 @@ export async function loadKeypairsForGroup(
   return keypairs;
 }
 
-/**
- * Load single keypair by public key
- */
-export async function loadKeypair(): Promise<Keypair | null> {
-  throw new Error('Use loadKeypairsForGroup(master namespacing required)');
+export function saveKeypair(master: string, groupName: string, kp: Keypair) {
+  const p = keypairPath(master, groupName, kp.publicKey.toBase58());
+  mkdirSync(dirname(p), { recursive: true });
+  writeFileSync(p, JSON.stringify(Array.from(kp.secretKey), null, 2));
+}
+
+export function parseSecretKey(input: string): Uint8Array {
+  try {
+    const arr = JSON.parse(input);
+    if (Array.isArray(arr)) return Uint8Array.from(arr);
+  } catch { /* fall through */ }
+  return bs58.decode(input.trim());
 }
