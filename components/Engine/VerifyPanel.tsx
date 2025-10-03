@@ -1,5 +1,5 @@
-import KCard from '@/components/ui/KCard';
-import CodeBlock from '@/components/ui/CodeBlock';
+import KCard from '@/components/UI/KCard';
+import CodeBlock from '@/components/UI/CodeBlock';
 
 export default function VerifyPanel({ depositPubkey }: { depositPubkey?: string }) {
   const cross = `PowerShell:  solana-keygen pubkey "$Env:KEYPAIR_JSON"\nmacOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;

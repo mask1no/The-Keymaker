@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import KCard from '@/components/ui/KCard';
+import KCard from '@/components/UI/KCard';
 
 export default function TestBundleForm({ defaultMode = 'JITO_BUNDLE' as 'JITO_BUNDLE' | 'RPC_FANOUT' }) {
   const [mode, setMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>(defaultMode);

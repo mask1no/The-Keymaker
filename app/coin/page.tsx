@@ -1,3 +1,4 @@
+'use client';
 export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
@@ -14,7 +15,6 @@ export default function CoinPage() {
   useEffect(() => {
     let abort = false;
     async function run() {
-      // Example: update market panel placeholder once wired to a mint
       try {
         if (!draft) return;
         if (draft.lastMint) setMint(draft.lastMint);

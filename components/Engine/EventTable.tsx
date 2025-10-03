@@ -1,4 +1,4 @@
-import KCard from '@/components/ui/KCard';
+import KCard from '@/components/UI/KCard';
 
 export default function EventTable({ rows }: { rows: Array<{ time: string; event: string; summary: string }> }) {
   return (

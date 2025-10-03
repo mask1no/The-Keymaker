@@ -1,8 +1,8 @@
 "use client";
 import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
-import KCard from '@/components/ui/KCard';
-import BadgePill from '@/components/ui/BadgePill';
-import CodeBlock from '@/components/ui/CodeBlock';
+import KCard from '@/components/UI/KCard';
+import BadgePill from '@/components/UI/BadgePill';
+import CodeBlock from '@/components/UI/CodeBlock';
 
 export default function HomePage(){
   const cross = `PowerShell:  solana-keygen pubkey "$Env:KEYPAIR_JSON"

@@ -1,4 +1,4 @@
-import KCard from '@/components/ui/KCard';
+import KCard from '@/components/UI/KCard';
 
 export default function ModeTiles({ mode, setMode }: { mode: 'JITO_BUNDLE' | 'RPC_FANOUT'; setMode: (m: 'JITO_BUNDLE' | 'RPC_FANOUT') => void }) {
   const Tile = ({ title, desc, active, onClick }: { title: string; desc: string; active: boolean; onClick: () => void }) => (

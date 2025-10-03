@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getWalletGroup } from '@/lib/server/walletGroups';
-import { Keypair, SystemProgram, TransactionMessage, VersionedTransaction, PublicKey, LAMPORTS_PER_SOL, Connection } from '@solana/web3.js';
+import { SystemProgram, TransactionMessage, VersionedTransaction, PublicKey, Connection } from '@solana/web3.js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,5 +47,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ unsigned }, { status: 200 });
 }
-
-

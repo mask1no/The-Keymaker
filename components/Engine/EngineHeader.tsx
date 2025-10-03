@@ -1,4 +1,4 @@
-import BadgePill from '@/components/ui/BadgePill';
+import BadgePill from '@/components/UI/BadgePill';
 
 export default function EngineHeader(
   { mode, armedUntilLabel, dryRun, cluster, onOpenSettings }:

@@ -1,5 +1,5 @@
 'use client';
-import KCard from '@/components/ui/KCard';
+import KCard from '@/components/UI/KCard';
 
 export default function SafetyPanel({ onArm, onDisarm, armedUntil }: {
   onArm: (mins: number) => Promise<void> | void; onDisarm: () => Promise<void> | void; armedUntil?: string;
