@@ -1,36 +1,8 @@
 import 'server-only';
+import { randomBytes } from 'node:crypto';
 
-export const CSRF_COOKIE = 'km_csrf';
-
-export function parseCookies(header: string | null | undefined): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!header) return out;
-  for (const part of header.split(';')) {
-    const [k, ...rest] = part.trim().split('=');
-    if (!k) continue;
-    out[k] = decodeURIComponent(rest.join('=') || '');
-  }
-  return out;
-}
-
-export function generateToken(length = 16): string {
-  const bytes = new Uint8Array(length);
-  // @ts-ignore web crypto available in edge/runtime
-  (globalThis.crypto || require('crypto').webcrypto).getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-export function buildSetCookie(token: string): string {
-  const secure = (process.env.NODE_ENV === 'production') ? '; Secure' : '';
-  return `${CSRF_COOKIE}=${token}; Path=/; SameSite=Lax${secure}; Max-Age=86400`;
-}
-
-export function validateCsrfHeader(request: Request): boolean {
-  const cookies = parseCookies(request.headers.get('cookie'));
-  const sent = request.headers.get('x-csrf-token') || request.headers.get('X-CSRF-Token');
-  const expected = cookies[CSRF_COOKIE];
-  if (!expected || !sent) return false;
-  return sent === expected;
-}
+export function issueCsrfToken(){ return randomBytes(16).toString('base64url'); }
+export function checkOrigin(req:Request){ const o=req.headers.get('origin'); const h=req.headers.get('host'); if(!o||!h) return false; try{ return new URL(o).host===h; }catch{ return false; } }
+export function validateCsrf(req:Request){ const hdr=req.headers.get('x-csrf-token')||''; const c=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('csrf=')); const v=c?.split('=')[1]||''; return hdr.length>0 && v.length>0 && hdr===v; }
 
 
