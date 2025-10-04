@@ -1,5 +1,5 @@
 import 'server-only';
-import { createClient } from 'redis';
+import { Redis } from '@upstash/redis';
 
 type Result = { allowed: boolean; remaining: number };
 const WINDOW_MS = 10_000, MAX = 50;
@@ -17,13 +17,17 @@ function local(key: string): Result {
   return { allowed: e.count <= MAX, remaining: Math.max(0, MAX - e.count) };
 }
 
-let redis: ReturnType<typeof createClient> | null = null;
+let redis: Redis | null = null;
 async function ensure() {
   if (redis) return redis;
-  const url = process.env.UPSTASH_REDIS_URL || process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
-  if (!url) return null;
-  redis = createClient({ url });
-  await redis.connect().catch(() => null);
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  try {
+    redis = new Redis({ url, token });
+  } catch {
+    return null;
+  }
   return redis;
 }
 
