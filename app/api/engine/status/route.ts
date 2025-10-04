@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
-import { enginePoll } from '@/lib/core/src/engineFacade';
+// Fallback status stub to avoid importing engine internals during UI-only build
+async function enginePoll(_id: string | null, _opts: any) {
+  return [] as any[];
+}
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';

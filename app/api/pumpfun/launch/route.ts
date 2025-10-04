@@ -37,7 +37,8 @@ export async function POST(request: Request) {
     // Per-route limiter key
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(`pump:${key}`, 15, 5)) return apiError(429, 'rate_limited', requestId);
+    const rl = await rateLimit(`pump:${key}`);
+    if (!rl.allowed) return apiError(429, 'rate_limited', requestId);
     const cl = Number(request.headers.get('content-length') || '0');
     if (cl > 8192) return apiError(413, 'payload_too_large', requestId);
     const text = await request.text();

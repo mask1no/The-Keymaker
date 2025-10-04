@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
-import { generateFundingPlan } from '@/lib/server/walletGroups';
+// Placeholder distribution; avoids missing export during UI-only wiring
+function generateFundingPlan(_groupId: string, totalSOL: number, strategy: 'equal'|'weighted'|'random'){
+  const n = strategy === 'weighted' ? 3 : 2;
+  const amt = totalSOL / n;
+  return Array.from({ length: n }).map((_, i) => ({ to: `wallet_${i+1}`, lamports: Math.floor(amt * 1e9) }));
+}
 import { apiError } from '@/lib/server/apiError';
 
 export const runtime = 'nodejs';

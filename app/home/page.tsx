@@ -49,9 +49,9 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
     <div className="p-6 space-y-4">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">Engine</h1>
-        <BadgePill tone="accent">Execution: JITO_BUNDLE</BadgePill>
-        <BadgePill tone="warn">DryRun: ON</BadgePill>
-        <BadgePill>Cluster: mainnet-beta</BadgePill>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-950/60 text-violet-200 border-violet-900/60">Execution: JITO_BUNDLE</span>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-300 border-amber-900/40">DryRun: ON</span>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-zinc-900 text-zinc-300 border-zinc-800">Cluster: mainnet-beta</span>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
@@ -60,9 +60,9 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
             <div className="text-sm font-medium mb-2">Verify Deposit & Proof</div>
             <div className="text-xs text-zinc-500 mb-1">Deposit pubkey: Not configured</div>
             <div className="text-sm">Step 1: Cross-check</div>
-            <CodeBlock code={cross}/>
+            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto"><code>{cross}</code></pre>
             <div className="mt-2 text-sm">Step 2: Proof (no funds)</div>
-            <CodeBlock code={proof}/>
+            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto"><code>{proof}</code></pre>
           </KCard>
 
           <KCard>

@@ -6,7 +6,7 @@ type PnL = { buys:number; sells:number; fees:number; realized:number; net:number
 export default function PnlPage(){
   const [p, setP] = useState<PnL|null>(null);
   useEffect(()=>{ fetch('/api/pnl',{cache:'no-store'}).then(r=>r.json()).then(j=>setP(j.pnl)); }, []);
-  if(!p) return <div className="p-6">Loading…</div>;
+  if(!p) return <div className="p-6">Loading...</div>;
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-semibold">P&L</h1>

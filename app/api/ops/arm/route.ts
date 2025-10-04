@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(`ops:${key}`, 10, 5)) return apiError(429, 'rate_limited');
+    const rl = await rateLimit(`ops:${key}`);
+    if (!rl.allowed) return apiError(429, 'rate_limited');
     const cl = Number(request.headers.get('content-length') || '0');
     if (cl > 8192) return apiError(413, 'payload_too_large');
     const json = (await request.json().catch(() => ({}))) as any;
