@@ -10,6 +10,7 @@ export type WalletGroup = {
   devWallet?: string | null;
   sniperWallets: string[];       // up to 3
   executionWallets: string[];    // the rest up to 20 - (dev + snipers)
+  maxWallets: number;            // capacity cap per group
   createdAt: number;
   updatedAt: number;
 };

@@ -54,7 +54,7 @@ function Inner() {
     <div className="space-y-3">
       <WalletMultiButton />
       <button onClick={onSignIn} className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" disabled={busy}>
-        {busy ? 'Signing…' : 'Sign in'}
+        {busy ? 'Signing...' : 'Sign in'}
       </button>
       {error ? <div className="text-xs text-red-400">{error}</div> : null}
     </div>

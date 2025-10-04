@@ -26,8 +26,13 @@ function referenced(rel: string, all: string[]) {
   const needles = [rel, stem, `/${basestem}`, `./${basestem}`, `../${basestem}`];
   return all.some((f) => {
     if (f === rel) return false;
-    const s = fs.readFileSync(f, 'utf8');
-    return needles.some((n) => s.includes(n));
+    try {
+      if (!fs.existsSync(f)) return false;
+      const s = fs.readFileSync(f, 'utf8');
+      return needles.some((n) => s.includes(n));
+    } catch {
+      return false;
+    }
   });
 }
 

@@ -35,6 +35,36 @@ export function getWalletGroup(id: string): WalletGroup | undefined {
   return loadAll().groups.find((g) => g.id === id);
 }
 
+export function getAllGroupWallets(id: string): string[] {
+  const g = getWalletGroup(id);
+  if (!g) return [];
+  const out: string[] = [];
+  if (g.masterWallet) out.push(g.masterWallet);
+  if (g.devWallet) out.push(g.devWallet);
+  out.push(...g.sniperWallets);
+  out.push(...g.executionWallets);
+  return Array.from(new Set(out));
+}
+
+export function setMasterWallet(id: string, pubkey: string): void {
+  const all = loadAll().groups;
+  const i = all.findIndex((g) => g.id === id);
+  if (i < 0) return;
+  all[i] = { ...all[i], masterWallet: pubkey, updatedAt: Date.now() };
+  saveAll(all);
+}
+
+export function addWalletToGroup(id: string, pubkey: string): void {
+  const all = loadAll().groups;
+  const i = all.findIndex((g) => g.id === id);
+  if (i < 0) return;
+  const g = all[i];
+  if (g.executionWallets.includes(pubkey) || g.sniperWallets.includes(pubkey) || g.devWallet === pubkey || g.masterWallet === pubkey) return;
+  if (g.executionWallets.length + g.sniperWallets.length + (g.devWallet?1:0) + (g.masterWallet?1:0) >= (g.maxWallets || WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup)) return;
+  all[i] = { ...g, executionWallets: [...g.executionWallets, pubkey], updatedAt: Date.now() };
+  saveAll(all);
+}
+
 export function createWalletGroup(masterWallet: string, req: CreateGroupRequest): WalletGroup {
   const now = Date.now();
   const g: WalletGroup = {
@@ -44,6 +74,7 @@ export function createWalletGroup(masterWallet: string, req: CreateGroupRequest)
     devWallet: null,
     sniperWallets: [],
     executionWallets: [],
+    maxWallets: WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup,
     createdAt: now,
     updatedAt: now,
   };

@@ -1,1 +1,14 @@
-export {}; // auto-stubbed (lib/core/src/metrics.ts)
+type Labels = Record<string, string>;
+const counters = new Map<string, number>();
+
+export function incCounter(name: string, _labels: Labels = {}): void {
+  counters.set(name, (counters.get(name) || 0) + 1);
+}
+
+export function observeLatency(_name: string, _ms: number, _labels: Labels = {}): void {
+  // no-op lightweight placeholder to satisfy imports
+}
+
+export function renderMetrics(): string {
+  return Array.from(counters.entries()).map(([k, v]) => `${k} ${v}`).join('\n');
+}
