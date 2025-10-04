@@ -33,10 +33,7 @@ export function PhantomWalletProvider({ children }: { children: React.ReactNode 
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider 
-        wallets={wallets} 
-        autoConnect={true} // Auto-reconnect if previously approved
-      >
+      <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
