@@ -1,6 +1,7 @@
 import './globals.css';
 import AppSideNav from '@/components/layout/AppSideNav';
 import TopBar from '@/components/layout/TopBar';
+import CsrfBootstrap from './CsrfBootstrap';
 export const dynamic = 'force-dynamic';
 
 export const metadata = { title: 'Keymaker', description: 'Local Solana bundler cockpit' } as const;
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="min-h-[calc(100vh-40px)] flex">
           <AppSideNav />
           <main className="flex-1 min-w-0">
+            <CsrfBootstrap />
             {children}
           </main>
         </div>

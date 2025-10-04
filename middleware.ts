@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, getRateLimitIdentifier } from './lib/rateLimit';
+import { CSRF_COOKIE, generateToken, parseCookies, validateCsrfHeader } from '@/lib/server/csrf';
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt).*)'],
@@ -11,6 +12,13 @@ export async function middleware(req: Request) {
   
   // Handle API routes with rate limiting and token validation
   if (path.startsWith('/api/')) {
+    // Same-origin check for mutating methods
+    if (['POST','PUT','PATCH','DELETE'].includes((req.method || 'GET').toUpperCase())) {
+      const origin = req.headers.get('origin');
+      if (!origin || new URL(origin).host !== url.host) {
+        return new NextResponse('forbidden: origin', { status: 403 });
+      }
+    }
     // Global kill switch for engine routes
     if (path.startsWith('/api/engine/')) {
       const kill = (process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES';
@@ -36,6 +44,20 @@ export async function middleware(req: Request) {
       });
     }
     
+    // CSRF token: set for GETs, validate on mutating methods
+    if (req.method === 'GET') {
+      const res = NextResponse.next();
+      const cookies = parseCookies(req.headers.get('cookie'));
+      if (!cookies[CSRF_COOKIE]) {
+        res.headers.append('Set-Cookie', `${CSRF_COOKIE}=${generateToken()}; Path=/; SameSite=Lax${process.env.NODE_ENV==='production'?'; Secure':''}; Max-Age=86400`);
+      }
+      return res;
+    }
+    if (['POST','PUT','PATCH','DELETE'].includes(req.method)) {
+      const ok = validateCsrfHeader(req);
+      if (!ok) return new NextResponse('Invalid CSRF token', { status: 403 });
+    }
+
     // Allow unauthenticated SIWS endpoints
     const isPublicAuthEndpoint =
       path === '/api/auth/nonce' || path === '/api/auth/verify';

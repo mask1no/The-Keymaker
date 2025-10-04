@@ -1,11 +1,10 @@
-/* eslint-disable import/no-commonjs */
 /** @type {import('next').NextConfig} */
 const isProdEnv = process.env.NODE_ENV === 'production';
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: !isProdEnv ? true : false },
+  typescript: { ignoreBuildErrors: !isProdEnv ? true : false },
   output: process.env.NEXT_STANDALONE ? 'standalone' : undefined,
   experimental: {
     optimizePackageImports: [
@@ -33,6 +32,7 @@ const nextConfig = {
   },
   async headers() {
     if (!isProdEnv) return [];
+    const allowOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN || '';
     return [{
       source: '/(.*)',
       headers: [
@@ -43,6 +43,13 @@ const nextConfig = {
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         { key: 'Content-Security-Policy',
           value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" },
+        ...(allowOrigin ? [
+          { key: 'Access-Control-Allow-Origin', value: allowOrigin },
+          { key: 'Vary', value: 'Origin' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,PATCH,DELETE,OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, X-CSRF-Token, X-Engine-Token' },
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+        ] : []),
       ],
     }];
   },

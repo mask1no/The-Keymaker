@@ -29,9 +29,10 @@ class APIClient {
       if (cached && cached.expires > Date.now()) return cached.data as T;
     }
 
+    const csrf = (typeof document !== 'undefined') ? (document.cookie.match(/(?:^|; )km_csrf=([^;]+)/)?.[1] || '') : '';
     const response = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
       body: JSON.stringify(request),
     });
     const data = await response.json();

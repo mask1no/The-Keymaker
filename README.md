@@ -98,6 +98,27 @@ pnpm dev
 * Tip/fee ceilings and concurrency throttles protect you in volatile periods.
 * Simulation toggles exist for bundles and swaps.
 
+## Go LIVE Checklist
+
+- [ ] .env set with DRY defaults (DRY_RUN_DEFAULT=YES, KEYMAKER_REQUIRE_ARMING=YES)
+- [ ] RPC HTTP and WS URLs configured; WS light is green on /home
+- [ ] ENGINE_API_TOKEN and KEYMAKER_SESSION_SECRET set
+- [ ] `pnpm preflight` and `pnpm typecheck` pass
+- [ ] Login works; session cookie present
+- [ ] Wallet group created; master wallet connected in browser
+- [ ] `pnpm smoke` (prod) or `pnpm smoke:local` (dev) passes
+- [ ] Arm (LIVE ARMED banner appears) and set KEYMAKER_ALLOW_LIVE=YES
+- [ ] Send tiny dust buy; confirm via RPC and WS
+- [ ] Disarm and set KEYMAKER_ALLOW_LIVE=NO
+
+## Wallet Setup & Funding (Quick Guide)
+
+1) Create a wallet group under Wallets. The group master is your login wallet.
+2) Import or generate execution wallets (≤20). Assign snipers (≤3) if needed.
+3) Use Random-fund on the Wallets page to distribute SOL from the master wallet. You will sign transfers in your wallet extension (Phantom/Backpack).
+4) Export an encrypted backup of the group (JSON bundle) and store it offline.
+5) On Coin page, after launching, you can dev-buy or multi-buy in DRY mode first, then LIVE when armed.
+
 ## Known Limits
 
 * **Jito bundle size:** max **5 tx per bundle**, chunked for larger sets.
