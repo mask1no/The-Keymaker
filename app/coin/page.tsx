@@ -69,7 +69,7 @@ export default function CoinPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
-        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buy, multi-wallet buy, market-cap panel.</p>
+        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buy, multi-wallet buy, with quick market lookup.</p>
         <div className="mt-3 flex items-center gap-2">
           <button
             className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm"
@@ -96,8 +96,11 @@ export default function CoinPage() {
             Paste from clipboard
           </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4">
           <CreateForm />
+          <div className="space-y-4">
+            <MarketPanel />
+          </div>
         </div>
       </div>
       <MarketPanel />

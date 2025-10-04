@@ -44,6 +44,15 @@ export default function CreateForm() {
     r.readAsDataURL(f);
   }
 
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0]; if (!f) return;
+    const r = new FileReader(); r.onload = () => setImage(String(r.result || '')); r.readAsDataURL(f);
+  }
+  function onDragOver(e: React.DragEvent<HTMLDivElement>) { e.preventDefault(); }
+
+  const nameCount = name.length; const symbolCount = symbol.length; const descCount = description.length;
+
   useEffect(() => {
     let abort = false;
     (async () => {
@@ -128,39 +137,54 @@ export default function CreateForm() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-zinc-400">Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className="input w-full bg-zinc-900" />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-400">Symbol</label>
-          <input value={symbol} onChange={(e) => setSymbol(e.target.value)} className="input w-full bg-zinc-900" />
-        </div>
-        <div className="md:col-span-2">
-          <label className="text-xs text-zinc-400">Image</label>
-          <div className="flex items-center gap-3">
-            <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-            <button type="button" onClick={() => fileRef.current?.click()} className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2">Upload</button>
-            <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="or paste URL" className="input w-full bg-zinc-900" />
-            {image ? <img src={image} alt="" className="h-10 w-10 rounded" /> : null}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {/* Left: Info Card */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
+          <div className="text-sm font-medium">Token Info</div>
+          <div>
+            <label className="flex items-center justify-between text-xs text-zinc-400">Name <span className="text-[10px] text-zinc-500">{nameCount}/32</span></label>
+            <input maxLength={32} value={name} onChange={(e) => setName(e.target.value)} className="input w-full bg-zinc-900" placeholder="e.g. Solana Doge" />
+          </div>
+          <div>
+            <label className="flex items-center justify-between text-xs text-zinc-400">Symbol <span className="text-[10px] text-zinc-500">{symbolCount}/10</span></label>
+            <input maxLength={10} value={symbol} onChange={(e) => setSymbol(e.target.value)} className="input w-full bg-zinc-900" placeholder="e.g. SDOGE" />
+          </div>
+          <div>
+            <label className="flex items-center justify-between text-xs text-zinc-400">Description <span className="text-[10px] text-zinc-500">{descCount}/512</span></label>
+            <textarea maxLength={512} value={description} onChange={(e) => setDescription(e.target.value)} className="input w-full bg-zinc-900 h-24" placeholder="Short mission statement..." />
           </div>
         </div>
-        <div className="md:col-span-2">
-          <label className="text-xs text-zinc-400">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input w-full bg-zinc-900 h-20" />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-400">Website</label>
-          <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input w-full bg-zinc-900" />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-400">Twitter</label>
-          <input value={twitter} onChange={(e) => setTwitter(e.target.value)} className="input w-full bg-zinc-900" />
-        </div>
-        <div>
-          <label className="text-xs text-zinc-400">Telegram</label>
-          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} className="input w-full bg-zinc-900" />
+
+        {/* Right: Image + Links */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
+          <div className="text-sm font-medium">Branding</div>
+          <div onDrop={onDrop} onDragOver={onDragOver} className="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 p-4 flex items-center gap-3">
+            <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2">Upload</button>
+            <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="or paste image URL" className="input w-full bg-zinc-900" />
+            {image ? <img src={image} alt="" className="h-10 w-10 rounded" /> : <div className="text-xs text-zinc-500">Drag & drop here</div>}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-zinc-400">Website</label>
+              <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://..." />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400">Twitter</label>
+              <input value={twitter} onChange={(e) => setTwitter(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://twitter.com/..." />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400">Telegram</label>
+              <input value={telegram} onChange={(e) => setTelegram(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://t.me/..." />
+            </div>
+          </div>
+          {/* Validation chips */}
+          <div className="flex flex-wrap gap-2 text-[11px]">
+            <span className={`px-2 py-0.5 rounded-full border ${nameCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Name</span>
+            <span className={`px-2 py-0.5 rounded-full border ${symbolCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Symbol</span>
+            <span className={`px-2 py-0.5 rounded-full border ${image?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Image</span>
+            <span className={`px-2 py-0.5 rounded-full border ${/^https?:\/\//.test(website||'')?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Website</span>
+          </div>
         </div>
       </div>
 
@@ -210,7 +234,8 @@ export default function CreateForm() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="sticky bottom-2 z-10 bg-gradient-to-t from-black/60 to-transparent p-2 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="text-xs text-zinc-400">Slippage (bps)</label>
           <input type="number" min={1} max={10000} value={slippageBps} onChange={(e) => setSlippageBps(Number(e.target.value))} className="input w-full bg-zinc-900" />
@@ -221,6 +246,7 @@ export default function CreateForm() {
         </div>
         <div className="flex items-end">
           <button disabled={launchDisabled || launching} onClick={launch} className="button bg-sky-700 hover:bg-sky-600 px-3 py-2 disabled:opacity-60">{launching ? 'Launching' : dryRun ? 'Simulate Launch' : 'Launch'}</button>
+        </div>
         </div>
       </div>
 
