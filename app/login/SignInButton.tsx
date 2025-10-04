@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react';
 import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -27,6 +27,11 @@ function Inner() {
   const { publicKey, signMessage } = useWallet();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 3000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   const onSignIn = useCallback(async () => {
     setError(null);
@@ -65,10 +70,10 @@ function Inner() {
   return (
     <div className="space-y-3">
       <WalletMultiButton />
-      <button onClick={onSignIn} className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" disabled={busy}>
-        {busy ? 'Signing...' : 'Sign in'}
+      <button onClick={onSignIn} className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-60" disabled={busy || !publicKey}>
+        {publicKey ? (busy ? 'Signing...' : 'Sign in') : 'Connect wallet to sign'}
       </button>
-      {error ? <div className="text-xs text-red-400">{error}</div> : null}
+      {error ? <div className="text-xs text-red-400" aria-live="polite">{error}</div> : null}
     </div>
   );
 }
