@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getTipFloor } from '@/lib/server/jitoService';
-import { rateLimit, getRateConfig } from '@/app/api/rate-limit';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 const cache = new Map<string, { at: number; data: any }>();
 
@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const region = z.enum(['ffm', 'ams', 'ny', 'tokyo']).parse(regionParam);
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0] || 'anon';
     const cfg = getRateConfig('tipfloor');
-    const rl = rateLimit(`tipfloor:${ip}`, cfg.limit, cfg.windowMs) as { ok: boolean };
-    if (!rl.ok)
+    const rl = await rateLimit(`tipfloor:${ip}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed)
       return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
         status: 429,
         headers: { 'content-type': 'application/json' },

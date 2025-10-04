@@ -12,7 +12,8 @@ export async function GET(request: Request, context: { params: { mint?: string }
     if (!mint || typeof mint !== 'string') return apiError(400, 'invalid_mint');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(`marketcap:${key}`)) return apiError(429, 'rate_limited');
+    const rl = await rateLimit(`marketcap:${key}`);
+    if (!rl.allowed) return apiError(429, 'rate_limited');
     const cl = Number(request.headers.get('content-length') || '0');
     if (cl > 8192) return apiError(413, 'payload_too_large');
     const res = await fetch(`/api/market/${encodeURIComponent(mint)}`, {

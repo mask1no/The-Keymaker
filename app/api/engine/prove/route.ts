@@ -33,7 +33,8 @@ export async function GET(request: Request) {
   if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
   const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
   const key = fwd || 'anon';
-  if (!rateLimit(key)) return apiError(429, 'rate_limited');
+  const rl = await rateLimit(key);
+  if (!rl.allowed) return apiError(429, 'rate_limited');
   try {
     const keyPath = process.env.KEYPAIR_JSON || null;
     if (!keyPath) return apiError(400, 'not_configured');

@@ -4,7 +4,7 @@ import { webcrypto as nodeWebcrypto } from 'crypto';
 import { z } from 'zod';
 import { sendBundle, getBundleStatuses, validateTipAccount } from '@/lib/server/jitoService';
 import { isTestMode } from '@/lib/testMode';
-import { rateLimit, getRateConfig } from '@/app/api/rate-limit';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 import { readJsonSafe, getEnvInt } from '@/lib/server/request';
 import * as Sentry from '@sentry/nextjs';
 import { getNextLeaders } from '@/lib/server/leaderSchedule';
@@ -32,8 +32,8 @@ export async function POST(request: Request) {
     const cfg = getRateConfig('submit');
     // Per-IP + optional per-wallet rate-limiting key
     const wallet = request.headers.get('x-wallet') || 'no-wallet';
-    const rl = rateLimit(`submit:${ip}:${wallet}`, cfg.limit, cfg.windowMs) as { ok: boolean };
-    if (!rl.ok) {
+    const rl = await rateLimit(`submit:${ip}:${wallet}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 

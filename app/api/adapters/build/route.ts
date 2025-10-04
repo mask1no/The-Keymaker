@@ -15,7 +15,8 @@ function ipKey(req: Request) {
 
 // Unified POST handler: build metadata if body contains standard fields; else demo adapter
 export async function POST(req: Request) {
-  if (!rateLimit(ipKey(req))) return apiError(429, 'rate_limited');
+  const rl = await rateLimit(ipKey(req));
+  if (!rl.allowed) return apiError(429, 'rate_limited');
   const cl = Number(req.headers.get('content-length') || '0');
   if (cl > 8192) return apiError(413, 'payload_too_large');
   const body = await req.json().catch(() => ({} as any));

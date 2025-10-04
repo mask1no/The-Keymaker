@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     }
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    if (!rateLimit(`engine:${key}`)) {
+    const rl = await rateLimit(`engine:${key}`);
+    if (!rl.allowed) {
       incCounter('rate_limited_total');
       return apiError(429, 'rate_limited', requestId);
     }
