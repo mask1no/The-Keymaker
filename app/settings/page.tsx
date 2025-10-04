@@ -1,36 +1,13 @@
-import { getUiSettings, setUiSettings } from '@/lib/server/settings';
-
 export const dynamic = 'force-dynamic';
 
-async function update(formData: FormData) {
-  'use server';
-  const region = String(formData.get('region') || 'ffm');
-  const priority = String(formData.get('priority') || 'med');
-  const tipLamports = Number(formData.get('tipLamports') || 5000);
-  const chunkSize = Number(formData.get('chunkSize') || 5);
-  const concurrency = Number(formData.get('concurrency') || 4);
-  const jitterMin = Number(formData.get('jitterMin') || 50);
-  const jitterMax = Number(formData.get('jitterMax') || 150);
-  const mode = String(formData.get('mode') || 'JITO_BUNDLE') as any;
-  const dryRun = String(formData.get('dryRun') || '') === 'on';
-  const liveMode = String(formData.get('liveMode') || '') === 'on';
-  const cluster = String(formData.get('cluster') || 'mainnet-beta') as any;
-  setUiSettings({
-    mode,
-    region: region as any,
-    priority: priority as any,
-    tipLamports,
-    chunkSize,
-    concurrency,
-    jitterMs: [jitterMin, jitterMax],
-    dryRun,
-    cluster,
-    liveMode,
-  });
+async function getUi(): Promise<any> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/ui/settings`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
 }
 
 export default async function SettingsPage() {
-  const ui = getUiSettings();
+  const ui = await getUi();
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-4 text-xs flex items-center gap-3">
@@ -45,7 +22,22 @@ export default async function SettingsPage() {
       <div className="bento">
         <section className="card">
           <div className="label mb-2">Engine Defaults</div>
-          <form action={update} className="space-y-3">
+          <form action={async (formData: FormData) => {
+            'use server';
+            const body = {
+              mode: String(formData.get('mode') || 'JITO_BUNDLE'),
+              region: String(formData.get('region') || 'ffm'),
+              priority: String(formData.get('priority') || 'med'),
+              tipLamports: Number(formData.get('tipLamports') || 5000),
+              chunkSize: Number(formData.get('chunkSize') || 5),
+              concurrency: Number(formData.get('concurrency') || 4),
+              jitterMs: [Number(formData.get('jitterMin') || 50), Number(formData.get('jitterMax') || 150)],
+              dryRun: String(formData.get('dryRun') || '') === 'on',
+              liveMode: String(formData.get('liveMode') || '') === 'on',
+              cluster: String(formData.get('cluster') || 'mainnet-beta'),
+            } as any;
+            await fetch('/api/ui/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+          }} className="space-y-3">
             <div>
               <label className="text-sm">Mode</label>
               <select

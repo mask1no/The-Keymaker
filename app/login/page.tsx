@@ -18,7 +18,8 @@ export default function LoginPage() {
             className="mt-3 text-xs text-zinc-400 hover:text-zinc-200"
             onClick={async () => {
               try {
-                await fetch('/api/auth/dev-login', { method: 'POST', credentials: 'include' });
+                const csrf = (typeof document !== 'undefined') ? (document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '') : '';
+                await fetch('/api/auth/dev-login', { method: 'POST', headers: { ...(csrf ? { 'x-csrf-token': csrf } : {}) }, credentials: 'include' });
                 window.location.href = '/engine?signed=1';
               } catch {
                 // noop

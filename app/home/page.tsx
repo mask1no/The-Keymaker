@@ -1,4 +1,5 @@
 "use client";
+import React from 'react';
 import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
 import EventsPanel from '@/components/Engine/EventsPanel';
 import KCard from '@/components/UI/KCard';

@@ -5,8 +5,19 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 
+function getCsrf(): string {
+  if (typeof document === 'undefined') return '';
+  return document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '';
+}
+
 async function postJson(url: string, body: unknown) {
-  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), credentials: 'include' });
+  const csrf = getCsrf();
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...(csrf ? { 'x-csrf-token': csrf } : {}) },
+    body: JSON.stringify(body),
+    credentials: 'include',
+  });
   if (!r.ok) throw new Error(`request failed: ${r.status}`);
   return r.json();
 }
