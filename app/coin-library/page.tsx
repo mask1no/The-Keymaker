@@ -1,92 +1,82 @@
 "use client";
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDraftStore } from '@/stores/useDraftStore';
 
-type Draft = {
-  name: string;
-  symbol: string;
-  image: string;
-  description?: string;
-  website?: string;
-  twitter?: string;
-  telegram?: string;
-};
+type Coin = { ca: string; name: string; symbol: string; image?: string; website?: string; twitter?: string; telegram?: string };
 
-export default function CoinLibraryPage() {
-  const [mint, setMint] = useState('');
+export default function CoinLibraryPage(){
+  const [ca, setCA] = useState('');
+  const [list, setList] = useState<Coin[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [draft, setDraftLocal] = useState<Draft | null>(null);
-  const setDraft = useDraftStore((s) => s.setDraft);
-  const router = useRouter();
 
-  async function fetchMeta(e: React.FormEvent) {
-    e.preventDefault();
+  async function addCA(e?: React.FormEvent){
+    if (e) e.preventDefault();
+    if(!ca) return;
     setError(null);
     setLoading(true);
-    try {
-      const res = await fetch(`/api/token/${encodeURIComponent(mint)}/meta`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(await res.text());
-      const j = await res.json();
-      setDraftLocal(j.draft as Draft);
-    } catch (e: any) {
-      setError(e?.message || 'Failed to fetch');
-    } finally {
-      setLoading(false);
-    }
+    try{
+      const r = await fetch(`/api/coins/library?ca=${encodeURIComponent(ca)}`, { cache:'no-store' });
+      const j = await r.json();
+      if(r.ok && j?.coin) setList(prev => [j.coin as Coin, ...prev.filter(x => x.ca!==j.coin.ca)]);
+      else setError(j?.error || 'not found');
+    } catch (e:any) {
+      setError(e?.message || 'failed');
+    } finally { setLoading(false); setCA(''); }
   }
 
-  function copyToCoin() {
-    if (!draft) return;
-    setDraft(draft);
-    router.push('/coin');
+  function copyToCoin(c: Coin){
+    const payload = JSON.stringify({
+      name: c.name,
+      symbol: c.symbol,
+      image: c.image || '',
+      website: c.website || '',
+      twitter: c.twitter || '',
+      telegram: c.telegram || ''
+    }, null, 2);
+    navigator.clipboard.writeText(payload).then(()=>{
+      try { localStorage.setItem('coinDraft', payload); } catch {}
+      alert('Copied. Go to Coin → Paste from clipboard (or auto-loads).');
+    });
   }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin Library</h1>
-        <p className="text-sm text-muted-foreground">Paste a contract address (mint), preview metadata, and prefill Coin.</p>
-        <form onSubmit={fetchMeta} className="mt-4 flex items-center gap-2">
+        <p className="text-sm text-muted-foreground">Paste a contract address (mint), preview metadata, and copy into Coin.</p>
+        <form onSubmit={addCA} className="mt-4 flex items-center gap-2">
           <input
-            value={mint}
-            onChange={(e) => setMint(e.target.value)}
+            value={ca}
+            onChange={(e) => setCA(e.target.value)}
             placeholder="Mint address"
             className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 w-full max-w-xl"
           />
-          <button disabled={loading || !mint} className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" type="submit">
+          <button disabled={loading || !ca} className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" type="submit">
             {loading ? 'Loading' : 'Fetch'}
           </button>
         </form>
         {error && <div className="mt-2 text-sm text-red-400">{error}</div>}
-        {draft && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="border border-zinc-800 rounded overflow-hidden">
-              {draft.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={draft.image} alt={draft.symbol} className="w-full h-40 object-cover" />
-              ) : (
-                <div className="w-full h-40 bg-zinc-900" />
-              )}
-              <div className="p-3">
-                <div className="font-medium">{draft.name} <span className="text-xs text-zinc-400">{draft.symbol}</span></div>
-                {draft.description && <div className="mt-1 text-xs text-zinc-400 line-clamp-3">{draft.description}</div>}
-                <div className="mt-2 flex gap-2 text-xs text-sky-400">
-                  {draft.website && <a className="hover:underline" href={draft.website} target="_blank" rel="noreferrer">Website</a>}
-                  {draft.twitter && <a className="hover:underline" href={draft.twitter} target="_blank" rel="noreferrer">Twitter</a>}
-                  {draft.telegram && <a className="hover:underline" href={draft.telegram} target="_blank" rel="noreferrer">Telegram</a>}
-                </div>
-                <div className="mt-3">
-                  <button onClick={copyToCoin} className="bg-sky-700 hover:bg-sky-600 rounded px-3 py-2 text-sm">
-                    Copy to Coin
-                  </button>
-                </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {list.map(c=> (
+          <div key={c.ca} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+            <div className="flex items-center gap-3">
+              {c.image ? <img src={c.image} alt="" className="h-8 w-8 rounded" /> : <div className="h-8 w-8 rounded bg-zinc-800" />}
+              <div>
+                <div className="text-sm font-semibold">{c.name} <span className="text-xs text-zinc-400">({c.symbol})</span></div>
+                <div className="text-[11px] text-zinc-500 truncate max-w-[40ch]">{c.ca}</div>
               </div>
             </div>
+            <div className="mt-3 flex gap-2">
+              <button onClick={()=>copyToCoin(c)} className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm">Copy</button>
+              {c.website && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.website} target="_blank">Site</a>}
+              {c.twitter && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.twitter} target="_blank">Twitter</a>}
+              {c.telegram && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.telegram} target="_blank">Telegram</a>}
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );

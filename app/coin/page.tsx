@@ -8,6 +8,7 @@ import CreateForm from '@/components/Coin/CreateForm';
 
 export default function CoinPage() {
   const draft = useDraftStore((s) => s.draft);
+  const setDraft = useDraftStore((s) => s.setDraft);
   const [market, setMarket] = useState<{ fdv?: number; price?: number } | null>(null);
   const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
   const [groupId, setGroupId] = useState<string>('');
@@ -25,6 +26,27 @@ export default function CoinPage() {
       abort = true;
     };
   }, [draft]);
+
+  // Auto-import from library clipboard/localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('coinDraft');
+      if (raw) {
+        const j = JSON.parse(raw);
+        setDraft({
+          name: j.name || '',
+          symbol: j.symbol || '',
+          image: j.image || '',
+          description: j.description || '',
+          website: j.website || '',
+          twitter: j.twitter || '',
+          telegram: j.telegram || '',
+          lastMint: null,
+        });
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let abort = false;
@@ -48,6 +70,32 @@ export default function CoinPage() {
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
         <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buy, multi-wallet buy, market-cap panel.</p>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm"
+            onClick={() => {
+              navigator.clipboard.readText().then(txt => {
+                try {
+                  const j = JSON.parse(txt);
+                  setDraft({
+                    name: j.name || '',
+                    symbol: j.symbol || '',
+                    image: j.image || '',
+                    description: j.description || '',
+                    website: j.website || '',
+                    twitter: j.twitter || '',
+                    telegram: j.telegram || '',
+                    lastMint: null,
+                  });
+                } catch {
+                  alert('Clipboard did not contain JSON');
+                }
+              });
+            }}
+          >
+            Paste from clipboard
+          </button>
+        </div>
         <div className="mt-4">
           <CreateForm />
         </div>

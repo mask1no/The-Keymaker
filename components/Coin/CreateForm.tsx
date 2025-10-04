@@ -1,11 +1,12 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 
 type Group = { id: string; name: string };
 
 export default function CreateForm() {
   const draft = useDraftStore((s) => s.draft);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(draft?.name || '');
   const [symbol, setSymbol] = useState(draft?.symbol || '');
   const [image, setImage] = useState(draft?.image || '');
@@ -35,6 +36,13 @@ export default function CreateForm() {
     setTwitter(draft?.twitter || '');
     setTelegram(draft?.telegram || '');
   }, [draft]);
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => setImage(String(r.result || ''));
+    r.readAsDataURL(f);
+  }
 
   useEffect(() => {
     let abort = false;
@@ -130,8 +138,13 @@ export default function CreateForm() {
           <input value={symbol} onChange={(e) => setSymbol(e.target.value)} className="input w-full bg-zinc-900" />
         </div>
         <div className="md:col-span-2">
-          <label className="text-xs text-zinc-400">Image URL</label>
-          <input value={image} onChange={(e) => setImage(e.target.value)} className="input w-full bg-zinc-900" />
+          <label className="text-xs text-zinc-400">Image</label>
+          <div className="flex items-center gap-3">
+            <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2">Upload</button>
+            <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="or paste URL" className="input w-full bg-zinc-900" />
+            {image ? <img src={image} alt="" className="h-10 w-10 rounded" /> : null}
+          </div>
         </div>
         <div className="md:col-span-2">
           <label className="text-xs text-zinc-400">Description</label>
