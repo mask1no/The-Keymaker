@@ -120,7 +120,11 @@ export default function TopBar() {
           )}
         </div>
       </div>
-      {wsWarn ? <div className="px-4 pb-2 text-[11px] text-amber-300">{wsWarn}</div> : null}
+      {wsWarn ? (
+        <div className="px-4 pb-2 text-[11px] text-amber-300">
+          {wsWarn} {(!process.env.NEXT_PUBLIC_HELIUS_WS && !process.env.HELIUS_WS_URL) ? ' Set HELIUS_WS_URL or NEXT_PUBLIC_HELIUS_WS.' : ''}
+        </div>
+      ) : null}
       {err ? <div className="px-4 pb-2 text-[11px] text-red-400">{err}</div> : null}
     </header>
   );

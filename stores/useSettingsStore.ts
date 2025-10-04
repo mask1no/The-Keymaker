@@ -56,17 +56,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setLastCreatedTokenAddress: (address) => set({ lastCreatedTokenAddress: address }),
   fetchSettings: async () => {
     try {
-      const response = await fetch('/api/settings');
+      const response = await fetch('/api/ui/settings');
       if (!response.ok) return;
-      const data = (await response.json()) as Partial<
-        Pick<SettingsState, 'jitoTipLamports' | 'jupiterFeeBps'>
-      >;
+      const data = (await response.json()) as any;
       set((state) => ({
         ...state,
         jitoTipLamports:
-          typeof data.jitoTipLamports === 'number' ? data.jitoTipLamports : state.jitoTipLamports,
+          typeof data?.jitoTipLamports === 'number' ? data.jitoTipLamports : state.jitoTipLamports,
         jupiterFeeBps:
-          typeof data.jupiterFeeBps === 'number' ? data.jupiterFeeBps : state.jupiterFeeBps,
+          typeof data?.jupiterFeeBps === 'number' ? data.jupiterFeeBps : state.jupiterFeeBps,
       }));
     } catch (error) {
       // eslint-disable-next-line no-console

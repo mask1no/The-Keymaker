@@ -30,15 +30,14 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
     })();
     return () => { abort = true; };
   }, [groupId]);
-  function getCookie(name: string): string | null {
-    if (typeof document === 'undefined') return null;
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    return match ? decodeURIComponent(match[2]) : null;
+  function getCsrf(): string {
+    if (typeof document === 'undefined') return '';
+    return document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '';
   }
   async function dryRun(kind: 'jito'|'rpc') {
     if (!groupId) { alert('Select a group'); return; }
     if (!mint) { alert('Enter token mint'); return; }
-    const token = getCookie('km_csrf') || '';
+    const token = getCsrf();
     const url = kind === 'jito' ? '/api/engine/jito/buy' : '/api/engine/rpc/buy';
     const body = { groupId, mint, amountSol: amount, slippageBps: 100, dryRun: true } as any;
     try {
