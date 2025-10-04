@@ -100,3 +100,9 @@ pnpm-lock.yaml
 
 # Backup files
 *.bak
+
+# Hygiene additions
+.tools/
+data/*.db
+keypairs/**
+config/challenge-signer.json
