@@ -4,18 +4,18 @@
 import { logger } from './logger';
 
 class AutoLockService {
-  private l, o, c, kTimer: NodeJS.Timeout | null = null;
-  private l, a, s, tActivity: number = Date.now();
-  private l, o, c, kTimeoutMs: number = 15 * 60 * 1000; // 15 minutes
+  private lockTimer: NodeJS.Timeout | null = null;
+  private lastActivity: number = Date.now();
+  private lockTimeoutMs: number = 15 * 60 * 1000; // 15 minutes
   private isLocked = false;
-  private e, v, e, ntListeners: Array<(e: Event) => void> = [];
+  private eventListeners: Array<(e: Event) => void> = [];
 
   constructor() {
     this.setupActivityListeners();
     this.startLockTimer();
   }
 
-  setLockTimeout(m, i, n, utes: number) {
+  setLockTimeout(minutes: number) {
     this.lockTimeoutMs = minutes * 60 * 1000;
     this.resetTimer();
     logger.info(`Auto-lock timeout set to ${minutes} minutes`);
@@ -23,7 +23,7 @@ class AutoLockService {
 
   private setupActivityListeners() {
     if (typeof window === 'undefined') return;
-    const e, v, e, nts: Array<keyof WindowEventMap> = [
+    const events: Array<keyof WindowEventMap> = [
       'mousedown',
       'mousemove',
       'keypress',
@@ -31,7 +31,7 @@ class AutoLockService {
       'touchstart',
       'click',
     ];
-    const activityHandler = (_, e: Event) => this.onActivity();
+    const activityHandler = (_e: Event) => this.onActivity();
     events.forEach((event) => {
       window.addEventListener(event, activityHandler, true);
       this.eventListeners.push(activityHandler);
@@ -63,7 +63,7 @@ class AutoLockService {
     logger.warn('Auto-lock activated - clearing sensitive data');
     this.clearSensitiveData();
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('app-locked', { d, e, t, ail: { t, i, m, estamp: Date.now() } }));
+      window.dispatchEvent(new CustomEvent('app-locked', { detail: { timestamp: Date.now() } }));
     }
   }
 
@@ -95,7 +95,7 @@ class AutoLockService {
     this.resetTimer();
     logger.info('Application unlocked');
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('app-unlocked', { d, e, t, ail: { t, i, m, estamp: Date.now() } }));
+      window.dispatchEvent(new CustomEvent('app-unlocked', { detail: { timestamp: Date.now() } }));
     }
   }
 
@@ -105,7 +105,7 @@ class AutoLockService {
 
   public destroy() {
     if (this.lockTimer) clearInterval(this.lockTimer);
-    const e, v, e, nts: Array<keyof WindowEventMap> = [
+    const events: Array<keyof WindowEventMap> = [
       'mousedown',
       'mousemove',
       'keypress',
@@ -115,7 +115,7 @@ class AutoLockService {
     ];
     this.eventListeners.forEach((handler, index) => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener(events[index % events.length], handler, true);
+        window.removeEventListener(events[index % events.length], handler as EventListener, true);
       }
     });
   }

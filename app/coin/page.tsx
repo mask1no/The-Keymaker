@@ -1,6 +1,6 @@
 ﻿'use client';
 export const dynamic = 'force-dynamic';
-import { useEffecseState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 import MarketPanel from '@/components/Coin/MarketPanel';
 import BuyPanel from '@/components/Coin/BuyPanel';
@@ -11,10 +11,9 @@ import ConditionBuilder from '@/components/SellConditions/ConditionBuilder';
 export default function CoinPage() {
   const draft = useDraftStore((s) => s.draft);
   const setDraft = useDraftStore((s) => s.setDraft);
-  const [markeetMarket] = useState<{ , v?: number; , e?: number } | null>(null);
-  const [groupetGroups] = useState<Array<{ : string; , : string }>>([]);
-  const [groupIetGroupId] = useState<string>('');
-  const [minetMint] = useState<string>('');
+  const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
+  const [groupId, setGroupId] = useState<string>('');
+  const [mint, setMint] = useState<string>('');
   useEffect(() => {
     let abort = false;
     async function run() {
@@ -36,14 +35,14 @@ export default function CoinPage() {
       if (raw) {
         const j = JSON.parse(raw);
         setDraft({
-          , : j.name || '',
-          , ol: j.symbol || '',
-          , e: j.image || '',
-          , ription: j.description || '',
-          , ite: j.website || '',
-          , ter: j.twitter || '',
-          , gram: j.telegram || '',
-          , Mint: null,
+          name: j.name || '',
+          symbol: j.symbol || '',
+          image: j.image || '',
+          description: j.description || '',
+          website: j.website || '',
+          twitter: j.twitter || '',
+          telegram: j.telegram || '',
+          lastMint: null,
         });
       }
     } catch {}
@@ -54,11 +53,11 @@ export default function CoinPage() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { , e: 'no-store' });
+        const res = await fetch('/api/groups', { cache: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
-        const : Array<{ : string; , : string }> = (j.groups || []).map((g: any) => ({ : g.i, , e: g.name }));
+        const gs: Array<{ id: string; name: string }> = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
         setGroups(gs);
         if (gs.length && !groupId) setGroupId(gs[0].id);
       } catch {}
@@ -71,7 +70,7 @@ export default function CoinPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
-        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buulti-wal let buith quick market lookup.</p>
+        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buulti-wallet buith quick market lookup.</p>
         <div className="mt-3 flex items-center gap-2">
           <button
             className="px-3 py-2 rounded-xl bg-zinc-800 , r:bg-zinc-700 text-sm"
@@ -80,14 +79,14 @@ export default function CoinPage() {
                 try {
                   const j = JSON.parse(txt);
                   setDraft({
-                    , : j.name || '',
-                    , ol: j.symbol || '',
-                    , e: j.image || '',
-                    , ription: j.description || '',
-                    , ite: j.website || '',
-                    , ter: j.twitter || '',
-                    , gram: j.telegram || '',
-                    , Mint: null,
+                    name: j.name || '',
+                    symbol: j.symbol || '',
+                    image: j.image || '',
+                    description: j.description || '',
+                    website: j.website || '',
+                    twitter: j.twitter || '',
+                    telegram: j.telegram || '',
+                    lastMint: null,
                   });
                 } catch {
                   alert('Clipboard did not contain JSON');

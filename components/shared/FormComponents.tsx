@@ -1,20 +1,20 @@
 /**
  * Shared form components to eliminate duplication
- * Used across Settings, Bundle, and Wal let management
+ * Used across Settings, Bundle, and Wallet management
  */
 
 import React from 'react';
 
 interface InputFieldProps {
-  l, a, b, el: string;
-  n, a, m, e: string;
-  t, y, p, e?: string;
-  p, l, a, ceholder?: string;
-  d, e, f, aultValue?: string | number;
-  m, i, n?: number;
-  m, a, x?: number;
-  r, e, q, uired?: boolean;
-  c, l, a, ssName?: string;
+  label: string;
+  name: string;
+  type?: string;
+  placeholder?: string;
+  defaultValue?: string | number;
+  min?: number;
+  max?: number;
+  required?: boolean;
+  className?: string;
 }
 
 export function InputField({
@@ -49,11 +49,11 @@ export function InputField({
 }
 
 interface ButtonProps {
-  c, h, i, ldren: React.ReactNode;
-  t, y, p, e?: 'button' | 'submit' | 'reset';
-  v, a, r, iant?: 'primary' | 'secondary' | 'danger';
-  d, i, s, abled?: boolean;
-  c, l, a, ssName?: string;
+  children: React.ReactNode;
+  type?: 'button' | 'submit' | 'reset';
+  variant?: 'primary' | 'secondary' | 'danger';
+  disabled?: boolean;
+  className?: string;
 }
 
 export function Button({
@@ -65,9 +65,9 @@ export function Button({
 }: ButtonProps) {
   const baseClasses = 'px-3 py-1 rounded-md transition-colors';
   const variantClasses = {
-    p, r, i, mary: 'bg-zinc-800 h, o, v, er:bg-zinc-700 text-zinc-100',
-    s, e, c, ondary: 'border border-zinc-800 h, o, v, er:bg-zinc-800 text-zinc-300',
-    d, a, n, ger: 'bg-red-900 h, o, v, er:bg-red-800 text-red-100',
+    primary: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100',
+    secondary: 'border border-zinc-800 hover:bg-zinc-800 text-zinc-300',
+    danger: 'bg-red-900 hover:bg-red-800 text-red-100',
   };
   
   const finalClasses = `${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`;
@@ -84,16 +84,16 @@ export function Button({
 }
 
 interface StatusMessageProps {
-  t, y, p, e: 'success' | 'error' | 'warning' | 'info';
-  c, h, i, ldren: React.ReactNode;
+  type: 'success' | 'error' | 'warning' | 'info';
+  children: React.ReactNode;
 }
 
 export function StatusMessage({ type, children }: StatusMessageProps) {
   const typeClasses = {
-    s, u, c, cess: 'border-green-600/30 bg-green-900/20 text-green-200',
-    e, r, r, or: 'border-red-600/30 bg-red-900/20 text-red-200',
-    w, a, r, ning: 'border-yellow-600/30 bg-yellow-900/20 text-yellow-200',
-    i, n, f, o: 'border-blue-600/30 bg-blue-900/20 text-blue-200',
+    success: 'border-green-600/30 bg-green-900/20 text-green-200',
+    error: 'border-red-600/30 bg-red-900/20 text-red-200',
+    warning: 'border-yellow-600/30 bg-yellow-900/20 text-yellow-200',
+    info: 'border-blue-600/30 bg-blue-900/20 text-blue-200',
   };
   
   return (
@@ -108,9 +108,9 @@ export function StatusMessage({ type, children }: StatusMessageProps) {
 }
 
 interface CardProps {
-  t, i, t, le?: string;
-  c, h, i, ldren: React.ReactNode;
-  c, l, a, ssName?: string;
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export function Card({ title, children, className = '' }: CardProps) {
@@ -123,23 +123,23 @@ export function Card({ title, children, className = '' }: CardProps) {
 }
 
 interface BadgeProps {
-  c, h, i, ldren: React.ReactNode;
-  v, a, r, iant?: 'default' | 'active' | 'warning';
-  h, r, e, f?: string;
+  children: React.ReactNode;
+  variant?: 'default' | 'active' | 'warning';
+  href?: string;
 }
 
 export function Badge({ children, variant = 'default', href }: BadgeProps) {
   const variantClasses = {
-    d, e, f, ault: 'bg-zinc-800 text-zinc-300',
-    a, c, t, ive: 'bg-blue-900 text-blue-200',
-    w, a, r, ning: 'bg-yellow-900 text-yellow-200',
+    default: 'bg-zinc-800 text-zinc-300',
+    active: 'bg-blue-900 text-blue-200',
+    warning: 'bg-yellow-900 text-yellow-200',
   };
   
   const baseClasses = `badge ${variantClasses[variant]}`;
   
   if (href) {
     return (
-      <a href={href} className={baseClasses} style={{ t, e, x, tDecoration: 'none' }}>
+      <a href={href} className={baseClasses} style={{ textDecoration: 'none' }}>
         {children}
       </a>
     );

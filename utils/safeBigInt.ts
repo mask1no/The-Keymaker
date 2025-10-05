@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 
 // Safely convert buffer/number/string/bigint to bigint (little-endian for buffers)
-export function safeToBigIntLE(i, n, p, ut: Buffer | number | string | bigint): bigint {
+export function safeToBigIntLE(input: Buffer | number | string | bigint): bigint {
   // Buffer path
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
     const buffer = input as Buffer;
@@ -11,7 +11,7 @@ export function safeToBigIntLE(i, n, p, ut: Buffer | number | string | bigint): 
       const bn = new BN(buffer, 'le');
       return BigInt(bn.toString());
     } catch (error) {
-      throw new Error(`Failed to convert buffer to B, i, g, Int: ${(error as Error).message}`);
+      throw new Error(`Failed to convert buffer to BigInt: ${(error as Error).message}`);
     }
   }
   // bigint path
@@ -38,8 +38,8 @@ export function safeToBigIntLE(i, n, p, ut: Buffer | number | string | bigint): 
 }
 
 // Safely convert BigInt-like to buffer (little-endian) with bounds checking
-export function safeToBufferLE(v, a, l, ue: bigint | number | string, l, e, n, gth: number): Buffer {
-  let n, o, r, malized: bigint = 0n;
+export function safeToBufferLE(value: bigint | number | string, length: number): Buffer {
+  let normalized: bigint = 0n;
   try {
     if (typeof value === 'bigint') normalized = value;
     else if (typeof value === 'number')
@@ -63,7 +63,7 @@ export function safeToBufferLE(v, a, l, ue: bigint | number | string, l, e, n, g
 }
 
 // Validate and sanitize numeric input for user forms
-export function sanitizeNumericInput(i, n, p, ut: string): string {
+export function sanitizeNumericInput(input: string): string {
   if (typeof input !== 'string') throw new Error('Invalid input type');
   const trimmed = input.trim();
   if (trimmed === '') return '';
@@ -115,15 +115,15 @@ export const SafeMath = {
   },
   // Convenience aliases used in tests
   subtract(a: bigint | number, b: bigint | number): bigint {
-    return this.sub(a, b);
+    return this.sub(ab);
   },
   multiply(a: bigint | number, b: bigint | number): bigint {
-    return this.mul(a, b);
+    return this.mul(ab);
   },
   divide(a: bigint | number, b: bigint | number): bigint {
-    return this.div(a, b);
+    return this.div(ab);
   },
-  percentage(a, m, o, unt: bigint | number, b, p, s: bigint | number): bigint {
+  percentage(amount: bigint | number, bps: bigint | number): bigint {
     const amt = typeof amount === 'bigint' ? amount : BigInt(Math.trunc(amount));
     const basisPoints = typeof bps === 'bigint' ? bps : BigInt(Math.trunc(bps));
     if (amt === 0n || basisPoints === 0n) return 0n;

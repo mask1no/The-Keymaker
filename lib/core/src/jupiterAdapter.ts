@@ -10,28 +10,28 @@ import {
 } from '@solana/web3.js';
 import { createDailyJournal, logJsonLine } from './journal';
 
-const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'h, t, t, ps://quote-api.jup.ag/v6';
+const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'https://quote-api.jup.ag/v6';
 
 interface JupiterQuote {
-  i, n, p, utMint: string;
-  i, n, A, mount: string;
-  o, u, t, putMint: string;
-  o, u, t, Amount: string;
-  o, t, h, erAmountThreshold: string;
-  s, w, a, pMode: string;
-  s, l, i, ppageBps: number;
-  p, r, i, ceImpactPct: string;
-  r, o, u, tePlan: any[];
+  inputMint: string;
+  inAmount: string;
+  outputMint: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  swapMode: string;
+  slippageBps: number;
+  priceImpactPct: string;
+  routePlan: any[];
 }
 
 /**
  * Get Jupiter quote
  */
-async function getJupiterQuote(p, a, r, ams: {
-  i, n, p, utMint: string;
-  o, u, t, putMint: string;
-  a, m, o, unt: number;
-  s, l, i, ppageBps: number;
+async function getJupiterQuote(params: {
+  inputMint: string;
+  outputMint: string;
+  amount: number;
+  slippageBps: number;
 }): Promise<JupiterQuote> {
   const url = new URL(`${JUPITER_API_BASE}/quote`);
   url.searchParams.set('inputMint', params.inputMint);
@@ -42,12 +42,12 @@ async function getJupiterQuote(p, a, r, ams: {
   url.searchParams.set('asLegacyTransaction', 'false');
   
   const response = await fetch(url.toString(), {
-    m, e, t, hod: 'GET',
-    h, e, a, ders: { 'Accept': 'application/json' },
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
   });
   
   if (!response.ok) {
-    throw new Error(`Jupiter quote f, a, i, led: ${response.status} ${await response.text()}`);
+    throw new Error(`Jupiter quote failed: ${response.status} ${await response.text()}`);
   }
   
   return response.json();
@@ -56,30 +56,30 @@ async function getJupiterQuote(p, a, r, ams: {
 /**
  * Build swap transaction from quote
  */
-async function buildSwapTransaction(p, a, r, ams: {
-  q, u, o, te: JupiterQuote;
-  u, s, e, rPublicKey: string;
-  w, r, a, pUnwrapSOL?: boolean;
-  p, r, i, orityFeeMicrolamports?: number;
+async function buildSwapTransaction(params: {
+  quote: JupiterQuote;
+  userPublicKey: string;
+  wrapUnwrapSOL?: boolean;
+  priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
   const response = await fetch(`${JUPITER_API_BASE}/swap`, {
-    m, e, t, hod: 'POST',
-    h, e, a, ders: { 'Content-Type': 'application/json' },
-    b, o, d, y: JSON.stringify({
-      q, u, o, teResponse: params.quote,
-      u, s, e, rPublicKey: params.userPublicKey,
-      w, r, a, pAndUnwrapSol: params.wrapUnwrapSOL ?? true,
-      d, y, n, amicComputeUnitLimit: true,
-      p, r, i, oritizationFeeLamports: params.priorityFeeMicrolamports ? {
-        p, r, i, orityLevelWithMaxLamports: {
-          m, a, x, Lamports: params.priorityFeeMicrolamports,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      quoteResponse: params.quote,
+      userPublicKey: params.userPublicKey,
+      wrapAndUnwrapSol: params.wrapUnwrapSOL ?? true,
+      dynamicComputeUnitLimit: true,
+      prioritizationFeeLamports: params.priorityFeeMicrolamports ? {
+        priorityLevelWithMaxLamports: {
+          maxLamports: params.priorityFeeMicrolamports,
         },
       } : undefined,
     }),
   });
   
   if (!response.ok) {
-    throw new Error(`Jupiter swap build f, a, i, led: ${response.status} ${await response.text()}`);
+    throw new Error(`Jupiter swap build failed: ${response.status} ${await response.text()}`);
   }
   
   const { swapTransaction } = await response.json();
@@ -92,14 +92,14 @@ async function buildSwapTransaction(p, a, r, ams: {
 /**
  * Build Jupiter swap transaction for buying
  */
-export async function buildJupiterSwapTx(p, a, r, ams: {
-  w, a, l, let: Keypair;
-  i, n, p, utMint: string;
-  o, u, t, putMint: string;
-  a, m, o, untSol: number;
-  s, l, i, ppageBps: number;
-  c, l, u, ster?: 'mainnet-beta' | 'devnet';
-  p, r, i, orityFeeMicrolamports?: number;
+export async function buildJupiterSwapTx(params: {
+  wallet: Keypair;
+  inputMint: string;
+  outputMint: string;
+  amountSol: number;
+  slippageBps: number;
+  cluster?: 'mainnet-beta' | 'devnet';
+  priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
   
@@ -107,63 +107,63 @@ export async function buildJupiterSwapTx(p, a, r, ams: {
   const amountLamports = Math.floor(params.amountSol * 1e9);
   
   logJsonLine(journal, {
-    e, v: 'jupiter_quote_request',
-    w, a, l, let: params.wallet.publicKey.toBase58(),
-    i, n, p, utMint: params.inputMint,
-    o, u, t, putMint: params.outputMint,
+    ev: 'jupiter_quote_request',
+    wallet: params.wallet.publicKey.toBase58(),
+    inputMint: params.inputMint,
+    outputMint: params.outputMint,
     amountLamports,
-    s, l, i, ppageBps: params.slippageBps,
+    slippageBps: params.slippageBps,
   });
   
   try {
     // Get quote
     const quote = await getJupiterQuote({
-      i, n, p, utMint: params.inputMint,
-      o, u, t, putMint: params.outputMint,
-      a, m, o, unt: amountLamports,
-      s, l, i, ppageBps: params.slippageBps,
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      amount: amountLamports,
+      slippageBps: params.slippageBps,
     });
     
     logJsonLine(journal, {
-      e, v: 'jupiter_quote_received',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      i, n, p, utMint: params.inputMint,
-      o, u, t, putMint: params.outputMint,
-      i, n, A, mount: quote.inAmount,
-      o, u, t, Amount: quote.outAmount,
-      p, r, i, ceImpactPct: quote.priceImpactPct,
+      ev: 'jupiter_quote_received',
+      wallet: params.wallet.publicKey.toBase58(),
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: quote.inAmount,
+      outAmount: quote.outAmount,
+      priceImpactPct: quote.priceImpactPct,
     });
     
     // Build transaction
     const versionedTx = await buildSwapTransaction({
       quote,
-      u, s, e, rPublicKey: params.wallet.publicKey.toBase58(),
-      w, r, a, pUnwrapSOL: true,
-      p, r, i, orityFeeMicrolamports: params.priorityFeeMicrolamports,
+      userPublicKey: params.wallet.publicKey.toBase58(),
+      wrapUnwrapSOL: true,
+      priorityFeeMicrolamports: params.priorityFeeMicrolamports,
     });
     // Attach minimal metadata for downstream journaling
     try {
       (versionedTx as any).__km_meta = {
-        k, i, n, d: 'buy',
-        i, n, p, utMint: params.inputMint,
-        o, u, t, putMint: params.outputMint,
-        i, n, A, mount: quote.inAmount, // string (lamports for buy)
-        o, u, t, Amount: quote.outAmount, // string (token base units)
+        kind: 'buy',
+        inputMint: params.inputMint,
+        outputMint: params.outputMint,
+        inAmount: quote.inAmount, // string (lamports for buy)
+        outAmount: quote.outAmount, // string (token base units)
       };
     } catch {}
     
     logJsonLine(journal, {
-      e, v: 'jupiter_tx_built',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      i, n, s, tructions: undefined,
+      ev: 'jupiter_tx_built',
+      wallet: params.wallet.publicKey.toBase58(),
+      instructions: undefined,
     });
     
     return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
-      e, v: 'jupiter_error',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      e, r, r, or: (error as Error).message,
+      ev: 'jupiter_error',
+      wallet: params.wallet.publicKey.toBase58(),
+      error: (error as Error).message,
     });
     
     throw error;
@@ -173,33 +173,33 @@ export async function buildJupiterSwapTx(p, a, r, ams: {
 /**
  * Build Jupiter swap transaction for selling
  */
-export async function buildJupiterSellTx(p, a, r, ams: {
-  w, a, l, let: Keypair;
-  i, n, p, utMint: string; // Token to sell
-  o, u, t, putMint: string; // Usually SOL
-  a, m, o, untTokens: number; // Amount in token's native units
-  s, l, i, ppageBps: number;
-  m, i, n, OutLamports?: number;
-  c, l, u, ster?: 'mainnet-beta' | 'devnet';
-  p, r, i, orityFeeMicrolamports?: number;
+export async function buildJupiterSellTx(params: {
+  wallet: Keypair;
+  inputMint: string; // Token to sell
+  outputMint: string; // Usually SOL
+  amountTokens: number; // Amount in token's native units
+  slippageBps: number;
+  minOutLamports?: number;
+  cluster?: 'mainnet-beta' | 'devnet';
+  priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
   
   logJsonLine(journal, {
-    e, v: 'jupiter_sell_quote_request',
-    w, a, l, let: params.wallet.publicKey.toBase58(),
-    i, n, p, utMint: params.inputMint,
-    o, u, t, putMint: params.outputMint,
-    a, m, o, untTokens: params.amountTokens,
+    ev: 'jupiter_sell_quote_request',
+    wallet: params.wallet.publicKey.toBase58(),
+    inputMint: params.inputMint,
+    outputMint: params.outputMint,
+    amountTokens: params.amountTokens,
   });
   
   try {
     // Get quote
     const quote = await getJupiterQuote({
-      i, n, p, utMint: params.inputMint,
-      o, u, t, putMint: params.outputMint,
-      a, m, o, unt: Math.floor(params.amountTokens),
-      s, l, i, ppageBps: params.slippageBps,
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      amount: Math.floor(params.amountTokens),
+      slippageBps: params.slippageBps,
     });
     
     // Check minimum output if specified
@@ -210,43 +210,43 @@ export async function buildJupiterSellTx(p, a, r, ams: {
     }
     
     logJsonLine(journal, {
-      e, v: 'jupiter_sell_quote_received',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      i, n, p, utMint: params.inputMint,
-      o, u, t, putMint: params.outputMint,
-      i, n, A, mount: quote.inAmount,
-      o, u, t, Amount: quote.outAmount,
+      ev: 'jupiter_sell_quote_received',
+      wallet: params.wallet.publicKey.toBase58(),
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: quote.inAmount,
+      outAmount: quote.outAmount,
     });
     
     // Build transaction
     const versionedTx = await buildSwapTransaction({
       quote,
-      u, s, e, rPublicKey: params.wallet.publicKey.toBase58(),
-      w, r, a, pUnwrapSOL: true,
-      p, r, i, orityFeeMicrolamports: params.priorityFeeMicrolamports,
+      userPublicKey: params.wallet.publicKey.toBase58(),
+      wrapUnwrapSOL: true,
+      priorityFeeMicrolamports: params.priorityFeeMicrolamports,
     });
     try {
       (versionedTx as any).__km_meta = {
-        k, i, n, d: 'sell',
-        i, n, p, utMint: params.inputMint,
-        o, u, t, putMint: params.outputMint,
-        i, n, A, mount: quote.inAmount, // string (token base units)
-        o, u, t, Amount: quote.outAmount, // string (lamports)
+        kind: 'sell',
+        inputMint: params.inputMint,
+        outputMint: params.outputMint,
+        inAmount: quote.inAmount, // string (token base units)
+        outAmount: quote.outAmount, // string (lamports)
       };
     } catch {}
     
     logJsonLine(journal, {
-      e, v: 'jupiter_sell_tx_built',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      i, n, s, tructions: undefined,
+      ev: 'jupiter_sell_tx_built',
+      wallet: params.wallet.publicKey.toBase58(),
+      instructions: undefined,
     });
     
     return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
-      e, v: 'jupiter_sell_error',
-      w, a, l, let: params.wallet.publicKey.toBase58(),
-      e, r, r, or: (error as Error).message,
+      ev: 'jupiter_sell_error',
+      wallet: params.wallet.publicKey.toBase58(),
+      error: (error as Error).message,
     });
     
     throw error;
@@ -256,41 +256,37 @@ export async function buildJupiterSellTx(p, a, r, ams: {
 /**
  * Simulate transaction before sending (fail fast)
  */
-export async function simulateTransaction(p, a, r, ams: {
-  c, o, n, nection: Connection;
-  t, r, a, nsaction: VersionedTransaction;
-  w, a, l, let: Keypair;
-}): Promise<{ s, u, c, cess: boolean; e, r, r, or?: string; l, o, g, s?: string[] }> {
-  const { connection, transaction, wal let } = params;
+export async function simulateTransaction(params: {
+  connection: Connection;
+  transaction: VersionedTransaction;
+  wallet: Keypair;
+}): Promise<{ success: boolean; error?: string; logs?: string[] }> {
+  const { connection, transaction, wallet } = params;
   
   try {
     // Get recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = wallet.publicKey;
-    
-    // Sign
-    await transaction.sign(wallet);
+    // For VersionedTransaction, we cannot set recentBlockhash/feePayer directly.
+    // Assume the built transaction already contains a valid message; just simulate.
     
     // Simulate
     const simulation = await connection.simulateTransaction(transaction);
     
     if (simulation.value.err) {
       return {
-        s, u, c, cess: false,
-        e, r, r, or: JSON.stringify(simulation.value.err),
-        l, o, g, s: simulation.value.logs || [],
+        success: false,
+        error: JSON.stringify(simulation.value.err),
+        logs: simulation.value.logs || [],
       };
     }
     
     return {
-      s, u, c, cess: true,
-      l, o, g, s: simulation.value.logs || [],
+      success: true,
+      logs: simulation.value.logs || [],
     };
   } catch (error) {
     return {
-      s, u, c, cess: false,
-      e, r, r, or: (error as Error).message,
+      success: false,
+      error: (error as Error).message,
     };
   }
 }

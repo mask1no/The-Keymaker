@@ -15,7 +15,7 @@ export default function TopBar() {
     let t: any;
     const tick = async () => {
       try {
-        const r = await fetch('/api/ops/status', { c, a, c, he: 'no-store' });
+        const r = await fetch('/api/ops/status', { cache: 'no-store' });
         const j = await r.json();
         setArmed(!!j.armed);
         setArmedUntil(typeof j.armedUntil === 'number' ? j.armedUntil : null);
@@ -24,7 +24,7 @@ export default function TopBar() {
         setDryDefault(!!j.dryDefault);
         // Check WS heartbeat staleness via health
         try {
-          const hr = await fetch('/api/health', { c, a, c, he: 'no-store' });
+          const hr = await fetch('/api/health', { cache: 'no-store' });
           const hj = await hr.json();
           const last = Number(hj?.status?.ws?.lastHeartbeatAt || 0);
           if (last > 0) {
@@ -48,7 +48,7 @@ export default function TopBar() {
     let stop = false;
     (async () => {
       try {
-        const r = await fetch('/api/auth/session', { c, a, c, he: 'no-store' });
+        const r = await fetch('/api/auth/session', { cache: 'no-store' });
         if (r.ok) {
           const j = await r.json();
           if (!stop) setPubkey(j.pubkey || null);
@@ -74,11 +74,11 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
   async function callArm(minutes = 15) {
     setBusy(true); setErr(null);
     try {
-      const h, e, a, ders: Record<string, string> = { 'content-type': 'application/json' };
+      const headers: Record<string, string> = { 'content-type': 'application/json' };
       const csrf = getCsrf();
       if (csrf) headers['x-csrf-token'] = csrf;
-      const r = await fetch('/api/ops/arm', { m, e, t, hod: 'POST', headers, b, o, d, y: JSON.stringify({ minutes }) });
-      if (!r.ok) throw new Error(`arm f, a, i, led: ${r.status}`);
+      const r = await fetch('/api/ops/arm', { method: 'POST', headers, body: JSON.stringify({ minutes }) });
+      if (!r.ok) throw new Error(`arm failed: ${r.status}`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'failed');
     } finally { setBusy(false); }
@@ -87,11 +87,11 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
   async function callDisarm() {
     setBusy(true); setErr(null);
     try {
-      const h, e, a, ders: Record<string, string> = { 'content-type': 'application/json' };
+      const headers: Record<string, string> = { 'content-type': 'application/json' };
       const csrf = getCsrf();
       if (csrf) headers['x-csrf-token'] = csrf;
-      const r = await fetch('/api/ops/disarm', { m, e, t, hod: 'POST', headers });
-      if (!r.ok) throw new Error(`disarm f, a, i, led: ${r.status}`);
+      const r = await fetch('/api/ops/disarm', { method: 'POST', headers });
+      if (!r.ok) throw new Error(`disarm failed: ${r.status}`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'failed');
     } finally { setBusy(false); }
@@ -113,16 +113,16 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
           )}
           {requireArming ? (
             <div className="flex items-center gap-2">
-              <button onClick={() => callArm(15)} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs h, o, v, er:bg-zinc-900">Arm 15m</button>
-              <button onClick={() => callDisarm()} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs h, o, v, er:bg-zinc-900">Disarm</button>
+              <button onClick={() => callArm(15)} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Arm 15m</button>
+              <button onClick={() => callDisarm()} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Disarm</button>
             </div>
           ) : null}
           {pubkey ? (
             <form action="/api/auth/logout" method="post">
-              <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs h, o, v, er:bg-zinc-900">Logout</button>
+              <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Logout</button>
             </form>
           ) : (
-            <a href="/login" className="px-3 py-1 rounded-lg border border-zinc-800 text-xs h, o, v, er:bg-zinc-900">Login</a>
+            <a href="/login" className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Login</a>
           )}
         </div>
       </div>

@@ -1,16 +1,16 @@
 'use client';
 import useSWR from 'swr';
-type RecentRun = { i, d: number; e, x, e, cuted_at: string; s, t, a, tus: string; o, u, t, comes: any };
-async function fetcher(u, r, l: string): Promise<{ r, e, c, ent: RecentRun[] }> {
-  const res = await fetch(url, { c, a, c, he: 'no-store' });
+type RecentRun = { id: number; executed_at: string; status: string; outcomes: any };
+async function fetcher(url: string): Promise<{ recent: RecentRun[] }> {
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('recent');
   return res.json();
 }
 export default function RecentRunsPanel() {
-  const { data, error, isLoading } = useSWR<{ r, e, c, ent: RecentRun[] }>(
+  const { data, error, isLoading } = useSWR<{ recent: RecentRun[] }>(
     '/api/metrics/recent',
     fetcher,
-    { r, e, f, reshInterval: 10000, r, e, v, alidateOnFocus: false },
+    { refreshInterval: 10000, revalidateOnFocus: false },
   );
   if (error) return <div className="text-xs text-zinc-500">Failed to load recent runs</div>;
   if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;

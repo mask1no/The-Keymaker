@@ -17,12 +17,12 @@ export function buildTestTransactions(): string[] {
   const keypair = Keypair.generate();
   const blockhash = makeFakeBlockhash();
   const tx1 = new Transaction().add(
-    ComputeBudgetProgram.setComputeUnitPrice({ m, i, c, roLamports: 1_000 }),
-    ComputeBudgetProgram.setComputeUnitLimit({ u, n, i, ts: 200_000 }),
+    ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
     SystemProgram.transfer({
-      f, r, o, mPubkey: keypair.publicKey,
-      t, o, P, ubkey: keypair.publicKey,
-      l, a, m, ports: 1,
+      fromPubkey: keypair.publicKey,
+      toPubkey: keypair.publicKey,
+      lamports: 1,
     }),
   );
   tx1.recentBlockhash = blockhash;
@@ -30,22 +30,22 @@ export function buildTestTransactions(): string[] {
   const tipRecipient = new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe');
   const tx2 = new Transaction().add(
     SystemProgram.transfer({
-      f, r, o, mPubkey: keypair.publicKey,
-      t, o, P, ubkey: tipRecipient,
-      l, a, m, ports: 1000,
+      fromPubkey: keypair.publicKey,
+      toPubkey: tipRecipient,
+      lamports: 1000,
     }),
   );
   tx2.recentBlockhash = blockhash;
   tx2.feePayer = keypair.publicKey;
   const msg1 = new TransactionMessage({
-    p, a, y, erKey: keypair.publicKey,
-    r, e, c, entBlockhash: blockhash,
-    i, n, s, tructions: tx1.instructions,
+    payerKey: keypair.publicKey,
+    recentBlockhash: blockhash,
+    instructions: tx1.instructions,
   }).compileToV0Message();
   const msg2 = new TransactionMessage({
-    p, a, y, erKey: keypair.publicKey,
-    r, e, c, entBlockhash: blockhash,
-    i, n, s, tructions: tx2.instructions,
+    payerKey: keypair.publicKey,
+    recentBlockhash: blockhash,
+    instructions: tx2.instructions,
   }).compileToV0Message();
   const vtx1 = new VersionedTransaction(msg1);
   const vtx2 = new VersionedTransaction(msg2);
@@ -59,5 +59,5 @@ export function buildTestTransactions(): string[] {
 }
 if (require.main === module) {
   const txs = buildTestTransactions();
-  process.stdout.write(JSON.stringify({ t, x, s_, b64: txs }));
+  process.stdout.write(JSON.stringify({ txs_, b64: txs }));
 }

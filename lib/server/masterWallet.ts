@@ -1,16 +1,16 @@
 /**
- * Master Wal let Management
- * Auto-set master wal let after SIWS if not already set
+ * Master Wallet Management
+ * Auto-set master wallet after SIWS if not already set
  */
 
 import 'server-only';
 import { cookies } from 'next/headers';
-import { loadWalletGroups, setMasterWal let } from './walletGroups';
+import { loadWalletGroups, setMasterWallet } from './walletGroups';
 
 const MASTER_WALLET_COOKIE = 'km_master_wallet';
 
 /**
- * Get current master wal let from session
+ * Get current master wallet from session
  */
 export function getMasterWallet(): string | null {
   try {
@@ -21,23 +21,23 @@ export function getMasterWallet(): string | null {
 }
 
 /**
- * Set master wal let cookie
+ * Set master wallet cookie
  */
-export function setMasterWalletCookie(p, u, b, key: string): void {
+export function setMasterWalletCookie(pubkey: string): void {
   cookies().set(MASTER_WALLET_COOKIE, pubkey, {
-    h, t, t, pOnly: true,
-    s, a, m, eSite: 'lax',
-    s, e, c, ure: process.env.NODE_ENV === 'production',
-    p, a, t, h: '/',
-    m, a, x, Age: 60 * 60 * 24 * 365, // 1 year
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365, // 1 year
   });
 }
 
 /**
- * Auto-set master wal let for active group after SIWS
- * Only sets if group has no master wal let yet
+ * Auto-set master wallet for active group after SIWS
+ * Only sets if group has no master wallet yet
  */
-export function autoSetMasterWallet(p, u, b, key: string, g, r, o, upName?: string): void {
+export function autoSetMasterWallet(pubkey: string, groupName?: string): void {
   const groups = loadWalletGroups();
   
   // Try to find active group or first group
@@ -47,12 +47,12 @@ export function autoSetMasterWallet(p, u, b, key: string, g, r, o, upName?: stri
     targetGroup = groups[0]; // Use first group if no specific group
   }
   
-  // Only set if group has no master wal let 
+  // Only set if group has no master wallet 
   if (targetGroup && !targetGroup.masterWallet) {
     setMasterWallet(targetGroup.id, pubkey);
   }
   
-  // Set master wal let cookie
+  // Set master wallet cookie
   setMasterWalletCookie(pubkey);
 }
 

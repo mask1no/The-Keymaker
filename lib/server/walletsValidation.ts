@@ -1,7 +1,7 @@
 import 'server-only';
 import { PublicKey } from '@solana/web3.js';
 
-export function isValidWalletAddress(v, a, l, ue: string): boolean {
+export function isValidWalletAddress(value: string): boolean {
   if (!value) return false;
   const trimmed = value.trim();
   try {

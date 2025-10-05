@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 
-type Group = { i, d: string; n, a, m, e: string };
+type Group = { id: string; name: string };
 
-export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdChange }: { m, i, n, t: string; g, r, o, upId?: string; o, n, G, roupIdChange?: (i, d: string) => void }) {
+export default function BuyPanel({ mint, groupId: groupIdProp, onGroupIdChange }: { mint: string; groupId?: string; onGroupIdChange?: (id: string) => void }) {
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupId, setGroupId] = useState<string>(groupIdProp || '');
   const [amountSol, setAmountSol] = useState<number>(0.1);
@@ -21,11 +21,11 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { c, a, c, he: 'no-store' });
+        const res = await fetch('/api/groups', { cache: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
-        const g, s: Group[] = (j.groups || []).map((g: any) => ({ i, d: g.id, n, a, m, e: g.name }));
+        const gs: Group[] = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
         setGroups(gs);
         if (!groupId && gs.length) {
           setGroupId(gs[0].id);
@@ -43,8 +43,8 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
     setBusy('rpc'); setMsg('');
     try {
       const res = await fetch('/api/engine/rpc/buy', {
-        m, e, t, hod: 'POST', h, e, a, ders: { 'content-type': 'application/json' },
-        b, o, d, y: JSON.stringify({ groupId, mint, amountSol, slippageBps, p, r, i, orityFeeMicrolamports: priorityFee || 0, dryRun }),
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ groupId, mint, amountSol, slippageBps, priorityFeeMicrolamports: priorityFee || 0, dryRun }),
       });
       const j = await res.json();
       if (!res.ok || j?.error) throw new Error(j?.error || 'RPC buy failed');
@@ -58,8 +58,8 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
     setBusy('jito'); setMsg('');
     try {
       const res = await fetch('/api/engine/jito/buy', {
-        m, e, t, hod: 'POST', h, e, a, ders: { 'content-type': 'application/json' },
-        b, o, d, y: JSON.stringify({ groupId, mint, amountSol, slippageBps, t, i, p, Lamports: tipLamports || undefined, region, dryRun, c, h, u, nkSize: 5 }),
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ groupId, mint, amountSol, slippageBps, tipLamports: tipLamports || undefined, region, dryRun, chunkSize: 5 }),
       });
       const j = await res.json();
       if (!res.ok || j?.error) throw new Error(j?.error || 'Jito buy failed');
@@ -70,7 +70,7 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 m, d:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div>
           <label className="text-xs text-zinc-400">Group</label>
           <select value={groupId} onChange={(e)=>{ setGroupId(e.target.value); onGroupIdChange?.(e.target.value); }} className="input w-full bg-zinc-900">
@@ -90,7 +90,7 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
         </div>
       </div>
 
-      <div className="grid grid-cols-1 m, d:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="rounded-lg border border-zinc-800 p-3">
           <div className="text-xs text-zinc-400 mb-2">RPC Buy</div>
           <div className="flex items-end gap-2">
@@ -98,13 +98,13 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
               <label className="text-xs text-zinc-400">Priority fee (microlamports)</label>
               <input type="number" min={0} step={100} value={priorityFee} onChange={e=>setPriorityFee(Number(e.target.value))} className="input w-full bg-zinc-900" />
             </div>
-            <button disabled={!canBuy || busy==='rpc'} onClick={rpcBuy} className="button bg-blue-700 h, o, v, er:bg-blue-600 px-3 py-2 d, i, s, abled:opacity-60">{busy==='rpc'?'Sending...':'RPC Buy'}</button>
+            <button disabled={!canBuy || busy==='rpc'} onClick={rpcBuy} className="button bg-blue-700 hover:bg-blue-600 px-3 py-2 disabled:opacity-60">{busy==='rpc'?'Sending...':'RPC Buy'}</button>
           </div>
           <div className="mt-2 text-[11px] text-zinc-500">Sends individual transactions to each wallet. Good for reliability; slightly slower.</div>
         </div>
         <div className="rounded-lg border border-zinc-800 p-3">
           <div className="text-xs text-zinc-400 mb-2">JITO Bundle Buy</div>
-          <div className="grid grid-cols-1 s, m:grid-cols-3 gap-2 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
             <div>
               <label className="text-xs text-zinc-400">Region</label>
               <select value={region} onChange={e=>setRegion(e.target.value as any)} className="input w-full bg-zinc-900">
@@ -119,7 +119,7 @@ export default function BuyPanel({ mint, g, r, o, upId: groupIdProp, onGroupIdCh
               <input type="number" min={0} step={1000} value={tipLamports} onChange={e=>setTipLamports(Number(e.target.value))} className="input w-full bg-zinc-900" />
             </div>
             <div className="flex items-end">
-              <button disabled={!canBuy || busy==='jito'} onClick={jitoBuy} className="button bg-emerald-700 h, o, v, er:bg-emerald-600 px-3 py-2 w-full d, i, s, abled:opacity-60">{busy==='jito'?'Bundling...':'JITO Buy'}</button>
+              <button disabled={!canBuy || busy==='jito'} onClick={jitoBuy} className="button bg-emerald-700 hover:bg-emerald-600 px-3 py-2 w-full disabled:opacity-60">{busy==='jito'?'Bundling...':'JITO Buy'}</button>
             </div>
           </div>
           <div className="mt-2 text-[11px] text-zinc-500">Submits a bundle to the Jito block engine. Faster/atomic; requires a tip.</div>

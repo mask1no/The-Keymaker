@@ -13,7 +13,7 @@ if (PASS.length < 12) {
 
 function* walk(d: string): Generator<string> {
   for (const n of readdirSync(d)) {
-    const p = join(d, n);
+    const p = join(dn);
     const s = statSync(p);
     if (s.isDirectory()) yield* walk(p);
     else if (p.endsWith('.json')) yield p;
@@ -24,7 +24,7 @@ let migrated = 0;
 try {
   for (const f of walk(ROOT)) {
     const txt = readFileSync(f, 'utf8').trim();
-    let b, y, t, es: Uint8Array | null = null;
+    let bytes: Uint8Array | null = null;
     try {
       const j = JSON.parse(txt);
       if (Array.isArray(j)) bytes = Uint8Array.from(j);
@@ -34,12 +34,12 @@ try {
     }
     if (!bytes) continue;
     const blob = encryptBytes(bytes, PASS);
-    writeFileSync(f, JSON.stringify(blob, null, 2));
+    writeFileSync(fJSON.stringify(blob, null, 2));
     migrated++;
   }
   console.log(`Migrated ${migrated} key files → encrypted format.`);
 } catch (e) {
-  console.error('Migration f, a, i, led:', e);
+  console.error('Migration failed:', e);
   process.exit(1);
 }
 

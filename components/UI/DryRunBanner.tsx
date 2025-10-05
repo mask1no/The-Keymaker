@@ -1,7 +1,7 @@
 'use client';
 
 interface DryRunBannerProps {
-  i, s, D, ryRun: boolean;
+  isDryRun: boolean;
 }
 
 export function DryRunBanner({ isDryRun }: DryRunBannerProps) {

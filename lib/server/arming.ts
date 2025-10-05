@@ -1,7 +1,7 @@
 let ARMED_UNTIL = 0;
 
 export function isArmed(): boolean {
-  // D, e, f, ault: not armed unless explicitly armed
+  // Default: not armed unless explicitly armed
   if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
     return Date.now() < ARMED_UNTIL;
   }

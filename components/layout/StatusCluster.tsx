@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Radio, Server, Zap, Activity } from 'lucide-react';
 import { useHealth } from '@/hooks/useHealth';
 
-function Light({ light, label, Icon, meta }: { l, i, g, ht: 'green' | 'amber' | 'red' | undefined; l, a, b, el: string; I, c, o, n: any; m, e, t, a?: string }) {
+function Light({ light, label, Icon, meta }: { light: 'green' | 'amber' | 'red' | undefined; label: string; Icon: any; meta?: string }) {
   const ok = light === 'green';
   const color = light === 'green' ? 'text-emerald-400' : light === 'amber' ? 'text-amber-400' : 'text-red-400';
   return (

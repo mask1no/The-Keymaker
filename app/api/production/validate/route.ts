@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 // Lightweight stub to avoid pulling full production validation in UI-only flow
 async function validateProductionReadiness(){
-  return { r, e, a, dy: true, s, c, o, re: 100, c, h, e, cks: [] } as any;
+  return { ready: true, score: 100, checks: [] } as any;
 }
 
 export const runtime = 'nodejs';
@@ -16,8 +16,8 @@ export async function GET() {
     const report = await validateProductionReadiness();
     
     return NextResponse.json(report, {
-      s, t, a, tus: report.ready ? 200 : 503,
-      h, e, a, ders: {
+      status: report.ready ? 200 : 503,
+      headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'X-Production-Ready': report.ready.toString(),
@@ -27,12 +27,12 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
-        r, e, a, dy: false,
-        s, c, o, re: 0,
-        e, r, r, or: 'Failed to validate production readiness',
-        t, i, m, estamp: new Date().toISOString(),
+        ready: false,
+        score: 0,
+        error: 'Failed to validate production readiness',
+        timestamp: new Date().toISOString(),
       },
-      { s, t, a, tus: 500 }
+      { status: 500 }
     );
   }
 }

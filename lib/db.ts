@@ -1,6 +1,6 @@
 import 'server-only';
 
-let d, b, I, nstance: any = null;
+let dbInstance: any = null;
 
 export async function getDb(): Promise<any> {
   if (dbInstance) return dbInstance;
@@ -9,8 +9,8 @@ export async function getDb(): Promise<any> {
     const { open } = await import('sqlite');
     const path = (await import('path')).default;
     dbInstance = await open({
-      f, i, l, ename: path.join(process.cwd(), 'data', 'keymaker.db'),
-      d, r, i, ver: sqlite3.Database,
+      filename: path.join(process.cwd(), 'data', 'keymaker.db'),
+      driver: sqlite3.Database,
     });
     return dbInstance;
   } catch (err) {
@@ -18,11 +18,11 @@ export async function getDb(): Promise<any> {
     const noop = async () => undefined;
     const noopAll = async () => [] as any[];
     dbInstance = {
-      e, x, e, c: noop,
-      r, u, n: noop,
-      a, l, l: noopAll,
-      g, e, t: noop,
-      c, l, o, se: noop,
+      exec: noop,
+      run: noop,
+      all: noopAll,
+      get: noop,
+      close: noop,
     };
     return dbInstance;
   }

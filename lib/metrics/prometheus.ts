@@ -8,75 +8,75 @@ collectDefaultMetrics({ register });
 
 // Custom application metrics
 export const httpRequestDuration = new Histogram({
-  n, a, m, e: 'keymaker_http_request_duration_seconds',
-  h, e, l, p: 'Duration of HTTP requests in seconds',
-  l, a, b, elNames: ['method', 'route', 'status_code'],
-  r, e, g, isters: [register],
-  b, u, c, kets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
+  name: 'keymaker_http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  registers: [register],
+  buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
 });
 
 export const bundleSubmissions = new Counter({
-  n, a, m, e: 'keymaker_bundle_submissions_total',
-  h, e, l, p: 'Total number of bundle submissions',
-  l, a, b, elNames: ['status', 'mode', 'region'],
-  r, e, g, isters: [register],
+  name: 'keymaker_bundle_submissions_total',
+  help: 'Total number of bundle submissions',
+  labelNames: ['status', 'mode', 'region'],
+  registers: [register],
 });
 
 export const bundleSuccessRate = new Gauge({
-  n, a, m, e: 'keymaker_bundle_success_rate',
-  h, e, l, p: 'Bundle success rate percentage',
-  r, e, g, isters: [register],
+  name: 'keymaker_bundle_success_rate',
+  help: 'Bundle success rate percentage',
+  registers: [register],
 });
 
 export const activeConnections = new Gauge({
-  n, a, m, e: 'keymaker_active_connections',
-  h, e, l, p: 'Number of active WebSocket connections',
-  r, e, g, isters: [register],
+  name: 'keymaker_active_connections',
+  help: 'Number of active WebSocket connections',
+  registers: [register],
 });
 
 export const healthCheckStatus = new Gauge({
-  n, a, m, e: 'keymaker_health_check_status',
-  h, e, l, p: 'Health check status (1=healthy, 0.5=degraded, 0=down)',
-  l, a, b, elNames: ['service'],
-  r, e, g, isters: [register],
+  name: 'keymaker_health_check_status',
+  help: 'Health check status (1=healthy, 0.5=degraded, 0=down)',
+  labelNames: ['service'],
+  registers: [register],
 });
 
 export const apiTokenValidations = new Counter({
-  n, a, m, e: 'keymaker_api_token_validations_total',
-  h, e, l, p: 'Total API token validation attempts',
-  l, a, b, elNames: ['status'],
-  r, e, g, isters: [register],
+  name: 'keymaker_api_token_validations_total',
+  help: 'Total API token validation attempts',
+  labelNames: ['status'],
+  registers: [register],
 });
 
 export const rateLimitHits = new Counter({
-  n, a, m, e: 'keymaker_rate_limit_hits_total',
-  h, e, l, p: 'Total rate limit hits',
-  l, a, b, elNames: ['identifier_type'],
-  r, e, g, isters: [register],
+  name: 'keymaker_rate_limit_hits_total',
+  help: 'Total rate limit hits',
+  labelNames: ['identifier_type'],
+  registers: [register],
 });
 
 export const jitoTipFloor = new Gauge({
-  n, a, m, e: 'keymaker_jito_tip_floor_lamports',
-  h, e, l, p: 'Current Jito tip floor in lamports',
-  l, a, b, elNames: ['region', 'percentile'],
-  r, e, g, isters: [register],
+  name: 'keymaker_jito_tip_floor_lamports',
+  help: 'Current Jito tip floor in lamports',
+  labelNames: ['region', 'percentile'],
+  registers: [register],
 });
 
 export const walletBalance = new Gauge({
-  n, a, m, e: 'keymaker_wallet_balance_sol',
-  h, e, l, p: 'Wal let balance in SOL',
-  l, a, b, elNames: ['wallet_group', 'wallet_index'],
-  r, e, g, isters: [register],
+  name: 'keymaker_wallet_balance_sol',
+  help: 'Wallet balance in SOL',
+  labelNames: ['wallet_group', 'wallet_index'],
+  registers: [register],
 });
 
 /**
  * Record HTTP request metrics
  */
 export function recordHttpRequest(
-  m, e, t, hod: string,
-  r, o, u, te: string,
-  s, t, a, tusCode: number,
-  d, u, r, ationMs: number
+  method: string,
+  route: string,
+  statusCode: number,
+  durationMs: number
 ) {
   httpRequestDuration
     .labels(method, route, statusCode.toString())
@@ -87,9 +87,9 @@ export function recordHttpRequest(
  * Record bundle submission
  */
 export function recordBundleSubmission(
-  s, t, a, tus: 'success' | 'failed' | 'timeout',
-  m, o, d, e: 'JITO_BUNDLE' | 'RPC_FANOUT',
-  r, e, g, ion?: string
+  status: 'success' | 'failed' | 'timeout',
+  mode: 'JITO_BUNDLE' | 'RPC_FANOUT',
+  region?: string
 ) {
   bundleSubmissions
     .labels(status, mode, region || 'unknown')
@@ -100,8 +100,8 @@ export function recordBundleSubmission(
  * Update health check status
  */
 export function updateHealthStatus(
-  s, e, r, vice: string,
-  s, t, a, tus: 'healthy' | 'degraded' | 'down'
+  service: string,
+  status: 'healthy' | 'degraded' | 'down'
 ) {
   const value = status === 'healthy' ? 1 : status === 'degraded' ? 0.5 : 0;
   healthCheckStatus.labels(service).set(value);
@@ -110,14 +110,14 @@ export function updateHealthStatus(
 /**
  * Record API token validation
  */
-export function recordTokenValidation(s, t, a, tus: 'valid' | 'invalid' | 'missing') {
+export function recordTokenValidation(status: 'valid' | 'invalid' | 'missing') {
   apiTokenValidations.labels(status).inc();
 }
 
 /**
  * Record rate limit hit
  */
-export function recordRateLimitHit(i, d, e, ntifierType: 'ip' | 'anonymous') {
+export function recordRateLimitHit(identifierType: 'ip' | 'anonymous') {
   rateLimitHits.labels(identifierType).inc();
 }
 
@@ -125,10 +125,10 @@ export function recordRateLimitHit(i, d, e, ntifierType: 'ip' | 'anonymous') {
  * Update Jito tip floor metrics
  */
 export function updateJitoTipFloor(
-  r, e, g, ion: string,
-  t, i, p, s50th: number,
-  t, i, p, s75th: number,
-  e, m, a: number
+  region: string,
+  tips50th: number,
+  tips75th: number,
+  ema: number
 ) {
   jitoTipFloor.labels(region, '50th').set(tips50th);
   jitoTipFloor.labels(region, '75th').set(tips75th);

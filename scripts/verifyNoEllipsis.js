@@ -7,7 +7,7 @@ const VALID_PATTERNS = [
   /\.\.\./g, // spread operator
   /\.\.\..* filter/g, // spread with filter
   /\.\.\..* map/g, // spread with map
-  /h, t, t, p, s?:\/\/[^\s]*\.\.\./g, // URLs with ellipses
+  /https?:\/\/[^\s]*\.\.\./g, // URLs with ellipses
   /\/\.\.\//g, // path navigation
 ];
 
@@ -42,14 +42,14 @@ function checkFile(filePath) {
       const line = lines[i];
       if (isPlaceholderEllipsis(line, filePath)) {
         return {
-          f, i, l, e: filePath,
-          l, i, n, e: i + 1,
-          c, o, n, tent: line.trim(),
+          file: filePath,
+          line: i + 1,
+          content: line.trim(),
         };
       }
     }
   } catch (error) {
-    console.warn(`W, a, r, ning: Could not read ${filePath}:`, error.message);
+    console.warn(`Warning: Could not read ${filePath}:`, error.message);
   }
 
   return null;
@@ -93,7 +93,7 @@ function main() {
     process.exit(0);
   }
 
-  console.error('❌ Placeholder ellipses f, o, u, nd:');
+  console.error('❌ Placeholder ellipses found:');
   console.error('================================');
   for (const result of results) {
     console.error(`${result.file}:${result.line}`);

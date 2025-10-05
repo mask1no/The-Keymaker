@@ -6,14 +6,14 @@ import { getTrackedWallets } from '@/lib/server/wallets';
 
 export const dynamic = 'force-dynamic';
 
-async function MarketCard({ mint }: { m, i, n, t: string | null }) {
+async function MarketCard({ mint }: { mint: string | null }) {
   if (!mint) {
     return <div className="text-sm text-zinc-400">No mint selected</div>;
   }
   try {
     const res = await fetch(`/api/market/${mint}`, {
-      c, a, c, he: 'no-store',
-      h, e, a, ders: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+      cache: 'no-store',
+      headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
     });
     if (!res.ok) throw new Error('failed');
     const data = (await res.json()) as any;
@@ -61,15 +61,15 @@ export default async function Page() {
   const mint = c.get('km_mint')?.value || null;
   const amt = c.get('km_amt')?.value || '';
   const slp = c.get('km_slp')?.value || '';
-  async function setMint(f, o, r, mData: FormData) {
+  async function setMint(formData: FormData) {
     'use server';
     const m = String(formData.get('mint') || '').trim();
     const amount = String(formData.get('amount') || '').trim();
     const slippage = String(formData.get('slippage') || '').trim();
-    if (m) cookies().set('km_mint', m, { h, t, t, pOnly: false, s, a, m, eSite: 'lax', p, a, t, h: '/' });
-    if (amount) cookies().set('km_amt', amount, { h, t, t, pOnly: false, s, a, m, eSite: 'lax', p, a, t, h: '/' });
+    if (m) cookies().set('km_mint', m, { httpOnly: false, sameSite: 'lax', path: '/' });
+    if (amount) cookies().set('km_amt', amount, { httpOnly: false, sameSite: 'lax', path: '/' });
     if (slippage)
-      cookies().set('km_slp', slippage, { h, t, t, pOnly: false, s, a, m, eSite: 'lax', p, a, t, h: '/' });
+      cookies().set('km_slp', slippage, { httpOnly: false, sameSite: 'lax', path: '/' });
     revalidatePath('/bundle');
     redirect('/bundle');
   }
@@ -82,7 +82,7 @@ export default async function Page() {
           <div className="text-sm">
             <form
               action={setMint}
-              className="mb-2 grid grid-cols-1 m, d:grid-cols-4 gap-2 items-center"
+              className="mb-2 grid grid-cols-1 md:grid-cols-4 gap-2 items-center"
             >
               <input
                 type="text"
@@ -109,7 +109,7 @@ export default async function Page() {
               />
               <button
                 type="submit"
-                className="button px-3 py-1 bg-zinc-800 h, o, v, er:bg-zinc-700 col-span-1 m, d:col-auto"
+                className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700 col-span-1 md:col-auto"
               >
                 Save
               </button>
@@ -135,7 +135,7 @@ export default async function Page() {
             return (
               <div className="text-sm text-zinc-400">
                 <div className="mb-1">Using {wallets.length} wallet{wallets.length !== 1 ? 's' : ''}</div>
-                <a className="underline text-sky-400 h, o, v, er:text-sky-300" href="/wallets">
+                <a className="underline text-sky-400 hover:text-sky-300" href="/wallets">
                   Manage Wallets →
                 </a>
               </div>

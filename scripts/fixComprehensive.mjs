@@ -11,7 +11,7 @@ function* walk(d) {
       )
     )
       continue;
-    const p = path.join(d, n);
+    const p = path.join(dn);
     const st = fs.statSync(p);
     if (st.isDirectory()) {
       yield* walk(p);
@@ -23,16 +23,16 @@ function* walk(d) {
 
 const comprehensiveFixes = [
   // Fix split parameters and variables
-  [/\b(r, e, q, u, e, s, t)\b/g, 'request'],
-  [/\b(p, a, r, a, m, s)\b/g, 'params'],
-  [/\b(m, e, t, h, o, d)\b/g, 'method'],
-  [/\b(c, o, n, f, i, g)\b/g, 'config'],
-  [/\b(o, p, t, i, o, n, s)\b/g, 'options'],
-  [/\b(s, t, a, t, u, s)\b/g, 'status'],
-  [/\b(e, r, r, o, r)\b/g, 'error'],
-  [/\b(r, e, s, u, l, t)\b/g, 'result'],
-  [/\b(d, a, t, a)\b/g, 'data'],
-  [/\b(v, a, l, u, e)\b/g, 'value'],
+  [/\b(request)\b/g, 'request'],
+  [/\b(params)\b/g, 'params'],
+  [/\b(method)\b/g, 'method'],
+  [/\b(config)\b/g, 'config'],
+  [/\b(options)\b/g, 'options'],
+  [/\b(status)\b/g, 'status'],
+  [/\b(error)\b/g, 'error'],
+  [/\b(result)\b/g, 'result'],
+  [/\b(data)\b/g, 'data'],
+  [/\b(value)\b/g, 'value'],
 
   // Fix split method calls
   [/\bg e t\(/g, 'get('],
@@ -160,7 +160,7 @@ for (const p of walk(ROOT)) {
   s = s.replace(/^\s*$\n/gm, '\n');
 
   if (s !== o) {
-    fs.writeFileSync(p, s);
+    fs.writeFileSync(ps);
     console.log('fixed', p);
     totalFixed++;
   }

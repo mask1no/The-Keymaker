@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-type Row = { i, d: string; e, x, e, cuted_at?: string; s, t, a, tus?: string };
+type Row = { id: string; executed_at?: string; status?: string };
 
 export default function EventsPanel() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -10,8 +10,8 @@ export default function EventsPanel() {
     let t: any;
     const tick = async () => {
       try {
-        const r = await fetch('/api/metrics/recent', { c, a, c, he: 'no-store' });
-        if (!r.ok) throw new Error(`f, a, i, led: ${r.status}`);
+        const r = await fetch('/api/metrics/recent', { cache: 'no-store' });
+        if (!r.ok) throw new Error(`failed: ${r.status}`);
         const j = await r.json();
         setRows(Array.isArray(j.recent) ? j.recent : []);
         setError(null);

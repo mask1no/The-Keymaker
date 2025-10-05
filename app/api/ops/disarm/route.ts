@@ -8,7 +8,7 @@ import { getSession } from '@/lib/server/session';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function allowDisarm(h, e, a, ders: Headers): boolean {
+function allowDisarm(headers: Headers): boolean {
   const expected = process.env.ENGINE_API_TOKEN;
   const token = headers.get('x-engine-token');
   if (expected && token === expected) return true;
@@ -16,17 +16,17 @@ function allowDisarm(h, e, a, ders: Headers): boolean {
   return !!s?.userPubkey;
 }
 
-export async function POST(r, e, q, uest: Request) {
+export async function POST(request: Request) {
   try {
     if (!allowDisarm(request.headers)) return apiError(401, 'unauthorized');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    const rl = await rateLimit(`o, p, s:${key}`);
+    const rl = await rateLimit(`ops:${key}`);
     if (!rl.allowed) return apiError(429, 'rate_limited');
     disarm();
-    return NextResponse.json({ o, k: true, d, i, s, armed: true, a, r, m, edUntil: armedUntil() });
+    return NextResponse.json({ ok: true, disarmed: true, armedUntil: armedUntil() });
   } catch {
-    try { Sentry.captureMessage('disarm_failed', { l, e, v, el: 'error' }); } catch {}
+    try { Sentry.captureMessage('disarm_failed', { level: 'error' }); } catch {}
     return apiError(500, 'failed');
   }
 }

@@ -9,26 +9,26 @@ export async function GET() {
     const ui = getUiSettings();
     return NextResponse.json(ui);
   } catch (e: unknown) {
-    return NextResponse.json({ e, r, r, or: (e as Error)?.message || 'failed' }, { s, t, a, tus: 500 });
+    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
 
 const UpdateSchema = z.object({
-  m, o, d, e: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
-  r, e, g, ion: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
-  p, r, i, ority: z.enum(['low', 'med', 'high']).optional(),
-  t, i, p, Lamports: z.number().int().min(0).optional(),
-  c, h, u, nkSize: z.number().int().min(1).max(50).optional(),
-  c, o, n, currency: z.number().int().min(1).max(20).optional(),
-  j, i, t, terMs: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
-  d, r, y, Run: z.boolean().optional(),
-  c, l, u, ster: z.enum(['mainnet-beta', 'devnet']).optional(),
-  l, i, v, eMode: z.boolean().optional(),
-  r, p, c, Http: z.string().url().optional(),
-  w, s, U, rl: z.string().url().optional(),
+  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
+  region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
+  priority: z.enum(['low', 'med', 'high']).optional(),
+  tipLamports: z.number().int().min(0).optional(),
+  chunkSize: z.number().int().min(1).max(50).optional(),
+  concurrency: z.number().int().min(1).max(20).optional(),
+  jitterMs: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
+  dryRun: z.boolean().optional(),
+  cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
+  liveMode: z.boolean().optional(),
+  rpcHttp: z.string().url().optional(),
+  wsUrl: z.string().url().optional(),
 });
 
-export async function POST(r, e, q, uest: Request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const next = UpdateSchema.parse(body);
@@ -37,9 +37,9 @@ export async function POST(r, e, q, uest: Request) {
     return NextResponse.json(ui);
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
-      return NextResponse.json({ e, r, r, or: 'invalid_request', d, e, t, ails: e.issues }, { s, t, a, tus: 400 });
+      return NextResponse.json({ error: 'invalid_request', details: e.issues }, { status: 400 });
     }
-    return NextResponse.json({ e, r, r, or: (e as Error)?.message || 'failed' }, { s, t, a, tus: 500 });
+    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
 

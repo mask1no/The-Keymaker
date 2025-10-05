@@ -1,19 +1,19 @@
 import { RegionKey, TipFloorResponse } from './types';
 import { incCounter, observeLatency } from './metrics';
 
-export const J, I, T, O_BUNDLE_ENDPOINTS: Record<RegionKey, string> = {
-  f, f, m: 'h, t, t, ps://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles',
-  a, m, s: 'h, t, t, ps://amsterdam.mainnet.block-engine.jito.wtf/api/v1/bundles',
-  n, y: 'h, t, t, ps://ny.mainnet.block-engine.jito.wtf/api/v1/bundles',
-  t, o, k, yo: 'h, t, t, ps://tokyo.mainnet.block-engine.jito.wtf/api/v1/bundles',
+export const JITO_BUNDLE_ENDPOINTS: Record<RegionKey, string> = {
+  ffm: 'https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles',
+  ams: 'https://amsterdam.mainnet.block-engine.jito.wtf/api/v1/bundles',
+  ny: 'https://ny.mainnet.block-engine.jito.wtf/api/v1/bundles',
+  tokyo: 'https://tokyo.mainnet.block-engine.jito.wtf/api/v1/bundles',
 };
 
-async function jrpc<T>(r, e, g, ion: RegionKey, m, e, t, hod: string, p, a, r, ams: unknown, timeoutMs = 10_000) {
+async function jrpc<T>(region: RegionKey, method: string, params: unknown, timeoutMs = 10_000) {
   const res = await fetch(JITO_BUNDLE_ENDPOINTS[region], {
-    m, e, t, hod: 'POST',
-    h, e, a, ders: { 'Content-Type': 'application/json' },
-    b, o, d, y: JSON.stringify({ j, s, o, nrpc: '2.0', i, d: Date.now(), method, params }),
-    s, i, g, nal: AbortSignal.timeout(timeoutMs),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`);
   const json = await res.json();
@@ -21,11 +21,11 @@ async function jrpc<T>(r, e, g, ion: RegionKey, m, e, t, hod: string, p, a, r, a
   return json.result as T;
 }
 
-const tipCache = new Map<string, { a, t: number; d, a, t, a: TipFloorResponse }>();
+const tipCache = new Map<string, { at: number; data: TipFloorResponse }>();
 const TIP_TTL_MS = Number(process.env.TIPFLOOR_TTL_MS || '7000');
 
-export async function getTipFloor(r, e, g, ion: RegionKey): Promise<TipFloorResponse> {
-  const key = `t, i, p:${region}`;
+export async function getTipFloor(region: RegionKey): Promise<TipFloorResponse> {
+  const key = `tip:${region}`;
   const now = Date.now();
   const cached = tipCache.get(key);
   if (cached && now - cached.at < TIP_TTL_MS) {
@@ -43,20 +43,20 @@ export async function getTipFloor(r, e, g, ion: RegionKey): Promise<TipFloorResp
   const data = (await res.json()) as TipFloorResponse;
   const hit = cached && now - cached.at < TIP_TTL_MS;
   incCounter('tipfloor_cache_miss_total', { region });
-  observeLatency('tipfloor_fetch_ms', Date.now() - t0, { region, h, i, t: hit ? 'hit' : 'miss' });
-  tipCache.set(key, { a, t: now, data });
+  observeLatency('tipfloor_fetch_ms', Date.now() - t0, { region, hit: hit ? 'hit' : 'miss' });
+  tipCache.set(key, { at: now, data });
   return data;
 }
 
-export async function sendBundle(r, e, g, ion: RegionKey, e, n, c, odedTransactions: string[]) {
+export async function sendBundle(region: RegionKey, encodedTransactions: string[]) {
   const result = await jrpc<string>(region, 'sendBundle', {
     encodedTransactions,
-    b, u, n, dleOnly: true,
+    bundleOnly: true,
   });
-  return { b, u, n, dle_id: result };
+  return { bundle_id: result };
 }
 
-export async function getBundleStatuses(r, e, g, ion: RegionKey, b, u, n, dleIds: string[]) {
+export async function getBundleStatuses(region: RegionKey, bundleIds: string[]) {
   try {
     return await jrpc<any[]>(region, 'getBundleStatuses', { bundleIds });
   } catch {

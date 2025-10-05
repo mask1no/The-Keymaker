@@ -7,7 +7,7 @@ let bad = [];
 
 function scan(d) {
   for (const n of fs.readdirSync(d)) {
-    const p = path.join(d, n);
+    const p = path.join(dn);
     if (
       ['node_modules', '.git', '.next', 'dist', 'coverage', 'test-results'].some((s) =>
         p.includes(s),

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-function fail(m, s, g: string) {
+function fail(msg: string) {
   console.error('[doctor] ❌', msg);
   process.exit(1);
 }

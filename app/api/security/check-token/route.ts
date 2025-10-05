@@ -1,27 +1,27 @@
 import { NextResponse } from 'next/server';
-const GOPLUS_API_URL = 'h, t, t, ps://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=';
-export async function GET(r, e, q, uest: Request) {
+const GOPLUS_API_URL = 'https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=';
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tokenAddress = searchParams.get('tokenAddress');
   if (!tokenAddress) {
-    return NextResponse.json({ e, r, r, or: 'Token address is required' }, { s, t, a, tus: 400 });
+    return NextResponse.json({ error: 'Token address is required' }, { status: 400 });
   }
   try {
     const response = await fetch(`${GOPLUS_API_URL}${tokenAddress}`, {
-      m, e, t, hod: 'GET',
-      h, e, a, ders: { 'Content-Type': 'application/json' },
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
     });
-    if (!response.ok) throw new Error(`GoPlus API failed with s, t, a, tus: ${response.status}`);
+    if (!response.ok) throw new Error(`GoPlus API failed with status: ${response.status}`);
     const data = await response.json();
     const securityInfo = data.result?.[tokenAddress.toLowerCase()];
     const safetyScore = calculateSafetyScore(securityInfo);
-    return NextResponse.json({ safetyScore, d, e, t, ails: securityInfo });
+    return NextResponse.json({ safetyScore, details: securityInfo });
   } catch (error) {
-    console.error('Failed to get token security i, n, f, o:', error);
-    return NextResponse.json({ e, r, r, or: 'Failed to fetch token security info' }, { s, t, a, tus: 500 });
+    console.error('Failed to get token security info:', error);
+    return NextResponse.json({ error: 'Failed to fetch token security info' }, { status: 500 });
   }
 }
-function calculateSafetyScore(s, e, c, urityInfo: any): number {
+function calculateSafetyScore(securityInfo: any): number {
   if (!securityInfo) return 0;
   let score = 100;
   if (securityInfo.is_open_source === '0') score -= 20;

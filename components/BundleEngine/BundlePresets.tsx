@@ -2,43 +2,43 @@
 import { useMemo } from 'react';
 import { Button } from '@/components/UI/button';
 type Preset = {
-  i, d: string;
-  n, a, m, e: string;
-  d, e, s, cription: string;
-  m, o, d, e: 'regular' | 'instant' | 'delayed';
-  t, i, p, Multiplier: number;
-  d, e, l, aySec?: number;
+  id: string;
+  name: string;
+  description: string;
+  mode: 'regular' | 'instant' | 'delayed';
+  tipMultiplier: number;
+  delaySec?: number;
 };
-export default function BundlePresets({ onApply }: { o, n, A, pply: (p: Preset) => void }) {
+export default function BundlePresets({ onApply }: { onApply: (p: Preset) => void }) {
   const presets = useMemo<Preset[]>(
     () => [
       {
-        i, d: 'regular-12',
-        n, a, m, e: 'Regular ×1.2',
-        d, e, s, cription: 'Balanced success/cost',
-        m, o, d, e: 'regular',
-        t, i, p, Multiplier: 1.2,
+        id: 'regular-12',
+        name: 'Regular ×1.2',
+        description: 'Balanced success/cost',
+        mode: 'regular',
+        tipMultiplier: 1.2,
       },
       {
-        i, d: 'instant-125',
-        n, a, m, e: 'Instant ×1.25',
-        d, e, s, cription: 'Faster landing',
-        m, o, d, e: 'instant',
-        t, i, p, Multiplier: 1.25,
+        id: 'instant-125',
+        name: 'Instant ×1.25',
+        description: 'Faster landing',
+        mode: 'instant',
+        tipMultiplier: 1.25,
       },
       {
-        i, d: 'delayed-12-30',
-        n, a, m, e: 'Delayed 30s ×1.2',
-        d, e, s, cription: 'Arm and submit after 30s',
-        m, o, d, e: 'delayed',
-        t, i, p, Multiplier: 1.2,
-        d, e, l, aySec: 30,
+        id: 'delayed-12-30',
+        name: 'Delayed 30s ×1.2',
+        description: 'Arm and submit after 30s',
+        mode: 'delayed',
+        tipMultiplier: 1.2,
+        delaySec: 30,
       },
     ],
     [],
   );
   return (
-    <div className="grid grid-cols-1 s, m:grid-cols-3 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
       
       {presets.map((p) => (
         <Button

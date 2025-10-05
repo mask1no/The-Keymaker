@@ -5,119 +5,119 @@ export const metricsRegistry = register;
 
 // HTTP request metrics
 export const httpRequestDuration = new Histogram({
-  n, a, m, e: 'http_request_duration_seconds',
-  h, e, l, p: 'Duration of HTTP requests in seconds',
-  l, a, b, elNames: ['method', 'route', 'status_code'],
-  r, e, g, isters: [register],
-  b, u, c, kets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  registers: [register],
+  buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
 });
 
 export const httpRequestTotal = new Counter({
-  n, a, m, e: 'http_requests_total',
-  h, e, l, p: 'Total number of HTTP requests',
-  l, a, b, elNames: ['method', 'route', 'status_code'],
-  r, e, g, isters: [register],
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+  registers: [register],
 });
 
 // Bundle submission metrics
 export const bundleSubmissions = new Counter({
-  n, a, m, e: 'bundle_submissions_total',
-  h, e, l, p: 'Total number of bundle submissions',
-  l, a, b, elNames: ['status', 'mode', 'region'],
-  r, e, g, isters: [register],
+  name: 'bundle_submissions_total',
+  help: 'Total number of bundle submissions',
+  labelNames: ['status', 'mode', 'region'],
+  registers: [register],
 });
 
 export const bundleSuccess = new Counter({
-  n, a, m, e: 'bundle_success_total',
-  h, e, l, p: 'Total number of successful bundle submissions',
-  l, a, b, elNames: ['mode', 'region'],
-  r, e, g, isters: [register],
+  name: 'bundle_success_total',
+  help: 'Total number of successful bundle submissions',
+  labelNames: ['mode', 'region'],
+  registers: [register],
 });
 
 export const bundleLatency = new Histogram({
-  n, a, m, e: 'bundle_latency_seconds',
-  h, e, l, p: 'Bundle submission latency in seconds',
-  l, a, b, elNames: ['mode', 'region'],
-  r, e, g, isters: [register],
-  b, u, c, kets: [0.5, 1, 2, 3, 5, 10, 15, 30],
+  name: 'bundle_latency_seconds',
+  help: 'Bundle submission latency in seconds',
+  labelNames: ['mode', 'region'],
+  registers: [register],
+  buckets: [0.5, 1, 2, 3, 5, 10, 15, 30],
 });
 
 // System health metrics
 export const healthCheckDuration = new Histogram({
-  n, a, m, e: 'health_check_duration_seconds',
-  h, e, l, p: 'Health check duration in seconds',
-  l, a, b, elNames: ['service'],
-  r, e, g, isters: [register],
+  name: 'health_check_duration_seconds',
+  help: 'Health check duration in seconds',
+  labelNames: ['service'],
+  registers: [register],
 });
 
 export const healthCheckStatus = new Gauge({
-  n, a, m, e: 'health_check_status',
-  h, e, l, p: 'Health check status (1=healthy, 0=down)',
-  l, a, b, elNames: ['service'],
-  r, e, g, isters: [register],
+  name: 'health_check_status',
+  help: 'Health check status (1=healthy, 0=down)',
+  labelNames: ['service'],
+  registers: [register],
 });
 
 // Active connections and sessions
 export const activeConnections = new Gauge({
-  n, a, m, e: 'active_connections',
-  h, e, l, p: 'Number of active connections',
-  r, e, g, isters: [register],
+  name: 'active_connections',
+  help: 'Number of active connections',
+  registers: [register],
 });
 
 export const activeSessions = new Gauge({
-  n, a, m, e: 'active_sessions',
-  h, e, l, p: 'Number of active user sessions',
-  r, e, g, isters: [register],
+  name: 'active_sessions',
+  help: 'Number of active user sessions',
+  registers: [register],
 });
 
 // Rate limiting metrics
 export const rateLimitHits = new Counter({
-  n, a, m, e: 'rate_limit_hits_total',
-  h, e, l, p: 'Total number of rate limit hits',
-  l, a, b, elNames: ['endpoint', 'identifier'],
-  r, e, g, isters: [register],
+  name: 'rate_limit_hits_total',
+  help: 'Total number of rate limit hits',
+  labelNames: ['endpoint', 'identifier'],
+  registers: [register],
 });
 
 export const rateLimitBlocks = new Counter({
-  n, a, m, e: 'rate_limit_blocks_total',
-  h, e, l, p: 'Total number of requests blocked by rate limiting',
-  l, a, b, elNames: ['endpoint', 'identifier'],
-  r, e, g, isters: [register],
+  name: 'rate_limit_blocks_total',
+  help: 'Total number of requests blocked by rate limiting',
+  labelNames: ['endpoint', 'identifier'],
+  registers: [register],
 });
 
 // Error tracking
 export const errorCount = new Counter({
-  n, a, m, e: 'errors_total',
-  h, e, l, p: 'Total number of errors',
-  l, a, b, elNames: ['type', 'severity', 'component'],
-  r, e, g, isters: [register],
+  name: 'errors_total',
+  help: 'Total number of errors',
+  labelNames: ['type', 'severity', 'component'],
+  registers: [register],
 });
 
 // Performance tracking
-export const performanceTimer = (n, a, m, e: string) => {
+export const performanceTimer = (name: string) => {
   const end = httpRequestDuration.startTimer();
-  return () => end({ r, o, u, te: name });
+  return () => end({ route: name });
 };
 
 // Utility functions for metrics
-export function recordBundleSubmission(m, o, d, e: string, r, e, g, ion: string, s, u, c, cess: boolean, l, a, t, ency: number) {
-  bundleSubmissions.inc({ s, t, a, tus: success ? 'success' : 'failure', mode, region });
+export function recordBundleSubmission(mode: string, region: string, success: boolean, latency: number) {
+  bundleSubmissions.inc({ status: success ? 'success' : 'failure', mode, region });
   if (success) {
     bundleSuccess.inc({ mode, region });
   }
   bundleLatency.observe({ mode, region }, latency);
 }
 
-export function recordHealthCheck(s, e, r, vice: string, h, e, a, lthy: boolean, d, u, r, ation: number) {
+export function recordHealthCheck(service: string, healthy: boolean, duration: number) {
   healthCheckStatus.set({ service }, healthy ? 1 : 0);
   healthCheckDuration.observe({ service }, duration);
 }
 
-export function recordError(t, y, p, e: string, s, e, v, erity: 'low' | 'medium' | 'high' | 'critical', c, o, m, ponent: string) {
+export function recordError(type: string, severity: 'low' | 'medium' | 'high' | 'critical', component: string) {
   errorCount.inc({ type, severity, component });
 }
 
-export function recordRateLimit(e, n, d, point: string, i, d, e, ntifier: string, b, l, o, cked: boolean) {
+export function recordRateLimit(endpoint: string, identifier: string, blocked: boolean) {
   rateLimitHits.inc({ endpoint, identifier });
   if (blocked) {
     rateLimitBlocks.inc({ endpoint, identifier });

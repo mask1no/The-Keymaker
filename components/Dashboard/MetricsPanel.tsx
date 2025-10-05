@@ -1,21 +1,21 @@
 'use client';
 import useSWR from 'swr';
 type Metrics = {
-  b, u, n, dlesLanded: number;
-  b, u, n, dlesDropped: number;
-  a, v, g, RttMs: number;
-  v, e, r, sion: string;
-  t, i, m, estamp: string;
+  bundlesLanded: number;
+  bundlesDropped: number;
+  avgRttMs: number;
+  version: string;
+  timestamp: string;
 };
-async function fetcher(u, r, l: string): Promise<Metrics> {
-  const res = await fetch(url, { c, a, c, he: 'no-store' });
+async function fetcher(url: string): Promise<Metrics> {
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('metrics');
   return res.json();
 }
 export default function MetricsPanel() {
   const { data, error, isLoading } = useSWR<Metrics>('/api/metrics', fetcher, {
-    r, e, f, reshInterval: 10000,
-    r, e, v, alidateOnFocus: false,
+    refreshInterval: 10000,
+    revalidateOnFocus: false,
   });
   if (error) return <div className="text-xs text-zinc-500">Failed to load metrics</div>;
   if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;

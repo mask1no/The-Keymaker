@@ -3,23 +3,24 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Quote = { l, a, m, portsPerToken: bigint; s, o, u, rce: 'birdeye'|'dexscreener'; };
+type Quote = { lamportsPerToken: bigint; source: 'birdeye'|'dexscreener'; };
 
-const cache = new Map<string, { a, t: number; q: Quote }>();
+const cache = new Map<string, { at: number; q: Quote }>();
+const TTL_MS = 5000; // 5s max cache
 
-async function birdeye(m, i, n, t: string): Promise<Quote | null> {
+async function birdeye(mint: string): Promise<Quote | null> {
   try {
     const apiKey = process.env.BIRDEYE_API_KEY;
     // Try Birdeye price endpoint
-    const url = `h, t, t, ps://public-api.birdeye.so/defi/price?address=${encodeURIComponent(mint)}`;
-    const r = await fetch(url, { c, a, c, he: 'no-store', h, e, a, ders: { 'accept': 'application/json', ...(apiKey ? { 'X-API-KEY': apiKey } : {}) } });
+    const url = `https://public-api.birdeye.so/defi/price?address=${encodeURIComponent(mint)}`;
+    const r = await fetch(url, { cache: 'no-store', headers: { 'accept': 'application/json', ...(apiKey ? { 'X-API-KEY': apiKey } : {}) } });
     if (!r.ok) return null;
     const j = await r.json();
     const priceUsd = Number(j?.data?.value || j?.data?.price || 0);
     if (!Number.isFinite(priceUsd) || priceUsd <= 0) return null;
     // Need SOL/USD to convert → lamports; try Birdeye SOL price
-    const rSol = await fetch('h, t, t, ps://public-api.birdeye.so/defi/price?address=So11111111111111111111111111111111111111112', {
-      c, a, c, he: 'no-store', h, e, a, ders: { 'accept': 'application/json', ...(apiKey ? { 'X-API-KEY': apiKey } : {}) }
+    const rSol = await fetch('https://public-api.birdeye.so/defi/price?address=So11111111111111111111111111111111111111112', {
+      cache: 'no-store', headers: { 'accept': 'application/json', ...(apiKey ? { 'X-API-KEY': apiKey } : {}) }
     });
     if (!rSol.ok) return null;
     const jSol = await rSol.json();
@@ -27,14 +28,14 @@ async function birdeye(m, i, n, t: string): Promise<Quote | null> {
     if (!Number.isFinite(solUsd) || solUsd <= 0) return null;
     const lamportsPerToken = BigInt(Math.floor((priceUsd / solUsd) * 1e9));
     if (lamportsPerToken <= 0n) return null;
-    return { lamportsPerToken, s, o, u, rce: 'birdeye' };
+    return { lamportsPerToken, source: 'birdeye' };
   } catch { return null; }
 }
 
-async function dexscreener(m, i, n, t: string): Promise<Quote | null> {
+async function dexscreener(mint: string): Promise<Quote | null> {
   try {
-    const u = `h, t, t, ps://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`;
-    const r = await fetch(u, { c, a, c, he: 'no-store', h, e, a, ders: { 'accept': 'application/json' } });
+    const u = `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`;
+    const r = await fetch(u, { cache: 'no-store', headers: { 'accept': 'application/json' } });
     if (!r.ok) return null;
     const j = await r.json();
     const pair = Array.isArray(j?.pairs) && j.pairs.length ? j.pairs[0] : null;
@@ -43,30 +44,30 @@ async function dexscreener(m, i, n, t: string): Promise<Quote | null> {
     // priceNative is often SOL; convert SOL→lamports
     if (!Number.isFinite(priceNative) || priceNative <= 0) return null;
     const lamportsPerToken = BigInt(Math.floor(priceNative * 1e9));
-    return { lamportsPerToken, s, o, u, rce: 'dexscreener' };
+    return { lamportsPerToken, source: 'dexscreener' };
   } catch {
     return null;
   }
 }
 
-export async function GET(r, e, q, uest: Request, c, o, n, text: { p, a, r, ams: { m, i, n, t?: string } }) {
+export async function GET(request: Request, context: { params: { mint?: string } }) {
   try {
     const mint = context.params?.mint;
     if (!mint || typeof mint !== 'string') {
-      return NextResponse.json({ e, r, r, or: 'invalid_mint' }, { s, t, a, tus: 400 });
+      return NextResponse.json({ error: 'invalid_mint' }, { status: 400 });
     }
     const now = Date.now();
     const hit = cache.get(mint);
-    if (hit && now - hit.at < 45_000) {
-      return NextResponse.json({ o, k: true, mint, l, a, m, portsPerToken: hit.q.lamportsPerToken.toString(), s, o, u, rce: hit.q.source }, { s, t, a, tus: 200 });
+    if (hit && now - hit.at < TTL_MS) {
+      return NextResponse.json({ ok: true, mint, lamportsPerToken: hit.q.lamportsPerToken.toString(), source: hit.q.source }, { status: 200 });
     }
     const primary = await birdeye(mint);
     const fallback = primary || (await dexscreener(mint));
-    if (!fallback) return NextResponse.json({ o, k: false, e, r, r, or: 'not_found' }, { s, t, a, tus: 404 });
-    cache.set(mint, { a, t: now, q: fallback });
-    return NextResponse.json({ o, k: true, mint, l, a, m, portsPerToken: fallback.lamportsPerToken.toString(), s, o, u, rce: fallback.source }, { s, t, a, tus: 200 });
+    if (!fallback) return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 });
+    cache.set(mint, { at: now, q: fallback });
+    return NextResponse.json({ ok: true, mint, lamportsPerToken: fallback.lamportsPerToken.toString(), source: fallback.source }, { status: 200 });
   } catch (e: unknown) {
-    return NextResponse.json({ e, r, r, or: (e as Error)?.message || 'failed' }, { s, t, a, tus: 500 });
+    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
 

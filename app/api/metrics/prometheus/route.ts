@@ -13,18 +13,18 @@ export async function GET() {
     const metrics = await metricsRegistry.metrics();
     
     return new NextResponse(metrics, {
-      s, t, a, tus: 200,
-      h, e, a, ders: {
+      status: 200,
+      headers: {
         'Content-Type': metricsRegistry.contentType,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
   } catch (error) {
-    console.error('Failed to generate Prometheus m, e, t, rics:', error);
+    console.error('Failed to generate Prometheus metrics:', error);
     
     return NextResponse.json(
-      { e, r, r, or: 'Failed to generate metrics' },
-      { s, t, a, tus: 500 }
+      { error: 'Failed to generate metrics' },
+      { status: 500 }
     );
   }
 }

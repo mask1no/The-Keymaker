@@ -16,14 +16,14 @@ import {
 } from '@solana/spl-token';
 
 /**
- * Get or create ATA for a wal let and mint
+ * Get or create ATA for a wallet and mint
  */
 export async function getOrCreateATA(
-  c, o, n, nection: Connection,
-  p, a, y, er: Keypair,
-  o, w, n, er: PublicKey,
-  m, i, n, t: PublicKey
-): Promise<{ a, t, a: PublicKey; i, n, s, truction: any | null }> {
+  connection: Connection,
+  payer: Keypair,
+  owner: PublicKey,
+  mint: PublicKey
+): Promise<{ ata: PublicKey; instruction: any | null }> {
   // Derive ATA address
   const ata = await getAssociatedTokenAddress(
     mint,
@@ -39,7 +39,7 @@ export async function getOrCreateATA(
     
     if (account) {
       // ATA already exists
-      return { ata, i, n, s, truction: null };
+      return { ata, instruction: null };
     }
   } catch (error) {
     // Account doesn't exist, we'll create it
@@ -62,12 +62,12 @@ export async function getOrCreateATA(
  * Build ATAs for multiple wallets
  */
 export async function buildATAsForWallets(
-  c, o, n, nection: Connection,
-  p, a, y, er: Keypair,
-  w, a, l, lets: PublicKey[],
-  m, i, n, t: PublicKey
-): Promise<Map<string, { a, t, a: PublicKey; i, n, s, truction: any | null }>> {
-  const result = new Map<string, { a, t, a: PublicKey; i, n, s, truction: any | null }>();
+  connection: Connection,
+  payer: Keypair,
+  wallets: PublicKey[],
+  mint: PublicKey
+): Promise<Map<string, { ata: PublicKey; instruction: any | null }>> {
+  const result = new Map<string, { ata: PublicKey; instruction: any | null }>();
   
   await Promise.all(
     wallets.map(async (wallet) => {

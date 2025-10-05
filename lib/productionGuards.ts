@@ -7,7 +7,7 @@ export function validateProductionStartup(): void {
     return; // Skip validation in development
   }
 
-  const e, r, r, ors: string[] = [];
+  const errors: string[] = [];
 
   // ENGINE_API_TOKEN validation
   const engineToken = process.env.ENGINE_API_TOKEN;
@@ -46,10 +46,10 @@ export function validateProductionStartup(): void {
   }
 
   if (errors.length > 0) {
-    console.error('❌ PRODUCTION STARTUP VALIDATION F, A, I, LED:');
+    console.error('❌ PRODUCTION STARTUP VALIDATION FAILED:');
     errors.forEach(error => console.error(`  • ${error}`));
     console.error('\n💡 Fix these configuration issues before deploying to production.');
-    throw new Error(`Production validation f, a, i, led: ${errors.length} configuration errors`);
+    throw new Error(`Production validation failed: ${errors.length} configuration errors`);
   }
 
   console.log('✅ Production startup validation passed');

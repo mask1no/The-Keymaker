@@ -3,18 +3,18 @@
 import { useState } from 'react';
 
 interface FormFieldProps {
-  n, a, m, e: string;
-  l, a, b, el: string;
-  t, y, p, e?: 'text' | 'number' | 'email';
-  p, l, a, ceholder?: string;
-  r, e, q, uired?: boolean;
-  m, i, n?: number;
-  m, a, x?: number;
-  s, t, e, p?: string;
-  p, a, t, tern?: string;
-  d, e, f, aultValue?: string | number;
-  h, e, l, pText?: string;
-  v, a, l, idate?: (v, a, l, ue: string) => string | null;
+  name: string;
+  label: string;
+  type?: 'text' | 'number' | 'email';
+  placeholder?: string;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  step?: string;
+  pattern?: string;
+  defaultValue?: string | number;
+  helpText?: string;
+  validate?: (value: string) => string | null;
 }
 
 export function FormField({
@@ -92,8 +92,8 @@ export function FormField({
         onChange={handleChange}
         className={`input px-3 py-2 bg-zinc-900 border rounded-lg transition-colors ${
           error && touched
-            ? 'border-red-500 f, o, c, us:ring-red-500/50'
-            : 'border-zinc-800 f, o, c, us:ring-sky-500/50'
+            ? 'border-red-500 focus:ring-red-500/50'
+            : 'border-zinc-800 focus:ring-sky-500/50'
         }`}
         aria-invalid={!!error && touched}
         aria-describedby={error ? `${name}-error` : helpText ? `${name}-help` : undefined}

@@ -11,16 +11,16 @@ import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
 import { evaluateSellConditions, type SellCondition } from '@/lib/core/src/sellConditions';
 import { journalTrade, createDailyJournal, logJsonLine } from '@/lib/core/src/journal';
 
-type Saved = { u, s, e, r: string; g, r, o, upId: string; m, i, n, t: string; c, o, n, ditions: SellCondition[]; u, p, d, atedAt: number };
+type Saved = { user: string; groupId: string; mint: string; conditions: SellCondition[]; updatedAt: number };
 
 let started = false;
-let t, i, m, er: NodeJS.Timeout | null = null;
+let timer: NodeJS.Timeout | null = null;
 
 async function readAllConditions(): Promise<Saved[]> {
   const dataDir = join(process.cwd(), 'data');
   try {
-    const entries = await fsp.readdir(dataDir, { w, i, t, hFileTypes: true });
-    const o, u, t: Saved[] = [];
+    const entries = await fsp.readdir(dataDir, { withFileTypes: true });
+    const out: Saved[] = [];
     for (const e of entries) {
       if (!e.isDirectory()) continue;
       const file = join(dataDir, e.name, 'sell-conditions.json');
@@ -34,9 +34,9 @@ async function readAllConditions(): Promise<Saved[]> {
   } catch { return []; }
 }
 
-async function fetchSpotLamports(m, i, n, t: string): Promise<number | null> {
+async function fetchSpotLamports(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { c, a, c, he: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const j = await res.json();
     const lpt = typeof j?.lamportsPerToken === 'string' ? Number(j.lamportsPerToken) : (typeof j?.lamportsPerToken === 'number' ? j.lamportsPerToken : 0);
@@ -54,16 +54,16 @@ async function evaluateOnce(): Promise<void> {
     if (!group) continue;
     const price = await fetchSpotLamports(item.mint);
     const entryPrice = price ?? 0;
-    const priceInfo = { entryPrice, c, u, r, rentPrice: price ?? entryPrice, c, h, a, ngePercent: 0 };
-    const triggered = evaluateSellConditions({ c, o, n, ditions: item.conditions.filter(c=>c.enabled), priceInfo });
+    const priceInfo = { entryPrice, currentPrice: price ?? entryPrice, changePercent: 0 };
+    const triggered = evaluateSellConditions({ conditions: item.conditions.filter(c=>c.enabled), priceInfo });
     if (!triggered.length) continue;
 
     try {
       const walletPubkeys = group.executionWallets;
       const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet!);
-      const rpc = process.env.HELIUS_RPC_URL || 'h, t, t, ps://api.mainnet-beta.solana.com';
+      const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
       const conn = new Connection(rpc, 'confirmed');
-      const a, m, o, unts: Record<string, number> = {};
+      const amounts: Record<string, number> = {};
       for (const kp of keypairs) {
         const pub = kp.publicKey.toBase58();
         const { amount } = await getSplTokenBalance(conn, pub, item.mint);
@@ -72,30 +72,30 @@ async function evaluateOnce(): Promise<void> {
       const percent = Number((triggered[0]?.params as any)?.sellPercent || 0);
       if (percent <= 0) continue;
       await executeRpcFanout({
-        w, a, l, lets: keypairs,
-        c, o, n, currency: ui.concurrency || 4,
-        p, r, i, orityFeeMicrolamports: 0,
-        d, r, y, Run: ui.dryRun !== false ? true : false,
-        c, l, u, ster: ui.cluster || 'mainnet-beta',
-        i, n, t, entHash: `s, c:${item.groupId}:${item.mint}:${percent}`,
-        b, u, i, ldTx: async (wallet) => {
+        wallets: keypairs,
+        concurrency: ui.concurrency || 4,
+        priorityFeeMicrolamports: 0,
+        dryRun: ui.dryRun !== false ? true : false,
+        cluster: ui.cluster || 'mainnet-beta',
+        intentHash: `sc:${item.groupId}:${item.mint}:${percent}`,
+        buildTx: async (wallet) => {
           const baseAmt = amounts[wallet.publicKey.toBase58()] || 0;
           const amountTokens = Math.floor((baseAmt * percent) / 100);
           if (!amountTokens || amountTokens <= 0) throw new Error('skip_zero_balance');
           return buildJupiterSellTx({
             wallet,
-            i, n, p, utMint: item.mint,
-            o, u, t, putMint: 'So11111111111111111111111111111111111111112',
+            inputMint: item.mint,
+            outputMint: 'So11111111111111111111111111111111111111112',
             amountTokens,
-            s, l, i, ppageBps: 150,
-            c, l, u, ster: ui.cluster || 'mainnet-beta',
-            p, r, i, orityFeeMicrolamports: 0,
+            slippageBps: 150,
+            cluster: ui.cluster || 'mainnet-beta',
+            priorityFeeMicrolamports: 0,
           });
         },
       });
-      logJsonLine(journal, { e, v: 'sell_condition_executed', g, r, o, upId: item.groupId, m, i, n, t: item.mint, percent });
+      logJsonLine(journal, { ev: 'sell_condition_executed', groupId: item.groupId, mint: item.mint, percent });
     } catch (e: any) {
-      logJsonLine(journal, { e, v: 'sell_condition_error', g, r, o, upId: item.groupId, m, i, n, t: item.mint, e, r, r, or: String(e?.message || e) });
+      logJsonLine(journal, { ev: 'sell_condition_error', groupId: item.groupId, mint: item.mint, error: String(e?.message || e) });
     }
   }
 }

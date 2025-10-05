@@ -5,22 +5,22 @@ import { createDailyJournal, logJsonLine } from './journal';
 import { incCounter, observeLatency } from './metrics';
 import { getTipFloor, sendBundle, getBundleStatuses } from './jito';
 
-function clamp(v, a, l, ue: number, m, i, n: number, m, a, x: number): number {
+function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function chunkArray<T>(a, r, r: T[], s, i, z, e: number): T[][] {
-  const o, u, t: T[][] = [];
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
 
-function txToBase64(t, x: VersionedTransaction): string {
+function txToBase64(tx: VersionedTransaction): string {
   return Buffer.from(tx.serialize()).toString('base64');
 }
 
 export class JitoEngine implements Engine {
-  async submit(p, l, a, n: SubmitPlan, o, p, t, s: ExecOptions): Promise<EngineSubmitResult> {
+  async submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult> {
     const t0 = Date.now();
     const region = (opts.region || 'ffm') as RegionKey;
     const rawChunk = typeof opts.chunkSize === 'number' ? opts.chunkSize : 5;
@@ -32,7 +32,7 @@ export class JitoEngine implements Engine {
     const effectiveTip = clamp(Number(opts.tipLamports ?? dynamicTip), 5_000, 200_000);
 
     const parts = chunkArray(plan.txs, chunkSize);
-    const b, u, n, dleIds: string[] = [];
+    const bundleIds: string[] = [];
     const journal = createDailyJournal('data');
 
     if (opts.dryRun) {
@@ -42,43 +42,43 @@ export class JitoEngine implements Engine {
       const connection = new Connection(
         process.env.HELIUS_RPC_URL ||
           process.env.NEXT_PUBLIC_HELIUS_RPC ||
-          'h, t, t, ps://api.mainnet-beta.solana.com',
+          'https://api.mainnet-beta.solana.com',
         'confirmed',
       );
       for (const group of parts) {
         for (const tx of group) {
           const t1 = Date.now();
           try {
-            const sim = await connection.simulateTransaction(tx, { s, i, g, Verify: false });
+            const sim = await connection.simulateTransaction(tx, { sigVerify: false });
             logJsonLine(journal, {
-              e, v: 'simulate_jito',
-              g, r, o, up: opts.group || undefined,
+              ev: 'simulate_jito',
+              group: opts.group || undefined,
               region,
-              t, x, C, ount: 1,
-              c, o, r, r: plan.corr,
-              m, s: Date.now() - t1,
-              l, o, g, s: sim?.value?.logs?.slice(0, 10) || undefined,
+              txCount: 1,
+              corr: plan.corr,
+              ms: Date.now() - t1,
+              logs: sim?.value?.logs?.slice(0, 10) || undefined,
             });
           } catch (e: any) {
             logJsonLine(journal, {
-              e, v: 'simulate_jito',
-              g, r, o, up: opts.group || undefined,
+              ev: 'simulate_jito',
+              group: opts.group || undefined,
               region,
-              t, x, C, ount: 1,
-              c, o, r, r: plan.corr,
-              m, s: Date.now() - t1,
-              e, r, r, or: String(e?.message || e),
+              txCount: 1,
+              corr: plan.corr,
+              ms: Date.now() - t1,
+              error: String(e?.message || e),
             });
           }
         }
       }
-      observeLatency('engine_simulate_ms', Date.now() - simStart, { m, o, d, e: 'JITO_BUNDLE', region });
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'JITO_BUNDLE', region });
       observeLatency('engine_submit_ms', Date.now() - t0, {
-        m, o, d, e: 'JITO_BUNDLE',
+        mode: 'JITO_BUNDLE',
         region,
-        s, i, m, ulated: '1',
+        simulated: '1',
       });
-      return { c, o, r, r: plan.corr, m, o, d, e: 'JITO_BUNDLE', s, t, a, tusHint: 'submitted', s, i, m, ulated: true };
+      return { corr: plan.corr, mode: 'JITO_BUNDLE', statusHint: 'submitted', simulated: true };
     }
 
     // Submit serially (small parallelism could be added if needed)
@@ -92,44 +92,44 @@ export class JitoEngine implements Engine {
       incCounter('engine_submit_jito_total');
       bundleIds.push(bundle_id);
       logJsonLine(journal, {
-        e, v: 'submit_jito',
-        g, r, o, up: opts.group || undefined,
+        ev: 'submit_jito',
+        group: opts.group || undefined,
         region,
-        b, u, n, dleId: bundle_id,
-        t, i, p, Lamports: effectiveTip,
-        t, x, C, ount: encoded.length,
-        c, o, r, r: plan.corr,
-        m, s: Date.now() - t1,
+        bundleId: bundle_id,
+        tipLamports: effectiveTip,
+        txCount: encoded.length,
+        corr: plan.corr,
+        ms: Date.now() - t1,
       });
       // Compatibility event for UI summary table
       logJsonLine(journal, {
-        e, v: 'submit',
-        g, r, o, up: opts.group || undefined,
+        ev: 'submit',
+        group: opts.group || undefined,
         region,
-        b, u, n, dleId: bundle_id,
-        t, i, p, Lamports: effectiveTip,
-        t, x, C, ount: encoded.length,
-        c, o, r, r: plan.corr,
-        m, s: Date.now() - t1,
+        bundleId: bundle_id,
+        tipLamports: effectiveTip,
+        txCount: encoded.length,
+        corr: plan.corr,
+        ms: Date.now() - t1,
       });
     }
 
-    observeLatency('engine_submit_ms', Date.now() - t0, { m, o, d, e: 'JITO_BUNDLE', region });
-    return { c, o, r, r: plan.corr, m, o, d, e: 'JITO_BUNDLE', bundleIds, s, t, a, tusHint: 'submitted' };
+    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
+    return { corr: plan.corr, mode: 'JITO_BUNDLE', bundleIds, statusHint: 'submitted' };
   }
 
-  async pollStatus(_, p, l, an: SubmitPlan | null, o, p, t, s: ExecOptions): Promise<any> {
+  async pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
     const region = (opts.region || 'ffm') as RegionKey;
     const bundleIds = opts.bundleIds || [];
     const t0 = Date.now();
     const statuses = bundleIds.length ? await getBundleStatuses(region, bundleIds) : [];
     incCounter('engine_status_total');
     incCounter('engine_status_jito_total');
-    observeLatency('engine_status_ms', Date.now() - t0, { m, o, d, e: 'JITO_BUNDLE', region });
+    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
     if (bundleIds.length) {
       const journal = createDailyJournal('data');
       logJsonLine(journal, {
-        e, v: 'status',
+        ev: 'status',
         region,
         bundleIds,
         statuses,

@@ -5,8 +5,8 @@ describe('status mapping', () => {
     // Fake response shape locally without network call by monkey patching fetch
     const originalFetch = global.fetch as any;
     (global as any).fetch = async () => ({
-      o, k: true,
-      j, s, o, n: async () => ({ v, a, l, ue: [{ b, u, n, dle_id: 'x', s, t, a, tus: 'unknown' }] }),
+      ok: true,
+      json: async () => ({ value: [{ bundle_id: 'x', status: 'unknown' }] }),
     });
     const out = await getStatuses('ffm' as Region, ['x']);
     expect(out['x']).toBe('pending');

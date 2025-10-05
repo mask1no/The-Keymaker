@@ -4,8 +4,8 @@
  */
 
 export interface ChunkStrategy {
-  c, h, u, nkSize: number;
-  m, a, x, Chunks?: number;
+  chunkSize: number;
+  maxChunks?: number;
 }
 
 const DEFAULT_CHUNK_SIZE = 5;
@@ -15,8 +15,8 @@ const MIN_CHUNK_SIZE = 1;
 /**
  * Chunk array into smaller arrays
  */
-export function chunkArray<T>(a, r, r, ay: T[], c, h, u, nkSize: number): T[][] {
-  const c, h, u, nks: T[][] = [];
+export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
   const size = Math.max(MIN_CHUNK_SIZE, Math.min(chunkSize, MAX_CHUNK_SIZE));
   
   for (let i = 0; i < array.length; i += size) {
@@ -29,10 +29,10 @@ export function chunkArray<T>(a, r, r, ay: T[], c, h, u, nkSize: number): T[][] 
 /**
  * Calculate optimal chunk strategy
  */
-export function calculateOptimalChunking(p, a, r, ams: {
-  t, o, t, alTransactions: number;
-  p, r, e, ferredChunkSize?: number;
-  m, a, x, Chunks?: number;
+export function calculateOptimalChunking(params: {
+  totalTransactions: number;
+  preferredChunkSize?: number;
+  maxChunks?: number;
 }): ChunkStrategy {
   const { totalTransactions, preferredChunkSize = DEFAULT_CHUNK_SIZE, maxChunks } = params;
   
@@ -54,13 +54,13 @@ export function calculateOptimalChunking(p, a, r, ams: {
 /**
  * Estimate bundle submission time
  */
-export function estimateBundleTime(p, a, r, ams: {
-  n, u, m, Chunks: number;
-  d, e, l, ayBetweenBundlesMs?: number;
+export function estimateBundleTime(params: {
+  numChunks: number;
+  delayBetweenBundlesMs?: number;
 }): number {
   const { numChunks, delayBetweenBundlesMs = 100 } = params;
   
-  // E, s, t, imate: 2s per bundle submission + delays
+  // Estimate: 2s per bundle submission + delays
   const submissionTime = numChunks * 2000;
   const delayTime = (numChunks - 1) * delayBetweenBundlesMs;
   

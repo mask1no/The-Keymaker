@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-type PnL = { b, u, y, s:number; s, e, l, ls:number; f, e, e, s:number; r, e, a, lized:number; u, n, r, ealized:number; n, e, t:number; c, o, u, nt:number };
+type PnL = { buys:number; sells:number; fees:number; realized:number; unrealized:number; net:number; count:number };
 
 export default function PnlPage(){
-  const [p, setP] = useState<PnL|null>(null);
-  useEffect(()=>{ fetch('/api/pnl',{c, a, c, he:'no-store'}).then(r=>r.json()).then(j=>setP(j.pnl)); }, []);
+  const [psetP] = useState<PnL|null>(null);
+  useEffect(()=>{ fetch('/api/pnl',{cache:'no-store'}).then(r=>r.json()).then(j=>setP(j.pnl)); }, []);
   if(!p) return <div className="p-6">Loading...</div>;
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-semibold">P&L</h1>
-      <div className="grid grid-cols-1 m, d:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Tile label="Trades" value={p.count} />
         <Tile label="Buys (SOL)" value={p.buys.toFixed(4)} />
         <Tile label="Sells (SOL)" value={p.sells.toFixed(4)} />
@@ -23,7 +23,7 @@ export default function PnlPage(){
   );
 }
 
-function Tile({label,value}:{l, a, b, el:string; v, a, l, ue:React.ReactNode}){
+function Tile({label,value}:{label:string; value:React.ReactNode}){
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
       <div className="text-xs text-zinc-400">{label}</div>

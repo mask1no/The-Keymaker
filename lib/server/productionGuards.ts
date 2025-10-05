@@ -1,18 +1,18 @@
 import 'server-only';
 
-export function clampNumber(v, a, l, ue: number, m, i, n: number, m, a, x: number): number {
+export function clampNumber(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function enforceTipCeiling(t, i, p, Lamports: number, c, e, i, ling: number): number {
+export function enforceTipCeiling(tipLamports: number, ceiling: number): number {
   return clampNumber(tipLamports, 0, ceiling);
 }
 
-export function enforcePriorityFeeCeiling(p, r, i, orityMicrolamports: number, c, e, i, ling: number): number {
+export function enforcePriorityFeeCeiling(priorityMicrolamports: number, ceiling: number): number {
   return clampNumber(priorityMicrolamports, 0, ceiling);
 }
 
-export function enforceConcurrencyCeiling(c, o, n, currency: number, c, e, i, ling: number): number {
+export function enforceConcurrencyCeiling(concurrency: number, ceiling: number): number {
   return clampNumber(concurrency, 1, ceiling);
 }
 

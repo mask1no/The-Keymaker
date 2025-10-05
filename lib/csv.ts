@@ -1,8 +1,8 @@
-export function toCsv<T extends Record<string, any>>(r, o, w, s: T[], h, e, a, ders?: string[]): string {
+export function toCsv<T extends Record<string, any>>(rows: T[], headers?: string[]): string {
   if (!rows || rows.length === 0) return '';
   const cols = headers && headers.length > 0 ? headers : Object.keys(rows[0]);
 
-  const escape = (v, a, l: any) => {
+  const escape = (val: any) => {
     if (val === null || val === undefined) return '';
     const s = String(val);
     if (s.includes(',') || s.includes('"') || s.includes('\n')) {
@@ -18,8 +18,8 @@ export function toCsv<T extends Record<string, any>>(r, o, w, s: T[], h, e, a, d
   return lines.join('\n');
 }
 
-export function downloadCsv(c, o, n, tent: string, filename = `export-${Date.now()}.csv`) {
-  const blob = new Blob([content], { t, y, p, e: 'text/csv' });
+export function downloadCsv(content: string, filename = `export-${Date.now()}.csv`) {
+  const blob = new Blob([content], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

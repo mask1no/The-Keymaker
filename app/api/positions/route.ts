@@ -7,39 +7,39 @@ import { getSession } from '@/lib/server/session';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(r, e, q, uest: Request) {
+export async function GET(request: Request) {
   try {
     const session = getSession();
     const user = session?.userPubkey || '';
-    if (!user) return NextResponse.json({ e, r, r, or: 'unauthorized' }, { s, t, a, tus: 401 });
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get('groupId') || '';
     const mint = searchParams.get('mint') || '';
     if (!groupId || !mint) {
-      return NextResponse.json({ e, r, r, or: 'missing_params' }, { s, t, a, tus: 400 });
+      return NextResponse.json({ error: 'missing_params' }, { status: 400 });
     }
 
     const group = getWalletGroup(groupId);
-    if (!group) return NextResponse.json({ e, r, r, or: 'group_not_found' }, { s, t, a, tus: 404 });
-    if (!group.masterWal let || group.masterWal let !== user) {
-      return NextResponse.json({ e, r, r, or: 'forbidden' }, { s, t, a, tus: 403 });
+    if (!group) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
+    if (!group.masterWallet || group.masterWallet !== user) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
 
-    const rpc = process.env.HELIUS_RPC_URL || 'h, t, t, ps://api.mainnet-beta.solana.com';
+    const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const positions = await getPositionsForGroup(connection, groupId, mint);
 
     return NextResponse.json({
-      p, o, s, itions: positions.map((p) => ({
-        w, a, l, let: p.wallet,
-        m, i, n, t: p.mint,
-        s, i, z, eTokens: p.uiAmount,
-        d, e, c, imals: p.decimals,
-        u, i, A, mount: p.uiAmount,
+      positions: positions.map((p) => ({
+        wallet: p.wallet,
+        mint: p.mint,
+        sizeTokens: p.uiAmount,
+        decimals: p.decimals,
+        uiAmount: p.uiAmount,
       })),
     });
   } catch (error) {
-    return NextResponse.json({ e, r, r, or: (error as Error).message }, { s, t, a, tus: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
 

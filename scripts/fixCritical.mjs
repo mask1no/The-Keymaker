@@ -11,7 +11,7 @@ function* walk(d) {
       )
     )
       continue;
-    const p = path.join(d, n);
+    const p = path.join(dn);
     const st = fs.statSync(p);
     if (st.isDirectory()) {
       yield* walk(p);
@@ -23,36 +23,36 @@ function* walk(d) {
 
 const criticalFixes = [
   // Fix split words that break parsing
-  [/e, rror/g, 'error'],
-  [/r, eq/g, 'req'],
-  [/s, tatus/g, 'status'],
-  [/m, essage/g, 'message'],
-  [/s, uccess/g, 'success'],
-  [/s, ignatures/g, 'signatures'],
-  [/f, ailed/g, 'failed'],
-  [/e, ma_50th/g, 'ema_50th'],
-  [/r, egion/g, 'region'],
-  [/e, ncodedTransactions/g, 'encodedTransactions'],
-  [/b, undleIds/g, 'bundleIds'],
-  [/t, ransaction/g, 'transaction'],
-  [/c, apacity/g, 'capacity'],
-  [/r, efillRate/g, 'refillRate'],
-  [/k, ey/g, 'key'],
-  [/p, arams/g, 'params'],
-  [/a, llInstructions/g, 'allInstructions'],
-  [/t, x/g, 'tx'],
-  [/e, ncoded/g, 'encoded'],
-  [/i, nputs/g, 'inputs'],
-  [/v, alue/g, 'value'],
-  [/n, once/g, 'nonce'],
-  [/p, assword/g, 'password'],
-  [/f, eedback/g, 'feedback'],
-  [/v, ariants/g, 'variants'],
-  [/r, ows/g, 'rows'],
-  [/h, eaders/g, 'headers'],
-  [/v, al/g, 'val'],
-  [/c, ommitment/g, 'commitment'],
-  [/f, eedback/g, 'feedback'],
+  [/error/g, 'error'],
+  [/req/g, 'req'],
+  [/status/g, 'status'],
+  [/message/g, 'message'],
+  [/success/g, 'success'],
+  [/signatures/g, 'signatures'],
+  [/failed/g, 'failed'],
+  [/ema_50th/g, 'ema_50th'],
+  [/region/g, 'region'],
+  [/encodedTransactions/g, 'encodedTransactions'],
+  [/bundleIds/g, 'bundleIds'],
+  [/transaction/g, 'transaction'],
+  [/capacity/g, 'capacity'],
+  [/refillRate/g, 'refillRate'],
+  [/key/g, 'key'],
+  [/params/g, 'params'],
+  [/allInstructions/g, 'allInstructions'],
+  [/tx/g, 'tx'],
+  [/encoded/g, 'encoded'],
+  [/inputs/g, 'inputs'],
+  [/value/g, 'value'],
+  [/nonce/g, 'nonce'],
+  [/password/g, 'password'],
+  [/feedback/g, 'feedback'],
+  [/variants/g, 'variants'],
+  [/rows/g, 'rows'],
+  [/headers/g, 'headers'],
+  [/val/g, 'val'],
+  [/commitment/g, 'commitment'],
+  [/feedback/g, 'feedback'],
 
   // Fix specific parsing issues
   [/\(\s*r,\s*eq:\s*Request\s*\)/g, '(req: Request)'],
@@ -71,7 +71,7 @@ for (const p of walk(ROOT)) {
   }
 
   if (s !== o) {
-    fs.writeFileSync(p, s);
+    fs.writeFileSync(ps);
     console.log('fixed', p);
     changed++;
   }

@@ -12,16 +12,16 @@ export async function GET() {
     const healthy = !rpcRed && !wsRed;
     const code = healthy ? 200 : 503;
     return NextResponse.json(
-      { o, k: healthy, status },
+      { ok: healthy, status },
       {
-        s, t, a, tus: code,
-        h, e, a, ders: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+        status: code,
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
       },
     );
   } catch (e) {
     return NextResponse.json(
-      { o, k: false, e, r, r, or: 'ready_probe_failed' },
-      { s, t, a, tus: 503 },
+      { ok: false, error: 'ready_probe_failed' },
+      { status: 503 },
     );
   }
 }

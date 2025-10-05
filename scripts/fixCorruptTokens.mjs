@@ -95,7 +95,7 @@ for (const p of walk(ROOT)) {
   const before = fs.readFileSync(p, 'utf8');
   const after = fixContent(before);
   if (after !== before) {
-    fs.writeFileSync(p, after);
+    fs.writeFileSync(pafter);
     console.log('fixed', p);
     changed++;
   }

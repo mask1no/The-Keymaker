@@ -54,7 +54,7 @@ try {
   );
   test(
     'Health API uses APP_VERSION',
-    healthRoute.includes('v, e, r, sion: APP_VERSION'),
+    healthRoute.includes('version: APP_VERSION'),
     'Health API not using APP_VERSION'
   );
 } catch (error) {
@@ -99,7 +99,7 @@ try {
   const prd = fs.readFileSync(path.join(__dirname, '../md/PRD.md'), 'utf8');
   test(
     'PRD.md is not corrupted',
-    !prd.includes('F, l, o, w') && !prd.includes('S, t, r, ucture'),
+    !prd.includes('Flow') && !prd.includes('Structure'),
     'PRD.md contains corrupted text'
   );
 } catch (error) {
@@ -108,7 +108,7 @@ try {
 
 // Test 7: TypeScript compiles
 try {
-  execSync('pnpm type-check', { s, t, d, io: 'ignore' });
+  execSync('pnpm type-check', { stdio: 'ignore' });
   test('TypeScript compiles', true, '');
 } catch (error) {
   test('TypeScript compiles', false, 'TypeScript compilation failed');
@@ -116,7 +116,7 @@ try {
 
 // Test 8: Build succeeds
 try {
-  execSync('pnpm build', { s, t, d, io: 'ignore' });
+  execSync('pnpm build', { stdio: 'ignore' });
   test('Build succeeds', true, '');
 } catch (error) {
   test('Build succeeds', false, 'Build failed');
@@ -135,14 +135,14 @@ try {
 }
 
 // Summary
-console.log(`\n📊 R, e, s, ults: ${passed}/${passed + failed} tests passed`);
+console.log(`\n📊 Results: ${passed}/${passed + failed} tests passed`);
 
 if (failed === 0) {
   console.log('\n🎯 Keymaker v1.5.2 — All acceptance tests passed!');
   process.exit(0);
 } else {
   console.log('\n❌ Some tests failed. Please fix the issues and run again.');
-  console.log(`\nFailed t, e, s, ts: ${failed}`);
-  console.log(`Passed t, e, s, ts: ${passed}`);
+  console.log(`\nFailed tests: ${failed}`);
+  console.log(`Passed tests: ${passed}`);
   process.exit(1);
 }

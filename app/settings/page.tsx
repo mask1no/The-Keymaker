@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 async function getUi(): Promise<any> {
   const base = '';
-  const res = await fetch(`${base}/api/ui/settings`, { c, a, c, he: 'no-store' });
+  const res = await fetch(`${base}/api/ui/settings`, { cache: 'no-store' });
   if (!res.ok) return null;
   return res.json();
 }
@@ -12,10 +12,10 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-4 text-xs flex items-center gap-3">
-        <span className="badge">Execution M, o, d, e: {ui.mode}</span>
-        <span className="badge">D, r, y, Run: {ui.dryRun ? 'ON' : 'OFF'}</span>
-        <span className="badge">C, l, u, ster: {ui.cluster}</span>
-        <a href="/engine" className="badge" style={{ t, e, x, tDecoration: 'none' }}>
+        <span className="badge">Execution Mode: {ui.mode}</span>
+        <span className="badge">DryRun: {ui.dryRun ? 'ON' : 'OFF'}</span>
+        <span className="badge">Cluster: {ui.cluster}</span>
+        <a href="/engine" className="badge" style={{ textDecoration: 'none' }}>
           Engine →
         </a>
       </div>
@@ -23,21 +23,21 @@ export default async function SettingsPage() {
       <div className="bento">
         <section className="card">
           <div className="label mb-2">Engine Defaults</div>
-          <form action={async (f, o, r, mData: FormData) => {
+          <form action={async (formData: FormData) => {
             'use server';
             const body = {
-              m, o, d, e: String(formData.get('mode') || 'JITO_BUNDLE'),
-              r, e, g, ion: String(formData.get('region') || 'ffm'),
-              p, r, i, ority: String(formData.get('priority') || 'med'),
-              t, i, p, Lamports: Number(formData.get('tipLamports') || 5000),
-              c, h, u, nkSize: Number(formData.get('chunkSize') || 5),
-              c, o, n, currency: Number(formData.get('concurrency') || 4),
-              j, i, t, terMs: [Number(formData.get('jitterMin') || 50), Number(formData.get('jitterMax') || 150)],
-              d, r, y, Run: String(formData.get('dryRun') || '') === 'on',
-              l, i, v, eMode: String(formData.get('liveMode') || '') === 'on',
-              c, l, u, ster: String(formData.get('cluster') || 'mainnet-beta'),
+              mode: String(formData.get('mode') || 'JITO_BUNDLE'),
+              region: String(formData.get('region') || 'ffm'),
+              priority: String(formData.get('priority') || 'med'),
+              tipLamports: Number(formData.get('tipLamports') || 5000),
+              chunkSize: Number(formData.get('chunkSize') || 5),
+              concurrency: Number(formData.get('concurrency') || 4),
+              jitterMs: [Number(formData.get('jitterMin') || 50), Number(formData.get('jitterMax') || 150)],
+              dryRun: String(formData.get('dryRun') || '') === 'on',
+              liveMode: String(formData.get('liveMode') || '') === 'on',
+              cluster: String(formData.get('cluster') || 'mainnet-beta'),
             } as any;
-            await fetch('/api/ui/settings', { m, e, t, hod: 'POST', h, e, a, ders: { 'content-type': 'application/json' }, b, o, d, y: JSON.stringify(body) });
+            await fetch('/api/ui/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
           }} className="space-y-3">
             <div>
               <label className="text-sm">Mode</label>
@@ -84,7 +84,7 @@ export default async function SettingsPage() {
             <label className="text-sm">Live Mode (requires env + arming)</label>
             <input type="checkbox" name="liveMode" defaultChecked={ui.liveMode ?? false} />
             <div className="text-xs text-yellow-400 mt-1">
-              Live sends r, e, q, uire: KEYMAKER_ALLOW_LIVE=YES and (optional) arming.
+              Live sends require: KEYMAKER_ALLOW_LIVE=YES and (optional) arming.
             </div>
           </div>
             <div>
@@ -147,7 +147,7 @@ export default async function SettingsPage() {
                 </div>
               </div>
             </div>
-            <button type="submit" className="button px-3 py-1 bg-zinc-800 h, o, v, er:bg-zinc-700">
+            <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">
               Save
             </button>
           </form>
@@ -161,8 +161,8 @@ export default async function SettingsPage() {
         <section className="card">
           <div className="label mb-2">Logs & Exports</div>
           <div className="flex items-center gap-3 text-sm">
-            <a href="/api/logs/download" className="rounded px-3 py-2 border border-zinc-700 h, o, v, er:bg-zinc-800/50">Download logs (NDJSON)</a>
-            <a href="/api/pnl/export" className="rounded px-3 py-2 border border-zinc-700 h, o, v, er:bg-zinc-800/50">Export P&L (CSV)</a>
+            <a href="/api/logs/download" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Download logs (NDJSON)</a>
+            <a href="/api/pnl/export" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Export P&L (CSV)</a>
           </div>
         </section>
       </div>

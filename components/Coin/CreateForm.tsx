@@ -1,31 +1,31 @@
 ﻿'use client';
-import { useEffecseMemseReseState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 
-type Group = { : string; , : string };
+type Group = { id: string; name: string };
 
 export default function CreateForm() {
   const draft = useDraftStore((s) => s.draft);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [nametName] = useState(draft?.name || '');
-  const [symboetSymbol] = useState(draft?.symbol || '');
-  const [imagetImage] = useState(draft?.image || '');
-  const [descriptioetDescription] = useState(draft?.description || '');
-  const [websitetWebsite] = useState(draft?.website || '');
-  const [twitteetTwitter] = useState(draft?.twitter || '');
-  const [telegraetTelegram] = useState(draft?.telegram || '');
-  const [groupIetGroupId] = useState<string>('');
-  const [groupetGroups] = useState<Group[]>([]);
-  const [uretUri] = useState<string | null>(null);
-  const [dryRuetDryRun] = useState(true);
-  const [devBuySoetDevBuySol] = useState(0);
-  const [autoMultiBuetAutoMultiBuy] = useState(false);
-  const [slippageBpetSlippageBps] = useState(150);
-  const [priorityFeetPriorityFee] = useState<number>(0);
-  const [jitoTipLamportetJitoTipLamports] = useState<number>(0);
-  const [modetMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
-  const [launchinetLaunching] = useState(false);
-  const [resuletResult] = useState<{ , ?: string | null; , lated?: boolean; , r?: string } | null>(null);
+  const [name, setName] = useState(draft?.name || '');
+  const [symbol, setSymbol] = useState(draft?.symbol || '');
+  const [image, setImage] = useState(draft?.image || '');
+  const [description, setDescription] = useState(draft?.description || '');
+  const [website, setWebsite] = useState(draft?.website || '');
+  const [twitter, setTwitter] = useState(draft?.twitter || '');
+  const [telegram, setTelegram] = useState(draft?.telegram || '');
+  const [groupId, setGroupId] = useState<string>('');
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [uri, setUri] = useState<string | null>(null);
+  const [dryRun, setDryRun] = useState(true);
+  const [devBuySol, setDevBuySol] = useState(0);
+  const [autoMultiBuy, setAutoMultiBuy] = useState(false);
+  const [slippageBps, setSlippageBps] = useState(150);
+  const [priorityFee, setPriorityFee] = useState<number>(0);
+  const [jitoTipLamports, setJitoTipLamports] = useState<number>(0);
+  const [mode, setMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
+  const [launching, setLaunching] = useState(false);
+  const [result, setResult] = useState<{ mint?: string | null; simulated?: boolean; error?: string } | null>(null);
 
   useEffect(() => {
     setName(draft?.name || '');
@@ -57,11 +57,11 @@ export default function CreateForm() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { , e: 'no-store' });
+        const res = await fetch('/api/groups', { cache: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (!abort) {
-          const : Group[] = (j.groups || []).map((g: any) => ({ : g.i, , e: g.name }));
+          const gs: Group[] = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
           setGroups(gs);
           if (gs.length && !groupId) setGroupId(gs[0].id);
         }
@@ -72,22 +72,22 @@ export default function CreateForm() {
     };
   }, [groupId]);
 
-  const buildDisabled = useMemo(() => !name || !symbol, [namymbol]);
-  const launchDisabled = useMemo(() => !name || !symbol || (!dryRun && !uri), [namymboryRuri]);
+  const buildDisabled = useMemo(() => !name || !symbol, [name, symbol]);
+  const launchDisabled = useMemo(() => !name || !symbol || (!dryRun && !uri), [name, symbol, dryRun, uri]);
 
   async function buildMetadata() {
     setResult(null);
     try {
       const res = await fetch('/api/adapters/build', {
-        , od: 'POST',
-        , ers: { 'content-type': 'application/json' },
-        , : JSON.stringify({ namymboescriptiomagebsitwitteelegram }),
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, symbol, description, image, website, twitter, telegram }),
       });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j.error || 'build_failed');
       setUri(j.uri || null);
     } catch (e: any) {
-      setResult({ , r: e?.message || 'build_failed' });
+      setResult({ error: e?.message || 'build_failed' });
     }
   }
 
@@ -100,21 +100,22 @@ export default function CreateForm() {
         const ok = window.confirm('Live launch will be performed via the official Pump.fun endpoint. Continue?');
         if (!ok) throw new Error('cancelled');
       }
-      const res = await fetch('/api/pumpfun/launch', {
-        , od: 'POST',
-        , ers: { 'content-type': 'application/json' },
-        , : JSON.stringify({
-          namymbormagescriptioebsitwitteelegraryRuevBuySoutoMultiBu, , upId: autoMultiBuy ? groupId : undefineodlippageBp, , orityFeeMicrolamports: priorityFee || undefine, , oTipLamports: jitoTipLamports || undefined,
+      const res = await fetch('/api/coin/pumpfun/create', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          devPubkey: sessionPubkey,
+          name,
+          symbol,
+          supply: 10 ** 15,
+          dryRun,
         }),
       });
       const j = await res.json();
       if (!res.ok || j.error) throw new Error(j.error || 'launch_failed');
-      setResult({ , : j.mint || nul, , ulated: j.simulated || false });
-      if (j.mint) {
-        useDraftStore.getState().setLastMint(j.mint);
-      }
+      setResult({ mint: j.mint || null, simulated: j.simulated || false });
     } catch (e: any) {
-      setResult({ , r: e?.message || 'launch_failed' });
+      setResult({ error: e?.message || 'launch_failed' });
     } finally {
       setLaunching(false);
     }
@@ -168,7 +169,7 @@ export default function CreateForm() {
             <span className={`px-2 py-0.5 rounded-full border ${nameCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Name</span>
             <span className={`px-2 py-0.5 rounded-full border ${symbolCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Symbol</span>
             <span className={`px-2 py-0.5 rounded-full border ${image?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Image</span>
-            <span className={`px-2 py-0.5 rounded-full border ${/^, s?:\/\//.test(website||'')?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Website</span>
+            <span className={`px-2 py-0.5 rounded-full border ${/^https?:\/\//.test(website||'')?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Website</span>
           </div>
         </div>
       </div>

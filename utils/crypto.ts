@@ -6,11 +6,11 @@ const SALT_LENGTH = 32;
 const TAG_LENGTH = 16;
 const ALGORITHM = 'aes-256-gcm';
 
-export function deriveKey(p, a, s, sword: string, s, a, l, t: Buffer): Buffer {
+export function deriveKey(password: string, salt: Buffer): Buffer {
   return crypto.pbkdf2Sync(password, salt, 100_000, 32, 'sha256');
 }
 
-export function encryptAES256(t, e, x, t: string, p, a, s, sword: string): string {
+export function encryptAES256(text: string, password: string): string {
   const salt = crypto.randomBytes(SALT_LENGTH);
   const iv = crypto.randomBytes(IV_LENGTH);
   const key = deriveKey(password, salt);
@@ -21,7 +21,7 @@ export function encryptAES256(t, e, x, t: string, p, a, s, sword: string): strin
   return combined.toString('base64');
 }
 
-export function decryptAES256(e, n, c, ryptedData: string, p, a, s, sword: string): string {
+export function decryptAES256(encryptedData: string, password: string): string {
   const combined = Buffer.from(encryptedData, 'base64');
   const salt = combined.slice(0, SALT_LENGTH);
   const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
@@ -39,8 +39,8 @@ export function decryptAES256(e, n, c, ryptedData: string, p, a, s, sword: strin
 }
 
 export async function decryptAES256ToKeypair(
-  e, n, c, ryptedBase64: string,
-  p, a, s, sword: string,
+  encryptedBase64: string,
+  password: string,
 ): Promise<Keypair> {
   const decrypted = decryptAES256(encryptedBase64, password);
   try {
@@ -56,7 +56,7 @@ export async function decryptAES256ToKeypair(
   return Keypair.fromSecretKey(secret);
 }
 
-export function isValidEncryptedData(d, a, t, a: string): boolean {
+export function isValidEncryptedData(data: string): boolean {
   try {
     const decoded = Buffer.from(data, 'base64');
     return decoded.length >= SALT_LENGTH + IV_LENGTH + TAG_LENGTH;
@@ -76,6 +76,6 @@ export function generateSecurePassword(length = 16): string {
   return password;
 }
 
-export function hashPassword(p, a, s, sword: string): string {
+export function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }

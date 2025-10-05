@@ -3,39 +3,39 @@
  * Handles Jupiter aggregator integration for token swaps
  */
 
-const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'h, t, t, ps://quote-api.jup.ag/v6';
+const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'https://quote-api.jup.ag/v6';
 
 interface JupiterQuoteParams {
-  i, n, p, utMint: string;
-  o, u, t, putMint: string;
-  a, m, o, unt: number;
-  s, l, i, ppageBps?: number;
+  inputMint: string;
+  outputMint: string;
+  amount: number;
+  slippageBps?: number;
 }
 
 interface JupiterQuote {
-  i, n, p, utMint: string;
-  o, u, t, putMint: string;
-  i, n, A, mount: string;
-  o, u, t, Amount: string;
-  p, r, i, ceImpactPct: number;
-  r, o, u, te: any[];
+  inputMint: string;
+  outputMint: string;
+  inAmount: string;
+  outAmount: string;
+  priceImpactPct: number;
+  route: any[];
 }
 
 /**
  * Get quote from Jupiter aggregator
  */
-export async function getJupiterQuote(p, a, r, ams: JupiterQuoteParams): Promise<JupiterQuote> {
+export async function getJupiterQuote(params: JupiterQuoteParams): Promise<JupiterQuote> {
   // Use mock in dev/dry-run mode
   if (process.env.DRY_RUN === 'true') {
-    console.log('[Jupiter] DRY_RUN m, o, d, e: Returning mock quote');
+    console.log('[Jupiter] DRY_RUN mode: Returning mock quote');
     
     return {
-      i, n, p, utMint: params.inputMint,
-      o, u, t, putMint: params.outputMint,
-      i, n, A, mount: params.amount.toString(),
-      o, u, t, Amount: Math.floor(params.amount * 0.95).toString(), // 5% slippage simulation
-      p, r, i, ceImpactPct: 0.05,
-      r, o, u, te: [],
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
+      inAmount: params.amount.toString(),
+      outAmount: Math.floor(params.amount * 0.95).toString(), // 5% slippage simulation
+      priceImpactPct: 0.05,
+      route: [],
     };
   }
   
@@ -48,52 +48,52 @@ export async function getJupiterQuote(p, a, r, ams: JupiterQuoteParams): Promise
     url.searchParams.append('slippageBps', (params.slippageBps || 50).toString());
     url.searchParams.append('swapMode', 'ExactIn');
     
-    console.log('[Jupiter] Fetching q, u, o, te:', url.toString());
+    console.log('[Jupiter] Fetching quote:', url.toString());
     
     const response = await fetch(url.toString(), {
-      h, e, a, ders: {
+      headers: {
         'Accept': 'application/json',
       },
-      s, i, g, nal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000), // 5 second timeout
     });
     
     if (!response.ok) {
-      throw new Error(`Jupiter quote f, a, i, led: ${response.status} ${response.statusText}`);
+      throw new Error(`Jupiter quote failed: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
     
-    console.log('[Jupiter] Quote r, e, c, eived:', {
-      i, n, A, mount: data.inAmount,
-      o, u, t, Amount: data.outAmount,
-      p, r, i, ceImpact: data.priceImpactPct,
+    console.log('[Jupiter] Quote received:', {
+      inAmount: data.inAmount,
+      outAmount: data.outAmount,
+      priceImpact: data.priceImpactPct,
     });
     
     return data;
   } catch (error) {
-    console.error('[Jupiter] Quote fetch e, r, r, or:', error);
-    throw new Error(`Failed to get Jupiter q, u, o, te: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('[Jupiter] Quote fetch error:', error);
+    throw new Error(`Failed to get Jupiter quote: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 /**
  * Get swap instructions from Jupiter
  */
-export async function getJupiterSwapInstructions(p, a, r, ams: {
-  q, u, o, teResponse: JupiterQuote;
-  u, s, e, rPublicKey: string;
-  w, r, a, pAndUnwrapSol?: boolean;
+export async function getJupiterSwapInstructions(params: {
+  quoteResponse: JupiterQuote;
+  userPublicKey: string;
+  wrapAndUnwrapSol?: boolean;
 }): Promise<any> {
   // Use mock in dev/dry-run mode
   if (process.env.DRY_RUN === 'true') {
-    console.log('[Jupiter] DRY_RUN m, o, d, e: Returning mock instructions');
+    console.log('[Jupiter] DRY_RUN mode: Returning mock instructions');
     
     return {
-      c, o, m, puteBudgetInstructions: [],
-      s, e, t, upInstructions: [],
-      s, w, a, pInstruction: { m, o, c, k: true, t, y, p, e: 'swap' },
-      c, l, e, anupInstruction: null,
-      a, d, d, ressLookupTableAddresses: [],
+      computeBudgetInstructions: [],
+      setupInstructions: [],
+      swapInstruction: { mock: true, type: 'swap' },
+      cleanupInstruction: null,
+      addressLookupTableAddresses: [],
     };
   }
   
@@ -102,22 +102,22 @@ export async function getJupiterSwapInstructions(p, a, r, ams: {
     const url = `${JUPITER_API_BASE}/swap-instructions`;
     
     const response = await fetch(url, {
-      m, e, t, hod: 'POST',
-      h, e, a, ders: {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      b, o, d, y: JSON.stringify({
-        q, u, o, teResponse: params.quoteResponse,
-        u, s, e, rPublicKey: params.userPublicKey,
-        w, r, a, pAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
-        d, y, n, amicComputeUnitLimit: true,
+      body: JSON.stringify({
+        quoteResponse: params.quoteResponse,
+        userPublicKey: params.userPublicKey,
+        wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
+        dynamicComputeUnitLimit: true,
       }),
-      s, i, g, nal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(5000),
     });
     
     if (!response.ok) {
-      throw new Error(`Jupiter swap instructions f, a, i, led: ${response.status}`);
+      throw new Error(`Jupiter swap instructions failed: ${response.status}`);
     }
     
     const data = await response.json();
@@ -126,7 +126,7 @@ export async function getJupiterSwapInstructions(p, a, r, ams: {
     
     return data;
   } catch (error) {
-    console.error('[Jupiter] Swap instructions e, r, r, or:', error);
-    throw new Error(`Failed to get swap i, n, s, tructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('[Jupiter] Swap instructions error:', error);
+    throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

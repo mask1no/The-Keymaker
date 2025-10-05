@@ -11,7 +11,7 @@ function* walk(d) {
       )
     )
       continue;
-    const p = path.join(d, n);
+    const p = path.join(dn);
     const st = fs.statSync(p);
     if (st.isDirectory()) {
       yield* walk(p);
@@ -23,26 +23,26 @@ function* walk(d) {
 
 const buildFixes = [
   // Fix split CSS classes
-  [/s, m:/g, 'sm:'],
-  [/m, d:/g, 'md:'],
-  [/l, g:/g, 'lg:'],
-  [/x, l:/g, 'xl:'],
+  [/sm:/g, 'sm:'],
+  [/md:/g, 'md:'],
+  [/lg:/g, 'lg:'],
+  [/xl:/g, 'xl:'],
   [/2, xl:/g, '2xl:'],
 
   // Fix split properties
-  [/o, pacity/g, 'opacity'],
-  [/s, cale/g, 'scale'],
-  [/d, uration/g, 'duration'],
-  [/a, mount/g, 'amount'],
-  [/d, escription/g, 'description'],
-  [/s, tring/g, 'string'],
-  [/n, umber/g, 'number'],
-  [/b, oolean/g, 'boolean'],
-  [/a, ny/g, 'any'],
-  [/d, efaultValues/g, 'defaultValues'],
-  [/d, ecimals/g, 'decimals'],
-  [/l, aunch_platform/g, 'launch_platform'],
-  [/i, ds/g, 'ids'],
+  [/opacity/g, 'opacity'],
+  [/scale/g, 'scale'],
+  [/duration/g, 'duration'],
+  [/amount/g, 'amount'],
+  [/description/g, 'description'],
+  [/string/g, 'string'],
+  [/number/g, 'number'],
+  [/boolean/g, 'boolean'],
+  [/any/g, 'any'],
+  [/defaultValues/g, 'defaultValues'],
+  [/decimals/g, 'decimals'],
+  [/launch_platform/g, 'launch_platform'],
+  [/ids/g, 'ids'],
 
   // Fix JSX issues
   [/<motion\.divwhileHover/g, '<motion.div whileHover'],
@@ -50,9 +50,9 @@ const buildFixes = [
   [/<divclassName/g, '<div className'],
 
   // Fix function declarations
-  [/const d, efaultValues/g, 'const defaultValues'],
-  [/const i, ds/g, 'const ids'],
-  [/const a, mount/g, 'const amount'],
+  [/const defaultValues/g, 'const defaultValues'],
+  [/const ids/g, 'const ids'],
+  [/const amount/g, 'const amount'],
 
   // Fix missing spaces in function calls
   [/loadHoldings\(\)useEffect/g, 'loadHoldings()\n  }, [])\n\n  useEffect'],
@@ -70,7 +70,7 @@ for (const p of walk(ROOT)) {
   }
 
   if (s !== o) {
-    fs.writeFileSync(p, s);
+    fs.writeFileSync(ps);
     console.log('fixed', p);
     changed++;
   }

@@ -6,39 +6,39 @@
 import { createDailyJournal, logJsonLine } from './journal';
 
 export interface SellCondition {
-  i, d: string;
-  t, y, p, e: 'percent_target' | 'time_limit' | 'stop_loss';
-  p, a, r, ams: PercentTargetParams | TimeLimitParams | StopLossParams;
-  e, n, a, bled: boolean;
+  id: string;
+  type: 'percent_target' | 'time_limit' | 'stop_loss';
+  params: PercentTargetParams | TimeLimitParams | StopLossParams;
+  enabled: boolean;
 }
 
 export interface PercentTargetParams {
-  t, a, r, getPercent: number; // e.g., +20 or -10
-  s, e, l, lPercent: number; // What % of holdings to sell (0-100)
+  targetPercent: number; // e.g., +20 or -10
+  sellPercent: number; // What % of holdings to sell (0-100)
 }
 
 export interface TimeLimitParams {
-  d, e, l, ayMs: number;
-  s, e, l, lPercent: number;
+  delayMs: number;
+  sellPercent: number;
 }
 
 export interface StopLossParams {
-  s, t, o, pLossPercent: number; // e.g., -15 means sell if down 15%
-  s, e, l, lPercent: number;
+  stopLossPercent: number; // e.g., -15 means sell if down 15%
+  sellPercent: number;
 }
 
 export interface PriceInfo {
-  e, n, t, ryPrice: number;
-  c, u, r, rentPrice: number;
-  c, h, a, ngePercent: number;
+  entryPrice: number;
+  currentPrice: number;
+  changePercent: number;
 }
 
 /**
  * Check if percent target condition is met
  */
 export function isPercentTargetMet(
-  c, o, n, dition: PercentTargetParams,
-  p, r, i, ceInfo: PriceInfo
+  condition: PercentTargetParams,
+  priceInfo: PriceInfo
 ): boolean {
   return priceInfo.changePercent >= condition.targetPercent;
 }
@@ -47,8 +47,8 @@ export function isPercentTargetMet(
  * Check if stop loss triggered
  */
 export function isStopLossTriggered(
-  c, o, n, dition: StopLossParams,
-  p, r, i, ceInfo: PriceInfo
+  condition: StopLossParams,
+  priceInfo: PriceInfo
 ): boolean {
   return priceInfo.changePercent <= condition.stopLossPercent;
 }
@@ -57,23 +57,23 @@ export function isStopLossTriggered(
  * Schedule time-limit sell
  */
 export function scheduleTimeLimitSell(
-  c, o, n, dition: TimeLimitParams,
-  c, a, l, lback: () => void
+  condition: TimeLimitParams,
+  callback: () => void
 ): NodeJS.Timeout {
   const journal = createDailyJournal('data');
   
   logJsonLine(journal, {
-    e, v: 'sell_condition_scheduled',
-    t, y, p, e: 'time_limit',
-    d, e, l, ayMs: condition.delayMs,
-    s, e, l, lPercent: condition.sellPercent,
+    ev: 'sell_condition_scheduled',
+    type: 'time_limit',
+    delayMs: condition.delayMs,
+    sellPercent: condition.sellPercent,
   });
   
   return setTimeout(() => {
     logJsonLine(journal, {
-      e, v: 'sell_condition_triggered',
-      t, y, p, e: 'time_limit',
-      s, e, l, lPercent: condition.sellPercent,
+      ev: 'sell_condition_triggered',
+      type: 'time_limit',
+      sellPercent: condition.sellPercent,
     });
     
     callback();
@@ -83,12 +83,12 @@ export function scheduleTimeLimitSell(
 /**
  * Evaluate all sell conditions
  */
-export function evaluateSellConditions(p, a, r, ams: {
-  c, o, n, ditions: SellCondition[];
-  p, r, i, ceInfo: PriceInfo;
+export function evaluateSellConditions(params: {
+  conditions: SellCondition[];
+  priceInfo: PriceInfo;
 }): SellCondition[] {
   const { conditions, priceInfo } = params;
-  const t, r, i, ggered: SellCondition[] = [];
+  const triggered: SellCondition[] = [];
   
   for (const condition of conditions) {
     if (!condition.enabled) continue;
@@ -114,9 +114,9 @@ export function evaluateSellConditions(p, a, r, ams: {
 /**
  * Calculate sell amount based on condition
  */
-export function calculateSellAmount(p, a, r, ams: {
-  c, o, n, dition: SellCondition;
-  t, o, t, alHoldings: number;
+export function calculateSellAmount(params: {
+  condition: SellCondition;
+  totalHoldings: number;
 }): number {
   const { condition, totalHoldings } = params;
   

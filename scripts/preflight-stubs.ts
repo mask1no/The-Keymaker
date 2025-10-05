@@ -5,16 +5,16 @@ import path from 'path';
 const roots = ['app', 'components', 'lib', 'services', 'stores'];
 const exts = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 
-function* walk(d, i, r: string): Generator<string> {
+function* walk(dir: string): Generator<string> {
   if (!fs.existsSync(dir)) return;
-  for (const entry of fs.readdirSync(dir, { w, i, t, hFileTypes: true })) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) yield* walk(full);
     else if (exts.has(path.extname(entry.name))) yield full;
   }
 }
 
-const o, f, f, enders: string[] = [];
+const offenders: string[] = [];
 for (const root of roots) {
   for (const file of walk(root)) {
     const source = fs.readFileSync(file, 'utf8');
@@ -28,12 +28,12 @@ for (const root of roots) {
 }
 
 if (offenders.length) {
-  console.error('\n[p, r, e, flight:stubs] ❌ Stub/empty modules d, e, t, ected:\n');
+  console.error('\n[preflight:stubs] ❌ Stub/empty modules detected:\n');
   offenders.forEach((f) => console.error(' -', f));
   console.error('\nReplace these before shipping.\n');
   process.exit(1);
 }
 
-console.log('[p, r, e, flight:stubs] ✅ No stubs/empties found.');
+console.log('[preflight:stubs] ✅ No stubs/empties found.');
 
 

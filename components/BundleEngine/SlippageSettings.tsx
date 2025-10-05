@@ -7,10 +7,10 @@ import { HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/UI/tooltip';
 
 interface SlippageSettingsProps {
-  s, l, i, ppage: number;
-  m, a, x, Slippage: number;
-  o, n, S, lippageChange: (v, a, l, ue: number) => void;
-  o, n, M, axSlippageChange: (v, a, l, ue: number) => void;
+  slippage: number;
+  maxSlippage: number;
+  onSlippageChange: (value: number) => void;
+  onMaxSlippageChange: (value: number) => void;
 }
 
 export function SlippageSettings({
@@ -102,7 +102,7 @@ export function SlippageSettings({
         </div>
       </div>
       <div className="text-xs text-gray-400 mt-2">
-        💡 T, i, p: For new tokens with low liquidity use higher slippage values (5-10%). For
+        💡 Tip: For new tokens with low liquidity use higher slippage values (5-10%). For
         established tokens, lower values (0.5-2%) are usually sufficient.
       </div>
     </div>

@@ -7,10 +7,10 @@ export function verifySignedIntent({
   signatureBase64,
   body,
 }: {
-  a, d, d, ress: string;
-  n, o, n, ce: string;
-  s, i, g, natureBase64: string;
-  b, o, d, y: unknown;
+  address: string;
+  nonce: string;
+  signatureBase64: string;
+  body: unknown;
 }): boolean {
   try {
     const message = new TextEncoder().encode(`${nonce}:${JSON.stringify(body)}`);
@@ -32,7 +32,7 @@ export function generateNonce(): string {
   return nonce;
 }
 
-export function validateNonce(n, o, n, ce: string): boolean {
+export function validateNonce(nonce: string): boolean {
   const expiry = nonceCache.get(nonce);
   if (!expiry || Date.now() > expiry) {
     nonceCache.delete(nonce);

@@ -6,22 +6,22 @@
 export type ProxyService = 'birdeye' | 'helius' | 'jupiter' | 'pumpfun';
 
 interface ProxyRequest {
-  s, e, r, vice: ProxyService;
-  p, a, t, h: string;
-  p, a, r, ams?: Record<string, unknown>;
-  m, e, t, hod?: 'GET' | 'POST';
+  service: ProxyService;
+  path: string;
+  params?: Record<string, unknown>;
+  method?: 'GET' | 'POST';
 }
 
 class APIClient {
   private baseUrl = '/api/proxy';
-  private cache = new Map<string, { d, a, t, a: any; e, x, p, ires: number }>();
+  private cache = new Map<string, { data: any; expires: number }>();
   private cacheTimeout = 60_000; // 1 minute
 
-  private makeCacheKey(r, e, q, uest: ProxyRequest): string {
+  private makeCacheKey(request: ProxyRequest): string {
     return `${request.service}:${request.path}:${JSON.stringify(request.params || {})}`;
   }
 
-  async request<T = any>(r, e, q, uest: ProxyRequest): Promise<T> {
+  async request<T = any>(request: ProxyRequest): Promise<T> {
     const isGet = request.method === 'GET' || !request.method;
     if (isGet) {
       const cacheKey = this.makeCacheKey(request);
@@ -31,17 +31,17 @@ class APIClient {
 
     const csrf = (typeof document !== 'undefined') ? (document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '') : '';
     const response = await fetch(this.baseUrl, {
-      m, e, t, hod: 'POST',
-      h, e, a, ders: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
-      b, o, d, y: JSON.stringify(request),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+      body: JSON.stringify(request),
     });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data?.error || `API e, r, r, or: ${response.status}`);
+      throw new Error(data?.error || `API error: ${response.status}`);
     }
     if (isGet) {
       const cacheKey = this.makeCacheKey(request);
-      this.cache.set(cacheKey, { data, e, x, p, ires: Date.now() + this.cacheTimeout });
+      this.cache.set(cacheKey, { data, expires: Date.now() + this.cacheTimeout });
     }
     return data as T;
   }
@@ -51,34 +51,34 @@ class APIClient {
   }
 
   birdeye = {
-    g, e, t, Token: async (t, o, k, enAddress: string) =>
-      this.request({ s, e, r, vice: 'birdeye', p, a, t, h: `/token/${tokenAddress}` }),
-    g, e, t, Price: async (t, o, k, enAddress: string) =>
-      this.request({ s, e, r, vice: 'birdeye', p, a, t, h: '/defi/price', p, a, r, ams: { a, d, d, ress: tokenAddress } }),
-    g, e, t, TokenOverview: async (t, o, k, enAddress: string) =>
+    getToken: async (tokenAddress: string) =>
+      this.request({ service: 'birdeye', path: `/token/${tokenAddress}` }),
+    getPrice: async (tokenAddress: string) =>
+      this.request({ service: 'birdeye', path: '/defi/price', params: { address: tokenAddress } }),
+    getTokenOverview: async (tokenAddress: string) =>
       this.request({
-        s, e, r, vice: 'birdeye',
-        p, a, t, h: '/defi/token_overview',
-        p, a, r, ams: { a, d, d, ress: tokenAddress },
+        service: 'birdeye',
+        path: '/defi/token_overview',
+        params: { address: tokenAddress },
       }),
   };
 
   jupiter = {
-    g, e, t, Quote: async (p, a, r, ams: Record<string, unknown>) =>
-      this.request({ s, e, r, vice: 'jupiter', p, a, t, h: '/quote', params }),
-    g, e, t, Swap: async (p, a, r, ams: Record<string, unknown>) =>
-      this.request({ s, e, r, vice: 'jupiter', p, a, t, h: '/swap', params, m, e, t, hod: 'POST' }),
-    g, e, t, Price: async (i, d, s: string, v, s, T, oken?: string) =>
-      this.request({ s, e, r, vice: 'jupiter', p, a, t, h: '/price', p, a, r, ams: { ids, vsToken } }),
+    getQuote: async (params: Record<string, unknown>) =>
+      this.request({ service: 'jupiter', path: '/quote', params }),
+    getSwap: async (params: Record<string, unknown>) =>
+      this.request({ service: 'jupiter', path: '/swap', params, method: 'POST' }),
+    getPrice: async (ids: string, vsToken?: string) =>
+      this.request({ service: 'jupiter', path: '/price', params: { ids, vsToken } }),
   };
 
   pumpfun = {
-    c, r, e, ateToken: async (p, a, r, ams: Record<string, unknown>) =>
-      this.request({ s, e, r, vice: 'pumpfun', p, a, t, h: '/create', params, m, e, t, hod: 'POST' }),
-    a, d, d, Liquidity: async (p, a, r, ams: Record<string, unknown>) =>
-      this.request({ s, e, r, vice: 'pumpfun', p, a, t, h: '/add-liquidity', params, m, e, t, hod: 'POST' }),
-    g, e, t, Token: async (t, o, k, enAddress: string) =>
-      this.request({ s, e, r, vice: 'pumpfun', p, a, t, h: `/token/${tokenAddress}` }),
+    createToken: async (params: Record<string, unknown>) =>
+      this.request({ service: 'pumpfun', path: '/create', params, method: 'POST' }),
+    addLiquidity: async (params: Record<string, unknown>) =>
+      this.request({ service: 'pumpfun', path: '/add-liquidity', params, method: 'POST' }),
+    getToken: async (tokenAddress: string) =>
+      this.request({ service: 'pumpfun', path: `/token/${tokenAddress}` }),
   };
 }
 

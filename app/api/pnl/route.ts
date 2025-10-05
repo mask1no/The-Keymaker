@@ -2,16 +2,17 @@ import { NextResponse } from 'next/server';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { getSession } from '@/lib/server/session';
+import { aggregatePnL as aggregateFromDb } from '@/lib/db/sqlite';
 
 export const dynamic = 'force-dynamic';
 
 const FILE = join(process.cwd(), 'data', 'trades.ndjson');
 
-type Trade = { t, s:number; s, i, d, e:'buy'|'sell'; m, i, n, t:string; q, t, y:number; p, r, i, ceLamports?:number; p, r, i, ce?:number; f, e, e, Lamports?:number; f, e, e?:number; g, r, o, upId?:string };
+type Trade = { ts:number; side:'buy'|'sell'; mint:string; qty:number; priceLamports?:number; price?:number; feeLamports?:number; fee?:number; groupId?:string };
 
-async function fetchSpotLamports(m, i, n, t: string): Promise<number | null> {
+async function fetchSpotLamports(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { c, a, c, he: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const j = await res.json();
     // Prefer direct lamportsPerToken if provided by endpoint; else convert USD→lamports is not available here
@@ -24,9 +25,21 @@ async function fetchSpotLamports(m, i, n, t: string): Promise<number | null> {
 export async function GET(){
   const session = getSession();
   const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ e, r, r, or: 'unauthorized' }, { s, t, a, tus: 401 });
-  const out = { b, u, y, s:0, s, e, l, ls:0, f, e, e, s:0, r, e, a, lized:0, u, n, r, ealized:0, n, e, t:0, c, o, u, nt:0 } as any;
-  const o, p, e, nPositions: Record<string, { q, t, y:number; c, o, s, tLamports:number }> = {};
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const out = { buys:0, sells:0, fees:0, realized:0, unrealized:0, net:0, count:0 } as any;
+  // Preferred path: compute from DB if present
+  try {
+    const prices: Record<string, number> = {};
+    const agg = aggregateFromDb(prices);
+    out.buys = agg.buysLamports / 1e9;
+    out.sells = agg.sellsLamports / 1e9;
+    out.fees = agg.feesLamports / 1e9;
+    out.realized = agg.realizedLamports / 1e9;
+    out.unrealized = agg.unrealizedLamports / 1e9;
+    out.net = agg.netLamports / 1e9;
+    return NextResponse.json({ ok:true, pnl: out });
+  } catch {}
+  const openPositions: Record<string, { qty:number; costLamports:number }> = {};
   if (existsSync(FILE)) {
     const lines = readFileSync(FILE,'utf8').trim().split('\n').filter(Boolean);
     for (const line of lines) {
@@ -38,14 +51,14 @@ export async function GET(){
         if (t.side==='buy') {
           out.buys += t.qty * price + fee;
           out.fees += fee;
-          const p = openPositions[t.mint] || { q, t, y: 0, c, o, s, tLamports: 0 };
+          const p = openPositions[t.mint] || { qty: 0, costLamports: 0 };
           p.qty += t.qty;
           p.costLamports += t.qty * price;
           openPositions[t.mint] = p;
         } else {
           out.sells += t.qty * price - fee;
           out.fees += fee;
-          const p = openPositions[t.mint] || { q, t, y: 0, c, o, s, tLamports: 0 };
+          const p = openPositions[t.mint] || { qty: 0, costLamports: 0 };
           const qtyOut = Math.min(p.qty, t.qty);
           if (qtyOut > 0) {
             const avg = p.qty > 0 ? p.costLamports / p.qty : 0;
@@ -59,18 +72,21 @@ export async function GET(){
   }
   out.realized = out.sells - out.buys;
   // Compute unrealized using spot for remaining qty
-  const mints = Object.keys(openPositions).filter(m => openPositions[m].qty > 0);
-  const spots = await Promise.all(mints.map(async m => ({ m, p: await fetchSpotLamports(m) })));
+  const mints = Object.keys(openPositions).filter((mint) => openPositions[mint].qty > 0);
+  const spotByMint: Record<string, number | null> = {};
+  for (const mint of mints) {
+    spotByMint[mint] = await fetchSpotLamports(mint);
+  }
   let unreal = 0;
-  for (const { m, p } of spots) {
-    const pos = openPositions[m];
+  for (const mint of mints) {
+    const pos = openPositions[mint];
     if (!pos || pos.qty <= 0) continue;
     const avg = pos.costLamports / pos.qty;
-    const spot = typeof p === 'number' ? p : avg;
+    const spot = typeof spotByMint[mint] === 'number' ? (spotByMint[mint] as number) : avg;
     unreal += pos.qty * (spot - avg);
   }
   out.unrealized = unreal;
   out.net = out.realized + out.unrealized;
-  return NextResponse.json({ o, k:true, p, n, l: out });
+  return NextResponse.json({ ok:true, pnl: out });
 }
 

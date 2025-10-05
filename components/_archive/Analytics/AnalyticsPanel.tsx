@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/UI/skeleton';
 import useSWR from 'swr';
 import { useKeymakerStore } from '@/lib/store';
 
-const fetcher = (u, r, l: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const LiveIndicator = () => (
   <span className="relative flex h-2 w-2 ml-2">
@@ -17,12 +17,12 @@ const LiveIndicator = () => (
 
 export default function AnalyticsPanel() {
   const { tokenLaunchData } = useKeymakerStore();
-  const { d, a, t, a: analyticsData, error } = useSWR(
+  const { data: analyticsData, error } = useSWR(
     tokenLaunchData?.mintAddress
       ? `/api/analytics?tokenAddress=${tokenLaunchData.mintAddress}`
       : null,
     fetcher,
-    { r, e, f, reshInterval: 5000 },
+    { refreshInterval: 5000 },
   );
   const isLoading = !analyticsData && !error;
   return (
@@ -37,14 +37,14 @@ export default function AnalyticsPanel() {
         ) : (
           <>
             <div className="flex items-center">
-              <span>Live P, r, i, ce:</span>
+              <span>Live Price:</span>
               <span className="ml-2 font-mono">
                 {analyticsData?.price ? `$${Number(analyticsData.price).toPrecision(6)}` : 'N/A'}
               </span>
               <LiveIndicator />
             </div>
             <div className="flex items-center">
-              <span>Market C, a, p:</span>
+              <span>Market Cap:</span>
               <span className="ml-2 font-mono">
                 {analyticsData?.marketCap
                   ? `$${Number(analyticsData.marketCap).toLocaleString()}`

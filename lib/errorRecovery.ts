@@ -5,13 +5,13 @@ import { recordError } from './monitoring';
  * Exponential backoff retry mechanism
  */
 export async function withRetry<T>(
-  o, p, e, ration: () => Promise<T>,
-  o, p, t, ions: {
-    m, a, x, Attempts?: number;
-    b, a, s, eDelay?: number;
-    m, a, x, Delay?: number;
-    b, a, c, koffFactor?: number;
-    s, h, o, uldRetry?: (e, r, r, or: any) => boolean;
+  operation: () => Promise<T>,
+  options: {
+    maxAttempts?: number;
+    baseDelay?: number;
+    maxDelay?: number;
+    backoffFactor?: number;
+    shouldRetry?: (error: any) => boolean;
   } = {}
 ): Promise<T> {
   const {
@@ -22,7 +22,7 @@ export async function withRetry<T>(
     shouldRetry = () => true,
   } = options;
 
-  let l, ast E, r, ror: any;
+  let lastError: any;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -53,9 +53,9 @@ export async function withRetry<T>(
  * Graceful degradation wrapper
  */
 export async function withGracefulDegradation<T>(
-  p, r, i, maryOperation: () => Promise<T>,
-  f, a, l, lbackOperation: () => Promise<T>,
-  f, a, l, lbackValue?: T
+  primaryOperation: () => Promise<T>,
+  fallbackOperation: () => Promise<T>,
+  fallbackValue?: T
 ): Promise<T> {
   try {
     return await primaryOperation();
@@ -81,24 +81,24 @@ export async function withGracefulDegradation<T>(
  * RPC operation with circuit breaker and retry
  */
 export async function rpcWithRecovery<T>(
-  o, p, e, ration: () => Promise<T>,
-  f, a, l, lback?: () => Promise<T>
+  operation: () => Promise<T>,
+  fallback?: () => Promise<T>
 ): Promise<T> {
   const wrappedOperation = () => withCircuitBreaker(rpcCircuitBreaker, operation);
   
   if (fallback) {
     return withGracefulDegradation(
       () => withRetry(wrappedOperation, {
-        m, a, x, Attempts: 2,
-        s, h, o, uldRetry: (error) => !error.message?.includes('Circuit breaker')
+        maxAttempts: 2,
+        shouldRetry: (error) => !error.message?.includes('Circuit breaker')
       }),
       fallback
     );
   }
   
   return withRetry(wrappedOperation, {
-    m, a, x, Attempts: 3,
-    s, h, o, uldRetry: (error) => !error.message?.includes('Circuit breaker')
+    maxAttempts: 3,
+    shouldRetry: (error) => !error.message?.includes('Circuit breaker')
   });
 }
 
@@ -106,26 +106,26 @@ export async function rpcWithRecovery<T>(
  * Jito operation with circuit breaker and retry
  */
 export async function jitoWithRecovery<T>(
-  o, p, e, ration: () => Promise<T>,
-  f, a, l, lback?: () => Promise<T>
+  operation: () => Promise<T>,
+  fallback?: () => Promise<T>
 ): Promise<T> {
   const wrappedOperation = () => withCircuitBreaker(jitoCircuitBreaker, operation);
   
   if (fallback) {
     return withGracefulDegradation(
       () => withRetry(wrappedOperation, {
-        m, a, x, Attempts: 3,
-        b, a, s, eDelay: 2000,
-        s, h, o, uldRetry: (error) => !error.message?.includes('Circuit breaker')
+        maxAttempts: 3,
+        baseDelay: 2000,
+        shouldRetry: (error) => !error.message?.includes('Circuit breaker')
       }),
       fallback
     );
   }
   
   return withRetry(wrappedOperation, {
-    m, a, x, Attempts: 3,
-    b, a, s, eDelay: 2000,
-    s, h, o, uldRetry: (error) => !error.message?.includes('Circuit breaker')
+    maxAttempts: 3,
+    baseDelay: 2000,
+    shouldRetry: (error) => !error.message?.includes('Circuit breaker')
   });
 }
 
@@ -133,9 +133,9 @@ export async function jitoWithRecovery<T>(
  * Health check with timeout and fallback
  */
 export async function healthCheckWithTimeout<T>(
-  c, h, e, ck: () => Promise<T>,
+  check: () => Promise<T>,
   timeoutMs = 5000,
-  f, a, l, lbackValue?: T
+  fallbackValue?: T
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error('Health check timeout')), timeoutMs);
@@ -158,16 +158,16 @@ export async function healthCheckWithTimeout<T>(
  * Bulk operation with partial success handling
  */
 export async function withPartialSuccess<T>(
-  o, p, e, rations: (() => Promise<T>)[],
-  o, p, t, ions: {
-    m, i, n, SuccessRate?: number;
-    c, o, n, tinueOnError?: boolean;
+  operations: (() => Promise<T>)[],
+  options: {
+    minSuccessRate?: number;
+    continueOnError?: boolean;
   } = {}
-): Promise<{ r, e, s, ults: T[]; e, r, r, ors: any[]; s, u, c, cessRate: number }> {
+): Promise<{ results: T[]; errors: any[]; successRate: number }> {
   const { minSuccessRate = 0.5, continueOnError = true } = options;
   
-  const r, e, s, ults: T[] = [];
-  const e, r, r, ors: any[] = [];
+  const results: T[] = [];
+  const errors: any[] = [];
 
   for (const operation of operations) {
     try {
@@ -187,7 +187,7 @@ export async function withPartialSuccess<T>(
   
   if (successRate < minSuccessRate) {
     recordError('bulk_operation_insufficient_success', 'high', 'error_recovery');
-    throw new Error(`Bulk operation f, a, i, led: ${successRate * 100}% success rate below minimum ${minSuccessRate * 100}%`);
+    throw new Error(`Bulk operation failed: ${successRate * 100}% success rate below minimum ${minSuccessRate * 100}%`);
   }
 
   return { results, errors, successRate };

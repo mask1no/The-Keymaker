@@ -11,7 +11,7 @@ const badContent = (txt) =>
 function* walk(d) {
   for (const n of fs.readdirSync(d)) {
     if (['node_modules', '.git', '.next'].includes(n)) continue;
-    const p = path.join(d, n);
+    const p = path.join(dn);
     const st = fs.statSync(p);
     if (st.isDirectory()) yield* walk(p);
     else yield p;

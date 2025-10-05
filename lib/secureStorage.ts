@@ -1,11 +1,11 @@
 /** * Secure storage system - password strength validation */ /** * Validate password strength */ export function validatePasswordStrength(
-  p, a, s, sword: string,
+  password: string,
 ): {
-  v, a, l, id: boolean;
-  s, c, o, re: number;
-  f, e, e, dback: string[];
+  valid: boolean;
+  score: number;
+  feedback: string[];
 } {
-  const f, e, e, dback: string[] = [];
+  const feedback: string[] = [];
   let score = 0;
 
   if (password.length < 12) {
@@ -28,6 +28,6 @@
     score = Math.max(0, score - 2);
   }
 
-  return { v, a, l, id: score >= 4, score, feedback };
+  return { valid: score >= 4, score, feedback };
 }
 

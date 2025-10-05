@@ -7,17 +7,17 @@ export const DEFAULT_JITO_TIP_ACCOUNTS = [
 ];
 
 export function buildTipInstruction(
-  f, r, o, m: PublicKey,
-  l, a, m, ports: number,
-  r, e, c, ipient: string,
+  from: PublicKey,
+  lamports: number,
+  recipient: string,
 ): TransactionInstruction {
   const toKey = new PublicKey(recipient);
-  return SystemProgram.transfer({ f, r, o, mPubkey: from, t, o, P, ubkey: toKey, lamports });
+  return SystemProgram.transfer({ fromPubkey: from, toPubkey: toKey, lamports });
 }
 
 export function isValidJitoTipRecipient(
-  r, e, c, ipient: string,
-  a, l, l, owed: string[] = DEFAULT_JITO_TIP_ACCOUNTS,
+  recipient: string,
+  allowed: string[] = DEFAULT_JITO_TIP_ACCOUNTS,
 ): boolean {
   return allowed.includes(recipient);
 }

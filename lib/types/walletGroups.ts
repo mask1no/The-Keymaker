@@ -1,27 +1,27 @@
 /**
- * Wal let Groups Type Definitions
- * For managing multi-wal let execution groups
+ * Wallet Groups Type Definitions
+ * For managing multi-wallet execution groups
  */
 
 export type WalletGroup = {
-  i, d: string;
-  n, a, m, e: string;
-  m, a, s, terWallet: string;
-  d, e, v, Wallet?: string | null;
-  s, n, i, perWallets: string[];       // up to 3
-  e, x, e, cutionWallets: string[];    // the rest up to 20 - (dev + snipers)
-  m, a, x, Wallets: number;            // capacity cap per group
-  c, r, e, atedAt: number;
-  u, p, d, atedAt: number;
+  id: string;
+  name: string;
+  masterWallet: string;
+  devWallet?: string | null;
+  sniperWallets: string[];       // up to 3
+  executionWallets: string[];    // the rest up to 20 - (dev + snipers)
+  maxWallets: number;            // capacity cap per group
+  createdAt: number;
+  updatedAt: number;
 };
 
 export const WALLET_GROUP_CONSTRAINTS = Object.freeze({
-  m, a, x, WalletsPerGroup: 20,
-  m, a, x, Snipers: 3,
+  maxWalletsPerGroup: 20,
+  maxSnipers: 3,
 });
 
-export type CreateGroupRequest = { n, a, m, e: string };
-export type UpdateGroupRequest = { i, d: string; n, a, m, e: string; d, e, v, Wallet?: string | null; s, n, i, perWallets?: string[] };
-export type FundingPlan = { t, o: string; l, a, m, ports: number }[];
+export type CreateGroupRequest = { name: string };
+export type UpdateGroupRequest = { id: string; name: string; devWallet?: string | null; sniperWallets?: string[] };
+export type FundingPlan = { to: string; lamports: number }[];
 export type FundingDistribution = 'equal' | 'random';
 

@@ -5,40 +5,40 @@ export type ExecutionMode = 'JITO_BUNDLE' | 'RPC_FANOUT';
 export type Priority = 'low' | 'med' | 'high' | 'vhigh';
 
 export interface ExecOptions {
-  m, o, d, e: ExecutionMode;
-  r, e, g, ion?: RegionKey; // Jito only
-  p, r, i, ority?: Priority; // both
-  t, i, p, Lamports?: number; // Jito only (default floor * 1.1)
-  c, h, u, nkSize?: number; // J, i, t, o: tx per bundle (default 5, clamp 1..20)
-  c, o, n, currency?: number; // R, P, C: parallel sends (default 4, clamp 1..16)
-  j, i, t, terMs?: [number, number]; // R, P, C: range (default [50, 150])
-  d, r, y, Run?: boolean; // simulate only (default false)
-  c, l, u, ster?: 'mainnet-beta' | 'devnet'; // RPC only; default mainnet-beta
+  mode: ExecutionMode;
+  region?: RegionKey; // Jito only
+  priority?: Priority; // both
+  tipLamports?: number; // Jito only (default floor * 1.1)
+  chunkSize?: number; // Jito: tx per bundle (default 5, clamp 1..20)
+  concurrency?: number; // RPC: parallel sends (default 4, clamp 1..16)
+  jitterMs?: [number, number]; // RPC: range (default [50, 150])
+  dryRun?: boolean; // simulate only (default false)
+  cluster?: 'mainnet-beta' | 'devnet'; // RPC only; default mainnet-beta
 
   // Active keystore group for traceability in journals
-  g, r, o, up?: string;
+  group?: string;
 
   // For polling convenience; provided by API layer
-  b, u, n, dleIds?: string[]; // Jito
-  s, i, g, s?: string[]; // RPC
+  bundleIds?: string[]; // Jito
+  sigs?: string[]; // RPC
 }
 
 export interface SubmitPlan {
-  t, x, s: VersionedTransaction[]; // already built & signed server-side
-  c, o, r, r: string; // sha256 over base64 serialized txs
+  txs: VersionedTransaction[]; // already built & signed server-side
+  corr: string; // sha256 over base64 serialized txs
 }
 
 export interface EngineSubmitResult {
-  c, o, r, r: string;
-  m, o, d, e: ExecutionMode;
-  b, u, n, dleIds?: string[]; // Jito
-  s, i, g, s?: string[]; // RPC
-  s, t, a, tusHint: 'submitted' | 'partial' | 'failed';
-  s, i, m, ulated?: boolean;
+  corr: string;
+  mode: ExecutionMode;
+  bundleIds?: string[]; // Jito
+  sigs?: string[]; // RPC
+  statusHint: 'submitted' | 'partial' | 'failed';
+  simulated?: boolean;
 }
 
 export interface Engine {
-  submit(p, l, a, n: SubmitPlan, o, p, t, s: ExecOptions): Promise<EngineSubmitResult>;
-  pollStatus(p, l, a, n: SubmitPlan | null, o, p, t, s: ExecOptions): Promise<any>;
+  submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult>;
+  pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any>;
 }
 

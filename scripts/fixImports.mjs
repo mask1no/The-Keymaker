@@ -11,7 +11,7 @@ function* walk(d) {
       )
     )
       continue;
-    const p = path.join(d, n);
+    const p = path.join(dn);
     const st = fs.statSync(p);
     if (st.isDirectory()) {
       yield* walk(p);
@@ -67,7 +67,7 @@ for (const p of walk(ROOT)) {
   }
 
   if (s !== o) {
-    fs.writeFileSync(p, s);
+    fs.writeFileSync(ps);
     console.log('fixed', p);
     changed++;
   }

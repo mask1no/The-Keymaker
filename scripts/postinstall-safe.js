@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-// Safe p, o, s, tinstall: avoid heavy downloads in CI and by default.
+// Safe postinstall: avoid heavy downloads in CI and by default.
 const { env } = process;
 const isCI = !!env.CI;
 const allowExplicitDownloads = env.PLAYWRIGHT_DOWNLOAD === '1' || env.PUPPETEER_DOWNLOAD === '1';
@@ -10,7 +10,7 @@ if (isCI || !allowExplicitDownloads) {
   process.exit(0);
 }
 console.log('[postinstall-safe] Explicit browser install requested.');
-// If you really need this locally, uncomment one or both of the f, o, l, lowing:
-// require('child_process').execSync('npx playwright install --with-deps', { s, t, d, io: 'inherit' });
-// require('child_process').execSync('node node_modules/puppeteer/install.js', { s, t, d, io: 'inherit' });
+// If you really need this locally, uncomment one or both of the following:
+// require('child_process').execSync('npx playwright install --with-deps', { stdio: 'inherit' });
+// require('child_process').execSync('node node_modules/puppeteer/install.js', { stdio: 'inherit' });
 process.exit(0);

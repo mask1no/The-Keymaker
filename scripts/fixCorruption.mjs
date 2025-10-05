@@ -1,71 +1,80 @@
 #!/usr/bin/env node
 /*
-  Corruption cleaner/checker
-  - Fix mode (default): rewrites files and creates .bak
-  - Check mode (--check): scans and exits nonzero if corruption found
+  Repair script to fix accidental tokenized corruption like "production".
+  Strategy:
+  - Replace sequences of letters separated by commas back into contiguous words.
+  - Scan repo root but exclude heavy/system dirs.
 */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = process.cwd();
-const EXCLUDES = ['node_modules', '.next', 'coverage', 'dist'];
-const EXTS = new Set(['.ts', '.tsx', '.js']);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const START_DIRS = ['app','components','lib','services','stores','scripts','utils'];
+const EXTS = new Set(['.ts','.tsx','.js','.mjs','.cjs']);
+const EXCLUDE_DIRS = new Set(['node_modules','.git','.next','coverage','dist','public','assets','data']);
 
-/** Detect and optionally repair tokenization like `n, u, m, ber` or `r e gister` */
-function hasCorruption(text) {
-  return /[A-Za-z]\s*,\s*[A-Za-z]/.test(text) || /[A-Za-z]\s+[A-Za-z]/.test(text);
+function detokenize(text) {
+  let prev;
+  let out = text;
+  // Iteratively remove commas between letters (e.g., key => key)
+  do {
+    prev = out;
+    out = out.replace(/\b([A-Za-z])\s*,\s*(?=[A-Za-z])/g, '$1');
+  } while (out !== prev);
+
+  // Join common accidentally split identifiers
+  out = out
+    .replace(/wal\s+let/g, 'wallet')
+    .replace(/Wal\s+let/g, 'Wallet')
+    .replace(/masterWal\s+let/g, 'masterWallet')
+    .replace(/devWal\s+let/g, 'devWallet')
+    .replace(/Wal\s+lets/g, 'Wallets')
+    .replace(/s\s+l\s+o\s+t/g, 'slot');
+
+  return out;
 }
 
-function fixTokenizedWords(text) {
-  return text
-    .replace(/([A-Za-z])\s*,\s*/g, (m) => m.replace(/[,\s]+/g, ''))
-    .replace(/([A-Za-z])\s+([A-Za-z])/g, (m) => m.replace(/\s+/g, ''));
-}
-
-/** Harden only obviously broken files: keep backup next to it */
-function fixFile(file) {
+function processFile(file) {
   const orig = fs.readFileSync(file, 'utf8');
-  const fixed = fixTokenizedWords(orig);
+  const fixed = detokenize(orig);
   if (fixed !== orig) {
-    fs.writeFileSync(file + '.bak', orig, 'utf8');
     fs.writeFileSync(file, fixed, 'utf8');
-    console.log('fixed', file);
+    return true;
   }
+  return false;
 }
 
-function walk(dir) {
+function* walk(dir) {
+  if (!fs.existsSync(dir)) return;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (EXCLUDES.includes(entry.name)) continue;
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full);
-    else if (EXTS.has(path.extname(entry.name))) fixFile(full);
-  }
-}
-
-if (process.argv.includes('--check')) {
-  let found = 0;
-  function check(dir) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (EXCLUDES.includes(entry.name)) continue;
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) check(full);
-      else if (EXTS.has(path.extname(entry.name))) {
-        const text = fs.readFileSync(full, 'utf8');
-        if (hasCorruption(text)) {
-          console.log('corrupt', full);
-          found++;
-        }
-      }
+    if (entry.isDirectory()) {
+      if (!EXCLUDE_DIRS.has(entry.name)) yield* walk(full);
+    } else if (EXTS.has(path.extname(entry.name))) {
+      yield full;
     }
   }
-  check(ROOT);
-  if (found > 0) {
-    console.error(`Found ${found} potentially corrupted files.`);
-    process.exit(1);
-  }
-  console.log('No corruption found.');
-  process.exit(0);
-} else {
-  walk(ROOT);
-  console.log('Done');
 }
+
+let changed = 0;
+for (const rel of START_DIRS) {
+  const abs = path.join(PROJECT_ROOT, rel);
+  for (const file of walk(abs)) {
+    try {
+      if (processFile(file)) changed++;
+    } catch {}
+  }
+}
+
+// Also handle some top-level files explicitly
+['next.config.js'].forEach((f) => {
+  const p = path.join(PROJECT_ROOT, f);
+  if (fs.existsSync(p)) {
+    try { if (processFile(p)) changed++; } catch {}
+  }
+});
+
+console.log(`[fixCorruption] Updated files: ${changed}`);

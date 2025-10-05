@@ -13,7 +13,7 @@ const fixes = [
   // Bundle builder - fix useWallet import
   {
     file: 'components/BundleEngine/BundleBuilder.tsx',
-    find: 'import { useWal let } from',
+    find: 'import { useWallet } from',
     replace: 'import { useWallet } from',
   },
 
@@ -38,7 +38,7 @@ const fixes = [
   // Creator form - fix type definition
   {
     file: 'components/MemecoinCreator/CreatorForm.tsx',
-    find: 'n, ame: stringsymbol: stringsupply: numberdecimals: numberlaunch_platform:',
+    find: 'name: stringsymbol: stringsupply: numberdecimals: numberlaunch_platform:',
     replace:
       'name: string\n  symbol: string\n  supply: number\n  decimals: number\n  launch_platform:',
   },
@@ -52,12 +52,12 @@ const fixes = [
   // Notifications - fix interface
   {
     file: 'components/Notifications/NotificationCenter.tsx',
-    find: "i, d: stringtype: 'success' | 'error' | 'warning' | 'info'",
+    find: "id: stringtype: 'success' | 'error' | 'warning' | 'info'",
     replace: "id: string\n  type: 'success' | 'error' | 'warning' | 'info'",
   },
   {
     file: 'components/Notifications/NotificationCenter.tsx',
-    find: 't, itle: stringmessage?: stringtimestamp: numberread?: boolean',
+    find: 'title: stringmessage?: stringtimestamp: numberread?: boolean',
     replace: 'title: string\n  message?: string\n  timestamp: number\n  read?: boolean',
   },
 ];

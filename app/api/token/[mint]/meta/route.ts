@@ -3,67 +3,67 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 type CoinDraft = {
-  n, a, m, e: string;
-  s, y, m, bol: string;
-  i, m, a, ge: string;
-  d, e, s, cription?: string;
-  w, e, b, site?: string;
-  t, w, i, tter?: string;
-  t, e, l, egram?: string;
+  name: string;
+  symbol: string;
+  image: string;
+  description?: string;
+  website?: string;
+  twitter?: string;
+  telegram?: string;
 };
 
-async function fetchDexscreener(m, i, n, t: string) {
+async function fetchDexscreener(mint: string) {
   try {
-    const res = await fetch(`h, t, t, ps://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, {
-      n, e, x, t: { r, e, v, alidate: 30 },
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, {
+      next: { revalidate: 30 },
     });
     if (!res.ok) return null;
     const j = await res.json();
     const p = j?.pairs?.[0];
     if (!p) return null;
     return {
-      n, a, m, e: p?.baseToken?.name as string | undefined,
-      s, y, m, bol: p?.baseToken?.symbol as string | undefined,
-      w, e, b, site: (p?.info?.websites?.[0]?.url as string | undefined) || undefined,
-      t, w, i, tter: (p?.info?.socials?.find((x: any) => x?.type === 'twitter')?.url as string | undefined) || undefined,
-      t, e, l, egram: (p?.info?.socials?.find((x: any) => x?.type === 'telegram')?.url as string | undefined) || undefined,
-      i, m, a, ge: (p?.info?.imageUrl as string | undefined) || undefined,
+      name: p?.baseToken?.name as string | undefined,
+      symbol: p?.baseToken?.symbol as string | undefined,
+      website: (p?.info?.websites?.[0]?.url as string | undefined) || undefined,
+      twitter: (p?.info?.socials?.find((x: any) => x?.type === 'twitter')?.url as string | undefined) || undefined,
+      telegram: (p?.info?.socials?.find((x: any) => x?.type === 'telegram')?.url as string | undefined) || undefined,
+      image: (p?.info?.imageUrl as string | undefined) || undefined,
     };
   } catch {
     return null;
   }
 }
 
-async function fetchBirdeye(m, i, n, t: string, a, p, i, Key?: string) {
+async function fetchBirdeye(mint: string, apiKey?: string) {
   if (!apiKey) return null;
   try {
-    const res = await fetch(`h, t, t, ps://public-api.birdeye.so/public/token_metadata?address=${encodeURIComponent(mint)}`, {
-      h, e, a, ders: { 'X-API-KEY': apiKey, a, c, c, ept: 'application/json' },
-      n, e, x, t: { r, e, v, alidate: 60 },
+    const res = await fetch(`https://public-api.birdeye.so/public/token_metadata?address=${encodeURIComponent(mint)}`, {
+      headers: { 'X-API-KEY': apiKey, accept: 'application/json' },
+      next: { revalidate: 60 },
     });
     if (!res.ok) return null;
     const j = await res.json();
     const d = j?.data;
     if (!d) return null;
     return {
-      n, a, m, e: d?.name as string | undefined,
-      s, y, m, bol: d?.symbol as string | undefined,
-      i, m, a, ge: d?.logoURI as string | undefined,
-      w, e, b, site: d?.website as string | undefined,
-      t, w, i, tter: d?.twitter as string | undefined,
-      t, e, l, egram: d?.telegram as string | undefined,
-      d, e, s, cription: d?.description as string | undefined,
+      name: d?.name as string | undefined,
+      symbol: d?.symbol as string | undefined,
+      image: d?.logoURI as string | undefined,
+      website: d?.website as string | undefined,
+      twitter: d?.twitter as string | undefined,
+      telegram: d?.telegram as string | undefined,
+      description: d?.description as string | undefined,
     };
   } catch {
     return null;
   }
 }
 
-async function fetchMetaplexOnchain(m, i, n, t: string) {
+async function fetchMetaplexOnchain(mint: string) {
   try {
     const { PublicKey, Connection } = await import('@solana/web3.js');
     const mpl = await import('@metaplex-foundation/mpl-token-metadata');
-    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'h, t, t, ps://api.mainnet-beta.solana.com';
+    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const mintPk = new PublicKey(mint);
     const pdas = await (mpl as any).Metadata.pda(mintPk);
@@ -72,27 +72,27 @@ async function fetchMetaplexOnchain(m, i, n, t: string) {
     const meta = (mpl as any).Metadata.fromAccountInfo(acc)[0];
     const uri = meta?.data?.uri?.trim();
     if (!uri) return null;
-    const res = await fetch(uri, { n, e, x, t: { r, e, v, alidate: 300 } });
+    const res = await fetch(uri, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const j = await res.json();
     return {
-      n, a, m, e: (j?.name as string | undefined) || undefined,
-      s, y, m, bol: (j?.symbol as string | undefined) || undefined,
-      i, m, a, ge: (j?.image as string | undefined) || undefined,
-      d, e, s, cription: (j?.description as string | undefined) || undefined,
-      w, e, b, site: (j?.website as string | undefined) || undefined,
-      t, w, i, tter: (j?.twitter as string | undefined) || undefined,
-      t, e, l, egram: (j?.telegram as string | undefined) || undefined,
+      name: (j?.name as string | undefined) || undefined,
+      symbol: (j?.symbol as string | undefined) || undefined,
+      image: (j?.image as string | undefined) || undefined,
+      description: (j?.description as string | undefined) || undefined,
+      website: (j?.website as string | undefined) || undefined,
+      twitter: (j?.twitter as string | undefined) || undefined,
+      telegram: (j?.telegram as string | undefined) || undefined,
     };
   } catch {
     return null;
   }
 }
 
-export async function GET(_, r, e, quest: Request, c, o, n, text: { p, a, r, ams: { m, i, n, t?: string } }) {
+export async function GET(_, request: Request, context: { params: { mint?: string } }) {
   const mint = context.params?.mint;
   if (!mint || typeof mint !== 'string') {
-    return NextResponse.json({ e, r, r, or: 'invalid_mint' }, { s, t, a, tus: 400 });
+    return NextResponse.json({ error: 'invalid_mint' }, { status: 400 });
   }
   const birdeyeKey = process.env.BIRDEYE_API_KEY;
 
@@ -102,17 +102,17 @@ export async function GET(_, r, e, quest: Request, c, o, n, text: { p, a, r, ams
     fetchMetaplexOnchain(mint),
   ]);
 
-  const d, r, a, ft: CoinDraft = {
-    n, a, m, e: (be?.name || ds?.name || mx?.name || 'Unnamed').slice(0, 64),
-    s, y, m, bol: (be?.symbol || ds?.symbol || mx?.symbol || '').slice(0, 16),
-    i, m, a, ge: be?.image || ds?.image || mx?.image || '',
-    d, e, s, cription: be?.description || mx?.description || undefined,
-    w, e, b, site: be?.website || ds?.website || mx?.website || undefined,
-    t, w, i, tter: be?.twitter || ds?.twitter || mx?.twitter || undefined,
-    t, e, l, egram: be?.telegram || ds?.telegram || mx?.telegram || undefined,
+  const draft: CoinDraft = {
+    name: (be?.name || ds?.name || mx?.name || 'Unnamed').slice(0, 64),
+    symbol: (be?.symbol || ds?.symbol || mx?.symbol || '').slice(0, 16),
+    image: be?.image || ds?.image || mx?.image || '',
+    description: be?.description || mx?.description || undefined,
+    website: be?.website || ds?.website || mx?.website || undefined,
+    twitter: be?.twitter || ds?.twitter || mx?.twitter || undefined,
+    telegram: be?.telegram || ds?.telegram || mx?.telegram || undefined,
   };
 
-  return NextResponse.json({ o, k: true, mint, draft });
+  return NextResponse.json({ ok: true, mint, draft });
 }
 
 
