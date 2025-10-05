@@ -2,3 +2,4 @@
 export function GlobalHotkeys() {
   return null;
 }
+

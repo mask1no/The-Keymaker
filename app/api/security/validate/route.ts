@@ -9,25 +9,25 @@ export async function GET() {
   const tokenValidation = validateTokenConfiguration();
   
   const securityStatus = {
-    version: APP_VERSION,
-    timestamp: new Date().toISOString(),
-    security: {
-      tokenConfiguration: {
-        valid: tokenValidation.valid,
-        issues: tokenValidation.issues,
+    v, e, r, sion: APP_VERSION,
+    t, i, m, estamp: new Date().toISOString(),
+    s, e, c, urity: {
+      t, o, k, enConfiguration: {
+        v, a, l, id: tokenValidation.valid,
+        i, s, s, ues: tokenValidation.issues,
       },
-      environment: {
-        nodeEnv: process.env.NODE_ENV || 'unknown',
-        hasRedis: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
-        hasEngineToken: !!process.env.ENGINE_API_TOKEN,
-        hasSessionSecret: !!process.env.KEYMAKER_SESSION_SECRET,
+      e, n, v, ironment: {
+        n, o, d, eEnv: process.env.NODE_ENV || 'unknown',
+        h, a, s, Redis: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
+        h, a, s, EngineToken: !!process.env.ENGINE_API_TOKEN,
+        h, a, s, SessionSecret: !!process.env.KEYMAKER_SESSION_SECRET,
       },
-      middleware: {
-        rateLimiting: 'enabled',
-        tokenValidation: 'enabled',
-        sessionGating: 'enabled',
+      m, i, d, dleware: {
+        r, a, t, eLimiting: 'enabled',
+        t, o, k, enValidation: 'enabled',
+        s, e, s, sionGating: 'enabled',
       },
-      recommendations: [] as string[]
+      r, e, c, ommendations: [] as string[]
     }
   };
 
@@ -46,5 +46,6 @@ export async function GET() {
 
   const httpStatus = tokenValidation.valid ? 200 : 400;
   
-  return NextResponse.json(securityStatus, { status: httpStatus });
+  return NextResponse.json(securityStatus, { s, t, a, tus: httpStatus });
 }
+

@@ -10,5 +10,6 @@ export function getServerRpc(): string {
   if (primary) return primary;
   if (secondary && !secondary.toLowerCase().includes('api-key=')) return secondary;
   if (publicRpc) return publicRpc; // last resort
-  return 'https://api.mainnet-beta.solana.com';
+  return 'h, t, t, ps://api.mainnet-beta.solana.com';
 }
+

@@ -10,7 +10,7 @@ export function generateApiToken(): string {
 /**
  * Validate API token with constant-time comparison
  */
-export function validateToken(token: string | null | undefined): boolean {
+export function validateToken(t, o, k, en: string | null | undefined): boolean {
   const expectedToken = process.env.ENGINE_API_TOKEN;
   
   // Reject if no token provided or no expected token configured
@@ -54,10 +54,10 @@ export function generateSessionSecret(): string {
  * Validate that environment tokens are properly configured
  */
 export function validateTokenConfiguration(): {
-  valid: boolean;
-  issues: string[];
+  v, a, l, id: boolean;
+  i, s, s, ues: string[];
 } {
-  const issues: string[] = [];
+  const i, s, s, ues: string[] = [];
   
   const engineToken = process.env.ENGINE_API_TOKEN;
   const sessionSecret = process.env.KEYMAKER_SESSION_SECRET;
@@ -79,7 +79,8 @@ export function validateTokenConfiguration(): {
   }
   
   return {
-    valid: issues.length === 0,
+    v, a, l, id: issues.length === 0,
     issues
   };
 }
+

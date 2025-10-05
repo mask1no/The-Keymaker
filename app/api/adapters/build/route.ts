@@ -9,12 +9,12 @@ import { buildMetadata, uploadMetadataJson } from '@/lib/adapters/storage';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function ipKey(req: Request) {
+function ipKey(r, e, q: Request) {
   return (req.headers.get('x-forwarded-for') || 'anon').split(',')[0].trim();
 }
 
-// Unified POST handler: build metadata if body contains standard fields; else demo adapter
-export async function POST(req: Request) {
+// Unified POST h, a, n, dler: build metadata if body contains standard fields; else demo adapter
+export async function POST(r, e, q: Request) {
   const rl = await rateLimit(ipKey(req));
   if (!rl.allowed) return apiError(429, 'rate_limited');
   const cl = Number(req.headers.get('content-length') || '0');
@@ -23,32 +23,33 @@ export async function POST(req: Request) {
 
   // If standard build fields are present, run metadata build path
   const BuildSchema = z.object({
-    name: z.string().min(1).max(64),
-    symbol: z.string().min(1).max(16),
-    description: z.string().max(280).optional(),
-    image: z.string().url().optional().default(''),
-    website: z.string().url().optional(),
-    twitter: z.string().url().optional(),
-    telegram: z.string().url().optional(),
+    n, a, m, e: z.string().min(1).max(64),
+    s, y, m, bol: z.string().min(1).max(16),
+    d, e, s, cription: z.string().max(280).optional(),
+    i, m, a, ge: z.string().url().optional().default(''),
+    w, e, b, site: z.string().url().optional(),
+    t, w, i, tter: z.string().url().optional(),
+    t, e, l, egram: z.string().url().optional(),
   });
   try {
     const params = BuildSchema.parse(body);
     const meta = buildMetadata(params);
     const uri = await uploadMetadataJson(meta);
-    return NextResponse.json({ ok: true, uri, meta });
+    return NextResponse.json({ o, k: true, uri, meta });
   } catch {
     // Otherwise, default to demo adapter path
     const { adapter = 'spl-mint-demo', memo = 'ok' } = (body || {}) as {
-      adapter?: string;
-      memo?: string;
+      a, d, a, pter?: string;
+      m, e, m, o?: string;
     };
-    const ctx: BuildContext = {
-      payer: process.env.PAYER_PUBKEY || 'unknown',
-      region: 'ffm' as RegionKey,
-      priority: 'med' as Priority,
-      tipLamports: 5000,
+    const c, t, x: BuildContext = {
+      p, a, y, er: process.env.PAYER_PUBKEY || 'unknown',
+      r, e, g, ion: 'ffm' as RegionKey,
+      p, r, i, ority: 'med' as Priority,
+      t, i, p, Lamports: 5000,
     };
     const res = await buildSplMintDemo({ memo }, ctx);
-    return NextResponse.json({ adapter, ixs: res.ixs.length, note: res.note });
+    return NextResponse.json({ adapter, i, x, s: res.ixs.length, n, o, t, e: res.note });
   }
 }
+

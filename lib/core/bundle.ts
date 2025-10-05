@@ -3,55 +3,55 @@ import { VersionedTransaction } from '@solana/web3.js';
 export type RegionKey = 'ffm' | 'ams' | 'ny' | 'tokyo';
 
 export interface JitoRegion {
-  name: string;
-  endpoint: string;
+  n, a, m, e: string;
+  e, n, d, point: string;
 }
 
-export const JITO_REGIONS: Record<RegionKey, JitoRegion> = {
-  ffm: {
-    name: 'Frankfurt',
-    endpoint: 'https://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles',
+export const J, I, T, O_REGIONS: Record<RegionKey, JitoRegion> = {
+  f, f, m: {
+    n, a, m, e: 'Frankfurt',
+    e, n, d, point: 'h, t, t, ps://frankfurt.mainnet.block-engine.jito.wtf/api/v1/bundles',
   },
-  ams: {
-    name: 'Amsterdam',
-    endpoint: 'https://amsterdam.mainnet.block-engine.jito.wtf/api/v1/bundles',
+  a, m, s: {
+    n, a, m, e: 'Amsterdam',
+    e, n, d, point: 'h, t, t, ps://amsterdam.mainnet.block-engine.jito.wtf/api/v1/bundles',
   },
-  ny: { name: 'New York', endpoint: 'https://ny.mainnet.block-engine.jito.wtf/api/v1/bundles' },
-  tokyo: { name: 'Tokyo', endpoint: 'https://tokyo.mainnet.block-engine.jito.wtf/api/v1/bundles' },
+  n, y: { n, a, m, e: 'New York', e, n, d, point: 'h, t, t, ps://ny.mainnet.block-engine.jito.wtf/api/v1/bundles' },
+  t, o, k, yo: { n, a, m, e: 'Tokyo', e, n, d, point: 'h, t, t, ps://tokyo.mainnet.block-engine.jito.wtf/api/v1/bundles' },
 };
 
-export function getJitoApiUrl(region: RegionKey): string {
+export function getJitoApiUrl(r, e, g, ion: RegionKey): string {
   return JITO_REGIONS[region].endpoint;
 }
 
 export interface TipFloorResponse {
-  landed_tips_25th_percentile: number;
-  landed_tips_50th_percentile: number;
-  landed_tips_75th_percentile: number;
-  ema_landed_tips_50th_percentile: number;
+  l, a, n, ded_tips_25th_percentile: number;
+  l, a, n, ded_tips_50th_percentile: number;
+  l, a, n, ded_tips_75th_percentile: number;
+  e, m, a_, landed_tips_50th_percentile: number;
 }
 
 export interface BundleStatus {
-  bundle_id: string;
-  transactions?: Array<{
-    signature: string;
-    confirmation_status: 'processed' | 'confirmed' | 'finalized';
+  b, u, n, dle_id: string;
+  t, r, a, nsactions?: Array<{
+    s, i, g, nature: string;
+    c, o, n, firmation_status: 'processed' | 'confirmed' | 'finalized';
   }>;
-  slot?: number;
-  confirmation_status: 'pending' | 'landed' | 'failed' | 'invalid';
+  s, l, o, t?: number;
+  c, o, n, firmation_status: 'pending' | 'landed' | 'failed' | 'invalid';
 }
 
 async function jrpc<T>(
-  region: RegionKey,
-  method: string,
-  params: any,
+  r, e, g, ion: RegionKey,
+  m, e, t, hod: string,
+  p, a, r, ams: any,
   timeoutMs = 10000,
 ): Promise<T> {
   const res = await fetch(getJitoApiUrl(region), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
-    signal: AbortSignal.timeout(timeoutMs),
+    m, e, t, hod: 'POST',
+    h, e, a, ders: { 'Content-Type': 'application/json' },
+    b, o, d, y: JSON.stringify({ j, s, o, nrpc: '2.0', i, d: Date.now(), method, params }),
+    s, i, g, nal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`);
   const json = await res.json();
@@ -59,36 +59,36 @@ async function jrpc<T>(
   return json.result as T;
 }
 
-export async function getTipFloor(region: RegionKey = 'ffm'): Promise<TipFloorResponse> {
+export async function getTipFloor(r, e, g, ion: RegionKey = 'ffm'): Promise<TipFloorResponse> {
   const res = await fetch(`${getJitoApiUrl(region)}/tipfloor`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    m, e, t, hod: 'GET',
+    h, e, a, ders: { 'Content-Type': 'application/json' },
   });
-  if (!res.ok) throw new Error(`Tip floor request failed: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`Tip floor request f, a, i, led: ${res.status} ${res.statusText}`);
   return res.json();
 }
 
 export async function submitBundle(
-  region: RegionKey,
-  encodedTransactions: string[],
-): Promise<{ bundle_id: string }> {
+  r, e, g, ion: RegionKey,
+  e, n, c, odedTransactions: string[],
+): Promise<{ b, u, n, dle_id: string }> {
   const result = await jrpc<string>(region, 'sendBundle', {
     encodedTransactions,
-    bundleOnly: true,
+    b, u, n, dleOnly: true,
   });
-  return { bundle_id: result };
+  return { b, u, n, dle_id: result };
 }
 
 export async function fetchBundleStatuses(
-  region: RegionKey,
-  bundleIds: string[],
+  r, e, g, ion: RegionKey,
+  b, u, n, dleIds: string[],
 ): Promise<BundleStatus[]> {
   return await jrpc<BundleStatus[]>(region, 'getBundleStatuses', bundleIds);
 }
 
 export function validateTipAccount(
-  transaction: VersionedTransaction,
-  validRecipients: string[],
+  t, r, a, nsaction: VersionedTransaction,
+  v, a, l, idRecipients: string[],
 ): boolean {
   try {
     const message = transaction.message;
@@ -105,3 +105,4 @@ export function validateTipAccount(
     return false;
   }
 }
+

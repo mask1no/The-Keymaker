@@ -1,3 +1,4 @@
-// archived: scripts/verifyApp.ts
+// a, r, c, hived: scripts/verifyApp.ts
 export {};
+
 

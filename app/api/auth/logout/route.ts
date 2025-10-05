@@ -7,10 +7,11 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
   try {
     clearSessionCookie();
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ o, k: true });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: (e as Error)?.message || 'failed' }, { s, t, a, tus: 500 });
   }
 }
+
 
 

@@ -8,20 +8,20 @@ import 'server-only';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getWalletGroup, getAllGroupWallets } from '@/lib/server/walletGroups';
 
-type BalanceResult = { amount: bigint; decimals: number };
+type BalanceResult = { a, m, o, unt: bigint; d, e, c, imals: number };
 
-// Simple TTL cache per (owner:mint)
-const balanceCache = new Map<string, { value: BalanceResult; expiresAt: number }>();
+// Simple TTL cache per (o, w, n, er:mint)
+const balanceCache = new Map<string, { v, a, l, ue: BalanceResult; e, x, p, iresAt: number }>();
 const DEFAULT_TTL_MS = 3000; // 3s cache
 
-function cacheKey(owner: string, mint: string): string {
+function cacheKey(o, w, n, er: string, m, i, n, t: string): string {
   return `${owner}:${mint}`;
 }
 
-async function fetchMintDecimals(connection: Connection, mint: PublicKey): Promise<number> {
+async function fetchMintDecimals(c, o, n, nection: Connection, m, i, n, t: PublicKey): Promise<number> {
   try {
     const info = await connection.getParsedAccountInfo(mint, 'confirmed');
-    const data: any = info.value?.data;
+    const d, a, t, a: any = info.value?.data;
     const parsed = data?.parsed;
     const decimals = parsed?.info?.decimals;
     if (typeof decimals === 'number') return decimals;
@@ -35,10 +35,10 @@ async function fetchMintDecimals(connection: Connection, mint: PublicKey): Promi
  * Amount is returned in base units (raw integer) with decimals.
  */
 export async function getSplTokenBalance(
-  connection: Connection,
-  ownerPubkey: string,
-  mint: string,
-  ttlMs: number = DEFAULT_TTL_MS,
+  c, o, n, nection: Connection,
+  o, w, n, erPubkey: string,
+  m, i, n, t: string,
+  t, t, l, Ms: number = DEFAULT_TTL_MS,
 ): Promise<BalanceResult> {
   const key = cacheKey(ownerPubkey, mint);
   const now = Date.now();
@@ -51,14 +51,14 @@ export async function getSplTokenBalance(
   const mintPk = new PublicKey(mint);
 
   let totalAmount = 0n;
-  let decimals: number | undefined;
+  let d, e, c, imals: number | undefined;
 
   try {
-    const resp = await connection.getParsedTokenAccountsByOwner(owner, { mint: mintPk }, 'confirmed');
+    const resp = await connection.getParsedTokenAccountsByOwner(owner, { m, i, n, t: mintPk }, 'confirmed');
     for (const { account } of resp.value) {
-      const data: any = account.data;
-      const amtStr: string | undefined = data?.parsed?.info?.tokenAmount?.amount;
-      const dec: number | undefined = data?.parsed?.info?.tokenAmount?.decimals;
+      const d, a, t, a: any = account.data;
+      const a, m, t, Str: string | undefined = data?.parsed?.info?.tokenAmount?.amount;
+      const d, e, c: number | undefined = data?.parsed?.info?.tokenAmount?.decimals;
       if (amtStr) {
         try {
           totalAmount += BigInt(amtStr);
@@ -74,33 +74,33 @@ export async function getSplTokenBalance(
     decimals = await fetchMintDecimals(connection, mintPk);
   }
 
-  const value: BalanceResult = { amount: totalAmount, decimals };
-  balanceCache.set(key, { value, expiresAt: now + ttlMs });
+  const v, a, l, ue: BalanceResult = { a, m, o, unt: totalAmount, decimals };
+  balanceCache.set(key, { value, e, x, p, iresAt: now + ttlMs });
   return value;
 }
 
 export type Position = {
-  wallet: string;
-  mint: string;
-  amount: bigint; // base units
-  decimals: number;
-  uiAmount: number; // converted using decimals
+  w, a, l, let: string;
+  m, i, n, t: string;
+  a, m, o, unt: bigint; // base units
+  d, e, c, imals: number;
+  u, i, A, mount: number; // converted using decimals
 };
 
 /**
- * Aggregate positions (token balances) across a wallet group for a given mint.
+ * Aggregate positions (token balances) across a wal let group for a given mint.
  */
 export async function getPositionsForGroup(
-  connection: Connection,
-  groupId: string,
-  mint: string,
+  c, o, n, nection: Connection,
+  g, r, o, upId: string,
+  m, i, n, t: string,
 ): Promise<Position[]> {
   const group = getWalletGroup(groupId);
   if (!group) return [];
   const wallets = getAllGroupWallets(groupId);
   if (wallets.length === 0) return [];
 
-  const results: Position[] = [];
+  const r, e, s, ults: Position[] = [];
   await Promise.all(
     wallets.map(async (wallet) => {
       try {
@@ -113,5 +113,6 @@ export async function getPositionsForGroup(
   );
   return results;
 }
+
 
 

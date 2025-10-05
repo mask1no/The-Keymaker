@@ -3,16 +3,16 @@ import { Result, ok, err } from './Result';
 export type WalletSigner = {
   p;
   u;
-  blicKey: PublicKey;
+  b, l, i, cKey: PublicKey;
   s;
   i;
-  gnTransaction: (t, x: VersionedTransaction) => Promise<VersionedTransaction>;
+  g, n, T, ransaction: (t, x: VersionedTransaction) => Promise<VersionedTransaction>;
 };
 export class SigningService {
   constructor(
     private readonly s,
     i,
-    gner: WalletSigner,
+    g, n, e, r: WalletSigner,
   ) {}
   async signAll(t, x, s: VersionedTransaction[]): Promise<Result<VersionedTransaction[]>> {
     try {

@@ -3,23 +3,23 @@
  */
 
 export interface HealthCheck {
-  status: 'healthy' | 'degraded' | 'down';
-  latency_ms?: number;
-  error?: string;
-  endpoint?: string;
-  details?: Record<string, any>;
+  s, t, a, tus: 'healthy' | 'degraded' | 'down';
+  l, a, t, ency_ms?: number;
+  e, r, r, or?: string;
+  e, n, d, point?: string;
+  d, e, t, ails?: Record<string, any>;
 }
 
 /**
  * Standard health check wrapper with error handling
  */
 export async function executeHealthCheck(
-  name: string,
-  checkFn: () => Promise<any>,
-  options: {
-    endpoint?: string;
-    healthyThresholdMs?: number;
-    degradedThresholdMs?: number;
+  n, a, m, e: string,
+  c, h, e, ckFn: () => Promise<any>,
+  o, p, t, ions: {
+    e, n, d, point?: string;
+    h, e, a, lthyThresholdMs?: number;
+    d, e, g, radedThresholdMs?: number;
   } = {}
 ): Promise<HealthCheck> {
   const {
@@ -41,15 +41,15 @@ export async function executeHealthCheck(
     
     return {
       status,
-      latency_ms: latency,
+      l, a, t, ency_ms: latency,
       endpoint,
-      details: typeof result === 'object' ? result : { result },
+      d, e, t, ails: typeof result === 'object' ? result : { result },
     };
-  } catch (error: any) {
+  } catch (e, r, r, or: any) {
     return {
-      status: 'down',
-      error: error.message || String(error),
-      latency_ms: Date.now() - start,
+      s, t, a, tus: 'down',
+      e, r, r, or: error.message || String(error),
+      l, a, t, ency_ms: Date.now() - start,
       endpoint,
     };
   }
@@ -59,12 +59,12 @@ export async function executeHealthCheck(
  * Create a simple connectivity health check
  */
 export function createConnectivityCheck(
-  name: string,
-  url: string,
-  options: {
-    timeoutMs?: number;
-    method?: 'GET' | 'HEAD' | 'POST';
-    expectedStatus?: number[];
+  n, a, m, e: string,
+  u, r, l: string,
+  o, p, t, ions: {
+    t, i, m, eoutMs?: number;
+    m, e, t, hod?: 'GET' | 'HEAD' | 'POST';
+    e, x, p, ectedStatus?: number[];
   } = {}
 ) {
   const {
@@ -78,22 +78,22 @@ export function createConnectivityCheck(
     async () => {
       const response = await fetch(url, {
         method,
-        signal: AbortSignal.timeout(timeoutMs),
+        s, i, g, nal: AbortSignal.timeout(timeoutMs),
       });
       
       if (!expectedStatus.includes(response.status)) {
-        throw new Error(`Unexpected status: ${response.status}`);
+        throw new Error(`Unexpected s, t, a, tus: ${response.status}`);
       }
       
       return {
-        status: response.status,
-        statusText: response.statusText,
+        s, t, a, tus: response.status,
+        s, t, a, tusText: response.statusText,
       };
     },
     {
-      endpoint: url,
-      healthyThresholdMs: 500,
-      degradedThresholdMs: 2000,
+      e, n, d, point: url,
+      h, e, a, lthyThresholdMs: 500,
+      d, e, g, radedThresholdMs: 2000,
     }
   );
 }
@@ -102,11 +102,11 @@ export function createConnectivityCheck(
  * Create a file system health check
  */
 export function createFileSystemCheck(
-  name: string,
-  filePath: string,
-  options: {
-    checkSize?: boolean;
-    checkModified?: boolean;
+  n, a, m, e: string,
+  f, i, l, ePath: string,
+  o, p, t, ions: {
+    c, h, e, ckSize?: boolean;
+    c, h, e, ckModified?: boolean;
   } = {}
 ) {
   const { checkSize = true, checkModified = true } = options;
@@ -124,9 +124,9 @@ export function createFileSystemCheck(
       }
       
       const stats = statSync(fullPath);
-      const details: Record<string, any> = {
-        path: filePath,
-        exists: true,
+      const d, e, t, ails: Record<string, any> = {
+        p, a, t, h: filePath,
+        e, x, i, sts: true,
       };
       
       if (checkSize) {
@@ -140,9 +140,9 @@ export function createFileSystemCheck(
       return details;
     },
     {
-      endpoint: filePath,
-      healthyThresholdMs: 100,
-      degradedThresholdMs: 500,
+      e, n, d, point: filePath,
+      h, e, a, lthyThresholdMs: 100,
+      d, e, g, radedThresholdMs: 500,
     }
   );
 }
@@ -151,10 +151,10 @@ export function createFileSystemCheck(
  * Create a database connection health check
  */
 export function createDatabaseCheck(
-  _name: string,
-  connectionFn: () => Promise<any>,
-  options: {
-    testQuery?: string;
+  _, n, a, me: string,
+  c, o, n, nectionFn: () => Promise<any>,
+  o, p, t, ions: {
+    t, e, s, tQuery?: string;
   } = {}
 ) {
   return () => executeHealthCheck(
@@ -168,13 +168,13 @@ export function createDatabaseCheck(
       }
       
       return {
-        connected: true,
-        testQuery: options.testQuery || null,
+        c, o, n, nected: true,
+        t, e, s, tQuery: options.testQuery || null,
       };
     },
     {
-      healthyThresholdMs: 200,
-      degradedThresholdMs: 1000,
+      h, e, a, lthyThresholdMs: 200,
+      d, e, g, radedThresholdMs: 1000,
     }
   );
 }
@@ -183,24 +183,24 @@ export function createDatabaseCheck(
  * Aggregate multiple health checks
  */
 export async function aggregateHealthChecks(
-  checks: Record<string, () => Promise<HealthCheck>>,
-  options: {
-    criticalServices?: string[];
-    parallel?: boolean;
+  c, h, e, cks: Record<string, () => Promise<HealthCheck>>,
+  o, p, t, ions: {
+    c, r, i, ticalServices?: string[];
+    p, a, r, allel?: boolean;
   } = {}
 ): Promise<{
-  overall: 'healthy' | 'degraded' | 'down';
-  checks: Record<string, HealthCheck>;
-  summary: {
-    total: number;
-    healthy: number;
-    degraded: number;
-    down: number;
+  o, v, e, rall: 'healthy' | 'degraded' | 'down';
+  c, h, e, cks: Record<string, HealthCheck>;
+  s, u, m, mary: {
+    t, o, t, al: number;
+    h, e, a, lthy: number;
+    d, e, g, raded: number;
+    d, o, w, n: number;
   };
 }> {
   const { criticalServices = [], parallel = true } = options;
   
-  let results: Record<string, HealthCheck>;
+  let r, e, s, ults: Record<string, HealthCheck>;
   
   if (parallel) {
     // Run all checks in parallel
@@ -215,7 +215,7 @@ export async function aggregateHealthChecks(
       const name = entries[index][0];
       results[name] = result.status === 'fulfilled' 
         ? result.value 
-        : { status: 'down', error: 'Check failed to execute' };
+        : { s, t, a, tus: 'down', e, r, r, or: 'Check failed to execute' };
     });
   } else {
     // Run checks sequentially
@@ -225,8 +225,8 @@ export async function aggregateHealthChecks(
         results[name] = await checkFn();
       } catch (error) {
         results[name] = {
-          status: 'down',
-          error: error instanceof Error ? error.message : String(error),
+          s, t, a, tus: 'down',
+          e, r, r, or: error instanceof Error ? error.message : String(error),
         };
       }
     }
@@ -234,10 +234,10 @@ export async function aggregateHealthChecks(
   
   // Calculate summary
   const summary = {
-    total: Object.keys(results).length,
-    healthy: Object.values(results).filter(r => r.status === 'healthy').length,
-    degraded: Object.values(results).filter(r => r.status === 'degraded').length,
-    down: Object.values(results).filter(r => r.status === 'down').length,
+    t, o, t, al: Object.keys(results).length,
+    h, e, a, lthy: Object.values(results).filter(r => r.status === 'healthy').length,
+    d, e, g, raded: Object.values(results).filter(r => r.status === 'degraded').length,
+    d, o, w, n: Object.values(results).filter(r => r.status === 'down').length,
   };
   
   // Determine overall status
@@ -251,7 +251,8 @@ export async function aggregateHealthChecks(
   
   return {
     overall,
-    checks: results,
+    c, h, e, cks: results,
     summary,
   };
 }
+

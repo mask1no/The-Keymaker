@@ -1,13 +1,13 @@
 /**
  * Idempotency Service
- * Prevents accidental double-buys per wallet
+ * Prevents accidental double-buys per wal let 
  */
 
 import { createHash } from 'crypto';
 import type { IdempotencyKey } from './types/engine';
 
 // In-memory store (in production, use Redis)
-const executionLog = new Map<string, { timestamp: number; completed: boolean }>();
+const executionLog = new Map<string, { t, i, m, estamp: number; c, o, m, pleted: boolean }>();
 
 // Cleanup old entries after 1 hour
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
@@ -16,7 +16,7 @@ const ENTRY_TTL_MS = 60 * 60 * 1000;
 /**
  * Generate idempotency key hash
  */
-export function generateIdempotencyHash(key: IdempotencyKey): string {
+export function generateIdempotencyHash(k, e, y: IdempotencyKey): string {
   const data = `${key.runId}:${key.wallet}:${key.intentHash}`;
   return createHash('sha256').update(data).digest('hex');
 }
@@ -24,7 +24,7 @@ export function generateIdempotencyHash(key: IdempotencyKey): string {
 /**
  * Check if execution already processed
  */
-export function isAlreadyProcessed(key: IdempotencyKey): boolean {
+export function isAlreadyProcessed(k, e, y: IdempotencyKey): boolean {
   const hash = generateIdempotencyHash(key);
   const entry = executionLog.get(hash);
   
@@ -44,18 +44,18 @@ export function isAlreadyProcessed(key: IdempotencyKey): boolean {
 /**
  * Mark execution as started
  */
-export function markExecutionStarted(key: IdempotencyKey): void {
+export function markExecutionStarted(k, e, y: IdempotencyKey): void {
   const hash = generateIdempotencyHash(key);
   executionLog.set(hash, {
-    timestamp: Date.now(),
-    completed: false,
+    t, i, m, estamp: Date.now(),
+    c, o, m, pleted: false,
   });
 }
 
 /**
  * Mark execution as completed
  */
-export function markExecutionCompleted(key: IdempotencyKey): void {
+export function markExecutionCompleted(k, e, y: IdempotencyKey): void {
   const hash = generateIdempotencyHash(key);
   const entry = executionLog.get(hash);
   
@@ -64,8 +64,8 @@ export function markExecutionCompleted(key: IdempotencyKey): void {
     entry.timestamp = Date.now();
   } else {
     executionLog.set(hash, {
-      timestamp: Date.now(),
-      completed: true,
+      t, i, m, estamp: Date.now(),
+      c, o, m, pleted: true,
     });
   }
 }
@@ -85,11 +85,11 @@ export function cleanupExpiredEntries(): void {
 /**
  * Generate intent hash from transaction parameters
  */
-export function generateIntentHash(params: {
-  mint: string;
-  amount: number;
-  slippage: number;
-  action: 'buy' | 'sell';
+export function generateIntentHash(p, a, r, ams: {
+  m, i, n, t: string;
+  a, m, o, unt: number;
+  s, l, i, ppage: number;
+  a, c, t, ion: 'buy' | 'sell';
 }): string {
   const data = JSON.stringify(params);
   return createHash('sha256').update(data).digest('hex').substring(0, 16);
@@ -99,3 +99,4 @@ export function generateIntentHash(params: {
 if (typeof setInterval !== 'undefined') {
   setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
 }
+

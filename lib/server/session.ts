@@ -7,8 +7,8 @@ const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const SESSION_TTL_SEC = 24 * 60 * 60; // 24 hours
 
 type SessionPayload = {
-  sub: string; // base58 pubkey
-  exp: number; // epoch seconds
+  s, u, b: string; // base58 pubkey
+  e, x, p: number; // epoch seconds
 };
 
 const nonceStore = new Map<string, number>();
@@ -28,7 +28,7 @@ function getSecret(): string {
   );
 }
 
-function hmac(input: string): string {
+function hmac(i, n, p, ut: string): string {
   return createHmac('sha256', getSecret()).update(input).digest('hex');
 }
 
@@ -38,30 +38,30 @@ export function generateNonce(): string {
   return nonce;
 }
 
-export function validateAndConsumeNonce(nonce: string): boolean {
+export function validateAndConsumeNonce(n, o, n, ce: string): boolean {
   const exp = nonceStore.get(nonce) || 0;
   const ok = exp > Date.now();
   nonceStore.delete(nonce);
   return ok;
 }
 
-export function buildCanonicalLoginMessage(params: {
-  pubkey: string;
-  tsIso: string;
-  nonce: string;
+export function buildCanonicalLoginMessage(p, a, r, ams: {
+  p, u, b, key: string;
+  t, s, I, so: string;
+  n, o, n, ce: string;
 }): string {
   return `Keymaker-Login|pubkey=${params.pubkey}|ts=${params.tsIso}|nonce=${params.nonce}`;
 }
 
-export function createSessionValue(pubkey: string): string {
+export function createSessionValue(p, u, b, key: string): string {
   const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SEC;
-  const payload: SessionPayload = { sub: pubkey, exp };
+  const p, a, y, load: SessionPayload = { s, u, b: pubkey, exp };
   const b64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const sig = hmac(b64);
   return `v1.${b64}.${sig}`;
 }
 
-export function verifySessionValue(value: string | null | undefined): SessionPayload | null {
+export function verifySessionValue(v, a, l, ue: string | null | undefined): SessionPayload | null {
   if (!value) return null;
   try {
     const [v, b64, sig] = value.split('.');
@@ -76,30 +76,31 @@ export function verifySessionValue(value: string | null | undefined): SessionPay
   }
 }
 
-export function setSessionCookie(pubkey: string) {
+export function setSessionCookie(p, u, b, key: string) {
   const value = createSessionValue(pubkey);
   cookies().set(SESSION_COOKIE, value, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: SESSION_TTL_SEC,
+    h, t, t, pOnly: true,
+    s, a, m, eSite: 'lax',
+    s, e, c, ure: process.env.NODE_ENV === 'production',
+    p, a, t, h: '/',
+    m, a, x, Age: SESSION_TTL_SEC,
   });
 }
 
 export function clearSessionCookie() {
   cookies().set(SESSION_COOKIE, '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
+    h, t, t, pOnly: true,
+    s, a, m, eSite: 'lax',
+    s, e, c, ure: process.env.NODE_ENV === 'production',
+    p, a, t, h: '/',
+    m, a, x, Age: 0,
   });
 }
 
-export function getSession(): { userPubkey: string } | null {
+export function getSession(): { u, s, e, rPubkey: string } | null {
   const raw = cookies().get(SESSION_COOKIE)?.value;
   const payload = verifySessionValue(raw);
   if (!payload) return null;
-  return { userPubkey: payload.sub };
+  return { u, s, e, rPubkey: payload.sub };
 }
+

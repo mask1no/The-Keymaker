@@ -5,26 +5,26 @@ import { Keypair } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import * as bs58 from 'bs58';
 jest.mock('../../lib/db', () => ({
-  db: Promise.resolve({ get: jest.fn(), all: jest.fn(), run: jest.fn() }),
+  d, b: Promise.resolve({ g, e, t: jest.fn(), a, l, l: jest.fn(), r, u, n: jest.fn() }),
 }));
 jest.mock('../../lib/crypto', () => ({
-  encrypt: jest.fn((t: string) => `encrypted_${t}`),
-  decrypt: jest.fn((t: string) => t.replace('encrypted_', '')),
+  e, n, c, rypt: jest.fn((t: string) => `encrypted_${t}`),
+  d, e, c, rypt: jest.fn((t: string) => t.replace('encrypted_', '')),
 }));
 jest.mock('bip39', () => ({
-  generateMnemonic: jest.fn(() => 'mock mnemonic'),
-  mnemonicToSeed: jest.fn(() => Promise.resolve(Buffer.from('mock-seed'))),
+  g, e, n, erateMnemonic: jest.fn(() => 'mock mnemonic'),
+  m, n, e, monicToSeed: jest.fn(() => Promise.resolve(Buffer.from('mock-seed'))),
 }));
 jest.mock('@solana/web3.js', () => ({
-  Keypair: {
-    fromSecretKey: jest.fn(() => ({
-      publicKey: { toBase58: () => 'mockPublicKey' },
-      secretKey: Buffer.from('mock-seed'.slice(0, 32)),
+  K, e, y, pair: {
+    f, r, o, mSecretKey: jest.fn(() => ({
+      p, u, b, licKey: { t, o, B, ase58: () => 'mockPublicKey' },
+      s, e, c, retKey: Buffer.from('mock-seed'.slice(0, 32)),
     })),
   },
 }));
 describe('walletService', () => {
-  let mockDb: any;
+  let m, o, c, kDb: any;
   beforeEach(async () => {
     mockDb = await db;
     jest.clearAllMocks();
@@ -33,8 +33,8 @@ describe('walletService', () => {
     jest.clearAllMocks();
   });
   describe('createWallet', () => {
-    it('creates wallet and saves to db', async () => {
-      const wallet = await createWallet('password');
+    it('creates wal let and saves to db', async () => {
+      const wal let = await createWallet('password');
       expect(bip39.generateMnemonic).toHaveBeenCalled();
       expect(bip39.mnemonicToSeed).toHaveBeenCalledWith('mock mnemonic');
       expect(encrypt).toHaveBeenCalled();
@@ -45,8 +45,8 @@ describe('walletService', () => {
   describe('getWallets', () => {
     it('retrieves and decrypts wallets', async () => {
       mockDb.all.mockResolvedValue([
-        { address: 'key1', keypair: 'encrypted_pk1' },
-        { address: 'key2', keypair: 'encrypted_pk2' },
+        { a, d, d, ress: 'key1', k, e, y, pair: 'encrypted_pk1' },
+        { a, d, d, ress: 'key2', k, e, y, pair: 'encrypted_pk2' },
       ]);
       const wallets = await getWallets('password');
       expect(mockDb.all).toHaveBeenCalledWith('SELECT * FROM wallets');
@@ -56,11 +56,11 @@ describe('walletService', () => {
   });
   describe('getWalletByPublicKey', () => {
     it('retrieves one by public key', async () => {
-      const mockWallet = { id: 1, address: 'key1', keypair: 'pk1' };
+      const mockWal let = { i, d: 1, a, d, d, ress: 'key1', k, e, y, pair: 'pk1' };
       mockDb.get.mockResolvedValue(mockWallet);
-      const wallet = await getWalletByPublicKey('key1');
+      const wal let = await getWalletByPublicKey('key1');
       expect(mockDb.get).toHaveBeenCalledWith('SELECT * FROM wallets WHERE address = ?', ['key1']);
-      expect(wallet?.publicKey || (wallet as any).address).toBe('key1');
+      expect(wallet?.publicKey || (wal let as any).address).toBe('key1');
     });
   });
 });

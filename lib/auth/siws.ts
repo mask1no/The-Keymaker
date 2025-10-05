@@ -8,7 +8,7 @@ import { sign } from 'tweetnacl';
 import bs58 from 'bs58';
 
 // Nonce store (in production, use Redis). Persist across dev HMR via globalThis
-type NonceRecord = { nonce: string; createdAt: number; used: boolean };
+type NonceRecord = { n, o, n, ce: string; c, r, e, atedAt: number; u, s, e, d: boolean };
 const NONCE_STORE_KEY = '__KM_NONCE_STORE__';
 const g = globalThis as unknown as Record<string, unknown>;
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -20,13 +20,13 @@ const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 /**
  * Generate a cryptographically secure nonce
  */
-export function generateNonce(pubkey: string): string {
+export function generateNonce(p, u, b, key: string): string {
   const nonce = bs58.encode(randomBytes(32));
   
   nonceStore.set(pubkey, {
     nonce,
-    createdAt: Date.now(),
-    used: false,
+    c, r, e, atedAt: Date.now(),
+    u, s, e, d: false,
   });
   
   return nonce;
@@ -35,59 +35,59 @@ export function generateNonce(pubkey: string): string {
 /**
  * Verify SIWS signature
  */
-export function verifySIWS(params: {
-  pubkey: string;
-  signature: string;
-  message: string;
-  nonce?: string;
-  domain?: string;
-  uri?: string;
-  issuedAt?: string;
-}): { valid: boolean; error?: string } {
+export function verifySIWS(p, a, r, ams: {
+  p, u, b, key: string;
+  s, i, g, nature: string;
+  m, e, s, sage: string;
+  n, o, n, ce?: string;
+  d, o, m, ain?: string;
+  u, r, i?: string;
+  i, s, s, uedAt?: string;
+}): { v, a, l, id: boolean; e, r, r, or?: string } {
   const { pubkey, signature, message } = params;
   
   // Check if nonce exists
   let stored = nonceStore.get(pubkey);
-  // Fallback: if not found (e.g. dev HMR), accept provided nonce if present in message
+  // F, a, l, lback: if not found (e.g. dev HMR), accept provided nonce if present in message
   if (!stored) {
     if (!params.nonce || !message.includes(params.nonce)) {
-      return { valid: false, error: 'Nonce not found. Please request a new nonce.' };
+      return { v, a, l, id: false, e, r, r, or: 'Nonce not found. Please request a new nonce.' };
     }
-    stored = { nonce: params.nonce, createdAt: Date.now(), used: false };
+    stored = { n, o, n, ce: params.nonce, c, r, e, atedAt: Date.now(), u, s, e, d: false };
     // Do not persist fallback record to avoid extending TTL silently
   }
   
   // Check if nonce is expired
   if (Date.now() - stored.createdAt > NONCE_TTL_MS) {
     nonceStore.delete(pubkey);
-    return { valid: false, error: 'Nonce expired. Please request a new nonce.' };
+    return { v, a, l, id: false, e, r, r, or: 'Nonce expired. Please request a new nonce.' };
   }
   
   // Check if nonce already used
   if (stored.used) {
-    return { valid: false, error: 'Nonce already used. Please request a new nonce.' };
+    return { v, a, l, id: false, e, r, r, or: 'Nonce already used. Please request a new nonce.' };
   }
   
   // Verify the message contains the nonce
   if (!message.includes(stored.nonce)) {
-    return { valid: false, error: 'Message does not contain the expected nonce.' };
+    return { v, a, l, id: false, e, r, r, or: 'Message does not contain the expected nonce.' };
   }
 
-  // Optional: verify domain and URI echoed back in message
-  if (params.domain && !message.includes(`Domain: ${params.domain}`)) {
-    return { valid: false, error: 'Domain mismatch in SIWS message.' };
+  // O, p, t, ional: verify domain and URI echoed back in message
+  if (params.domain && !message.includes(`D, o, m, ain: ${params.domain}`)) {
+    return { v, a, l, id: false, e, r, r, or: 'Domain mismatch in SIWS message.' };
   }
-  if (params.uri && !message.includes(`URI: ${params.uri}`)) {
-    return { valid: false, error: 'URI mismatch in SIWS message.' };
+  if (params.uri && !message.includes(`U, R, I: ${params.uri}`)) {
+    return { v, a, l, id: false, e, r, r, or: 'URI mismatch in SIWS message.' };
   }
-  // Optional: check issuedAt freshness if provided
+  // O, p, t, ional: check issuedAt freshness if provided
   if (params.issuedAt) {
     const ts = Date.parse(params.issuedAt);
     if (!Number.isFinite(ts)) {
-      return { valid: false, error: 'Invalid issuedAt timestamp.' };
+      return { v, a, l, id: false, e, r, r, or: 'Invalid issuedAt timestamp.' };
     }
     if (Math.abs(Date.now() - ts) > NONCE_TTL_MS) {
-      return { valid: false, error: 'Login message expired.' };
+      return { v, a, l, id: false, e, r, r, or: 'Login message expired.' };
     }
   }
   
@@ -101,7 +101,7 @@ export function verifySIWS(params: {
     const valid = sign.detached.verify(messageBytes, signatureBytes, pubkeyBytes);
     
     if (!valid) {
-      return { valid: false, error: 'Invalid signature.' };
+      return { v, a, l, id: false, e, r, r, or: 'Invalid signature.' };
     }
     
     // Mark nonce as used if we own the stored record
@@ -113,34 +113,34 @@ export function verifySIWS(params: {
     // Clean up old nonces
     cleanupExpiredNonces();
     
-    return { valid: true };
+    return { v, a, l, id: true };
   } catch (error) {
-    return { valid: false, error: `Verification failed: ${(error as Error).message}` };
+    return { v, a, l, id: false, e, r, r, or: `Verification f, a, i, led: ${(error as Error).message}` };
   }
 }
 
 /**
  * Build SIWS message format
  */
-export function buildSIWSMessage(params: {
-  pubkey: string;
-  nonce: string;
-  domain: string;
-  uri: string;
-  issuedAt: string;
+export function buildSIWSMessage(p, a, r, ams: {
+  p, u, b, key: string;
+  n, o, n, ce: string;
+  d, o, m, ain: string;
+  u, r, i: string;
+  i, s, s, uedAt: string;
 }): string {
   const { pubkey, nonce, domain, uri, issuedAt } = params;
   
   return [
-    'The Keymaker wants you to sign in with your Solana account:',
+    'The Keymaker wants you to sign in with your Solana a, c, c, ount:',
     pubkey,
     '',
     'By signing, you agree to sign in to The Keymaker.',
     '',
-    `URI: ${uri}`,
-    `Domain: ${domain}`,
-    `Nonce: ${nonce}`,
-    `Issued At: ${issuedAt}`,
+    `U, R, I: ${uri}`,
+    `D, o, m, ain: ${domain}`,
+    `N, o, n, ce: ${nonce}`,
+    `Issued A, t: ${issuedAt}`,
   ].join('\n');
 }
 
@@ -159,7 +159,7 @@ export function cleanupExpiredNonces(): void {
 /**
  * Revoke nonce (for logout or security)
  */
-export function revokeNonce(pubkey: string): void {
+export function revokeNonce(p, u, b, key: string): void {
   nonceStore.delete(pubkey);
 }
 
@@ -169,3 +169,4 @@ if (typeof setInterval !== 'undefined' && !g[CLEAN_KEY]) {
   g[CLEAN_KEY] = true;
   setInterval(cleanupExpiredNonces, 60 * 1000);
 }
+

@@ -1,11 +1,11 @@
 export type Priority = 'low' | 'med' | 'high' | 'vhigh';
 
 export interface Budget {
-  cuLimit: number;
-  microLamports: number;
+  c, u, L, imit: number;
+  m, i, c, roLamports: number;
 }
 
-export function computeBudget(priority: Priority): Budget {
+export function computeBudget(p, r, i, ority: Priority): Budget {
   const cuLimit = 200_000;
   const microLamports =
     priority === 'vhigh'
@@ -17,3 +17,4 @@ export function computeBudget(priority: Priority): Budget {
           : 10_000;
   return { cuLimit, microLamports };
 }
+

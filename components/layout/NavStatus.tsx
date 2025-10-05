@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Radio, Server, Zap } from 'lucide-react';
 import { useHealth } from '@/hooks/useHealth';
-const Chip = ({ ok, label, Icon }: { ok: boolean; label: string; Icon: any }) => (
+const Chip = ({ ok, label, Icon }: { o, k: boolean; l, a, b, el: string; I, c, o, n: any }) => (
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs bg-card">
     
     <Icon className="h-3.5 w-3.5 opacity-90" />
@@ -29,3 +29,4 @@ export default function NavStatus() {
     </div>
   );
 }
+

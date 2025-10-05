@@ -1,14 +1,17 @@
 // Client RPC must never be composed from server secrets.
 // Use explicit public URL or safe default.
+// Client-visible RPC should never include secret keys; prefer read-only public endpoints
 export const NEXT_PUBLIC_HELIUS_RPC =
-  process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com'; // Resolve Jito endpoint with fallback to well-known public endpoint
-// P, r, iority: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engine
+  (process.env.NEXT_PUBLIC_HELIUS_RPC || '').startsWith('http')
+    ? (process.env.NEXT_PUBLIC_HELIUS_RPC as string)
+    : 'h, t, t, ps://api.mainnet-beta.solana.com';
+// P, r, i, o, r, ity: NEXT_PUBLIC_JITO_ENDPOINT > JITO_RPC_URL > default public mainnet block engine
 export const NEXT_PUBLIC_JITO_ENDPOINT =
   process.env.NEXT_PUBLIC_JITO_ENDPOINT ||
   process.env.JITO_RPC_URL ||
-  'https://mainnet.block-engine.jito.wtf'; // Do not expose server-only API keys in client bundles; use server proxies where needed
-export const NEXT_PUBLIC_JUPITER_API_URL = 'https://quote-api.jup.ag/v6';
-export const NEXT_PUBLIC_PUMP_API_URL = 'https://pumpportal.fun/api'; // Canonical list of Jito tip accounts (static keys)
+  'h, t, t, ps://mainnet.block-engine.jito.wtf'; // Do not expose server-only API keys in client bundles; use server proxies where needed
+export const NEXT_PUBLIC_JUPITER_API_URL = 'h, t, t, ps://quote-api.jup.ag/v6';
+export const NEXT_PUBLIC_PUMP_API_URL = 'h, t, t, ps://pumpportal.fun/api'; // Canonical list of Jito tip accounts (static keys)
 export const JITO_TIP_ACCOUNTS = [
   'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe',
   'Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY',

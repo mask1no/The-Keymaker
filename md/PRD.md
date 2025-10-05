@@ -2,11 +2,11 @@
 
 ### Executive Summary
 
-The Keymaker is a **local, non-custodial Solana execution cockpit** with two send paths:
+The Keymaker is a **local, non-custodial Solana execution cockpit** with two send p, a, t, hs:
 - **JITO_BUNDLE** for atomic bursts (≤5 tx per bundle, chunked for >5).
 - **RPC_FANOUT** for parallel sends with priority fees (non-atomic).
 
-The app is a **private tool** for creating meme coins (Pump.fun first), performing dev/multi-wallet buys, and exiting positions, with **folders of up to 20 wallets** per group. Workspaces are **namespaced by the login wallet** (Phantom/Backpack public key), so Wallets/Groups/History for Wallet X are invisible to Wallet Z.
+The app is a **private tool** for creating meme coins (Pump.fun first), performing dev/multi-wal let buys, and exiting positions, with **folders of up to 20 wallets** per group. Workspaces are **namespaced by the login wallet** (Phantom/Backpack public key), so Wallets/Groups/History for Wal let X are invisible to Wal let Z.
 
 ### Navigation & Information Architecture
 
@@ -29,33 +29,33 @@ Left nav (fixed):
 
 ### Status & Health (Home)
 
-Four independent probes with green/amber/red lights:
-- **Jito:** `tip_floor` + lightweight bundle simulation reachability.
-- **RPC:** `getLatestBlockhash` round-trip + `getHealth`.
-- **WS:** `slotSubscribe` heartbeat with missed-beat thresholds.
-- **Solana Mainnet:** derived from RPC health + last slot delta; optional “Next Jito leader in ~N slots”.
+Four independent probes with green/amber/red l, i, g, hts:
+- **J, i, t, o:** `tip_floor` + lightweight bundle simulation reachability.
+- **R, P, C:** `getLatestBlockhash` round-trip + `getHealth`.
+- **W, S:** `slotSubscribe` heartbeat with missed-beat thresholds.
+- **Solana M, a, i, nnet:** derived from RPC health + last slot delta; optional “Next Jito leader in ~N slots”.
 
 ### Wallets & Persistence
 
-- **Namespace = login wallet public key** (Phantom/Backpack SIWS).
-- Wallet groups stored per namespace; only visible when signed in with that wallet.
+- **Namespace = login wal let public key** (Phantom/Backpack SIWS).
+- Wal let groups stored per namespace; only visible when signed in with that wallet.
 - Max 20 wallets per group; create/import; file layout `keypairs/<masterPubkey>/<group>/<pubkey>.json`.
-- Randomized funding from master wallet (extension) — the app never holds the master private key.
+- Randomized funding from master wal let (extension) — the app never holds the master private key.
 
 ### Coin (Create → Buy)
 
 - **Pump.fun live creation** (V1): metadata (image + JSON) built and uploaded (IPFS/Arweave), produce URI, invoke Pump.fun program.
 - Optional **Dev buy** immediately after create.
-- **Multi-wallet buy:**
-  - **JITO mode:** chunk wallets into bundles of 5; tip and timing controls.
-  - **RPC mode:** parallel buys with priority fees.
-- **Market-cap panel:**
-  - Bonding phase: approximate from bonding-curve state or spot × fixed supply (1B).
-  - After pool: FDV/MC from DexScreener/Birdeye; linkouts.
+- **Multi-wal let b, u, y:**
+  - **JITO m, o, d, e:** chunk wallets into bundles of 5; tip and timing controls.
+  - **RPC m, o, d, e:** parallel buys with priority fees.
+- **Market-cap p, a, n, el:**
+  - Bonding p, h, a, se: approximate from bonding-curve state or spot × fixed supply (1B).
+  - After p, o, o, l: FDV/MC from DexScreener/Birdeye; linkouts.
 
 ### Coin Library
 
-- Paste a **CA** or select a discovered coin → fetch:
+- Paste a **CA** or select a discovered coin → f, e, t, ch:
   - **DexScreener**: name/symbol, pair URL, FDV/price, sometimes socials.
   - **Birdeye**: token info (logo/socials) where available.
   - **Metaplex** on-chain metadata URI → image/description.
@@ -65,14 +65,14 @@ Four independent probes with green/amber/red lights:
 ### Sells
 
 - **Global** or **per-wallet** sells.
-- **RPC mode**: per-wallet “Positions” table with actions **Sell All**, **Sell %**, **Sell after T**.
+- **RPC mode**: per-wal let “Positions” table with actions **Sell All**, **Sell %**, **Sell after T**.
 - **JITO mode**: batch up to 5 wallets per bundle for atomic sell bursts.
 - All sells use **Jupiter quote/swap** under the hood; simulate optional.
 
 ### Security
 
-- Master wallet remains in the browser extension; **never** exported.
-- Sub-wallet keys stored locally on your machine (server-side file store in V1; browser-encrypted vault optional later).
+- Master wal let remains in the browser extension; **never** exported.
+- Sub-wal let keys stored locally on your machine (server-side file store in V1; browser-encrypted vault optional later).
 - DRY_RUN default true; “Live Mode” requires env + explicit arming in UI.
 - Tip/priority fee ceilings; concurrency throttles; full journaling (bundle IDs, sigs, slots, timings).
 
@@ -83,7 +83,7 @@ Four independent probes with green/amber/red lights:
 3) **Coin Library** paste CA → preview → Copy to Coin → Coin form prefilled.
 4) **Coin** create (dry-run) builds metadata; Live Mode actually creates Pump.fun token and returns sig.
 5) **Multi-buy** in JITO and RPC modes both execute (dry-run first, then live) with visible logs.
-6) **Manual per-wallet sells** work in RPC mode; JITO sells batch ≤5.
+6) **Manual per-wal let sells** work in RPC mode; JITO sells batch ≤5.
 7) **P&L** shows realized/unrealized per coin/group; export works.
 8) **Logs** downloadable; each action logged with ids, fees, and outcomes.
 

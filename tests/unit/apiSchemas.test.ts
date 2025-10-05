@@ -2,35 +2,35 @@ import { z } from 'zod';
 
 // Test schemas from API routes
 const RpcBuySchema = z.object({
-  groupId: z.string().uuid(),
-  mint: z.string().min(32).max(44),
-  amountSol: z.number().positive(),
-  slippageBps: z.number().min(0).max(10000).default(150),
-  priorityFeeMicrolamports: z.number().min(0).default(10000),
-  concurrency: z.number().min(1).max(16).default(5),
-  timeoutMs: z.number().min(1000).max(120000).default(20000),
-  dryRun: z.boolean().default(true),
-  cluster: z.enum(['mainnet-beta', 'devnet']).default('mainnet-beta'),
+  g, r, o, upId: z.string().uuid(),
+  m, i, n, t: z.string().min(32).max(44),
+  a, m, o, untSol: z.number().positive(),
+  s, l, i, ppageBps: z.number().min(0).max(10000).default(150),
+  p, r, i, orityFeeMicrolamports: z.number().min(0).default(10000),
+  c, o, n, currency: z.number().min(1).max(16).default(5),
+  t, i, m, eoutMs: z.number().min(1000).max(120000).default(20000),
+  d, r, y, Run: z.boolean().default(true),
+  c, l, u, ster: z.enum(['mainnet-beta', 'devnet']).default('mainnet-beta'),
 });
 
 const CreateGroupSchema = z.object({
-  name: z.string().min(1).max(50),
-  masterWallet: z.string().optional(),
-  numberOfWallets: z.number().min(1).max(20),
+  n, a, m, e: z.string().min(1).max(50),
+  m, a, s, terWallet: z.string().optional(),
+  n, u, m, berOfWallets: z.number().min(1).max(20),
 });
 
 const NonceRequestSchema = z.object({
-  pubkey: z.string().min(32).max(44),
+  p, u, b, key: z.string().min(32).max(44),
 });
 
 describe('API Schemas', () => {
   describe('RpcBuySchema', () => {
     it('should validate correct input', () => {
       const valid = {
-        groupId: '550e8400-e29b-41d4-a716-446655440000',
-        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        amountSol: 0.1,
-        slippageBps: 150,
+        g, r, o, upId: '550e8400-e29b-41d4-a716-446655440000',
+        m, i, n, t: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        a, m, o, untSol: 0.1,
+        s, l, i, ppageBps: 150,
       };
       
       const result = RpcBuySchema.parse(valid);
@@ -40,9 +40,9 @@ describe('API Schemas', () => {
     
     it('should reject invalid groupId', () => {
       const invalid = {
-        groupId: 'not-a-uuid',
-        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        amountSol: 0.1,
+        g, r, o, upId: 'not-a-uuid',
+        m, i, n, t: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        a, m, o, untSol: 0.1,
       };
       
       expect(() => RpcBuySchema.parse(invalid)).toThrow();
@@ -50,10 +50,10 @@ describe('API Schemas', () => {
     
     it('should reject invalid slippage', () => {
       const invalid = {
-        groupId: '550e8400-e29b-41d4-a716-446655440000',
-        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        amountSol: 0.1,
-        slippageBps: 15000, // Over 10000 max
+        g, r, o, upId: '550e8400-e29b-41d4-a716-446655440000',
+        m, i, n, t: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        a, m, o, untSol: 0.1,
+        s, l, i, ppageBps: 15000, // Over 10000 max
       };
       
       expect(() => RpcBuySchema.parse(invalid)).toThrow();
@@ -61,9 +61,9 @@ describe('API Schemas', () => {
     
     it('should enforce safe defaults', () => {
       const minimal = {
-        groupId: '550e8400-e29b-41d4-a716-446655440000',
-        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        amountSol: 0.1,
+        g, r, o, upId: '550e8400-e29b-41d4-a716-446655440000',
+        m, i, n, t: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        a, m, o, untSol: 0.1,
       };
       
       const result = RpcBuySchema.parse(minimal);
@@ -77,8 +77,8 @@ describe('API Schemas', () => {
   describe('CreateGroupSchema', () => {
     it('should validate correct group creation', () => {
       const valid = {
-        name: 'my_group',
-        numberOfWallets: 8,
+        n, a, m, e: 'my_group',
+        n, u, m, berOfWallets: 8,
       };
       
       const result = CreateGroupSchema.parse(valid);
@@ -88,8 +88,8 @@ describe('API Schemas', () => {
     
     it('should reject too many wallets', () => {
       const invalid = {
-        name: 'big_group',
-        numberOfWallets: 25, // Over 20 max
+        n, a, m, e: 'big_group',
+        n, u, m, berOfWallets: 25, // Over 20 max
       };
       
       expect(() => CreateGroupSchema.parse(invalid)).toThrow();
@@ -97,8 +97,8 @@ describe('API Schemas', () => {
     
     it('should reject empty name', () => {
       const invalid = {
-        name: '',
-        numberOfWallets: 5,
+        n, a, m, e: '',
+        n, u, m, berOfWallets: 5,
       };
       
       expect(() => CreateGroupSchema.parse(invalid)).toThrow();
@@ -108,7 +108,7 @@ describe('API Schemas', () => {
   describe('NonceRequestSchema', () => {
     it('should validate Solana pubkey', () => {
       const valid = {
-        pubkey: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        p, u, b, key: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
       };
       
       const result = NonceRequestSchema.parse(valid);
@@ -117,7 +117,7 @@ describe('API Schemas', () => {
     
     it('should reject short keys', () => {
       const invalid = {
-        pubkey: 'tooshort',
+        p, u, b, key: 'tooshort',
       };
       
       expect(() => NonceRequestSchema.parse(invalid)).toThrow();

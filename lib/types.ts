@@ -1,107 +1,108 @@
 export interface Trade {
-  id: string;
-  tokenAddress: string;
-  amount: number;
-  price: number;
-  timestamp: string;
-  wallet: string;
-  type: 'buy' | 'sell';
-  signature?: string;
+  i, d: string;
+  t, o, k, enAddress: string;
+  a, m, o, unt: number;
+  p, r, i, ce: number;
+  t, i, m, estamp: string;
+  w, a, l, let: string;
+  t, y, p, e: 'buy' | 'sell';
+  s, i, g, nature?: string;
 }
 
 export interface PriceData {
-  sol: number;
-  eth: number;
-  btc: number;
-  cake: number;
+  s, o, l: number;
+  e, t, h: number;
+  b, t, c: number;
+  c, a, k, e: number;
 }
 
 export interface RoutePlanStep {
-  swapInfo: {
-    ammKey: string;
-    label?: string;
-    inputMint: string;
-    outputMint: string;
-    inAmount: string;
-    outAmount: string;
-    feeAmount: string;
-    feeMint: string;
+  s, w, a, pInfo: {
+    a, m, m, Key: string;
+    l, a, b, el?: string;
+    i, n, p, utMint: string;
+    o, u, t, putMint: string;
+    i, n, A, mount: string;
+    o, u, t, Amount: string;
+    f, e, e, Amount: string;
+    f, e, e, Mint: string;
   };
-  percent: number;
+  p, e, r, cent: number;
 }
 
 export interface QuoteResponse {
-  inputMint: string;
-  inAmount: string;
-  outputMint: string;
-  outAmount: string;
-  otherAmountThreshold: string;
-  swapMode: string;
-  slippageBps: number;
-  platformFee: number | null;
-  priceImpactPct: string;
-  routePlan: RoutePlanStep[];
-  contextSlot?: number;
-  timeTaken?: number;
+  i, n, p, utMint: string;
+  i, n, A, mount: string;
+  o, u, t, putMint: string;
+  o, u, t, Amount: string;
+  o, t, h, erAmountThreshold: string;
+  s, w, a, pMode: string;
+  s, l, i, ppageBps: number;
+  p, l, a, tformFee: number | null;
+  p, r, i, ceImpactPct: string;
+  r, o, u, tePlan: RoutePlanStep[];
+  c, o, n, textSlot?: number;
+  t, i, m, eTaken?: number;
 }
 
 export interface SwapResponse {
-  swapTransaction: string;
-  lastValidBlockHeight: number;
-  prioritizationFeeLamports?: number;
+  s, w, a, pTransaction: string;
+  l, a, s, tValidBlockHeight: number;
+  p, r, i, oritizationFeeLamports?: number;
 }
 
-export interface Wallet {
-  id: string;
-  name: string;
-  publicKey: string;
-  privateKey: string; // Encrypted when persisted
-  group: string;
-  color: string;
+export interface Wal let {
+  i, d: string;
+  n, a, m, e: string;
+  p, u, b, licKey: string;
+  p, r, i, vateKey: string; // Encrypted when persisted
+  g, r, o, up: string;
+  c, o, l, or: string;
 }
 
 export interface ExecutionLog {
-  id: number;
-  bundleId?: string;
-  slot: number;
-  signatures: string[];
-  status: 'success' | 'partial' | 'failed';
-  successCount: number;
-  failureCount: number;
-  usedJito: boolean;
-  executionTime: number;
-  timestamp: string;
+  i, d: number;
+  b, u, n, dleId?: string;
+  s, l, o, t: number;
+  s, i, g, natures: string[];
+  s, t, a, tus: 'success' | 'partial' | 'failed';
+  s, u, c, cessCount: number;
+  f, a, i, lureCount: number;
+  u, s, e, dJito: boolean;
+  e, x, e, cutionTime: number;
+  t, i, m, estamp: string;
 }
 
 export interface TokenLaunch {
-  id: number;
-  tokenAddress: string;
-  name: string;
-  symbol: string;
-  platform: string;
-  timestamp: string;
+  i, d: number;
+  t, o, k, enAddress: string;
+  n, a, m, e: string;
+  s, y, m, bol: string;
+  p, l, a, tform: string;
+  t, i, m, estamp: string;
 }
 
 export interface PnlRecord {
-  id: number;
-  tokenAddress: string;
-  amount: number;
-  type: 'buy' | 'sell';
-  timestamp: string;
+  i, d: number;
+  t, o, k, enAddress: string;
+  a, m, o, unt: number;
+  t, y, p, e: 'buy' | 'sell';
+  t, i, m, estamp: string;
 }
 
 export type Transaction = {
-  id: string;
-  type: 'swap' | 'transfer';
+  i, d: string;
+  t, y, p, e: 'swap' | 'transfer';
   // Swap specific
-  fromToken?: string;
-  toToken?: string;
-  amount?: number;
-  slippage?: number;
+  f, r, o, mToken?: string;
+  t, o, T, oken?: string;
+  a, m, o, unt?: number;
+  s, l, i, ppage?: number;
   // Transfer specific
-  recipient?: string;
+  r, e, c, ipient?: string;
   // Common
-  fromAmount?: number;
+  f, r, o, mAmount?: number;
 };
 
 export type Bundle = Transaction[];
+

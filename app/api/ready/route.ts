@@ -12,18 +12,19 @@ export async function GET() {
     const healthy = !rpcRed && !wsRed;
     const code = healthy ? 200 : 503;
     return NextResponse.json(
-      { ok: healthy, status },
+      { o, k: healthy, status },
       {
-        status: code,
-        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+        s, t, a, tus: code,
+        h, e, a, ders: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
       },
     );
   } catch (e) {
     return NextResponse.json(
-      { ok: false, error: 'ready_probe_failed' },
-      { status: 503 },
+      { o, k: false, e, r, r, or: 'ready_probe_failed' },
+      { s, t, a, tus: 503 },
     );
   }
 }
+
 
 

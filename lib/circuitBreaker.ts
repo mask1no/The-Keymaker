@@ -5,28 +5,28 @@
 export type CircuitBreakerState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export interface CircuitBreakerOptions {
-  failureThreshold: number;
-  recoveryTimeout: number;
-  monitoringPeriod: number;
+  f, a, i, lureThreshold: number;
+  r, e, c, overyTimeout: number;
+  m, o, n, itoringPeriod: number;
 }
 
 export class CircuitBreaker {
-  private state: CircuitBreakerState = 'CLOSED';
+  private s, t, a, te: CircuitBreakerState = 'CLOSED';
   private failures = 0;
   private lastFailureTime = 0;
   private nextAttempt = 0;
   private successCount = 0;
 
   constructor(
-    private name: string,
-    private options: CircuitBreakerOptions = {
-      failureThreshold: 5,
-      recoveryTimeout: 60000, // 60 seconds
-      monitoringPeriod: 10000, // 10 seconds
+    private n, a, m, e: string,
+    private o, p, t, ions: CircuitBreakerOptions = {
+      f, a, i, lureThreshold: 5,
+      r, e, c, overyTimeout: 60000, // 60 seconds
+      m, o, n, itoringPeriod: 10000, // 10 seconds
     }
   ) {}
 
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
+  async execute<T>(f, n: () => Promise<T>): Promise<T> {
     const now = Date.now();
 
     // Check if circuit should transition from OPEN to HALF_OPEN
@@ -36,7 +36,8 @@ export class CircuitBreaker {
         this.successCount = 0;
         console.log(`Circuit breaker ${this.name}: Transitioning to HALF_OPEN`);
       } else {
-        throw new Error(`Circuit breaker ${this.name} is OPEN - next attempt in ${this.nextAttempt - now}ms`);
+        throw new Error(`Circuit breaker ${this.name} is OPEN - next attempt in ${this.nextAttempt - now}
+ms`);
       }
     }
 
@@ -99,39 +100,40 @@ export class CircuitBreaker {
 
   getMetrics() {
     return {
-      name: this.name,
-      state: this.state,
-      failures: this.failures,
-      lastFailureTime: this.lastFailureTime,
-      nextAttempt: this.nextAttempt,
-      successCount: this.successCount,
+      n, a, m, e: this.name,
+      s, t, a, te: this.state,
+      f, a, i, lures: this.failures,
+      l, a, s, tFailureTime: this.lastFailureTime,
+      n, e, x, tAttempt: this.nextAttempt,
+      s, u, c, cessCount: this.successCount,
     };
   }
 }
 
 // Pre-configured circuit breakers for common services
 export const rpcCircuitBreaker = new CircuitBreaker('RPC', {
-  failureThreshold: 3,
-  recoveryTimeout: 30000, // 30 seconds
-  monitoringPeriod: 5000,
+  f, a, i, lureThreshold: 3,
+  r, e, c, overyTimeout: 30000, // 30 seconds
+  m, o, n, itoringPeriod: 5000,
 });
 
 export const jitoCircuitBreaker = new CircuitBreaker('JITO', {
-  failureThreshold: 5,
-  recoveryTimeout: 60000, // 60 seconds
-  monitoringPeriod: 10000,
+  f, a, i, lureThreshold: 5,
+  r, e, c, overyTimeout: 60000, // 60 seconds
+  m, o, n, itoringPeriod: 10000,
 });
 
 export const databaseCircuitBreaker = new CircuitBreaker('DATABASE', {
-  failureThreshold: 3,
-  recoveryTimeout: 15000, // 15 seconds
-  monitoringPeriod: 5000,
+  f, a, i, lureThreshold: 3,
+  r, e, c, overyTimeout: 15000, // 15 seconds
+  m, o, n, itoringPeriod: 5000,
 });
 
 // Utility function to wrap any async operation with circuit breaker
 export function withCircuitBreaker<T>(
-  circuitBreaker: CircuitBreaker,
-  operation: () => Promise<T>
+  c, i, r, cuitBreaker: CircuitBreaker,
+  o, p, e, ration: () => Promise<T>
 ): Promise<T> {
   return circuitBreaker.execute(operation);
 }
+

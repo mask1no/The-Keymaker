@@ -15,3 +15,4 @@ describe('tip validation', () => {
     expect(isValidTipRecipient(to.toBase58())).toBe(false);
   });
 });
+

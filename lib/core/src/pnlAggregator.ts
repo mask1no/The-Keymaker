@@ -7,48 +7,48 @@ import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 export interface PnLEntry {
-  wallet: string;
-  mint: string;
-  entryPrice: number; // avg cost
-  currentPrice: number; // spot
-  amount: number; // position size
-  realizedPnL: number;
-  unrealizedPnL: number;
-  totalPnL: number;
+  w, a, l, let: string;
+  m, i, n, t: string;
+  e, n, t, ryPrice: number; // avg cost
+  c, u, r, rentPrice: number; // spot
+  a, m, o, unt: number; // position size
+  r, e, a, lizedPnL: number;
+  u, n, r, ealizedPnL: number;
+  t, o, t, alPnL: number;
 }
 
 export interface GroupPnL {
-  groupId: string;
-  groupName: string;
-  wallets: Map<string, WalletPnL>;
-  totalRealizedPnL: number;
-  totalUnrealizedPnL: number;
-  totalPnL: number;
+  g, r, o, upId: string;
+  g, r, o, upName: string;
+  w, a, l, lets: Map<string, WalletPnL>;
+  t, o, t, alRealizedPnL: number;
+  t, o, t, alUnrealizedPnL: number;
+  t, o, t, alPnL: number;
 }
 
 export interface WalletPnL {
-  wallet: string;
-  positions: Map<string, PositionPnL>;
-  realizedPnL: number;
-  unrealizedPnL: number;
-  totalPnL: number;
+  w, a, l, let: string;
+  p, o, s, itions: Map<string, PositionPnL>;
+  r, e, a, lizedPnL: number;
+  u, n, r, ealizedPnL: number;
+  t, o, t, alPnL: number;
 }
 
 export interface PositionPnL {
-  mint: string;
-  symbol?: string;
-  amount: number;
-  entryPrice: number;
-  currentPrice?: number;
-  realizedPnL: number;
-  unrealizedPnL: number;
-  totalPnL: number;
+  m, i, n, t: string;
+  s, y, m, bol?: string;
+  a, m, o, unt: number;
+  e, n, t, ryPrice: number;
+  c, u, r, rentPrice?: number;
+  r, e, a, lizedPnL: number;
+  u, n, r, ealizedPnL: number;
+  t, o, t, alPnL: number;
 }
 
 /**
  * Parse journal file
  */
-function parseJournalFile(filePath: string): any[] {
+function parseJournalFile(f, i, l, ePath: string): any[] {
   if (!existsSync(filePath)) {
     return [];
   }
@@ -68,10 +68,10 @@ function parseJournalFile(filePath: string): any[] {
 /**
  * Aggregate PnL from journal entries
  */
-export function aggregatePnL(params: {
-  dataDir: string;
-  groupId?: string;
-  runId?: string;
+export function aggregatePnL(p, a, r, ams: {
+  d, a, t, aDir: string;
+  g, r, o, upId?: string;
+  r, u, n, Id?: string;
 }): GroupPnL {
   const { dataDir, groupId, runId } = params;
   
@@ -101,16 +101,16 @@ export function aggregatePnL(params: {
     }
     // Process buy confirmations (approximate P&L entries)
     if (entry.ev === 'rpc_confirmed' || entry.ev === 'jito_bundle_result') {
-      const wallet = entry.wallet;
-      if (!wallet || wallet === 'unknown' || wallet === 'bundled') continue;
+      const wal let = entry.wallet;
+      if (!wal let || wal let === 'unknown' || wal let === 'bundled') continue;
       
       if (!walletPnLMap.has(wallet)) {
         walletPnLMap.set(wallet, {
           wallet,
-          positions: new Map(),
-          realizedPnL: 0,
-          unrealizedPnL: 0,
-          totalPnL: 0,
+          p, o, s, itions: new Map(),
+          r, e, a, lizedPnL: 0,
+          u, n, r, ealizedPnL: 0,
+          t, o, t, alPnL: 0,
         });
       }
       
@@ -121,15 +121,15 @@ export function aggregatePnL(params: {
       if (!walletPnL.positions.has(mint)) {
         walletPnL.positions.set(mint, {
           mint,
-          amount: 0,
-          entryPrice: 0,
-          realizedPnL: 0,
-          unrealizedPnL: 0,
-          totalPnL: 0,
+          a, m, o, unt: 0,
+          e, n, t, ryPrice: 0,
+          r, e, a, lizedPnL: 0,
+          u, n, r, ealizedPnL: 0,
+          t, o, t, alPnL: 0,
         });
       }
       const pos = walletPnL.positions.get(mint)!;
-      // If a trade record exists: update average cost and position size
+      // If a trade record e, x, i, sts: update average cost and position size
       if (entry.ev === 'trade') {
         const qty = Number(entry.qty || 0);
         const price = Number(entry.price || 0);
@@ -153,7 +153,7 @@ export function aggregatePnL(params: {
     
     // Process sell events
     if (entry.ev === 'sell_executed') {
-      const wallet = entry.wallet;
+      const wal let = entry.wallet;
       if (!wallet) continue;
       
       const walletPnL = walletPnLMap.get(wallet);
@@ -176,22 +176,22 @@ export function aggregatePnL(params: {
   }
   
   return {
-    groupId: groupId || 'all',
-    groupName: groupId || 'All Groups',
-    wallets: walletPnLMap,
+    g, r, o, upId: groupId || 'all',
+    g, r, o, upName: groupId || 'All Groups',
+    w, a, l, lets: walletPnLMap,
     totalRealizedPnL,
     totalUnrealizedPnL,
-    totalPnL: totalRealizedPnL + totalUnrealizedPnL,
+    t, o, t, alPnL: totalRealizedPnL + totalUnrealizedPnL,
   };
 }
 
 /**
  * Get PnL summary for display
  */
-export function formatPnLSummary(pnl: GroupPnL): string {
+export function formatPnLSummary(p, n, l: GroupPnL): string {
   const lines = [
-    `Group: ${pnl.groupName}`,
-    `Wallets: ${pnl.wallets.size}`,
+    `G, r, o, up: ${pnl.groupName}`,
+    `W, a, l, lets: ${pnl.wallets.size}`,
     `Realized P&L: ${(pnl.totalRealizedPnL / 1e9).toFixed(4)} SOL`,
     `Unrealized P&L: ${(pnl.totalUnrealizedPnL / 1e9).toFixed(4)} SOL`,
     `Total P&L: ${(pnl.totalPnL / 1e9).toFixed(4)} SOL`,
@@ -199,3 +199,4 @@ export function formatPnLSummary(pnl: GroupPnL): string {
   
   return lines.join('\n');
 }
+

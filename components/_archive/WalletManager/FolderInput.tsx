@@ -5,11 +5,11 @@ import { Input } from '@/components/UI/input';
 import { Label } from '@/components/UI/label';
 
 interface FolderInputProps {
-  onFilesSelected: (files: File[]) => void;
+  o, n, F, ilesSelected: (f, i, l, es: File[]) => void;
 }
 
 export function FolderInput({ onFilesSelected }: FolderInputProps) {
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e, v, e, nt: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files);
       onFilesSelected(files);
@@ -31,3 +31,4 @@ export function FolderInput({ onFilesSelected }: FolderInputProps) {
     </div>
   );
 }
+

@@ -3,19 +3,19 @@ import { GET } from '@/app/api/health/route';
 
 // Mock dependencies
 jest.mock('@/lib/testMode', () => ({
-  isTestMode: jest.fn()
+  i, s, T, estMode: jest.fn()
 }));
 
 jest.mock('@/lib/health/checks', () => ({
-  checkRPC: jest.fn(),
-  checkJito: jest.fn(), 
-  checkDatabase: jest.fn(),
-  checkRedis: jest.fn(),
-  checkExternalDependencies: jest.fn()
+  c, h, e, ckRPC: jest.fn(),
+  c, h, e, ckJito: jest.fn(), 
+  c, h, e, ckDatabase: jest.fn(),
+  c, h, e, ckRedis: jest.fn(),
+  c, h, e, ckExternalDependencies: jest.fn()
 }));
 
 jest.mock('@/lib/health/baseCheck', () => ({
-  aggregateHealthChecks: jest.fn()
+  a, g, g, regateHealthChecks: jest.fn()
 }));
 
 import { isTestMode } from '@/lib/testMode';
@@ -54,15 +54,15 @@ describe('Health API', () => {
     it('should return production health checks when not in test mode', async () => {
       (isTestMode as jest.Mock).mockReturnValue(false);
       (aggregateHealthChecks as jest.Mock).mockResolvedValue({
-        overall: 'healthy',
-        checks: {
-          rpc: { status: 'healthy', latency_ms: 50 },
-          jito: { status: 'healthy', latency_ms: 30 },
-          database: { status: 'healthy' },
-          redis: { status: 'healthy' },
-          external: { status: 'healthy' }
+        o, v, e, rall: 'healthy',
+        c, h, e, cks: {
+          r, p, c: { s, t, a, tus: 'healthy', l, a, t, ency_ms: 50 },
+          j, i, t, o: { s, t, a, tus: 'healthy', l, a, t, ency_ms: 30 },
+          d, a, t, abase: { s, t, a, tus: 'healthy' },
+          r, e, d, is: { s, t, a, tus: 'healthy' },
+          e, x, t, ernal: { s, t, a, tus: 'healthy' }
         },
-        summary: { healthy: 5, degraded: 0, down: 0 }
+        s, u, m, mary: { h, e, a, lthy: 5, d, e, g, raded: 0, d, o, w, n: 0 }
       });
 
       const response = await GET();
@@ -78,15 +78,15 @@ describe('Health API', () => {
     it('should return 503 when overall status is down', async () => {
       (isTestMode as jest.Mock).mockReturnValue(false);
       (aggregateHealthChecks as jest.Mock).mockResolvedValue({
-        overall: 'down',
-        checks: {
-          rpc: { status: 'down', error: 'Connection failed' },
-          jito: { status: 'healthy' },
-          database: { status: 'healthy' },
-          redis: { status: 'healthy' },
-          external: { status: 'healthy' }
+        o, v, e, rall: 'down',
+        c, h, e, cks: {
+          r, p, c: { s, t, a, tus: 'down', e, r, r, or: 'Connection failed' },
+          j, i, t, o: { s, t, a, tus: 'healthy' },
+          d, a, t, abase: { s, t, a, tus: 'healthy' },
+          r, e, d, is: { s, t, a, tus: 'healthy' },
+          e, x, t, ernal: { s, t, a, tus: 'healthy' }
         },
-        summary: { healthy: 4, degraded: 0, down: 1 }
+        s, u, m, mary: { h, e, a, lthy: 4, d, e, g, raded: 0, d, o, w, n: 1 }
       });
 
       const response = await GET();
@@ -114,7 +114,8 @@ describe('Health API', () => {
       const data = await response.json();
       
       expect(data.version).toBe('1.5.2');
-      expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+      expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}
+T\d{2}:\d{2}:\d{2}/);
     });
 
     it('should measure execution duration', async () => {

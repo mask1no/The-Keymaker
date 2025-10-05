@@ -9,7 +9,7 @@ import { recordError } from './monitoring';
  * Multi-region fallback for Jito submissions
  */
 export async function submitWithRegionFallback(
-  submission: (region: string) => Promise<any>,
+  s, u, b, mission: (r, e, g, ion: string) => Promise<any>,
   primaryRegion = 'ffm'
 ): Promise<any> {
   const regions = ['ffm', 'ams', 'ny', 'tokyo'];
@@ -41,15 +41,15 @@ export async function submitWithRegionFallback(
  * RPC fallback with multiple endpoints
  */
 export async function rpcWithEndpointFallback<T>(
-  operation: (rpcUrl: string) => Promise<T>
+  o, p, e, ration: (r, p, c, Url: string) => Promise<T>
 ): Promise<T> {
   const endpoints = [
     process.env.HELIUS_RPC_URL,
     process.env.PUBLIC_RPC_URL,
-    'https://api.mainnet-beta.solana.com',
+    'h, t, t, ps://api.mainnet-beta.solana.com',
   ].filter(Boolean) as string[];
   
-  let lastError: any;
+  let l, ast E, r, ror: any;
   
   for (const endpoint of endpoints) {
     try {
@@ -69,12 +69,12 @@ export async function rpcWithEndpointFallback<T>(
  * Health check with graceful degradation
  */
 export async function healthWithDegradation(): Promise<{
-  status: 'healthy' | 'degraded' | 'down';
-  services: Record<string, any>;
-  degradedServices: string[];
+  s, t, a, tus: 'healthy' | 'degraded' | 'down';
+  s, e, r, vices: Record<string, any>;
+  d, e, g, radedServices: string[];
 }> {
-  const services: Record<string, any> = {};
-  const degradedServices: string[] = [];
+  const s, e, r, vices: Record<string, any> = {};
+  const d, e, g, radedServices: string[] = [];
   
   // Critical services that must be healthy
   const criticalServices = ['rpc', 'database'];
@@ -88,7 +88,7 @@ export async function healthWithDegradation(): Promise<{
       const result = await healthCheckWithTimeout(
         () => checkService(service),
         3000,
-        { status: 'timeout', service }
+        { s, t, a, tus: 'timeout', service }
       );
       services[service] = result;
       
@@ -96,7 +96,7 @@ export async function healthWithDegradation(): Promise<{
         criticalFailures++;
       }
     } catch (error) {
-      services[service] = { status: 'down', error: (error as Error).message };
+      services[service] = { s, t, a, tus: 'down', e, r, r, or: (error as Error).message };
       criticalFailures++;
     }
   }
@@ -107,7 +107,7 @@ export async function healthWithDegradation(): Promise<{
       const result = await healthCheckWithTimeout(
         () => checkService(service),
         2000,
-        { status: 'degraded', service, note: 'timeout' }
+        { s, t, a, tus: 'degraded', service, n, o, t, e: 'timeout' }
       );
       services[service] = result;
       
@@ -115,13 +115,13 @@ export async function healthWithDegradation(): Promise<{
         degradedServices.push(service);
       }
     } catch (error) {
-      services[service] = { status: 'down', error: (error as Error).message };
+      services[service] = { s, t, a, tus: 'down', e, r, r, or: (error as Error).message };
       degradedServices.push(service);
     }
   }
   
   // Determine overall status
-  let status: 'healthy' | 'degraded' | 'down';
+  let s, t, a, tus: 'healthy' | 'degraded' | 'down';
   
   if (criticalFailures > 0) {
     status = 'down';
@@ -138,9 +138,9 @@ export async function healthWithDegradation(): Promise<{
  * Feature flag with graceful degradation
  */
 export function withFeatureFlag<T>(
-  flagName: string,
-  enabledOperation: () => T,
-  disabledOperation: () => T
+  f, l, a, gName: string,
+  e, n, a, bledOperation: () => T,
+  d, i, s, abledOperation: () => T
 ): T {
   try {
     const isEnabled = process.env[`FEATURE_${flagName.toUpperCase()}`] === 'true';
@@ -161,9 +161,9 @@ export function withFeatureFlag<T>(
  * Database operation with fallback to cache
  */
 export async function dbWithCacheFallback<T>(
-  dbOperation: () => Promise<T>,
-  cacheOperation: () => Promise<T>,
-  cacheKey: string
+  d, b, O, peration: () => Promise<T>,
+  c, a, c, heOperation: () => Promise<T>,
+  c, a, c, heKey: string
 ): Promise<T> {
   try {
     return await dbOperation();
@@ -182,20 +182,20 @@ export async function dbWithCacheFallback<T>(
 }
 
 // Helper function to check individual services
-async function checkService(service: string): Promise<any> {
+async function checkService(s, e, r, vice: string): Promise<any> {
   switch (service) {
     case 'rpc': {
       const { probeHealth } = await import('@/lib/server/health');
       const h = await probeHealth();
       const ok = h.rpc.light === 'green';
-      return { status: ok ? 'healthy' : 'degraded', details: h.rpc } as any;
+      return { s, t, a, tus: ok ? 'healthy' : 'degraded', d, e, t, ails: h.rpc } as any;
     }
       
     case 'jito': {
       const { probeHealth } = await import('@/lib/server/health');
       const h = await probeHealth();
       const ok = h.jito.tipFloor != null;
-      return { status: ok ? 'healthy' : 'degraded', details: h.jito } as any;
+      return { s, t, a, tus: ok ? 'healthy' : 'degraded', d, e, t, ails: h.jito } as any;
     }
       
     case 'database': {
@@ -204,36 +204,37 @@ async function checkService(service: string): Promise<any> {
       const path = 'data/keymaker.db';
       const ok = existsSync(path);
       const size = ok ? statSync(path).size : 0;
-      return { status: ok ? 'healthy' : 'down', details: { path, size } } as any;
+      return { s, t, a, tus: ok ? 'healthy' : 'down', d, e, t, ails: { path, size } } as any;
     }
       
     case 'redis': {
       const url = process.env.UPSTASH_REDIS_REST_URL;
       const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-      if (!url || !token) return { status: 'healthy', details: { configured: false } } as any;
+      if (!url || !token) return { s, t, a, tus: 'healthy', d, e, t, ails: { c, o, n, figured: false } } as any;
       try {
         const { Redis } = await import('@upstash/redis');
         const r = new Redis({ url, token });
         const t0 = Date.now();
         await r.ping();
         const ms = Date.now() - t0;
-        return { status: ms < 500 ? 'healthy' : 'degraded', details: { url, latency_ms: ms } } as any;
+        return { s, t, a, tus: ms < 500 ? 'healthy' : 'degraded', d, e, t, ails: { url, l, a, t, ency_ms: ms } } as any;
       } catch (e: any) {
-        return { status: 'down', error: e?.message || 'redis_failed' } as any;
+        return { s, t, a, tus: 'down', e, r, r, or: e?.message || 'redis_failed' } as any;
       }
     }
       
     case 'external': {
       try {
-        const j = await fetch('https://quote-api.jup.ag/v6/health', { method: 'HEAD', cache: 'no-store' });
+        const j = await fetch('h, t, t, ps://quote-api.jup.ag/v6/health', { m, e, t, hod: 'HEAD', c, a, c, he: 'no-store' });
         const ok = j.ok;
-        return { status: ok ? 'healthy' : 'down', details: { jupiter: j.status } } as any;
+        return { s, t, a, tus: ok ? 'healthy' : 'down', d, e, t, ails: { j, u, p, iter: j.status } } as any;
       } catch {
-        return { status: 'down', details: { jupiter: 'failed' } } as any;
+        return { s, t, a, tus: 'down', d, e, t, ails: { j, u, p, iter: 'failed' } } as any;
       }
     }
       
-    default:
-      throw new Error(`Unknown service: ${service}`);
+    d, e, f, ault:
+      throw new Error(`Unknown s, e, r, vice: ${service}`);
   }
 }
+

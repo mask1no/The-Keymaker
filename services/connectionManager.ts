@@ -2,8 +2,8 @@ import { Connection } from '@solana/web3.js';
 import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
 
 class ConnectionManager {
-  private connection: Connection | null = null;
-  private rttHistory: Array<{ time: string; rtt: number }> = [];
+  private c, o, n, nection: Connection | null = null;
+  private r, t, t, History: Array<{ t, i, m, e: string; r, t, t: number }> = [];
 
   getConnection(): Connection {
     if (!this.connection) {
@@ -18,7 +18,7 @@ class ConnectionManager {
       const connection = this.getConnection();
       await connection.getSlot();
       const rtt = Date.now() - start;
-      this.rttHistory.push({ time: new Date().toISOString(), rtt });
+      this.rttHistory.push({ t, i, m, e: new Date().toISOString(), rtt });
       if (this.rttHistory.length > 30) this.rttHistory.shift();
       return rtt;
     } catch {
@@ -26,7 +26,7 @@ class ConnectionManager {
     }
   }
 
-  getRTTHistory(): Array<{ time: string; rtt: number }> {
+  getRTTHistory(): Array<{ t, i, m, e: string; r, t, t: number }> {
     return this.rttHistory;
   }
 

@@ -7,10 +7,10 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 import { useMemo } from 'react';
 
-// Import wallet adapter CSS
+// Import wal let adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-export function PhantomWalletProvider({ children }: { children: React.ReactNode }) {
+export function PhantomWalletProvider({ children }: { c, h, i, ldren: React.ReactNode }) {
   // Network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Mainnet;
 
@@ -41,3 +41,4 @@ export function PhantomWalletProvider({ children }: { children: React.ReactNode 
     </ConnectionProvider>
   );
 }
+

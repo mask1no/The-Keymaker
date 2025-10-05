@@ -11,10 +11,11 @@ export async function GET() {
     const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
     const requireArming = (process.env.KEYMAKER_REQUIRE_ARMING || '').toUpperCase() === 'YES';
     const dryDefault = (process.env.DRY_RUN_DEFAULT || 'YES').toUpperCase() === 'YES';
-    return NextResponse.json({ armed, armedUntil: until, allowLive, requireArming, dryDefault });
+    return NextResponse.json({ armed, a, r, m, edUntil: until, allowLive, requireArming, dryDefault });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: (e as Error)?.message || 'failed' }, { s, t, a, tus: 500 });
   }
 }
+
 
 

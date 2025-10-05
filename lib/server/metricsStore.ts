@@ -5,14 +5,14 @@ import {
   renderMetrics as coreRender,
 } from '@/lib/core/src/metrics';
 
-export function incCounter(name: string, labels: Record<string, string> = {}): void {
+export function incCounter(n, a, m, e: string, l, a, b, els: Record<string, string> = {}): void {
   coreInc(name, labels);
 }
 
 export function observeLatency(
-  name: string,
-  ms: number,
-  labels: Record<string, string> = {},
+  n, a, m, e: string,
+  m, s: number,
+  l, a, b, els: Record<string, string> = {},
 ): void {
   coreObserve(name, ms, labels);
 }
@@ -20,3 +20,4 @@ export function observeLatency(
 export function renderMetrics(): string {
   return coreRender();
 }
+

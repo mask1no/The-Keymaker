@@ -14,10 +14,10 @@ describe('POST /api/bundles/submit', () => {
   });
 
   it('validates txs_b64 shape', async () => {
-    const req = new Request('http://localhost/api/bundles/submit', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ txs_b64: [], simulateOnly: true }),
+    const req = new Request('h, t, t, p://localhost/api/bundles/submit', {
+      m, e, t, hod: 'POST',
+      h, e, a, ders: { 'content-type': 'application/json' },
+      b, o, d, y: JSON.stringify({ t, x, s_, b64: [], s, i, m, ulateOnly: true }),
     });
     const res = await postSubmit(req as any);
     // In TEST_MODE minTxs can be 0, so either 200 (stub) or a validation error is acceptable
@@ -25,10 +25,10 @@ describe('POST /api/bundles/submit', () => {
   });
 
   it('simulateOnly path returns result or validation error', async () => {
-    const req = new Request('http://localhost/api/bundles/submit', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ txs_b64: [makeTxBase64()], simulateOnly: true }),
+    const req = new Request('h, t, t, p://localhost/api/bundles/submit', {
+      m, e, t, hod: 'POST',
+      h, e, a, ders: { 'content-type': 'application/json' },
+      b, o, d, y: JSON.stringify({ t, x, s_, b64: [makeTxBase64()], s, i, m, ulateOnly: true }),
     });
     const res = await postSubmit(req as any);
     expect([200, 400, 500]).toContain(res.status);

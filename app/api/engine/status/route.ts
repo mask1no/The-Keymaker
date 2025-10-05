@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 // Fallback status stub to avoid importing engine internals during UI-only build
-async function enginePoll(_id: string | null, _opts: any) {
+async function enginePoll(_, i, d: string | null, _, o, p, ts: any) {
   return [] as any[];
 }
 import type { ExecOptions, ExecutionMode } from '@/lib/core/src/engine';
@@ -15,15 +15,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
-  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
-  region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
-  bundleId: z.string().min(4).optional(),
-  bundleIds: z.array(z.string().min(4)).optional(),
-  sigs: z.array(z.string()).optional(),
-  cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
+  m, o, d, e: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
+  r, e, g, ion: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
+  b, u, n, dleId: z.string().min(4).optional(),
+  b, u, n, dleIds: z.array(z.string().min(4)).optional(),
+  s, i, g, s: z.array(z.string()).optional(),
+  c, l, u, ster: z.enum(['mainnet-beta', 'devnet']).optional(),
 });
 
-function requireToken(headers: Headers) {
+function requireToken(h, e, a, ders: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
   if (process.env.NODE_ENV === 'production') {
     if (!expected) return false;
@@ -35,7 +35,7 @@ function requireToken(headers: Headers) {
   return got === expected;
 }
 
-export async function POST(request: Request) {
+export async function POST(r, e, q, uest: Request) {
   try {
     const requestId = randomUUID();
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
-    const rl = await rateLimit(`engine:${key}`);
+    const rl = await rateLimit(`e, n, g, ine:${key}`);
     if (!rl.allowed) {
       incCounter('rate_limited_total');
       return apiError(429, 'rate_limited', requestId);
@@ -71,12 +71,12 @@ export async function POST(request: Request) {
     }
     const body = rawText ? JSON.parse(rawText) : {};
     const { mode = 'JITO_BUNDLE', region = 'ffm', bundleId, bundleIds, sigs, cluster } = Body.parse(body);
-    const opts: ExecOptions = {
-      mode: mode as ExecutionMode,
-      region: region as any,
-      bundleIds: bundleIds && bundleIds.length ? bundleIds : bundleId ? [bundleId] : undefined,
-      sigs: sigs || undefined,
-      cluster: cluster || 'mainnet-beta',
+    const o, p, t, s: ExecOptions = {
+      m, o, d, e: mode as ExecutionMode,
+      r, e, g, ion: region as any,
+      b, u, n, dleIds: bundleIds && bundleIds.length ? bundleIds : bundleId ? [bundleId] : undefined,
+      s, i, g, s: sigs || undefined,
+      c, l, u, ster: cluster || 'mainnet-beta',
     } as any;
     const statuses = await enginePoll(null, opts);
     const res = NextResponse.json({ statuses, requestId });
@@ -86,10 +86,11 @@ export async function POST(request: Request) {
   } catch (e: unknown) {
     try {
       Sentry.captureException(e instanceof Error ? e : new Error('engine_status_failed'), {
-        extra: { route: '/api/engine/status' },
+        e, x, t, ra: { r, o, u, te: '/api/engine/status' },
       });
     } catch {}
     incCounter('engine_5xx_total');
     return apiError(500, 'failed');
   }
 }
+

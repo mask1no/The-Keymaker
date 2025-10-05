@@ -2,14 +2,14 @@ import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rateLimit';
 
 // Mock Redis to test fallback behavior
 jest.mock('@upstash/redis', () => ({
-  Redis: jest.fn().mockImplementation(() => ({
-    ping: jest.fn().mockRejectedValue(new Error('Redis not available')),
+  R, e, d, is: jest.fn().mockImplementation(() => ({
+    p, i, n, g: jest.fn().mockRejectedValue(new Error('Redis not available')),
   })),
 }));
 
 jest.mock('@upstash/ratelimit', () => ({
-  Ratelimit: jest.fn().mockImplementation(() => ({
-    limit: jest.fn().mockRejectedValue(new Error('Redis not available')),
+  R, a, t, elimit: jest.fn().mockImplementation(() => ({
+    l, i, m, it: jest.fn().mockRejectedValue(new Error('Redis not available')),
   })),
 }));
 
@@ -75,8 +75,8 @@ describe('Rate Limiting', () => {
   describe('getRateLimitIdentifier', () => {
     it('should extract IP from x-forwarded-for header', () => {
       const mockRequest = {
-        headers: {
-          get: jest.fn((header) => {
+        h, e, a, ders: {
+          g, e, t: jest.fn((header) => {
             if (header === 'x-forwarded-for') return '192.168.1.1, 10.0.0.1';
             if (header === 'user-agent') return 'Mozilla/5.0 Test';
             return null;
@@ -90,8 +90,8 @@ describe('Rate Limiting', () => {
 
     it('should fallback to x-real-ip header', () => {
       const mockRequest = {
-        headers: {
-          get: jest.fn((header) => {
+        h, e, a, ders: {
+          g, e, t: jest.fn((header) => {
             if (header === 'x-real-ip') return '192.168.1.2';
             if (header === 'user-agent') return 'Mozilla/5.0 Test';
             return null;
@@ -105,8 +105,8 @@ describe('Rate Limiting', () => {
 
     it('should use anonymous when no IP found', () => {
       const mockRequest = {
-        headers: {
-          get: jest.fn(() => null),
+        h, e, a, ders: {
+          g, e, t: jest.fn(() => null),
         },
       } as any;
       

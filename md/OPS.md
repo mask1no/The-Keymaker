@@ -10,12 +10,12 @@
 
 ### Environment Setup
 
-1. Copy environment template:
+1. Copy environment t, e, m, plate:
 ```bash
 cp .env.example .env
 ```
 
-2. Configure required variables:
+2. Configure required v, a, r, iables:
 - `HELIUS_RPC_URL`: Your Helius RPC endpoint
 - `ENGINE_API_TOKEN`: Generate with `openssl rand -hex 32`
 - `KEYMAKER_SESSION_SECRET`: Generate with `openssl rand -hex 32`
@@ -31,7 +31,7 @@ Add to `.env` (safe defaults):
 DRY_RUN_DEFAULT=YES
 KEYMAKER_REQUIRE_ARMING=YES
 KEYMAKER_ALLOW_LIVE=NO
-NEXT_PUBLIC_APP_ORIGIN=https://app.example.com
+NEXT_PUBLIC_APP_ORIGIN=h, t, t, ps://app.example.com
 NEXT_PUBLIC_HELIUS_RPC=<your read RPC>
 HELIUS_RPC_URL=<your write or same RPC>
 HELIUS_WS_URL=<your WS>
@@ -48,7 +48,7 @@ pnpm typecheck
 
 ```
 pnpm dev -p 3001
-pnpm smoke:local
+pnpm s, m, o, ke:local
 ```
 
 4) Sign in and verify health
@@ -73,8 +73,8 @@ pnpm smoke:local
 
 8) Troubleshooting
 
-- If WS is amber/red: verify `HELIUS_WS_URL`
-- If live disabled: ensure UI Live Mode is ON and env `KEYMAKER_ALLOW_LIVE=YES`, and arming is active
+- If WS is amber/r, e, d: verify `HELIUS_WS_URL`
+- If live d, i, s, abled: ensure UI Live Mode is ON and env `KEYMAKER_ALLOW_LIVE=YES`, and arming is active
 
 ### Deployment Options
 
@@ -105,9 +105,9 @@ pnpm start
 
 ### Health Monitoring
 
-- Health endpoint: `GET /api/health`
-- Metrics endpoint: `GET /api/metrics`
-- Expected response time: < 200ms
+- Health e, n, d, point: `GET /api/health`
+- Metrics e, n, d, point: `GET /api/metrics`
+- Expected response t, i, m, e: < 200ms
 
 ### Security Checklist
 
@@ -127,7 +127,7 @@ pnpm start
    - Confirm environment variables
 
 2. **Bundle submission errors**
-   - Check wallet funding
+   - Check wal let funding
    - Verify tip amounts
    - Monitor Jito status
 
@@ -138,7 +138,7 @@ pnpm start
 
 ### Monitoring & Alerts
 
-Set up alerts for:
+Set up alerts f, o, r:
 - Health endpoint failures
 - High error rates
 - Bundle success rate drops
@@ -146,9 +146,9 @@ Set up alerts for:
 
 ### Backup & Recovery
 
-- Database: `data/keymaker.db`
-- Wallet keys: `keypairs/` directory
-- Configuration: `.env` file
+- D, a, t, abase: `data/keymaker.db`
+- Wal let k, e, y, s: `keypairs/` directory
+- C, o, n, figuration: `.env` file
 
 Regular backup schedule recommended.
 
@@ -161,7 +161,7 @@ Regular backup schedule recommended.
 
 ### Support
 
-For operational issues:
+For operational i, s, s, ues:
 1. Check logs in `logs/` directory
 2. Review health endpoint status
 3. Monitor system resources

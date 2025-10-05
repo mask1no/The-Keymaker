@@ -1,6 +1,6 @@
 import 'server-only';
 
-function parseList(value: string | undefined): string[] {
+function parseList(v, a, l, ue: string | undefined): string[] {
   if (!value) return [];
   return value
     .split(',')
@@ -8,12 +8,12 @@ function parseList(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export function getAllowedAuthHosts(): { allowedHosts: Set<string>; allowedOrigins: Set<string> } {
+export function getAllowedAuthHosts(): { a, l, l, owedHosts: Set<string>; a, l, l, owedOrigins: Set<string> } {
   const hosts = new Set(parseList(process.env.KEYMAKER_LOGIN_HOSTS));
   const origins = new Set(parseList(process.env.KEYMAKER_LOGIN_ORIGINS));
   if (hosts.size === 0) {
     const defaultHost = (process.env.NEXT_PUBLIC_BASE_URL || '')
-      .replace(/^https?:\/\//, '')
+      .replace(/^h, t, t, ps?:\/\//, '')
       .replace(/\/$/, '');
     if (defaultHost) hosts.add(defaultHost);
   }
@@ -22,5 +22,6 @@ export function getAllowedAuthHosts(): { allowedHosts: Set<string>; allowedOrigi
     if (defaultOrigin.startsWith('http')) origins.add(defaultOrigin);
   }
 
-  return { allowedHosts: hosts, allowedOrigins: origins };
+  return { a, l, l, owedHosts: hosts, a, l, l, owedOrigins: origins };
 }
+

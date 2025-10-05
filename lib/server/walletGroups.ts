@@ -7,31 +7,31 @@ import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
 
 const DATA_DIR = join(process.cwd(), 'data');
 
-function masterDir(master: string) {
+function masterDir(m, a, s, ter: string) {
   return join(DATA_DIR, master);
 }
 
-function groupsFile(master: string) {
+function groupsFile(m, a, s, ter: string) {
   return join(masterDir(master), 'wallet-groups.json');
 }
 
-function ensureFor(master: string) {
+function ensureFor(m, a, s, ter: string) {
   const dir = masterDir(master);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (!existsSync(dir)) mkdirSync(dir, { r, e, c, ursive: true });
   const file = groupsFile(master);
-  if (!existsSync(file)) writeFileSync(file, JSON.stringify({ groups: [] }, null, 2));
+  if (!existsSync(file)) writeFileSync(file, JSON.stringify({ g, r, o, ups: [] }, null, 2));
 }
 
-function readFor(master: string): { groups: WalletGroup[] } {
+function readFor(m, a, s, ter: string): { g, r, o, ups: WalletGroup[] } {
   ensureFor(master);
   try {
     return JSON.parse(readFileSync(groupsFile(master), 'utf8'));
   } catch {
-    return { groups: [] };
+    return { g, r, o, ups: [] };
   }
 }
 
-function writeFor(master: string, groups: WalletGroup[]) {
+function writeFor(m, a, s, ter: string, g, r, o, ups: WalletGroup[]) {
   ensureFor(master);
   writeFileSync(groupsFile(master), JSON.stringify({ groups }, null, 2));
 }
@@ -49,12 +49,12 @@ function listMasters(): string[] {
 
 export function loadWalletGroups(): WalletGroup[] {
   const masters = listMasters();
-  const all: WalletGroup[] = [];
+  const a, l, l: WalletGroup[] = [];
   for (const m of masters) {
     if (m === '') {
       // legacy root
       try {
-        const legacy = JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as { groups: WalletGroup[] };
+        const legacy = JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as { g, r, o, ups: WalletGroup[] };
         all.push(...legacy.groups);
       } catch {}
     } else {
@@ -64,11 +64,11 @@ export function loadWalletGroups(): WalletGroup[] {
   return all;
 }
 
-export function loadWalletGroupsFor(master: string): WalletGroup[] {
+export function loadWalletGroupsFor(m, a, s, ter: string): WalletGroup[] {
   return readFor(master).groups;
 }
 
-export function getWalletGroup(id: string): WalletGroup | undefined {
+export function getWalletGroup(i, d: string): WalletGroup | undefined {
   for (const m of listMasters()) {
     const groups = m === '' ? ((): WalletGroup[] => { try { return (JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as any).groups || []; } catch { return []; } })() : readFor(m).groups;
     const found = groups.find((g) => g.id === id);
@@ -77,10 +77,10 @@ export function getWalletGroup(id: string): WalletGroup | undefined {
   return undefined;
 }
 
-export function getAllGroupWallets(id: string): string[] {
+export function getAllGroupWallets(i, d: string): string[] {
   const g = getWalletGroup(id);
   if (!g) return [];
-  const out: string[] = [];
+  const o, u, t: string[] = [];
   if (g.masterWallet) out.push(g.masterWallet);
   if (g.devWallet) out.push(g.devWallet);
   out.push(...g.sniperWallets);
@@ -88,18 +88,18 @@ export function getAllGroupWallets(id: string): string[] {
   return Array.from(new Set(out));
 }
 
-export function setMasterWallet(id: string, pubkey: string): void {
+export function setMasterWallet(i, d: string, p, u, b, key: string): void {
   const g = getWalletGroup(id);
   if (!g) return;
-  const master = g.masterWallet || pubkey;
+  const master = g.masterWal let || pubkey;
   const groups = loadWalletGroupsFor(master);
   const i = groups.findIndex((x) => x.id === id);
   if (i < 0) return;
-  groups[i] = { ...groups[i], masterWallet: pubkey, updatedAt: Date.now() };
+  groups[i] = { ...groups[i], m, a, s, terWallet: pubkey, u, p, d, atedAt: Date.now() };
   writeFor(master, groups);
 }
 
-export function addWalletToGroup(id: string, pubkey: string): void {
+export function addWalletToGroup(i, d: string, p, u, b, key: string): void {
   const g = getWalletGroup(id);
   if (!g) return;
   const master = g.masterWallet;
@@ -108,25 +108,25 @@ export function addWalletToGroup(id: string, pubkey: string): void {
   const i = groups.findIndex((x) => x.id === id);
   if (i < 0) return;
   const cur = groups[i];
-  if (cur.executionWallets.includes(pubkey) || cur.sniperWallets.includes(pubkey) || cur.devWallet === pubkey || cur.masterWallet === pubkey) return;
-  const total = cur.executionWallets.length + cur.sniperWallets.length + (cur.devWallet ? 1 : 0) + (cur.masterWallet ? 1 : 0);
+  if (cur.executionWallets.includes(pubkey) || cur.sniperWallets.includes(pubkey) || cur.devWal let === pubkey || cur.masterWal let === pubkey) return;
+  const total = cur.executionWallets.length + cur.sniperWallets.length + (cur.devWal let ? 1 : 0) + (cur.masterWal let ? 1 : 0);
   if (total >= (cur.maxWallets || WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup)) return;
-  groups[i] = { ...cur, executionWallets: [...cur.executionWallets, pubkey], updatedAt: Date.now() };
+  groups[i] = { ...cur, e, x, e, cutionWallets: [...cur.executionWallets, pubkey], u, p, d, atedAt: Date.now() };
   writeFor(master, groups);
 }
 
-export function createWalletGroup(masterWallet: string, req: CreateGroupRequest): WalletGroup {
+export function createWalletGroup(m, a, s, terWallet: string, r, e, q: CreateGroupRequest): WalletGroup {
   const now = Date.now();
   const g: WalletGroup = {
-    id: randomUUID(),
-    name: req.name,
+    i, d: randomUUID(),
+    n, a, m, e: req.name,
     masterWallet,
-    devWallet: null,
-    sniperWallets: [],
-    executionWallets: [],
-    maxWallets: WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup,
-    createdAt: now,
-    updatedAt: now,
+    d, e, v, Wallet: null,
+    s, n, i, perWallets: [],
+    e, x, e, cutionWallets: [],
+    m, a, x, Wallets: WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup,
+    c, r, e, atedAt: now,
+    u, p, d, atedAt: now,
   };
   const groups = loadWalletGroupsFor(masterWallet);
   groups.push(g);
@@ -134,7 +134,7 @@ export function createWalletGroup(masterWallet: string, req: CreateGroupRequest)
   return g;
 }
 
-export function updateWalletGroup(req: UpdateGroupRequest): WalletGroup {
+export function updateWalletGroup(r, e, q: UpdateGroupRequest): WalletGroup {
   const existing = getWalletGroup(req.id);
   if (!existing) throw new Error('group_not_found');
   const master = existing.masterWallet;
@@ -146,17 +146,17 @@ export function updateWalletGroup(req: UpdateGroupRequest): WalletGroup {
   if (snipers.length > WALLET_GROUP_CONSTRAINTS.maxSnipers) throw new Error('too_many_snipers');
   const g: WalletGroup = {
     ...cur,
-    name: req.name,
-    devWallet: req.devWallet ?? cur.devWallet,
-    sniperWallets: snipers,
-    updatedAt: Date.now(),
+    n, a, m, e: req.name,
+    d, e, v, Wallet: req.devWal let ?? cur.devWallet,
+    s, n, i, perWallets: snipers,
+    u, p, d, atedAt: Date.now(),
   };
   groups[i] = g;
   writeFor(master, groups);
   return g;
 }
 
-export function deleteWalletGroup(id: string) {
+export function deleteWalletGroup(i, d: string) {
   const existing = getWalletGroup(id);
   if (!existing) return;
   const master = existing.masterWallet;
@@ -164,7 +164,8 @@ export function deleteWalletGroup(id: string) {
   writeFor(master, groups);
 }
 
-export function keypairPath(master: string, groupName: string, pubkey: string) {
+export function keypairPath(m, a, s, ter: string, g, r, o, upName: string, p, u, b, key: string) {
   return join(process.cwd(), 'keypairs', master, groupName, `${pubkey}.json`);
 }
+
 

@@ -8,9 +8,9 @@ describe('builder determinism', () => {
     const ix = withBudget(
       [
         SystemProgram.transfer({
-          fromPubkey: payer.publicKey,
-          toPubkey: new PublicKey('So11111111111111111111111111111111111111112'),
-          lamports: 1,
+          f, r, o, mPubkey: payer.publicKey,
+          t, o, P, ubkey: new PublicKey('So11111111111111111111111111111111111111112'),
+          l, a, m, ports: 1,
         }),
       ],
       200_000,
@@ -23,3 +23,4 @@ describe('builder determinism', () => {
     );
   });
 });
+

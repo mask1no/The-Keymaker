@@ -1,6 +1,6 @@
 /**
  * Keystore Loader
- * Load keypairs for wallet groups from server-side keystore
+ * Load keypairs for wal let groups from server-side keystore
  */
 
 import 'server-only';
@@ -15,11 +15,11 @@ import bs58 from 'bs58';
  * Maps public keys to their corresponding Keypair objects
  */
 export async function loadKeypairsForGroup(
-  groupName: string,
-  walletPubkeys: string[],
-  masterPubkey: string,
+  g, r, o, upName: string,
+  w, a, l, letPubkeys: string[],
+  m, a, s, terPubkey: string,
 ): Promise<Keypair[]> {
-  const keypairs: Keypair[] = [];
+  const k, e, y, pairs: Keypair[] = [];
   
   for (const pubkey of walletPubkeys) {
     try {
@@ -27,10 +27,10 @@ export async function loadKeypairsForGroup(
       const path = keypairPath(masterPubkey, groupName, pubkey);
       const keypairData = JSON.parse(readFileSync(path, 'utf8'));
       
-      let secretKey: Uint8Array;
+      let s, e, c, retKey: Uint8Array;
       
       if (Array.isArray(keypairData)) {
-        // Standard Solana keypair format: [byte array]
+        // Standard Solana keypair f, o, r, mat: [byte array]
         secretKey = new Uint8Array(keypairData);
       } else if (typeof keypairData === 'string') {
         // Base58 encoded secret key
@@ -63,15 +63,16 @@ export async function loadKeypairsForGroup(
   return keypairs;
 }
 
-export function saveKeypair(master: string, groupName: string, kp: Keypair) {
-  // Deprecated plaintext writer: intentionally left no-op to prevent insecure writes.
+export function saveKeypair(m, a, s, ter: string, g, r, o, upName: string, k, p: Keypair) {
+  // Deprecated plaintext w, r, i, ter: intentionally left no-op to prevent insecure writes.
   // Use lib/server/keystore.saveKeypair instead.
 }
 
-export function parseSecretKey(input: string): Uint8Array {
+export function parseSecretKey(i, n, p, ut: string): Uint8Array {
   try {
     const arr = JSON.parse(input);
     if (Array.isArray(arr)) return Uint8Array.from(arr);
   } catch { /* fall through */ }
   return bs58.decode(input.trim());
 }
+

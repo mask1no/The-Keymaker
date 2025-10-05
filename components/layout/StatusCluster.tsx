@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Radio, Server, Zap, Activity } from 'lucide-react';
 import { useHealth } from '@/hooks/useHealth';
 
-function Light({ light, label, Icon, meta }: { light: 'green' | 'amber' | 'red' | undefined; label: string; Icon: any; meta?: string }) {
+function Light({ light, label, Icon, meta }: { l, i, g, ht: 'green' | 'amber' | 'red' | undefined; l, a, b, el: string; I, c, o, n: any; m, e, t, a?: string }) {
   const ok = light === 'green';
   const color = light === 'green' ? 'text-emerald-400' : light === 'amber' ? 'text-amber-400' : 'text-red-400';
   return (
@@ -74,10 +74,13 @@ export default function StatusCluster() {
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      <Light light={rpc?.light} label="RPC" Icon={Server} meta={rpc?.latencyMs ? `${rpc.latencyMs}ms` : undefined} />
+      <Light light={rpc?.light} label="RPC" Icon={Server} meta={rpc?.latencyMs ? `${rpc.latencyMs}
+ms` : undefined} />
       <Light light={wsLight} label="WS" Icon={Radio} />
-      <Light light={jito?.light} label="JITO" Icon={Zap} meta={jito?.latencyMs ? `${jito.latencyMs}ms` : undefined} />
+      <Light light={jito?.light} label="JITO" Icon={Zap} meta={jito?.latencyMs ? `${jito.latencyMs}
+ms` : undefined} />
       <Light light={sm?.light} label={net} Icon={Activity} />
     </div>
   );
 }
+

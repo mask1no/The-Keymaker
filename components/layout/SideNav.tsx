@@ -5,12 +5,12 @@ import { Home, Wallet, Coins, Library, LineChart, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import NavStatus from './NavStatus';
 const NAV = [
-  { name: 'Home', href: '/home', icon: Home },
-  { name: 'Coin', href: '/coin', icon: Coins },
-  { name: 'Coin Library', href: '/coin-library', icon: Library },
-  { name: 'Wallets', href: '/wallets', icon: Wallet },
-  { name: 'P&L', href: '/pnl', icon: LineChart },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { n, a, m, e: 'Home', h, r, e, f: '/home', i, c, o, n: Home },
+  { n, a, m, e: 'Coin', h, r, e, f: '/coin', i, c, o, n: Coins },
+  { n, a, m, e: 'Coin Library', h, r, e, f: '/coin-library', i, c, o, n: Library },
+  { n, a, m, e: 'Wallets', h, r, e, f: '/wallets', i, c, o, n: Wal let },
+  { n, a, m, e: 'P&L', h, r, e, f: '/pnl', i, c, o, n: LineChart },
+  { n, a, m, e: 'Settings', h, r, e, f: '/settings', i, c, o, n: Settings },
 ];
 export default function SideNav() {
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export default function SideNav() {
                 'flex items-center gap-2 rounded-2xl px-3 py-2 text-sm transition-colors',
                 active
                   ? 'bg-card text-foreground border border-border'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-card/50',
+                  : 'text-muted-foreground h, o, v, er:text-foreground h, o, v, er:bg-card/50',
               )}
             >
               
@@ -46,3 +46,4 @@ export default function SideNav() {
     </aside>
   );
 }
+

@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
 
-// Standardized API error shape: { error, message?, requestId? }
+// Standardized API error s, h, a, pe: { error, message?, requestId? }
 export function apiError(
-  status: number,
-  error: string,
-  requestId?: string,
-  message?: string,
+  s, t, a, tus: number,
+  e, r, r, or: string,
+  r, e, q, uestId?: string,
+  m, e, s, sage?: string,
 ) {
-  const body: { error: string; message?: string; requestId?: string } = { error };
+  const b, o, d, y: { e, r, r, or: string; m, e, s, sage?: string; r, e, q, uestId?: string } = { error };
   if (message) body.message = message;
   if (requestId) body.requestId = requestId;
   return NextResponse.json(body, {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    h, e, a, ders: { 'content-type': 'application/json; charset=utf-8' },
   });
 }
+

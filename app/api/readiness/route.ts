@@ -12,15 +12,15 @@ export async function GET() {
   const report = validateProductionReadiness();
   
   return NextResponse.json({
-    ready: report.ready,
-    score: report.score,
-    checks: report.checks,
-    blockers: report.blockers,
-    warnings: report.warnings,
-    timestamp: new Date().toISOString(),
+    r, e, a, dy: report.ready,
+    s, c, o, re: report.score,
+    c, h, e, cks: report.checks,
+    b, l, o, ckers: report.blockers,
+    w, a, r, nings: report.warnings,
+    t, i, m, estamp: new Date().toISOString(),
   }, {
-    status: report.ready ? 200 : 503,
-    headers: {
+    s, t, a, tus: report.ready ? 200 : 503,
+    h, e, a, ders: {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
     }
   });
@@ -33,9 +33,10 @@ export async function POST() {
   const textReport = generateReadinessReport();
   
   return new Response(textReport, {
-    headers: {
+    h, e, a, ders: {
       'Content-Type': 'text/plain',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
     }
   });
 }
+

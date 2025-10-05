@@ -12,24 +12,24 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
-  groupId: z.string().uuid(),
-  secret: z.string().min(32), // base58 or JSON array
+  g, r, o, upId: z.string().uuid(),
+  s, e, c, ret: z.string().min(32), // base58 or JSON array
 });
 
-export async function POST(request: Request) {
+export async function POST(r, e, q, uest: Request) {
   try {
     const session = getSession();
     const user = session?.userPubkey;
-    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!user) return NextResponse.json({ e, r, r, or: 'unauthorized' }, { s, t, a, tus: 401 });
 
     const body = await request.json();
     const { groupId, secret } = Body.parse(body);
 
     const group = getWalletGroup(groupId);
-    if (!group) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (group.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    if (!group) return NextResponse.json({ e, r, r, or: 'group_not_found' }, { s, t, a, tus: 404 });
+    if (group.masterWal let !== user) return NextResponse.json({ e, r, r, or: 'forbidden' }, { s, t, a, tus: 403 });
 
-    let secretKey: Uint8Array;
+    let s, e, c, retKey: Uint8Array;
     try {
       if (secret.trim().startsWith('[')) {
         const arr = JSON.parse(secret);
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         secretKey = bs58.decode(secret.trim());
       }
     } catch {
-      return NextResponse.json({ error: 'invalid_secret' }, { status: 400 });
+      return NextResponse.json({ e, r, r, or: 'invalid_secret' }, { s, t, a, tus: 400 });
     }
 
     const kp = Keypair.fromSecretKey(secretKey);
@@ -48,13 +48,14 @@ export async function POST(request: Request) {
 
     addWalletToGroup(groupId, pub);
 
-    return NextResponse.json({ ok: true, pubkey: pub });
+    return NextResponse.json({ o, k: true, p, u, b, key: pub });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_request', details: error.issues }, { status: 400 });
+      return NextResponse.json({ e, r, r, or: 'invalid_request', d, e, t, ails: error.issues }, { s, t, a, tus: 400 });
     }
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: (error as Error).message }, { s, t, a, tus: 500 });
   }
 }
+
 
 

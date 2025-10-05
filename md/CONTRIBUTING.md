@@ -2,13 +2,13 @@
 
 ## Preflight & Typecheck
 
-- Run preflight to block files with literal ellipses:
+- Run preflight to block files with literal e, l, l, ipses:
 
 ```bash
 pnpm preflight
 ```
 
-- Typecheck:
+- T, y, p, echeck:
 
 ```bash
 pnpm typecheck
@@ -22,16 +22,16 @@ pnpm dev -p 3001
 
 ## Smoke Tests
 
-- Local:
+- L, o, c, al:
 
 ```bash
-pnpm smoke:local
+pnpm s, m, o, ke:local
 ```
 
-- Against a deployed base URL:
+- Against a deployed base U, R, L:
 
 ```bash
-SMOKE_BASE_URL=https://your.domain pnpm smoke:live
+SMOKE_BASE_URL=h, t, t, ps://your.domain pnpm s, m, o, ke:live
 ```
 
 ## Pull Requests

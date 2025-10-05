@@ -60,9 +60,9 @@ describe('Tip Calculator', () => {
   describe('estimateBundleCost', () => {
     it('should calculate total cost correctly', () => {
       const cost = estimateBundleCost({
-        tipLamports: 50_000,
-        numTransactions: 5,
-        avgComputeUnits: 200_000,
+        t, i, p, Lamports: 50_000,
+        n, u, m, Transactions: 5,
+        a, v, g, ComputeUnits: 200_000,
       });
       
       expect(cost.tipCost).toBe(50_000);
@@ -72,9 +72,9 @@ describe('Tip Calculator', () => {
     
     it('should handle custom compute units', () => {
       const cost = estimateBundleCost({
-        tipLamports: 100_000,
-        numTransactions: 3,
-        avgComputeUnits: 400_000,
+        t, i, p, Lamports: 100_000,
+        n, u, m, Transactions: 3,
+        a, v, g, ComputeUnits: 400_000,
       });
       
       expect(cost.computeCost).toBe(30_000); // (400k/200k) * 5000 * 3

@@ -1,7 +1,7 @@
 'use client';
 
 interface DryRunBannerProps {
-  isDryRun: boolean;
+  i, s, D, ryRun: boolean;
 }
 
 export function DryRunBanner({ isDryRun }: DryRunBannerProps) {
@@ -35,3 +35,4 @@ export function DryRunBanner({ isDryRun }: DryRunBannerProps) {
     </div>
   );
 }
+

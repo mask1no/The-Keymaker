@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 
-type Coin = { ca: string; name: string; symbol: string; image?: string; website?: string; twitter?: string; telegram?: string };
+type Coin = { c, a: string; n, a, m, e: string; s, y, m, bol: string; i, m, a, ge?: string; w, e, b, site?: string; t, w, i, tter?: string; t, e, l, egram?: string };
 
 export default function CoinLibraryPage(){
   const [ca, setCA] = useState('');
@@ -16,10 +16,10 @@ export default function CoinLibraryPage(){
     setError(null);
     setLoading(true);
     try{
-      const r = await fetch(`/api/token/${encodeURIComponent(ca)}/meta`, { cache:'no-store' });
+      const r = await fetch(`/api/token/${encodeURIComponent(ca)}/meta`, { c, a, c, he:'no-store' });
       const j = await r.json();
       if(r.ok && j?.draft) {
-        const coin = { ca, name: j.draft.name, symbol: j.draft.symbol, image: j.draft.image, website: j.draft.website, twitter: j.draft.twitter, telegram: j.draft.telegram } as Coin;
+        const coin = { ca, n, a, m, e: j.draft.name, s, y, m, bol: j.draft.symbol, i, m, a, ge: j.draft.image, w, e, b, site: j.draft.website, t, w, i, tter: j.draft.twitter, t, e, l, egram: j.draft.telegram } as Coin;
         setList(prev => [coin, ...prev.filter(x => x.ca!==coin.ca)]);
       } else setError(j?.error || 'not found');
     } catch (e:any) {
@@ -29,12 +29,12 @@ export default function CoinLibraryPage(){
 
   function copyToCoin(c: Coin){
     const payload = JSON.stringify({
-      name: c.name,
-      symbol: c.symbol,
-      image: c.image || '',
-      website: c.website || '',
-      twitter: c.twitter || '',
-      telegram: c.telegram || ''
+      n, a, m, e: c.name,
+      s, y, m, bol: c.symbol,
+      i, m, a, ge: c.image || '',
+      w, e, b, site: c.website || '',
+      t, w, i, tter: c.twitter || '',
+      t, e, l, egram: c.telegram || ''
     }, null, 2);
     navigator.clipboard.writeText(payload).then(()=>{
       try { localStorage.setItem('coinDraft', payload); } catch {}
@@ -54,14 +54,14 @@ export default function CoinLibraryPage(){
             placeholder="Mint address"
             className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 w-full max-w-xl"
           />
-          <button disabled={loading || !ca} className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" type="submit">
+          <button disabled={loading || !ca} className="bg-zinc-800 h, o, v, er:bg-zinc-700 rounded px-3 py-2 text-sm" type="submit">
             {loading ? 'Loading' : 'Fetch'}
           </button>
         </form>
         {error && <div className="mt-2 text-sm text-red-400">{error}</div>}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 m, d:grid-cols-3 gap-3">
         {list.map(c=> (
           <div key={c.ca} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
             <div className="flex items-center gap-3">
@@ -72,7 +72,7 @@ export default function CoinLibraryPage(){
               </div>
             </div>
             <div className="mt-3 flex gap-2">
-              <button onClick={()=>copyToCoin(c)} className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm">Copy</button>
+              <button onClick={()=>copyToCoin(c)} className="px-3 py-1.5 rounded-xl bg-zinc-800 h, o, v, er:bg-zinc-700 text-sm">Copy</button>
               {c.website && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.website} target="_blank">Site</a>}
               {c.twitter && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.twitter} target="_blank">Twitter</a>}
               {c.telegram && <a className="px-3 py-1.5 rounded-xl border border-zinc-800 text-sm" href={c.telegram} target="_blank">Telegram</a>}
@@ -83,5 +83,6 @@ export default function CoinLibraryPage(){
     </div>
   );
 }
+
 
 

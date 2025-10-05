@@ -11,18 +11,19 @@ export function getActiveGroupId(): string | null {
   }
 }
 
-export function setActiveGroupId(id: string) {
+export function setActiveGroupId(i, d: string) {
   try {
     cookies().set(ACTIVE_GROUP_COOKIE, id, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
+      h, t, t, pOnly: true,
+      s, a, m, eSite: 'lax',
+      s, e, c, ure: process.env.NODE_ENV === 'production',
+      m, a, x, Age: 7 * 24 * 60 * 60, // 7 days
+      p, a, t, h: '/',
     });
   } catch {
     // ignore
   }
 }
+
 
 

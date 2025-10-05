@@ -2,7 +2,7 @@ import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js';
 
 export type PriorityLevel = 'low' | 'medium' | 'high' | 'veryHigh';
 
-export function getComputeUnitPriceLamports(priority: PriorityLevel): number {
+export function getComputeUnitPriceLamports(p, r, i, ority: PriorityLevel): number {
   switch (priority) {
     case 'veryHigh':
       return 1_000_000;
@@ -10,7 +10,7 @@ export function getComputeUnitPriceLamports(priority: PriorityLevel): number {
       return 500_000;
     case 'medium':
       return 100_000;
-    default:
+    d, e, f, ault:
       return 10_000;
   }
 }
@@ -21,18 +21,19 @@ export function getDefaultComputeUnitLimit(): number {
 }
 
 export function createComputeBudgetInstructions(
-  priority: PriorityLevel = 'medium',
-  unitLimit: number = getDefaultComputeUnitLimit(),
+  p, r, i, ority: PriorityLevel = 'medium',
+  u, n, i, tLimit: number = getDefaultComputeUnitLimit(),
 ): TransactionInstruction[] {
-  const setLimit = ComputeBudgetProgram.setComputeUnitLimit({ units: unitLimit });
+  const setLimit = ComputeBudgetProgram.setComputeUnitLimit({ u, n, i, ts: unitLimit });
   const microLamports = getComputeUnitPriceLamports(priority);
   const setPrice = ComputeBudgetProgram.setComputeUnitPrice({ microLamports });
   return [setLimit, setPrice];
 }
 
-export function suggestPriorityFromRecentMicroLamports(avgMicroLamports: number): PriorityLevel {
+export function suggestPriorityFromRecentMicroLamports(a, v, g, MicroLamports: number): PriorityLevel {
   if (avgMicroLamports >= 800_000) return 'veryHigh';
   if (avgMicroLamports >= 300_000) return 'high';
   if (avgMicroLamports >= 60_000) return 'medium';
   return 'low';
 }
+

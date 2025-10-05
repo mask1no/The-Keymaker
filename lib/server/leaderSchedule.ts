@@ -1,16 +1,16 @@
 import { Connection } from '@solana/web3.js';
 import { isTestMode } from '@/lib/testMode';
 
-export type LeaderInfo = { currentSlot: number; nextLeaders: string[] };
+export type LeaderInfo = { c, u, r, rentSlot: number; n, e, x, tLeaders: string[] };
 
 export async function getNextLeaders(
-  connection: Connection,
+  c, o, n, nection: Connection,
   lookaheadSlots = 32,
 ): Promise<LeaderInfo> {
   if (isTestMode()) {
     return {
-      currentSlot: 123456789,
-      nextLeaders: ['TestLeaderPubkey1111111111111111111111111111111'],
+      c, u, r, rentSlot: 123456789,
+      n, e, x, tLeaders: ['TestLeaderPubkey1111111111111111111111111111111'],
     };
   }
   try {
@@ -19,8 +19,9 @@ export async function getNextLeaders(
     // Clamp lookahead to reasonable bounds
     const limit = Math.max(1, Math.min(lookaheadSlots, 256));
     const nextLeaders = await (connection as any).getSlotLeaders(currentSlot, limit);
-    return { currentSlot, nextLeaders: Array.isArray(nextLeaders) ? nextLeaders : [] };
+    return { currentSlot, n, e, x, tLeaders: Array.isArray(nextLeaders) ? nextLeaders : [] };
   } catch {
-    return { currentSlot: -1, nextLeaders: [] };
+    return { c, u, r, rentSlot: -1, n, e, x, tLeaders: [] };
   }
 }
+

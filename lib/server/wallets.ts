@@ -14,14 +14,14 @@ function read(): string[] {
   }
 }
 
-function write(next: string[]) {
+function write(n, e, x, t: string[]) {
   const unique = Array.from(new Set(next)).slice(0, 50);
   cookies().set(COOKIE, JSON.stringify(unique), {
-    httpOnly: false,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 365,
+    h, t, t, pOnly: false,
+    s, a, m, eSite: 'lax',
+    s, e, c, ure: process.env.NODE_ENV === 'production',
+    p, a, t, h: '/',
+    m, a, x, Age: 60 * 60 * 24 * 365,
   });
 }
 
@@ -29,13 +29,14 @@ export function getTrackedWallets(): string[] {
   return read();
 }
 
-export function addTrackedWallet(wallet: string) {
+export function addTrackedWallet(w, a, l, let: string) {
   const current = read();
   if (!current.includes(wallet)) current.push(wallet);
   write(current);
 }
 
-export function removeTrackedWallet(wallet: string) {
+export function removeTrackedWallet(w, a, l, let: string) {
   const next = read().filter((w) => w !== wallet);
   write(next);
 }
+

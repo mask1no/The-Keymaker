@@ -11,41 +11,42 @@ export function useJupiter() {
   const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), []);
 
   const getQuote = async (
-    fromMint: string,
-    toMint: string,
-    amount: number,
+    f, r, o, mMint: string,
+    t, o, M, int: string,
+    a, m, o, unt: number,
     slippageBps = 50,
   ): Promise<unknown> => {
     try {
       const quote = await jupiterApi.quoteGet({
-        inputMint: fromMint,
-        outputMint: toMint,
+        i, n, p, utMint: fromMint,
+        o, u, t, putMint: toMint,
         amount,
         slippageBps,
       });
       return quote as unknown;
     } catch (err) {
-      console.error('Failed to get Jupiter quote:', err);
+      console.error('Failed to get Jupiter q, u, o, te:', err);
       return null;
     }
   };
 
-  const getSwapTransaction = async (quote: unknown, userPublicKey: string): Promise<unknown> => {
+  const getSwapTransaction = async (q, u, o, te: unknown, u, s, e, rPublicKey: string): Promise<unknown> => {
     try {
       const transaction = await jupiterApi.swapPost({
-        swapRequest: {
+        s, w, a, pRequest: {
           // Type-narrowing of the quote is left to callers
-          quoteResponse: quote as never,
+          q, u, o, teResponse: quote as never,
           userPublicKey,
-          dynamicComputeUnitLimit: true,
+          d, y, n, amicComputeUnitLimit: true,
         },
       });
       return transaction as unknown;
     } catch (err) {
-      console.error('Failed to get Jupiter swap transaction:', err);
+      console.error('Failed to get Jupiter swap t, r, a, nsaction:', err);
       return null;
     }
   };
 
   return { getQuote, getSwapTransaction, connection };
 }
+

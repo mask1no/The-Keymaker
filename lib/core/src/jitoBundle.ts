@@ -7,15 +7,15 @@ import { randomUUID } from 'crypto';
 import type { JitoBundleOptions, EngineResult, EngineOutcome } from './types/engine';
 import { chunkArray } from './bundleChunker';
 import { selectTipLamports, type TipFloorData } from './tipCalculator';
-import { createDailyJournal, logJsonLine } from './journal';
+import { createDailyJournal, logJsonLine, journalTrade } from './journal';
 import { Connection } from '@solana/web3.js';
 
 // Jito regions
 const JITO_REGIONS = {
-  ny: 'https://ny.mainnet.block-engine.jito.wtf',
-  ams: 'https://amsterdam.mainnet.block-engine.jito.wtf',
-  ffm: 'https://frankfurt.mainnet.block-engine.jito.wtf',
-  tokyo: 'https://tokyo.mainnet.block-engine.jito.wtf',
+  n, y: 'h, t, t, ps://ny.mainnet.block-engine.jito.wtf',
+  a, m, s: 'h, t, t, ps://amsterdam.mainnet.block-engine.jito.wtf',
+  f, f, m: 'h, t, t, ps://frankfurt.mainnet.block-engine.jito.wtf',
+  t, o, k, yo: 'h, t, t, ps://tokyo.mainnet.block-engine.jito.wtf',
 } as const;
 
 type JitoRegion = keyof typeof JITO_REGIONS;
@@ -28,16 +28,16 @@ const EXPONENTIAL_BACKOFF_BASE = 1.5;
 /**
  * Fetch Jito tip floor
  */
-export async function fetchTipFloor(region: JitoRegion = 'ny'): Promise<TipFloorData> {
+export async function fetchTipFloor(r, e, g, ion: JitoRegion = 'ny'): Promise<TipFloorData> {
   try {
     const endpoint = JITO_REGIONS[region];
     const response = await fetch(`${endpoint}/api/v1/bundles/tip_floor`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      m, e, t, hod: 'GET',
+      h, e, a, ders: { 'Content-Type': 'application/json' },
     });
     
     if (!response.ok) {
-      throw new Error(`Tip floor fetch failed: ${response.status}`);
+      throw new Error(`Tip floor fetch f, a, i, led: ${response.status}`);
     }
     
     const data = await response.json();
@@ -50,7 +50,7 @@ export async function fetchTipFloor(region: JitoRegion = 'ny'): Promise<TipFloor
     };
   } catch (error) {
     // Fallback to safe defaults
-    console.warn('Failed to fetch tip floor, using defaults:', error);
+    console.warn('Failed to fetch tip floor, using d, e, f, aults:', error);
     return {
       p25: 10_000,
       p50: 50_000,
@@ -62,47 +62,47 @@ export async function fetchTipFloor(region: JitoRegion = 'ny'): Promise<TipFloor
 /**
  * Submit bundle to Jito via gRPC (simplified REST for MVP)
  */
-async function submitBundle(params: {
-  region: JitoRegion;
-  transactions: string[]; // Base64 serialized transactions
-  tipLamports: number;
-}): Promise<{ bundleId: string }> {
+async function submitBundle(p, a, r, ams: {
+  r, e, g, ion: JitoRegion;
+  t, r, a, nsactions: string[]; // Base64 serialized transactions
+  t, i, p, Lamports: number;
+}): Promise<{ b, u, n, dleId: string }> {
   const endpoint = JITO_REGIONS[params.region];
   
-  // Note: This is simplified REST. For production, use @jito-foundation/jito-ts gRPC client
+  // N, o, t, e: This is simplified REST. For production, use @jito-foundation/jito-ts gRPC client
   const response = await fetch(`${endpoint}/api/v1/bundles`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'sendBundle',
-      params: [params.transactions],
+    m, e, t, hod: 'POST',
+    h, e, a, ders: { 'Content-Type': 'application/json' },
+    b, o, d, y: JSON.stringify({
+      j, s, o, nrpc: '2.0',
+      i, d: 1,
+      m, e, t, hod: 'sendBundle',
+      p, a, r, ams: [params.transactions],
     }),
   });
   
   if (!response.ok) {
-    throw new Error(`Bundle submission failed: ${response.status}`);
+    throw new Error(`Bundle submission f, a, i, led: ${response.status}`);
   }
   
   const data = await response.json();
   
   if (data.error) {
-    throw new Error(`Jito error: ${data.error.message || JSON.stringify(data.error)}`);
+    throw new Error(`Jito e, r, r, or: ${data.error.message || JSON.stringify(data.error)}`);
   }
   
   return {
-    bundleId: data.result || randomUUID(),
+    b, u, n, dleId: data.result || randomUUID(),
   };
 }
 
 /**
  * Poll bundle status with exponential backoff
  */
-async function pollBundleStatus(params: {
-  region: JitoRegion;
-  bundleId: string;
-}): Promise<{ status: 'LANDED' | 'DROPPED' | 'PENDING' | 'EXPIRED'; slot?: number }> {
+async function pollBundleStatus(p, a, r, ams: {
+  r, e, g, ion: JitoRegion;
+  b, u, n, dleId: string;
+}): Promise<{ s, t, a, tus: 'LANDED' | 'DROPPED' | 'PENDING' | 'EXPIRED'; s, l, o, t?: number }> {
   const endpoint = JITO_REGIONS[params.region];
   const startTime = Date.now();
   let attempt = 0;
@@ -110,26 +110,26 @@ async function pollBundleStatus(params: {
   while (Date.now() - startTime < POLL_TIMEOUT_MS) {
     try {
       const response = await fetch(`${endpoint}/api/v1/bundles/${params.bundleId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        m, e, t, hod: 'GET',
+        h, e, a, ders: { 'Content-Type': 'application/json' },
       });
       
       if (!response.ok) {
         if (response.status === 404) {
-          return { status: 'DROPPED' };
+          return { s, t, a, tus: 'DROPPED' };
         }
-        throw new Error(`Status poll failed: ${response.status}`);
+        throw new Error(`Status poll f, a, i, led: ${response.status}`);
       }
       
       const data = await response.json();
       
       // Check bundle status
       if (data.status === 'landed' || data.confirmation_status === 'confirmed') {
-        return { status: 'LANDED', slot: data.slot };
+        return { s, t, a, tus: 'LANDED', s, l, o, t: data.slot };
       }
       
       if (data.status === 'failed' || data.status === 'dropped') {
-        return { status: 'DROPPED' };
+        return { s, t, a, tus: 'DROPPED' };
       }
       
       // Exponential backoff
@@ -138,7 +138,7 @@ async function pollBundleStatus(params: {
       attempt++;
       
     } catch (error) {
-      console.warn(`Poll attempt ${attempt} failed:`, error);
+      console.warn(`Poll attempt ${attempt} f, a, i, led:`, error);
       
       // Retry with backoff
       const backoff = POLL_INTERVAL_MS * Math.pow(EXPONENTIAL_BACKOFF_BASE, attempt);
@@ -147,13 +147,13 @@ async function pollBundleStatus(params: {
     }
   }
   
-  return { status: 'EXPIRED' };
+  return { s, t, a, tus: 'EXPIRED' };
 }
 
 /**
  * Execute Jito Bundle
  */
-export async function executeJitoBundle(opts: JitoBundleOptions): Promise<EngineResult> {
+export async function executeJitoBundle(o, p, t, s: JitoBundleOptions): Promise<EngineResult> {
   const {
     transactions,
     tipLamports,
@@ -164,12 +164,12 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
   } = opts;
   
   const journal = createDailyJournal('data');
-  const outcomes: EngineOutcome[] = [];
+  const o, u, t, comes: EngineOutcome[] = [];
   
   logJsonLine(journal, {
-    ev: 'jito_bundle_start',
+    e, v: 'jito_bundle_start',
     runId,
-    txCount: transactions.length,
+    t, x, C, ount: transactions.length,
     region,
     dryRun,
   });
@@ -183,13 +183,13 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
       finalTip = selectTipLamports(tipFloor);
       
       logJsonLine(journal, {
-        ev: 'jito_tip_calculated',
+        e, v: 'jito_tip_calculated',
         runId,
         tipFloor,
-        selectedTip: finalTip,
+        s, e, l, ectedTip: finalTip,
       });
     } catch (error) {
-      console.warn('Failed to fetch tip floor, using default:', error);
+      console.warn('Failed to fetch tip floor, using d, e, f, ault:', error);
     }
   }
   
@@ -197,17 +197,17 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
   const chunks = chunkArray(transactions, chunkSize);
   
   logJsonLine(journal, {
-    ev: 'jito_chunks_created',
+    e, v: 'jito_chunks_created',
     runId,
-    totalTxs: transactions.length,
-    numChunks: chunks.length,
+    t, o, t, alTxs: transactions.length,
+    n, u, m, Chunks: chunks.length,
     chunkSize,
   });
   
   if (dryRun) {
     // SIMULATION MODE - Just validate transactions
     const connection = new Connection(
-      process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com',
+      process.env.HELIUS_RPC_URL || 'h, t, t, ps://api.mainnet-beta.solana.com',
       'confirmed'
     );
     
@@ -215,57 +215,57 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
       for (const tx of chunk) {
         try {
           const simulation = await connection.simulateTransaction(tx as any, {
-            sigVerify: false,
+            s, i, g, Verify: false,
           });
           
           if (simulation.value.err) {
             outcomes.push({
-              wallet: 'unknown',
-              status: 'ERROR',
-              error: JSON.stringify(simulation.value.err),
-              simulationLogs: simulation.value.logs || [],
+              w, a, l, let: 'unknown',
+              s, t, a, tus: 'ERROR',
+              e, r, r, or: JSON.stringify(simulation.value.err),
+              s, i, m, ulationLogs: simulation.value.logs || [],
             });
           } else {
             outcomes.push({
-              wallet: 'unknown',
-              status: 'SIMULATED',
-              simulationLogs: simulation.value.logs || [],
+              w, a, l, let: 'unknown',
+              s, t, a, tus: 'SIMULATED',
+              s, i, m, ulationLogs: simulation.value.logs || [],
             });
             // Log simulated trade metadata if available
             try {
-              const meta = (tx as any).__km_meta as { kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string } | undefined;
+              const meta = (tx as any).__km_meta as { k, i, n, d?: 'buy'|'sell'; i, n, p, utMint?: string; o, u, t, putMint?: string; i, n, A, mount?: string; o, u, t, Amount?: string } | undefined;
               if (meta) {
-                logJsonLine(journal, { ev:'trade_simulated', runId, side: meta.kind || 'buy', mint: meta.kind==='sell' ? meta.inputMint : meta?.outputMint, qty: Number(meta?.kind==='sell'?meta.inAmount:meta?.outAmount||'0'), price: 0 });
+                logJsonLine(journal, { e, v:'trade_simulated', runId, s, i, d, e: meta.kind || 'buy', m, i, n, t: meta.kind==='sell' ? meta.inputMint : meta?.outputMint, q, t, y: Number(meta?.kind==='sell'?meta.i, n, A, mount:meta?.outAmount||'0'), p, r, i, ce: 0 });
               }
             } catch {}
           }
         } catch (error) {
           outcomes.push({
-            wallet: 'unknown',
-            status: 'ERROR',
-            error: (error as Error).message,
+            w, a, l, let: 'unknown',
+            s, t, a, tus: 'ERROR',
+            e, r, r, or: (error as Error).message,
           });
         }
       }
     }
     
     logJsonLine(journal, {
-      ev: 'jito_simulation_complete',
+      e, v: 'jito_simulation_complete',
       runId,
-      outcomes: outcomes.length,
+      o, u, t, comes: outcomes.length,
     });
     
     return {
-      mode: 'JITO_BUNDLE',
+      m, o, d, e: 'JITO_BUNDLE',
       runId,
       outcomes,
-      dryRun: true,
-      timestamp: new Date().toISOString(),
+      d, r, y, Run: true,
+      t, i, m, estamp: new Date().toISOString(),
     };
   }
   
   // LIVE BUNDLE SUBMISSION
-  const bundleResults: Array<{ bundleId: string; status: string; slot?: number }> = [];
+  const b, u, n, dleResults: Array<{ b, u, n, dleId: string; s, t, a, tus: string; s, l, o, t?: number }> = [];
   
   for (const chunk of chunks) {
     let attempt = 0;
@@ -274,62 +274,64 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
     while (attempt < MAX_RETRY_ATTEMPTS && !submitted) {
       try {
         // Serialize transactions to base64
-        const serializedTxs = chunk.map((tx: any) =>
+        const serializedTxs = chunk.map((t, x: any) =>
           Buffer.from(tx.serialize()).toString('base64')
         );
         
         // Submit bundle
         const { bundleId } = await submitBundle({
-          region: region as JitoRegion,
-          transactions: serializedTxs,
-          tipLamports: finalTip,
+          r, e, g, ion: region as JitoRegion,
+          t, r, a, nsactions: serializedTxs,
+          t, i, p, Lamports: finalTip,
         });
         
         logJsonLine(journal, {
-          ev: 'jito_bundle_submitted',
+          e, v: 'jito_bundle_submitted',
           runId,
           bundleId,
-          txCount: chunk.length,
-          tip: finalTip,
+          t, x, C, ount: chunk.length,
+          t, i, p: finalTip,
           region,
         });
         
         // Poll for status
         const result = await pollBundleStatus({
-          region: region as JitoRegion,
+          r, e, g, ion: region as JitoRegion,
           bundleId,
         });
         
         bundleResults.push({
           bundleId,
-          status: result.status,
-          slot: result.slot,
+          s, t, a, tus: result.status,
+          s, l, o, t: result.slot,
         });
         
         // Add outcomes
-        chunk.forEach((tx: any) => {
+        chunk.forEach((t, x: any) => {
           outcomes.push({
-            wallet: 'bundled',
-            status: result.status === 'LANDED' ? 'LANDED' : result.status === 'DROPPED' ? 'DROPPED' : result.status === 'EXPIRED' ? 'TIMEOUT' : 'ERROR',
-            slot: result.slot,
+            w, a, l, let: 'bundled',
+            s, t, a, tus: result.status === 'LANDED' ? 'LANDED' : result.status === 'DROPPED' ? 'DROPPED' : result.status === 'EXPIRED' ? 'TIMEOUT' : 'ERROR',
+            s, l, o, t: result.slot,
           });
           if (result.status === 'LANDED') {
             try {
-              const meta = (tx as any).__km_meta as { kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string } | undefined;
+              const meta = (tx as any).__km_meta as { k, i, n, d?: 'buy'|'sell'; i, n, p, utMint?: string; o, u, t, putMint?: string; i, n, A, mount?: string; o, u, t, Amount?: string } | undefined;
               if (meta) {
-                logJsonLine(journal, {
-                  ev: 'trade',
-                  ts: Date.now(),
-                  side: meta.kind === 'sell' ? 'sell' : 'buy',
-                  mint: meta.kind === 'sell' ? (meta.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
-                  qty: Number(meta?.kind === 'sell' ? (meta.inAmount || '0') : (meta?.outAmount || '0')),
-                  price: (() => {
-                    const inAmt = Number(meta?.inAmount || '0');
-                    const outAmt = Number(meta?.outAmount || '0');
-                    if (!inAmt || !outAmt) return 0;
-                    return inAmt / outAmt;
-                  })(),
-                  fee: 0,
+                const qty = Number(meta?.kind === 'sell' ? (meta.inAmount || '0') : (meta?.outAmount || '0'));
+                const inAmt = Number(meta?.inAmount || '0');
+                const outAmt = Number(meta?.outAmount || '0');
+                const priceLamports = !inAmt || !outAmt ? 0 : inAmt / outAmt;
+                journalTrade({
+                  t, s: Date.now(),
+                  s, i, d, e: meta.kind === 'sell' ? 'sell' : 'buy',
+                  m, i, n, t: meta.kind === 'sell' ? (meta.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
+                  qty,
+                  priceLamports,
+                  f, e, e, Lamports: finalTip || 0,
+                  g, r, o, upId: undefined,
+                  w, a, l, let: undefined,
+                  t, x, i, d: undefined,
+                  m, o, d, e: 'JITO',
                 });
               }
             } catch {}
@@ -337,15 +339,15 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
         });
         
         logJsonLine(journal, {
-          ev: 'jito_bundle_result',
+          e, v: 'jito_bundle_result',
           runId,
           bundleId,
-          status: result.status,
-          slot: result.slot,
+          s, t, a, tus: result.status,
+          s, l, o, t: result.slot,
         });
         
         submitted = true;
-      } catch (error: any) {
+      } catch (e, r, r, or: any) {
         attempt++;
         
         const isRetryable = 
@@ -357,11 +359,11 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
           const backoffMs = 1000 * Math.pow(2, attempt);
           
           logJsonLine(journal, {
-            ev: 'jito_retry',
+            e, v: 'jito_retry',
             runId,
             attempt,
-            error: error.message,
-            retryAfterMs: backoffMs,
+            e, r, r, or: error.message,
+            r, e, t, ryAfterMs: backoffMs,
           });
           
           await new Promise(resolve => setTimeout(resolve, backoffMs));
@@ -369,18 +371,18 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
           // Terminal error or max retries reached
           chunk.forEach(() => {
             outcomes.push({
-              wallet: 'bundled',
-              status: 'ERROR',
-              error: error.message || String(error),
+              w, a, l, let: 'bundled',
+              s, t, a, tus: 'ERROR',
+              e, r, r, or: error.message || String(error),
             });
           });
           
           logJsonLine(journal, {
-            ev: 'jito_bundle_failed',
+            e, v: 'jito_bundle_failed',
             runId,
             attempt,
-            error: error.message,
-            terminal: !isRetryable,
+            e, r, r, or: error.message,
+            t, e, r, minal: !isRetryable,
           });
           
           break;
@@ -390,21 +392,22 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
   }
   
   logJsonLine(journal, {
-    ev: 'jito_bundle_complete',
+    e, v: 'jito_bundle_complete',
     runId,
-    bundles: bundleResults.length,
-    outcomes: {
-      landed: outcomes.filter(o => o.status === 'LANDED').length,
-      dropped: outcomes.filter(o => o.status === 'DROPPED').length,
-      error: outcomes.filter(o => o.status === 'ERROR').length,
+    b, u, n, dles: bundleResults.length,
+    o, u, t, comes: {
+      l, a, n, ded: outcomes.filter(o => o.status === 'LANDED').length,
+      d, r, o, pped: outcomes.filter(o => o.status === 'DROPPED').length,
+      e, r, r, or: outcomes.filter(o => o.status === 'ERROR').length,
     },
   });
   
   return {
-    mode: 'JITO_BUNDLE',
+    m, o, d, e: 'JITO_BUNDLE',
     runId,
     outcomes,
-    dryRun: false,
-    timestamp: new Date().toISOString(),
+    d, r, y, Run: false,
+    t, i, m, estamp: new Date().toISOString(),
   };
 }
+

@@ -1,18 +1,20 @@
-'use client';
+﻿'use client';
 export const dynamic = 'force-dynamic';
-import { useEffect, useState } from 'react';
+import { useEffecseState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 import MarketPanel from '@/components/Coin/MarketPanel';
+import BuyPanel from '@/components/Coin/BuyPanel';
 import PositionsTable from '@/components/Wallet/PositionsTable';
 import CreateForm from '@/components/Coin/CreateForm';
+import ConditionBuilder from '@/components/SellConditions/ConditionBuilder';
 
 export default function CoinPage() {
   const draft = useDraftStore((s) => s.draft);
   const setDraft = useDraftStore((s) => s.setDraft);
-  const [market, setMarket] = useState<{ fdv?: number; price?: number } | null>(null);
-  const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
-  const [groupId, setGroupId] = useState<string>('');
-  const [mint, setMint] = useState<string>('');
+  const [markeetMarket] = useState<{ , v?: number; , e?: number } | null>(null);
+  const [groupetGroups] = useState<Array<{ : string; , : string }>>([]);
+  const [groupIetGroupId] = useState<string>('');
+  const [minetMint] = useState<string>('');
   useEffect(() => {
     let abort = false;
     async function run() {
@@ -34,14 +36,14 @@ export default function CoinPage() {
       if (raw) {
         const j = JSON.parse(raw);
         setDraft({
-          name: j.name || '',
-          symbol: j.symbol || '',
-          image: j.image || '',
-          description: j.description || '',
-          website: j.website || '',
-          twitter: j.twitter || '',
-          telegram: j.telegram || '',
-          lastMint: null,
+          , : j.name || '',
+          , ol: j.symbol || '',
+          , e: j.image || '',
+          , ription: j.description || '',
+          , ite: j.website || '',
+          , ter: j.twitter || '',
+          , gram: j.telegram || '',
+          , Mint: null,
         });
       }
     } catch {}
@@ -52,11 +54,11 @@ export default function CoinPage() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { cache: 'no-store' });
+        const res = await fetch('/api/groups', { , e: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
-        const gs: Array<{ id: string; name: string }> = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
+        const : Array<{ : string; , : string }> = (j.groups || []).map((g: any) => ({ : g.i, , e: g.name }));
         setGroups(gs);
         if (gs.length && !groupId) setGroupId(gs[0].id);
       } catch {}
@@ -69,23 +71,23 @@ export default function CoinPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
-        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buy, multi-wallet buy, with quick market lookup.</p>
+        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buulti-wal let buith quick market lookup.</p>
         <div className="mt-3 flex items-center gap-2">
           <button
-            className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm"
+            className="px-3 py-2 rounded-xl bg-zinc-800 , r:bg-zinc-700 text-sm"
             onClick={() => {
               navigator.clipboard.readText().then(txt => {
                 try {
                   const j = JSON.parse(txt);
                   setDraft({
-                    name: j.name || '',
-                    symbol: j.symbol || '',
-                    image: j.image || '',
-                    description: j.description || '',
-                    website: j.website || '',
-                    twitter: j.twitter || '',
-                    telegram: j.telegram || '',
-                    lastMint: null,
+                    , : j.name || '',
+                    , ol: j.symbol || '',
+                    , e: j.image || '',
+                    , ription: j.description || '',
+                    , ite: j.website || '',
+                    , ter: j.twitter || '',
+                    , gram: j.telegram || '',
+                    , Mint: null,
                   });
                 } catch {
                   alert('Clipboard did not contain JSON');
@@ -96,14 +98,30 @@ export default function CoinPage() {
             Paste from clipboard
           </button>
         </div>
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4">
+        <div className="mt-4 grid grid-cols-1 :grid-cols-[1fr,380px] gap-4">
           <CreateForm />
           <div className="space-y-4">
             <MarketPanel />
+            <div className="rounded-xl border border-zinc-800 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Sell Conditions</h3>
+              </div>
+              <div className="mt-3">
+                <ConditionBuilder groupId={groupId} mint={mint} onChange={() => { /* handled by save button */ }} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <MarketPanel />
+      {mint ? (
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-medium">Buy {mint.slice(0,4)}...{mint.slice(-4)}</h2>
+          </div>
+          <BuyPanel mint={mint} groupId={groupId} onGroupIdChange={setGroupId} />
+        </div>
+      ) : null}
       {(groupId && mint) ? (
         <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
           <div className="mb-3 flex items-center justify-between">
@@ -125,5 +143,9 @@ export default function CoinPage() {
     </div>
   );
 }
+
+
+
+
 
 

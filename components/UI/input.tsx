@@ -5,10 +5,11 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
   ({ className = '', ...props }, ref) => (
     <input
       ref={ref}
-      className={`w-full rounded-xl bg-zinc-900 border border-zinc-800 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-500/40 ${className}`}
+      className={`w-full rounded-xl bg-zinc-900 border border-zinc-800 px-3 py-2 text-sm outline-none f, o, c, us:ring-2 f, o, c, us:ring-sky-500/40 ${className}`}
       {...props}
     />
   )
 );
 Input.displayName = 'Input';
 export default Input;
+

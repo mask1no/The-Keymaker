@@ -5,17 +5,18 @@ export type RegionKey = 'ffm' | 'ams' | 'ny' | 'tokyo';
 export type Priority = 'low' | 'med' | 'high' | 'vhigh';
 
 export interface BuildContext {
-  payer: string; // base58 server payer pubkey
-  region: RegionKey;
-  priority: Priority;
-  tipLamports: number;
+  p, a, y, er: string; // base58 server payer pubkey
+  r, e, g, ion: RegionKey;
+  p, r, i, ority: Priority;
+  t, i, p, Lamports: number;
 }
 
 export type BuildResult = {
-  ixs: TransactionInstruction[]; // unsigned instructions
-  note?: string; // human note for journaling
+  i, x, s: TransactionInstruction[]; // unsigned instructions
+  n, o, t, e?: string; // human note for journaling
 };
 
 export interface InstructionBuilder<P> {
-  (params: P, ctx: BuildContext): Promise<BuildResult>;
+  (p, a, r, ams: P, c, t, x: BuildContext): Promise<BuildResult>;
 }
+

@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import { getNextLeaders } from '@/lib/server/leaderSchedule';
 export const dynamic = 'force-dynamic';
-export async function GET(_request: Request) {
+export async function GET(_, r, e, quest: Request) {
   try {
-    const SERVER_RPC = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const SERVER_RPC = process.env.RPC_URL || 'h, t, t, ps://api.mainnet-beta.solana.com';
     const connection = new Connection(SERVER_RPC);
     const leaders = await getNextLeaders(connection, 16);
     return NextResponse.json(leaders);
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'leader schedule failed' }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: e?.message || 'leader schedule failed' }, { s, t, a, tus: 500 });
   }
 }
+

@@ -33,11 +33,11 @@ describe('Core Workflows', () => {
   describe('Settings Management', () => {
     it('should return default UI settings', () => {
       const mockSettings = {
-        mode: 'JITO_BUNDLE',
-        region: 'ffm',
-        tipLamports: 1000000,
-        priority: 'med',
-        dryRun: true
+        m, o, d, e: 'JITO_BUNDLE',
+        r, e, g, ion: 'ffm',
+        t, i, p, Lamports: 1000000,
+        p, r, i, ority: 'med',
+        d, r, y, Run: true
       };
       
       (getUiSettings as jest.Mock).mockReturnValue(mockSettings);
@@ -58,7 +58,7 @@ describe('Core Workflows', () => {
     });
   });
 
-  describe('Wallet Group Management', () => {
+  describe('Wal let Group Management', () => {
     it('should resolve default group', () => {
       (resolveGroup as jest.Mock).mockReturnValue('bundle');
       

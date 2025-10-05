@@ -13,34 +13,34 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const JitoBuySchema = z.object({
-  groupId: z.string().uuid(),
-  mint: z.string().min(32).max(44),
-  amountSol: z.number().positive(),
-  slippageBps: z.number().min(0).max(10000).default(150),
-  tipLamports: z.number().min(0).optional(),
-  region: z.enum(['ny', 'ams', 'ffm', 'tokyo']).default('ny'),
-  chunkSize: z.number().min(1).max(5).default(5),
-  dryRun: z.boolean().default(true), // SAFE DEFAULT
-  cluster: z.enum(['mainnet-beta', 'devnet']).default('mainnet-beta'),
+  g, r, o, upId: z.string().uuid(),
+  m, i, n, t: z.string().min(32).max(44),
+  a, m, o, untSol: z.number().positive(),
+  s, l, i, ppageBps: z.number().min(0).max(10000).default(150),
+  t, i, p, Lamports: z.number().min(0).optional(),
+  r, e, g, ion: z.enum(['ny', 'ams', 'ffm', 'tokyo']).default('ny'),
+  c, h, u, nkSize: z.number().min(1).max(5).default(5),
+  d, r, y, Run: z.boolean().default(true), // SAFE DEFAULT
+  c, l, u, ster: z.enum(['mainnet-beta', 'devnet']).default('mainnet-beta'),
 });
 
 /**
  * POST /api/engine/jito/buy
  * Execute Jito bundle buy across multiple wallets
  */
-export async function POST(request: Request) {
+export async function POST(r, e, q, uest: Request) {
   try {
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const cfg = getRateConfig('submit');
-    const rl = await rateLimit(`engine:jito_buy:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
-    if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    const rl = await rateLimit(`e, n, g, ine:j, i, t, o_buy:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) return NextResponse.json({ e, r, r, or: 'rate_limited' }, { s, t, a, tus: 429 });
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
-      return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
+      return NextResponse.json({ e, r, r, or: 'live_disabled' }, { s, t, a, tus: 503 });
     }
     // Require authenticated session and verify ownership
     const session = getSession();
     const user = session?.userPubkey || '';
-    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!user) return NextResponse.json({ e, r, r, or: 'unauthorized' }, { s, t, a, tus: 401 });
     const body = await request.json();
     const params = JitoBuySchema.parse(body);
     
@@ -48,31 +48,31 @@ export async function POST(request: Request) {
     const group = getWalletGroup(params.groupId);
     if (!group) {
       return NextResponse.json(
-        { error: 'Group not found' },
-        { status: 404 }
+        { e, r, r, or: 'Group not found' },
+        { s, t, a, tus: 404 }
       );
     }
-    if (!group.masterWallet || group.masterWallet !== user) {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    if (!group.masterWal let || group.masterWal let !== user) {
+      return NextResponse.json({ e, r, r, or: 'forbidden' }, { s, t, a, tus: 403 });
     }
     
     const walletPubkeys = group.executionWallets;
     if (walletPubkeys.length === 0) {
       return NextResponse.json(
-        { error: 'No execution wallets in group' },
-        { status: 400 }
+        { e, r, r, or: 'No execution wallets in group' },
+        { s, t, a, tus: 400 }
       );
     }
     
     // Load keypairs
     if (!group.masterWallet) {
-      return NextResponse.json({ error: 'Group missing masterWallet' }, { status: 400 });
+      return NextResponse.json({ e, r, r, or: 'Group missing masterWallet' }, { s, t, a, tus: 400 });
     }
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) {
       return NextResponse.json(
-        { error: 'Failed to load wallet keypairs' },
-        { status: 500 }
+        { e, r, r, or: 'Failed to load wal let keypairs' },
+        { s, t, a, tus: 500 }
       );
     }
     
@@ -81,11 +81,11 @@ export async function POST(request: Request) {
     const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
     if (!params.dryRun) {
       if (!ui.liveMode || !envLive) {
-        return NextResponse.json({ error: 'live_disabled' }, { status: 501 });
+        return NextResponse.json({ e, r, r, or: 'live_disabled' }, { s, t, a, tus: 501 });
       }
       if ((process.env.KEYMAKER_REQUIRE_ARMING || '').toUpperCase() === 'YES') {
         const { isArmed } = await import('@/lib/server/arming');
-        if (!isArmed()) return NextResponse.json({ error: 'not_armed' }, { status: 403 });
+        if (!isArmed()) return NextResponse.json({ e, r, r, or: 'not_armed' }, { s, t, a, tus: 403 });
       }
     }
     // Enforce tip ceiling
@@ -96,12 +96,12 @@ export async function POST(request: Request) {
       keypairs.map(async (wallet) => {
         return buildJupiterSwapTx({
           wallet,
-          inputMint: 'So11111111111111111111111111111111111111112', // SOL
-          outputMint: params.mint,
-          amountSol: params.amountSol,
-          slippageBps: params.slippageBps,
-          cluster: params.cluster,
-          priorityFeeMicrolamports: ui.priority === 'high' ? 800_000 : ui.priority === 'med' ? 300_000 : 0,
+          i, n, p, utMint: 'So11111111111111111111111111111111111111112', // SOL
+          o, u, t, putMint: params.mint,
+          a, m, o, untSol: params.amountSol,
+          s, l, i, ppageBps: params.slippageBps,
+          c, l, u, ster: params.cluster,
+          p, r, i, orityFeeMicrolamports: ui.priority === 'high' ? 800_000 : ui.priority === 'med' ? 300_000 : 0,
         });
       })
     );
@@ -109,24 +109,25 @@ export async function POST(request: Request) {
     // Execute bundle
     const result = await executeJitoBundle({
       transactions,
-      tipLamports: tip,
-      region: params.region,
-      chunkSize: params.chunkSize,
-      dryRun: params.dryRun,
+      t, i, p, Lamports: tip,
+      r, e, g, ion: params.region,
+      c, h, u, nkSize: params.chunkSize,
+      d, r, y, Run: params.dryRun,
     });
     
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request', details: error.issues },
-        { status: 400 }
+        { e, r, r, or: 'Invalid request', d, e, t, ails: error.issues },
+        { s, t, a, tus: 400 }
       );
     }
     
     return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
+      { e, r, r, or: (error as Error).message },
+      { s, t, a, tus: 500 }
     );
   }
 }
+

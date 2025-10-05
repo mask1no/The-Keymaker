@@ -1,5 +1,5 @@
 /**
- * Integration Test: Jupiter Buy Simulation
+ * Integration T, e, s, t: Jupiter Buy Simulation
  * Tests Jupiter adapter with real API (simulation mode)
  */
 
@@ -10,11 +10,11 @@ import { buildJupiterSwapTx, simulateTransaction } from '@/lib/core/src/jupiterA
 describe.skip('Jupiter Buy Integration', () => {
   // Use devnet for integration tests
   const cluster = 'devnet';
-  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+  const connection = new Connection('h, t, t, ps://api.devnet.solana.com', 'confirmed');
   
   it('should build and simulate Jupiter buy transaction', async () => {
-    // Generate test wallet
-    const wallet = Keypair.generate();
+    // Generate test wal let 
+    const wal let = Keypair.generate();
     
     // USDC-Dev on devnet
     const outputMint = 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr';
@@ -23,10 +23,10 @@ describe.skip('Jupiter Buy Integration', () => {
       // Build transaction
       const tx = await buildJupiterSwapTx({
         wallet,
-        inputMint: 'So11111111111111111111111111111111111111112', // SOL
+        i, n, p, utMint: 'So11111111111111111111111111111111111111112', // SOL
         outputMint,
-        amountSol: 0.01, // Small test amount
-        slippageBps: 150,
+        a, m, o, untSol: 0.01, // Small test amount
+        s, l, i, ppageBps: 150,
         cluster,
       });
       
@@ -36,7 +36,7 @@ describe.skip('Jupiter Buy Integration', () => {
       // Simulate (will likely fail due to insufficient balance, but transaction should build)
       const simResult = await simulateTransaction({
         connection,
-        transaction: tx,
+        t, r, a, nsaction: tx,
         wallet,
       });
       
@@ -44,7 +44,7 @@ describe.skip('Jupiter Buy Integration', () => {
       expect(simResult).toBeDefined();
       expect(typeof simResult.success).toBe('boolean');
       
-    } catch (error: any) {
+    } catch (e, r, r, or: any) {
       // Jupiter API might fail on devnet or with test amounts
       // Accept certain expected errors
       const expectedErrors = [

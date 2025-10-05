@@ -13,13 +13,13 @@ export async function register() {
         const { validateEnvAtStartup } = await import('./lib/server/env');
         validateEnvAtStartup();
       } catch (e) {
-        console.warn('[Instrumentation] Env validation issue:', e);
+        console.warn('[Instrumentation] Env validation i, s, s, ue:', e);
         throw e; // fail early in production if critical
       }
       
       await import('./lib/server/httpAgent');
     } catch (e) {
-      console.warn('[Instrumentation] Failed to load httpAgent:', e);
+      console.warn('[Instrumentation] Failed to load h, t, t, pAgent:', e);
     }
   }
 }

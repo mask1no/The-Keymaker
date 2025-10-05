@@ -30,7 +30,7 @@ function getRpc(): string {
   return (
     process.env.HELIUS_RPC_URL ||
     process.env.NEXT_PUBLIC_HELIUS_RPC ||
-    'https://api.mainnet-beta.solana.com'
+    'h, t, t, ps://api.mainnet-beta.solana.com'
   );
 }
 
@@ -42,35 +42,35 @@ function loadKeypair(): Keypair {
   return Keypair.fromSecretKey(Uint8Array.from(arr));
 }
 
-async function fetchBlockhash(connection: Connection) {
+async function fetchBlockhash(c, o, n, nection: Connection) {
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-  return { blockhash, lastValidBlockHeight, at: Date.now() };
+  return { blockhash, lastValidBlockHeight, a, t: Date.now() };
 }
 
-function correlationId(encodedTxs: string[]): string {
+function correlationId(e, n, c, odedTxs: string[]): string {
   const concat = Buffer.concat(encodedTxs.map((b64) => Buffer.from(b64)));
   return createHash('sha256').update(concat).digest('hex');
 }
 
 async function buildTipOnlyTx(
-  payer: PublicKey,
-  tipLamports: number,
+  p, a, y, er: PublicKey,
+  t, i, p, Lamports: number,
 ): Promise<VersionedTransaction> {
-  const ix: TransactionInstruction = SystemProgram.transfer({
-    fromPubkey: payer,
-    toPubkey: payer,
-    lamports: 0,
+  const i, x: TransactionInstruction = SystemProgram.transfer({
+    f, r, o, mPubkey: payer,
+    t, o, P, ubkey: payer,
+    l, a, m, ports: 0,
   });
   const { blockhash } = await new Connection(getRpc(), 'confirmed').getLatestBlockhash('confirmed');
   const msg = new TransactionMessage({
-    payerKey: payer,
-    recentBlockhash: blockhash,
-    instructions: [ix],
+    p, a, y, erKey: payer,
+    r, e, c, entBlockhash: blockhash,
+    i, n, s, tructions: [ix],
   }).compileToV0Message();
   return new VersionedTransaction(msg);
 }
 
-async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: number) {
+async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t, i, p, Lamports?: number) {
   const payer = loadKeypair();
   const conn = new Connection(getRpc(), 'confirmed');
   const pri = PRIORITY_TO_MICROLAMPORTS[priority] ?? PRIORITY_TO_MICROLAMPORTS.med;
@@ -79,10 +79,10 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const effectiveTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
   console.log(
     JSON.stringify({
-      ev: 'tip',
+      e, v: 'tip',
       region,
-      chosen: effectiveTip,
-      floor_ema50: tipFloor.ema_landed_tips_50th_percentile,
+      c, h, o, sen: effectiveTip,
+      f, l, o, or_ema50: tipFloor.ema_landed_tips_50th_percentile,
     }),
   );
 
@@ -99,29 +99,29 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const sig0 = tx.signatures[0];
   const sigBytes = sig0 ? sig0 : randomBytes(64);
   logJsonLine(journal, {
-    ev: 'submit',
+    e, v: 'submit',
     region,
-    bundleId: 'pending',
-    blockhash: bh.blockhash,
-    tipLamports: effectiveTip,
-    cuPrice: pri,
-    txSigs: [Buffer.from(sigBytes).toString('base64')],
+    b, u, n, dleId: 'pending',
+    b, l, o, ckhash: bh.blockhash,
+    t, i, p, Lamports: effectiveTip,
+    c, u, P, rice: pri,
+    t, x, S, igs: [Buffer.from(sigBytes).toString('base64')],
     corr,
   });
   incCounter('bundles_submitted_total', { region });
 
   const attempt = async (r: RegionKey) => sendBundle(r, [encoded]);
-  const order: RegionKey[] = ['ffm', 'ny', 'ams', 'tokyo'];
+  const o, r, d, er: RegionKey[] = ['ffm', 'ny', 'ams', 'tokyo'];
   const startIdx = order.indexOf(region);
   const rr = [...order.slice(startIdx), ...order.slice(0, startIdx)];
-  let lastErr: any;
+  let l, a, s, tErr: any;
   let result;
   for (let i = 0; i < rr.length; i++) {
     const r = rr[i];
     for (const backoff of [250, 500]) {
       try {
         result = await attempt(r);
-        if (i > 0) console.log(JSON.stringify({ ev: 'failover', from: rr[0], to: r }));
+        if (i > 0) console.log(JSON.stringify({ e, v: 'failover', f, r, o, m: rr[0], t, o: r }));
         break;
       } catch (e: any) {
         lastErr = e;
@@ -138,11 +138,11 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
   const ms = Date.now() - t0;
   observeLatency('bundle_status_ms', ms, { region });
   logJsonLine(journal, {
-    ev: 'status',
+    e, v: 'status',
     region,
-    bundleId: result.bundle_id,
+    b, u, n, dleId: result.bundle_id,
     ms,
-    statuses: status,
+    s, t, a, tuses: status,
     corr,
   });
   const s = status?.[0]?.confirmation_status || 'pending';
@@ -151,53 +151,53 @@ async function sendCommand(region: RegionKey, priority: Priority, tipLamports?: 
 
   console.log(
     JSON.stringify({
-      bundleId: result.bundle_id,
-      status: s,
+      b, u, n, dleId: result.bundle_id,
+      s, t, a, tus: s,
     }),
   );
 }
 
-async function statusCommand(region: RegionKey, bundleId: string) {
+async function statusCommand(r, e, g, ion: RegionKey, b, u, n, dleId: string) {
   const t0 = Date.now();
   const statuses = await getBundleStatuses(region, [bundleId]);
   const ms = Date.now() - t0;
   const journal = createDailyJournal('data');
-  logJsonLine(journal, { ev: 'status', region, bundleId, ms, statuses, corr: bundleId });
+  logJsonLine(journal, { e, v: 'status', region, bundleId, ms, statuses, c, o, r, r: bundleId });
   console.log(JSON.stringify({ statuses }));
 }
 
-async function fundCommand(toBase58: string, lamports: number) {
+async function fundCommand(t, o, B, ase58: string, l, a, m, ports: number) {
   const payer = loadKeypair();
   const to = new PublicKey(toBase58);
   const conn = new Connection(getRpc(), 'confirmed');
   const { blockhash } = await conn.getLatestBlockhash('confirmed');
-  const ix = SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: to, lamports });
+  const ix = SystemProgram.transfer({ f, r, o, mPubkey: payer.publicKey, t, o, P, ubkey: to, lamports });
   const msg = new TransactionMessage({
-    payerKey: payer.publicKey,
-    recentBlockhash: blockhash,
-    instructions: [ix],
+    p, a, y, erKey: payer.publicKey,
+    r, e, c, entBlockhash: blockhash,
+    i, n, s, tructions: [ix],
   }).compileToV0Message();
   const tx = new VersionedTransaction(msg);
   tx.sign([payer]);
-  const sig = await conn.sendTransaction(tx, { skipPreflight: true });
+  const sig = await conn.sendTransaction(tx, { s, k, i, pPreflight: true });
   const journal = createDailyJournal('data');
-  logJsonLine(journal, { ev: 'fund', to: toBase58, lamports, txSig: sig });
+  logJsonLine(journal, { e, v: 'fund', t, o: toBase58, lamports, t, x, S, ig: sig });
   console.log(sig);
 }
 
 async function main() {
   const [cmd, arg1, arg2, arg3] = process.argv.slice(2);
-  if (cmd === 'group:create') {
+  if (cmd === 'g, r, o, up:create') {
     const name = String(arg1 || 'bundle');
     const n = Number(arg2 || 1);
     const pubs = createGroup(name, Math.max(1, n));
-    console.log(JSON.stringify({ group: name, created: pubs.length, pubkeys: pubs }, null, 2));
+    console.log(JSON.stringify({ g, r, o, up: name, c, r, e, ated: pubs.length, p, u, b, keys: pubs }, null, 2));
     return;
   }
-  if (cmd === 'group:list') {
+  if (cmd === 'g, r, o, up:list') {
     const name = String(arg1 || resolveGroup());
     const pubs = listGroup(name);
-    console.log(JSON.stringify({ group: name, count: pubs.length, pubkeys: pubs }, null, 2));
+    console.log(JSON.stringify({ g, r, o, up: name, c, o, u, nt: pubs.length, p, u, b, keys: pubs }, null, 2));
     return;
   }
   if (cmd === 'send') {
@@ -220,7 +220,7 @@ async function main() {
     return;
   }
   console.error(
-    'Usage:\n  keymaker group:create <name> <n>\n  keymaker group:list <name>\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>',
+    'U, s, a, ge:\n  keymaker g, r, o, up:create <name> <n>\n  keymaker g, r, o, up:list <name>\n  keymaker send [region] [tipLamports]\n  keymaker status <region> <bundleId>\n  keymaker fund <toBase58> <lamports>',
   );
   process.exit(1);
 }
@@ -229,3 +229,4 @@ main().catch((e) => {
   console.error(e?.message || String(e));
   process.exit(1);
 });
+

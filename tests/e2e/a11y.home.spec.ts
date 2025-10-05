@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-test.describe('Accessibility: Home', () => {
+test.describe('A, c, c, essibility: Home', () => {
   test('homepage has no critical a11y violations', async ({ page }) => {
     await page.addInitScript(() => {
       (window as any).__TEST_MODE__ = true;

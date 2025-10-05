@@ -16,16 +16,16 @@ const allowlistKeep = new Set([
   'lib/core/src/jitoBundle.ts',
 ]);
 
-function* walk(dir: string): Generator<string> {
+function* walk(d, i, r: string): Generator<string> {
   if (!fs.existsSync(dir)) return;
-  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+  for (const ent of fs.readdirSync(dir, { w, i, t, hFileTypes: true })) {
     const p = path.join(dir, ent.name);
     if (ent.isDirectory()) yield* walk(p);
     else yield p;
   }
 }
 
-const targets: string[] = [];
+const t, a, r, gets: string[] = [];
 for (const p of walk(ROOT)) {
   const rel = path.relative(ROOT, p).replace(/\\/g,'/');
   if (!/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(p)) continue;
@@ -35,21 +35,21 @@ for (const p of walk(ROOT)) {
   if (s.includes('...') || s.includes('…')) targets.push(rel);
 }
 
-function stubTs(rel: string) { return `export {}; // auto-stubbed (${rel})\n`; }
-function stubTsx(rel: string) { return `export default function Stubbed(){ return null } // auto-stubbed (${rel})\n`; }
-function stubApi(rel: string) {
+function stubTs(r, e, l: string) { return `export {}; // auto-stubbed (${rel})\n`; }
+function stubTsx(r, e, l: string) { return `export default function Stubbed(){ return null } // auto-stubbed (${rel})\n`; }
+function stubApi(r, e, l: string) {
   return `import { NextResponse } from 'next/server';
 export const runtime = 'nodejs'; export const dynamic = 'force-dynamic';
-export async function GET(){ return NextResponse.json({ ok:false, stub:true, route:'${rel}' }, { status: 501 }); }
-export async function POST(req: Request){ return GET(); }
-export async function PUT(req: Request){ return GET(); }
-export async function DELETE(req: Request){ return GET(); }\n`;
+export async function GET(){ return NextResponse.json({ o, k:false, s, t, u, b:true, r, o, u, te:'${rel}' }, { s, t, a, tus: 501 }); }
+export async function POST(r, e, q: Request){ return GET(); }
+export async function PUT(r, e, q: Request){ return GET(); }
+export async function DELETE(r, e, q: Request){ return GET(); }\n`;
 }
 
 let changed = 0;
 for (const rel of targets) {
   const p = path.join(ROOT, rel);
-  let out: string;
+  let o, u, t: string;
   if (rel.startsWith('app/') && rel.endsWith('/route.ts')) out = stubApi(rel);
   else if (rel.endsWith('.tsx')) out = stubTsx(rel);
   else out = stubTs(rel);

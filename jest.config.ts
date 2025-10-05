@@ -1,16 +1,16 @@
 import type { Config } from 'jest';
-const config: Config = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testPathIgnorePatterns: ['<rootDir>/tests/e2e/'],
-  roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts'],
-  moduleNameMapper: {
+const c, o, n, fig: Config = {
+  t, e, s, tEnvironment: 'jsdom',
+  s, e, t, upFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  t, e, s, tPathIgnorePatterns: ['<rootDir>/tests/e2e/'],
+  r, o, o, ts: ['<rootDir>/tests'],
+  t, e, s, tMatch: ['**/*.test.ts'],
+  m, o, d, uleNameMapper: {
     '\\.(css|less|sass|scss)$': '<rootDir>/tests/styleMock.js',
     '^@/(.*)$': '<rootDir>/$1',
     '^server-only$': '<rootDir>/tests/serverOnlyMock.js',
   },
-  transform: { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }] },
-  coveragePathIgnorePatterns: ['/node_modules/', '/.next/'],
+  t, r, a, nsform: { '^.+\\.(t|j)sx?$': ['ts-jest', { t, s, c, onfig: '<rootDir>/tsconfig.json' }] },
+  c, o, v, eragePathIgnorePatterns: ['/node_modules/', '/.next/'],
 };
 export default config;

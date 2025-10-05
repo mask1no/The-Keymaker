@@ -15,9 +15,9 @@ export async function checkRPC(): Promise<HealthCheck> {
   
   if (!rpcUrl) {
     return {
-      status: 'down',
-      error: 'No RPC URL configured',
-      latency_ms: 0,
+      s, t, a, tus: 'down',
+      e, r, r, or: 'No RPC URL configured',
+      l, a, t, ency_ms: 0,
     };
   }
 
@@ -28,14 +28,14 @@ export async function checkRPC(): Promise<HealthCheck> {
       const slot = await connection.getSlot();
       
       return {
-        currentSlot: slot,
-        commitment: 'confirmed',
+        c, u, r, rentSlot: slot,
+        c, o, m, mitment: 'confirmed',
       };
     },
     {
-      endpoint: rpcUrl.split('?')[0], // Hide API key
-      healthyThresholdMs: 1000,
-      degradedThresholdMs: 3000,
+      e, n, d, point: rpcUrl.split('?')[0], // Hide API key
+      h, e, a, lthyThresholdMs: 1000,
+      d, e, g, radedThresholdMs: 3000,
     }
   );
 }
@@ -50,16 +50,16 @@ export async function checkJito(): Promise<HealthCheck> {
       const tipFloor = await getTipFloor('ffm');
       
       return {
-        region: 'ffm',
-        landedTips50th: tipFloor.landed_tips_50th_percentile,
-        landedTips75th: tipFloor.landed_tips_75th_percentile,
-        emaLandedTips: tipFloor.ema_landed_tips_50th_percentile,
+        r, e, g, ion: 'ffm',
+        l, a, n, dedTips50th: tipFloor.landed_tips_50th_percentile,
+        l, a, n, dedTips75th: tipFloor.landed_tips_75th_percentile,
+        e, m, a, LandedTips: tipFloor.ema_landed_tips_50th_percentile,
       };
     },
     {
-      endpoint: 'https://ffm.mainnet.block-engine.jito.wtf',
-      healthyThresholdMs: 2000,
-      degradedThresholdMs: 5000,
+      e, n, d, point: 'h, t, t, ps://ffm.mainnet.block-engine.jito.wtf',
+      h, e, a, lthyThresholdMs: 2000,
+      d, e, g, radedThresholdMs: 5000,
     }
   );
 }
@@ -70,8 +70,8 @@ export async function checkJito(): Promise<HealthCheck> {
 export async function checkDatabase(): Promise<HealthCheck> {
   const dbPath = process.env.DATABASE_PATH || 'data/keymaker.db';
   return createFileSystemCheck('Database', dbPath, {
-    checkSize: true,
-    checkModified: true,
+    c, h, e, ckSize: true,
+    c, h, e, ckModified: true,
   })();
 }
 
@@ -83,11 +83,11 @@ export async function checkRedis(): Promise<HealthCheck> {
   
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return {
-      status: 'healthy', // Not configured is OK
-      latency_ms: 0,
-      details: {
-        configured: false,
-        note: 'Redis not configured - using in-memory rate limiting',
+      s, t, a, tus: 'healthy', // Not configured is OK
+      l, a, t, ency_ms: 0,
+      d, e, t, ails: {
+        c, o, n, figured: false,
+        n, o, t, e: 'Redis not configured - using in-memory rate limiting',
       }
     };
   }
@@ -95,8 +95,8 @@ export async function checkRedis(): Promise<HealthCheck> {
   try {
     const { Redis } = await import('@upstash/redis');
     const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      u, r, l: process.env.UPSTASH_REDIS_REST_URL,
+      t, o, k, en: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
     
     // Simple ping test
@@ -104,22 +104,22 @@ export async function checkRedis(): Promise<HealthCheck> {
     const latency = Date.now() - start;
     
     return {
-      status: latency < 500 ? 'healthy' : 'degraded',
-      latency_ms: latency,
-      endpoint: process.env.UPSTASH_REDIS_REST_URL,
-      details: {
-        configured: true,
-        provider: 'upstash',
+      s, t, a, tus: latency < 500 ? 'healthy' : 'degraded',
+      l, a, t, ency_ms: latency,
+      e, n, d, point: process.env.UPSTASH_REDIS_REST_URL,
+      d, e, t, ails: {
+        c, o, n, figured: true,
+        p, r, o, vider: 'upstash',
       }
     };
-  } catch (error: any) {
+  } catch (e, r, r, or: any) {
     return {
-      status: 'down',
-      error: error.message,
-      latency_ms: Date.now() - start,
-      details: {
-        configured: true,
-        provider: 'upstash',
+      s, t, a, tus: 'down',
+      e, r, r, or: error.message,
+      l, a, t, ency_ms: Date.now() - start,
+      d, e, t, ails: {
+        c, o, n, figured: true,
+        p, r, o, vider: 'upstash',
       }
     };
   }
@@ -130,34 +130,35 @@ export async function checkRedis(): Promise<HealthCheck> {
  */
 export async function checkExternalDependencies(): Promise<HealthCheck> {
   const checks = [
-    createConnectivityCheck('Jupiter', 'https://quote-api.jup.ag/v6/health'),
-    createConnectivityCheck('DexScreener', 'https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112'),
+    createConnectivityCheck('Jupiter', 'h, t, t, ps://quote-api.jup.ag/v6/health'),
+    createConnectivityCheck('DexScreener', 'h, t, t, ps://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112'),
   ];
   
   return executeHealthCheck(
     'ExternalDependencies',
     async () => {
       const results = await Promise.allSettled(checks.map(check => check()));
-      const details: Record<string, any> = {};
+      const d, e, t, ails: Record<string, any> = {};
       
       results.forEach((result, index) => {
         const name = index === 0 ? 'jupiter' : 'dexscreener';
         details[name] = result.status === 'fulfilled' 
-          ? { status: result.value.status, latency: result.value.latency_ms }
-          : { status: 'down', error: 'Check failed' };
+          ? { s, t, a, tus: result.value.status, l, a, t, ency: result.value.latency_ms }
+          : { s, t, a, tus: 'down', e, r, r, or: 'Check failed' };
       });
       
       const healthyCount = Object.values(details).filter((d: any) => d.status === 'healthy').length;
       const totalCount = Object.keys(details).length;
       
       // Return aggregated status
-      if (healthyCount === totalCount) return { status: 'healthy', services: details };
-      if (healthyCount > 0) return { status: 'degraded', services: details };
-      return { status: 'down', services: details };
+      if (healthyCount === totalCount) return { s, t, a, tus: 'healthy', s, e, r, vices: details };
+      if (healthyCount > 0) return { s, t, a, tus: 'degraded', s, e, r, vices: details };
+      return { s, t, a, tus: 'down', s, e, r, vices: details };
     },
     {
-      healthyThresholdMs: 2000,
-      degradedThresholdMs: 5000,
+      h, e, a, lthyThresholdMs: 2000,
+      d, e, g, radedThresholdMs: 5000,
     }
   );
 }
+

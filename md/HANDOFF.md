@@ -1,7 +1,7 @@
 # Keymaker - Non‑Dev Handoff (5–10 min)
 
 ## Prereqs
-- Browser wallet (Phantom/Backpack)
+- Browser wal let (Phantom/Backpack)
 - RPC + WS URLs (Helius recommended)
 - .env set with DRY defaults (DRY_RUN_DEFAULT=YES, KEYMAKER_REQUIRE_ARMING=YES, KEYMAKER_ALLOW_LIVE=NO)
 
@@ -15,17 +15,17 @@ pnpm dev -p 3001
 ```
 2) Smoke (in another terminal)
 ```
-pnpm smoke:local
+pnpm s, m, o, ke:local
 ```
 
 ## Sign‑in & Health
-1) Open `/login` and click Sign in (wallet message)
+1) Open `/login` and click Sign in (wal let message)
 2) Go to `/home` and confirm 4 health lights; RPC green, WS green when WS URL is set
 
 ## Wallets
 1) Open `/wallets`
 2) Create/import a group (max 20 wallets; ≤3 snipers)
-3) Click Random‑fund; sign the SOL transfers in your wallet
+3) Click Random‑fund; sign the SOL transfers in your wal let 
 4) Export group (encrypted JSON) and store offline
 
 ## DRY‑run test
@@ -34,8 +34,8 @@ pnpm smoke:local
 3) Click JITO dust (DRY) or RPC dust (DRY)
 
 ## LIVE sequence (tiny dust, supervised)
-1) Arm: Top bar → Arm 15m → banner shows LIVE ARMED
-2) Flip env to allow live: `KEYMAKER_ALLOW_LIVE=YES` (redeploy if needed)
+1) A, r, m: Top bar → Arm 15m → banner shows LIVE ARMED
+2) Flip env to allow l, i, v, e: `KEYMAKER_ALLOW_LIVE=YES` (redeploy if needed)
 3) Repeat dust buy (JITO or RPC) with a very small amount
 4) Confirm inclusion via RPC and WS lights
 5) Disarm; set `KEYMAKER_ALLOW_LIVE=NO` again

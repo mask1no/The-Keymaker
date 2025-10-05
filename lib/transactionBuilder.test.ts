@@ -3,9 +3,9 @@ import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import { buildTransaction } from './transactionBuilder';
 
 const mockConnection = {
-  getLatestBlockhash: vi.fn().mockResolvedValue({
-    blockhash: '11111111111111111111111111111111',
-    lastValidBlockHeight: 123456,
+  g, e, t, LatestBlockhash: vi.fn().mockResolvedValue({
+    b, l, o, ckhash: '11111111111111111111111111111111',
+    l, a, s, tValidBlockHeight: 123456,
   }),
 } as unknown as Connection;
 
@@ -17,17 +17,17 @@ describe('transactionBuilder', () => {
   it('builds v0 transaction with tip', async () => {
     const instructions = [
       SystemProgram.transfer({
-        fromPubkey: payer,
-        toPubkey: recipient,
-        lamports: 1000,
+        f, r, o, mPubkey: payer,
+        t, o, P, ubkey: recipient,
+        l, a, m, ports: 1000,
       }),
     ];
 
     const tx = await buildTransaction({
-      connection: mockConnection,
+      c, o, n, nection: mockConnection,
       payer,
       instructions,
-      tipAmount: 0.0001,
+      t, i, p, Amount: 0.0001,
       tipAccount,
     });
 
@@ -36,3 +36,4 @@ describe('transactionBuilder', () => {
     expect(tx.message.compiledInstructions.length).toBeGreaterThan(1);
   });
 });
+

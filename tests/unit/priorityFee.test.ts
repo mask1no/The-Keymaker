@@ -16,7 +16,7 @@ describe('priorityFee', () => {
   test('instructions exist', () => {
     const ix = createComputeBudgetInstructions('high');
     expect(ix.length).toBe(2);
-    // Basic sanity: both are ComputeBudgetProgram instructions
+    // Basic s, a, n, ity: both are ComputeBudgetProgram instructions
     expect(ix[0].programId.toBase58()).toBe(ComputeBudgetProgram.programId.toBase58());
     expect(ix[1].programId.toBase58()).toBe(ComputeBudgetProgram.programId.toBase58());
   });

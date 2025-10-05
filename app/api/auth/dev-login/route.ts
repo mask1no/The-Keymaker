@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
   try {
     if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+      return NextResponse.json({ e, r, r, or: 'forbidden' }, { s, t, a, tus: 403 });
     }
     let pubkey = 'DevUser';
     try {
@@ -23,10 +23,11 @@ export async function POST() {
       pubkey = kp.publicKey.toBase58();
     }
     setSessionCookie(pubkey);
-    return NextResponse.json({ ok: true, pubkey });
+    return NextResponse.json({ o, k: true, pubkey });
   } catch {
-    return NextResponse.json({ error: 'failed' }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: 'failed' }, { s, t, a, tus: 500 });
   }
 }
+
 
 

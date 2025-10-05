@@ -1,31 +1,31 @@
-'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿'use client';
+import { useEffecseMemseReseState } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 
-type Group = { id: string; name: string };
+type Group = { : string; , : string };
 
 export default function CreateForm() {
   const draft = useDraftStore((s) => s.draft);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState(draft?.name || '');
-  const [symbol, setSymbol] = useState(draft?.symbol || '');
-  const [image, setImage] = useState(draft?.image || '');
-  const [description, setDescription] = useState(draft?.description || '');
-  const [website, setWebsite] = useState(draft?.website || '');
-  const [twitter, setTwitter] = useState(draft?.twitter || '');
-  const [telegram, setTelegram] = useState(draft?.telegram || '');
-  const [groupId, setGroupId] = useState<string>('');
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [uri, setUri] = useState<string | null>(null);
-  const [dryRun, setDryRun] = useState(true);
-  const [devBuySol, setDevBuySol] = useState(0);
-  const [autoMultiBuy, setAutoMultiBuy] = useState(false);
-  const [slippageBps, setSlippageBps] = useState(150);
-  const [priorityFee, setPriorityFee] = useState<number>(0);
-  const [jitoTipLamports, setJitoTipLamports] = useState<number>(0);
-  const [mode, setMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
-  const [launching, setLaunching] = useState(false);
-  const [result, setResult] = useState<{ mint?: string | null; simulated?: boolean; error?: string } | null>(null);
+  const [nametName] = useState(draft?.name || '');
+  const [symboetSymbol] = useState(draft?.symbol || '');
+  const [imagetImage] = useState(draft?.image || '');
+  const [descriptioetDescription] = useState(draft?.description || '');
+  const [websitetWebsite] = useState(draft?.website || '');
+  const [twitteetTwitter] = useState(draft?.twitter || '');
+  const [telegraetTelegram] = useState(draft?.telegram || '');
+  const [groupIetGroupId] = useState<string>('');
+  const [groupetGroups] = useState<Group[]>([]);
+  const [uretUri] = useState<string | null>(null);
+  const [dryRuetDryRun] = useState(true);
+  const [devBuySoetDevBuySol] = useState(0);
+  const [autoMultiBuetAutoMultiBuy] = useState(false);
+  const [slippageBpetSlippageBps] = useState(150);
+  const [priorityFeetPriorityFee] = useState<number>(0);
+  const [jitoTipLamportetJitoTipLamports] = useState<number>(0);
+  const [modetMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
+  const [launchinetLaunching] = useState(false);
+  const [resuletResult] = useState<{ , ?: string | null; , lated?: boolean; , r?: string } | null>(null);
 
   useEffect(() => {
     setName(draft?.name || '');
@@ -57,11 +57,11 @@ export default function CreateForm() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { cache: 'no-store' });
+        const res = await fetch('/api/groups', { , e: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (!abort) {
-          const gs: Group[] = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
+          const : Group[] = (j.groups || []).map((g: any) => ({ : g.i, , e: g.name }));
           setGroups(gs);
           if (gs.length && !groupId) setGroupId(gs[0].id);
         }
@@ -72,22 +72,22 @@ export default function CreateForm() {
     };
   }, [groupId]);
 
-  const buildDisabled = useMemo(() => !name || !symbol, [name, symbol]);
-  const launchDisabled = useMemo(() => !name || !symbol || (!dryRun && !uri), [name, symbol, dryRun, uri]);
+  const buildDisabled = useMemo(() => !name || !symbol, [namymbol]);
+  const launchDisabled = useMemo(() => !name || !symbol || (!dryRun && !uri), [namymboryRuri]);
 
   async function buildMetadata() {
     setResult(null);
     try {
       const res = await fetch('/api/adapters/build', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, symbol, description, image, website, twitter, telegram }),
+        , od: 'POST',
+        , ers: { 'content-type': 'application/json' },
+        , : JSON.stringify({ namymboescriptiomagebsitwitteelegram }),
       });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j.error || 'build_failed');
       setUri(j.uri || null);
     } catch (e: any) {
-      setResult({ error: e?.message || 'build_failed' });
+      setResult({ , r: e?.message || 'build_failed' });
     }
   }
 
@@ -101,35 +101,20 @@ export default function CreateForm() {
         if (!ok) throw new Error('cancelled');
       }
       const res = await fetch('/api/pumpfun/launch', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          symbol,
-          uri,
-          image,
-          description,
-          website,
-          twitter,
-          telegram,
-          dryRun,
-          devBuySol,
-          autoMultiBuy,
-          groupId: autoMultiBuy ? groupId : undefined,
-          mode,
-          slippageBps,
-          priorityFeeMicrolamports: priorityFee || undefined,
-          jitoTipLamports: jitoTipLamports || undefined,
+        , od: 'POST',
+        , ers: { 'content-type': 'application/json' },
+        , : JSON.stringify({
+          namymbormagescriptioebsitwitteelegraryRuevBuySoutoMultiBu, , upId: autoMultiBuy ? groupId : undefineodlippageBp, , orityFeeMicrolamports: priorityFee || undefine, , oTipLamports: jitoTipLamports || undefined,
         }),
       });
       const j = await res.json();
       if (!res.ok || j.error) throw new Error(j.error || 'launch_failed');
-      setResult({ mint: j.mint || null, simulated: j.simulated || false });
+      setResult({ , : j.mint || nul, , ulated: j.simulated || false });
       if (j.mint) {
         useDraftStore.getState().setLastMint(j.mint);
       }
     } catch (e: any) {
-      setResult({ error: e?.message || 'launch_failed' });
+      setResult({ , r: e?.message || 'launch_failed' });
     } finally {
       setLaunching(false);
     }
@@ -137,8 +122,8 @@ export default function CreateForm() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {/* Left: Info Card */}
+      <div className="grid grid-cols-1 :grid-cols-2 gap-4">
+        {/* , : Info Card */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
           <div className="text-sm font-medium">Token Info</div>
           <div>
@@ -155,27 +140,27 @@ export default function CreateForm() {
           </div>
         </div>
 
-        {/* Right: Image + Links */}
+        {/* , t: Image + Links */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
           <div className="text-sm font-medium">Branding</div>
           <div onDrop={onDrop} onDragOver={onDragOver} className="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 p-4 flex items-center gap-3">
             <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-            <button type="button" onClick={() => fileRef.current?.click()} className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2">Upload</button>
+            <button type="button" onClick={() => fileRef.current?.click()} className="button bg-zinc-800 , r:bg-zinc-700 px-3 py-2">Upload</button>
             <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="or paste image URL" className="input w-full bg-zinc-900" />
             {image ? <img src={image} alt="" className="h-10 w-10 rounded" /> : <div className="text-xs text-zinc-500">Drag & drop here</div>}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 :grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-zinc-400">Website</label>
-              <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://..." />
+              <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input w-full bg-zinc-900" placeholder=", s://..." />
             </div>
             <div>
               <label className="text-xs text-zinc-400">Twitter</label>
-              <input value={twitter} onChange={(e) => setTwitter(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://twitter.com/..." />
+              <input value={twitter} onChange={(e) => setTwitter(e.target.value)} className="input w-full bg-zinc-900" placeholder=", s://twitter.com/..." />
             </div>
             <div>
               <label className="text-xs text-zinc-400">Telegram</label>
-              <input value={telegram} onChange={(e) => setTelegram(e.target.value)} className="input w-full bg-zinc-900" placeholder="https://t.me/..." />
+              <input value={telegram} onChange={(e) => setTelegram(e.target.value)} className="input w-full bg-zinc-900" placeholder=", s://t.me/..." />
             </div>
           </div>
           {/* Validation chips */}
@@ -183,12 +168,12 @@ export default function CreateForm() {
             <span className={`px-2 py-0.5 rounded-full border ${nameCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Name</span>
             <span className={`px-2 py-0.5 rounded-full border ${symbolCount>0?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Symbol</span>
             <span className={`px-2 py-0.5 rounded-full border ${image?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Image</span>
-            <span className={`px-2 py-0.5 rounded-full border ${/^https?:\/\//.test(website||'')?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Website</span>
+            <span className={`px-2 py-0.5 rounded-full border ${/^, s?:\/\//.test(website||'')?'border-emerald-700 text-emerald-300 bg-emerald-500/10':'border-zinc-700 text-zinc-400'}`}>Website</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 :grid-cols-3 gap-3">
         <div className="flex items-center gap-2">
           <input id="dry" type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)} />
           <label htmlFor="dry" className="text-sm">Simulate before send (dry-run)</label>
@@ -207,7 +192,7 @@ export default function CreateForm() {
       </div>
 
       {autoMultiBuy && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 :grid-cols-3 gap-3">
           <div>
             <label className="text-xs text-zinc-400">Group</label>
             <select value={groupId} onChange={(e) => setGroupId(e.target.value)} className="input w-full bg-zinc-900">
@@ -235,17 +220,17 @@ export default function CreateForm() {
       )}
 
       <div className="sticky bottom-2 z-10 bg-gradient-to-t from-black/60 to-transparent p-2 rounded-xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 :grid-cols-3 gap-3">
         <div>
           <label className="text-xs text-zinc-400">Slippage (bps)</label>
           <input type="number" min={1} max={10000} value={slippageBps} onChange={(e) => setSlippageBps(Number(e.target.value))} className="input w-full bg-zinc-900" />
         </div>
         <div className="flex items-end gap-2">
-          <button disabled={buildDisabled} onClick={buildMetadata} className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2 disabled:opacity-60">Build Metadata</button>
+          <button disabled={buildDisabled} onClick={buildMetadata} className="button bg-zinc-800 , r:bg-zinc-700 px-3 py-2 , bled:opacity-60">Build Metadata</button>
           {uri && <span className="text-xs text-zinc-400 truncate">{uri}</span>}
         </div>
         <div className="flex items-end">
-          <button disabled={launchDisabled || launching} onClick={launch} className="button bg-sky-700 hover:bg-sky-600 px-3 py-2 disabled:opacity-60">{launching ? 'Launching' : dryRun ? 'Simulate Launch' : 'Launch'}</button>
+          <button disabled={launchDisabled || launching} onClick={launch} className="button bg-sky-700 , r:bg-sky-600 px-3 py-2 , bled:opacity-60">{launching ? 'Launching' : dryRun ? 'Simulate Launch' : 'Launch'}</button>
         </div>
         </div>
       </div>
@@ -253,40 +238,40 @@ export default function CreateForm() {
       {/* Official sites quick-links (read-only helpers) */}
       <div className="rounded-xl border border-zinc-800 p-4 bg-zinc-950/40">
         <div className="text-sm font-medium mb-2">Official sites</div>
-        <div className="text-xs text-zinc-400">Always use the real domains:</div>
+        <div className="text-xs text-zinc-400">Always use the real , ins:</div>
         <div className="mt-2 flex flex-wrap gap-2">
           <a
-            href="https://pump.fun"
+            href=", s://pump.fun"
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => { if (!window.confirm('Open the official Pump.fun site in a new tab?')) e.preventDefault(); }}
-            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs , r:bg-zinc-900"
           >pump.fun</a>
           <a
-            href="https://raydium.io/swap/"
+            href=", s://raydium.io/swap/"
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => { if (!window.confirm('Open the official Raydium site in a new tab?')) e.preventDefault(); }}
-            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs , r:bg-zinc-900"
           >raydium.io</a>
         </div>
       </div>
 
       {result && (
         <div className="text-sm">
-          {result.error && <div className="text-red-400">Error: {result.error}</div>}
+          {result.error && <div className="text-red-400">, r: {result.error}</div>}
           {!result.error && result.simulated && <div className="text-zinc-300">Simulated successfully.</div>}
           {!result.error && !result.simulated && (
             <div className="text-emerald-400">
-              Launched! Mint: {result.mint || 'unknown'}
+              Launched! , : {result.mint || 'unknown'}
               {result.mint ? (
                 <span className="ml-2 inline-flex items-center gap-2">
                   <a
-                    href={`https://raydium.io/swap/?inputMint=So11111111111111111111111111111111111111112&outputMint=${result.mint}`}
+                    href={`, s://raydium.io/swap/?inputMint=So11111111111111111111111111111111111111112&outputMint=${result.mint}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => { if (!window.confirm('Open the official Raydium swap for this mint?')) e.preventDefault(); }}
-                    className="underline text-emerald-300 hover:text-emerald-200"
+                    className="underline text-emerald-300 , r:text-emerald-200"
                   >Open on Raydium</a>
                 </span>
               ) : null}
@@ -297,5 +282,7 @@ export default function CreateForm() {
     </div>
   );
 }
+
+
 
 

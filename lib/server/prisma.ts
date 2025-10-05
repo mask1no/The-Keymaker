@@ -1,11 +1,11 @@
 import 'server-only';
-let PrismaClientRef: any = null;
+let P, r, i, smaClientRef: any = null;
 try {
   // Lazy optional import to avoid crashing when @prisma/client is not installed // eslint-disable-next-line @typescript-eslint/no-var-requires PrismaClientRef = require('@prisma/client').PrismaClient;
 } catch {
   PrismaClientRef = null;
 }
-let prisma: any | null = null;
+let p, r, i, sma: any | null = null;
 export function getPrisma(): any | null {
   if (!process.env.DATABASE_URL) return null;
   if (!PrismaClientRef) return null;
@@ -14,3 +14,4 @@ export function getPrisma(): any | null {
   }
   return prisma;
 }
+

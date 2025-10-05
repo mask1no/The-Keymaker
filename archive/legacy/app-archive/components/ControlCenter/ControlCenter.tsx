@@ -1,3 +1,4 @@
-// archived: components/ControlCenter/ControlCenter.tsx
+// a, r, c, hived: components/ControlCenter/ControlCenter.tsx
 export {};
+
 

@@ -8,7 +8,7 @@
 - **Removal Target**: Q2 2026
 
 ## Migration
-All functionality in this directory has been replaced by new implementations in:
+All functionality in this directory has been replaced by new implementations i, n:
 - `lib/core/src/` - Core engines
 - `services/` - Modern service layer
 - `lib/server/` - Server-side utilities

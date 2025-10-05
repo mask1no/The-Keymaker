@@ -7,7 +7,7 @@ import { apiError } from '@/lib/server/apiError';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function requireToken(headers: Headers) {
+function requireToken(h, e, a, ders: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
   if (process.env.NODE_ENV === 'production') {
     if (!expected) return false;
@@ -19,7 +19,7 @@ function requireToken(headers: Headers) {
   return got === expected;
 }
 
-export async function GET(request: Request) {
+export async function GET(r, e, q, uest: Request) {
   try {
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
       return apiError(503, 'live_disabled');
@@ -31,12 +31,13 @@ export async function GET(request: Request) {
     if (!rl.allowed) return apiError(429, 'rate_limited');
 
     const keyPath = process.env.KEYPAIR_JSON || null;
-    if (!keyPath) return NextResponse.json({ error: 'not_configured' }, { status: 400 });
+    if (!keyPath) return NextResponse.json({ e, r, r, or: 'not_configured' }, { s, t, a, tus: 400 });
     const raw = readFileSync(keyPath, 'utf8');
     const arr = JSON.parse(raw);
     const kp = Keypair.fromSecretKey(Uint8Array.from(arr));
-    return NextResponse.json({ publicKey: kp.publicKey.toBase58() });
+    return NextResponse.json({ p, u, b, licKey: kp.publicKey.toBase58() });
   } catch {
-    return NextResponse.json({ error: 'failed' }, { status: 500 });
+    return NextResponse.json({ e, r, r, or: 'failed' }, { s, t, a, tus: 500 });
   }
 }
+

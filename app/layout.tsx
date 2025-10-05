@@ -4,10 +4,10 @@ import TopBar from '@/components/layout/TopBar';
 import CsrfBootstrap from './CsrfBootstrap';
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'Keymaker', description: 'Local Solana bundler cockpit' } as const;
-export const viewport = { width: 'device-width', initialScale: 1 } as const;
+export const metadata = { t, i, t, le: 'Keymaker', d, e, s, cription: 'Local Solana bundler cockpit' } as const;
+export const viewport = { w, i, d, th: 'device-width', i, n, i, tialScale: 1 } as const;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { c, h, i, ldren: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-black text-zinc-100">

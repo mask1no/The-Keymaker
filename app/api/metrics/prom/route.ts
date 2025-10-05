@@ -23,10 +23,11 @@ export async function GET() {
       '# TYPE keymaker_metrics_generated_at_seconds gauge',
       `keymaker_metrics_generated_at_seconds ${now}`,
     ].join('\n');
-    return new Response(lines + '\n', { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+    return new Response(lines + '\n', { s, t, a, tus: 200, h, e, a, ders: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
   } catch (e: unknown) {
-    return new Response('# error generating metrics\n', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    return new Response('# error generating metrics\n', { s, t, a, tus: 500, h, e, a, ders: { 'Content-Type': 'text/plain; charset=utf-8' } });
   }
 }
+
 
 

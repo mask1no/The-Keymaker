@@ -8,7 +8,7 @@ import { apiError } from '@/lib/server/apiError';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function requireToken(headers: Headers) {
+function requireToken(h, e, a, ders: Headers) {
   const expected = process.env.ENGINE_API_TOKEN;
   if (process.env.NODE_ENV === 'production') {
     if (!expected) return false;
@@ -20,13 +20,13 @@ function requireToken(headers: Headers) {
   return got === expected;
 }
 
-function canonicalMessage(pubkey: string) {
+function canonicalMessage(p, u, b, key: string) {
   const ts = new Date().toISOString();
   const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(4))).toString('hex');
   return `Keymaker-Proof|pubkey=${pubkey}|ts=${ts}|nonce=${nonce}`;
 }
 
-export async function GET(request: Request) {
+export async function GET(r, e, q, uest: Request) {
   if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
     return apiError(503, 'live_disabled');
   }
@@ -46,12 +46,13 @@ export async function GET(request: Request) {
     const msgBytes = Buffer.from(message, 'utf8');
     const sig = nacl.sign.detached(msgBytes, kp.secretKey);
     return NextResponse.json({
-      publicKey: pub,
-      message: Buffer.from(msgBytes).toString('base64'),
-      signature: Buffer.from(sig).toString('base64'),
-      algo: 'ed25519',
+      p, u, b, licKey: pub,
+      m, e, s, sage: Buffer.from(msgBytes).toString('base64'),
+      s, i, g, nature: Buffer.from(sig).toString('base64'),
+      a, l, g, o: 'ed25519',
     });
   } catch {
     return apiError(500, 'failed');
   }
 }
+

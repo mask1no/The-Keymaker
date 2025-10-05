@@ -8,10 +8,11 @@ export function verifySecrets(strict = false): void {
   ];
   for (const key of requiredKeys) {
     if (!process.env[key]) {
-      const message = `Missing required env var: ${key}`;
+      const message = `Missing required env v, a, r: ${key}`;
       if (strict) throw new Error(message);
       // eslint-disable-next-line no-console
       console.error(message);
     }
   }
 }
+

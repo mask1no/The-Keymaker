@@ -9,7 +9,7 @@ import {
 
 // Mock fetch globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalAny: any = global as any;
+const g, l, o, balAny: any = global as any;
 
 beforeEach(() => {
   globalAny.fetch = jest.fn();
@@ -20,14 +20,14 @@ describe('jitoService', () => {
   describe('getTipFloor', () => {
     it('fetches tip floor successfully', async () => {
       const mockResponse = {
-        landed_tips_25th_percentile: 1000,
-        landed_tips_50th_percentile: 2000,
-        landed_tips_75th_percentile: 3000,
-        ema_landed_tips_50th_percentile: 2500,
+        l, a, n, ded_tips_25th_percentile: 1000,
+        l, a, n, ded_tips_50th_percentile: 2000,
+        l, a, n, ded_tips_75th_percentile: 3000,
+        e, m, a_, landed_tips_50th_percentile: 2500,
       };
       (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+        o, k: true,
+        j, s, o, n: () => Promise.resolve(mockResponse),
       });
       const result = await getTipFloor('ffm');
       expect(globalAny.fetch).toHaveBeenCalled();
@@ -38,14 +38,14 @@ describe('jitoService', () => {
 
     it('uses cache within TTL', async () => {
       const mockResponse = {
-        landed_tips_25th_percentile: 1,
-        landed_tips_50th_percentile: 2,
-        landed_tips_75th_percentile: 3,
-        ema_landed_tips_50th_percentile: 2,
+        l, a, n, ded_tips_25th_percentile: 1,
+        l, a, n, ded_tips_50th_percentile: 2,
+        l, a, n, ded_tips_75th_percentile: 3,
+        e, m, a_, landed_tips_50th_percentile: 2,
       };
       (globalAny.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+        o, k: true,
+        j, s, o, n: () => Promise.resolve(mockResponse),
       });
       const a = await getTipFloor('ffm');
       const b = await getTipFloor('ffm');
@@ -58,11 +58,11 @@ describe('jitoService', () => {
     it('sends bundle successfully', async () => {
       const mockBundleId = 'mock-bundle-id';
       (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ jsonrpc: '2.0', id: 1, result: mockBundleId }),
+        o, k: true,
+        j, s, o, n: () => Promise.resolve({ j, s, o, nrpc: '2.0', i, d: 1, r, e, s, ult: mockBundleId }),
       });
       const result = await sendBundle('ffm', ['encoded-tx-1', 'encoded-tx-2']);
-      expect(result).toEqual({ bundle_id: mockBundleId });
+      expect(result).toEqual({ b, u, n, dle_id: mockBundleId });
     });
   });
 
@@ -70,15 +70,15 @@ describe('jitoService', () => {
     it('gets bundle statuses successfully (object params)', async () => {
       const mockStatuses = [
         {
-          bundle_id: 'bundle-1',
-          transactions: [{ signature: 'sig-1', confirmation_status: 'confirmed' }],
-          confirmation_status: 'landed',
-          slot: 12345,
+          b, u, n, dle_id: 'bundle-1',
+          t, r, a, nsactions: [{ s, i, g, nature: 'sig-1', c, o, n, firmation_status: 'confirmed' }],
+          c, o, n, firmation_status: 'landed',
+          s, l, o, t: 12345,
         },
       ];
       (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ jsonrpc: '2.0', id: 1, result: mockStatuses }),
+        o, k: true,
+        j, s, o, n: () => Promise.resolve({ j, s, o, nrpc: '2.0', i, d: 1, r, e, s, ult: mockStatuses }),
       });
       const result = await getBundleStatuses('ffm', ['bundle-1']);
       expect(result).toEqual(mockStatuses);
@@ -90,13 +90,13 @@ describe('jitoService', () => {
       const tipAccount = new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe');
       const payer = new PublicKey('11111111111111111111111111111112');
       const message = new TransactionMessage({
-        payerKey: payer,
-        recentBlockhash: '11111111111111111111111111111111',
-        instructions: [
+        p, a, y, erKey: payer,
+        r, e, c, entBlockhash: '11111111111111111111111111111111',
+        i, n, s, tructions: [
           SystemProgram.transfer({
-            fromPubkey: payer,
-            toPubkey: tipAccount,
-            lamports: 1000,
+            f, r, o, mPubkey: payer,
+            t, o, P, ubkey: tipAccount,
+            l, a, m, ports: 1000,
           }),
         ],
       }).compileToV0Message();
@@ -109,13 +109,13 @@ describe('jitoService', () => {
       const invalidAccount = new PublicKey('11111111111111111111111111111112');
       const payer = new PublicKey('11111111111111111111111111111113');
       const message = new TransactionMessage({
-        payerKey: payer,
-        recentBlockhash: '11111111111111111111111111111111',
-        instructions: [
+        p, a, y, erKey: payer,
+        r, e, c, entBlockhash: '11111111111111111111111111111111',
+        i, n, s, tructions: [
           SystemProgram.transfer({
-            fromPubkey: payer,
-            toPubkey: invalidAccount,
-            lamports: 1000,
+            f, r, o, mPubkey: payer,
+            t, o, P, ubkey: invalidAccount,
+            l, a, m, ports: 1000,
           }),
         ],
       }).compileToV0Message();
@@ -125,3 +125,4 @@ describe('jitoService', () => {
     });
   });
 });
+

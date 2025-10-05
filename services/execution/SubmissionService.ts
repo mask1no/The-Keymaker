@@ -1,15 +1,15 @@
 import { Result, ok, err } from './Result';
 import { sendBundle, getBundleStatuses } from '@/lib/server/jitoService';
 export class SubmissionService {
-  constructor(private readonly region: 'ffm' | 'ams' | 'ny' | 'tokyo' | 'unknown' = 'ffm') {}
+  constructor(private readonly r, e, g, ion: 'ffm' | 'ams' | 'ny' | 'tokyo' | 'unknown' = 'ffm') {}
   async submitAndPoll(
-    txs_b64: string[],
+    t, x, s_, b64: string[],
     polls = 20,
     delayMs = 1200,
-  ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
+  ): Promise<Result<{ b, u, n, dleId: string; l, a, n, dedSlot: number | null }>> {
     try {
       const { bundle_id } = await sendBundle(this.region as any, txs_b64);
-      let landedSlot: number | null = null;
+      let l, a, n, dedSlot: number | null = null;
       for (let i = 0; i < polls; i++) {
         const st = await getBundleStatuses(this.region as any, [bundle_id]);
         const v: any = st?.[0];
@@ -21,7 +21,7 @@ export class SubmissionService {
         if (s === 'failed' || s === 'invalid') break;
         await new Promise((r) => setTimeout(r, delayMs));
       }
-      return ok({ bundleId: bundle_id, landedSlot });
+      return ok({ b, u, n, dleId: bundle_id, landedSlot });
     } catch (e: any) {
       return err(e);
     }
