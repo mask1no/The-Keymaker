@@ -185,29 +185,52 @@ export async function dbWithCacheFallback<T>(
 async function checkService(service: string): Promise<any> {
   switch (service) {
     case 'rpc': {
-      // Import and check RPC
-      const { checkRPC } = await import('@/lib/health/checks');
-      return checkRPC();
+      const { probeHealth } = await import('@/lib/server/health');
+      const h = await probeHealth();
+      const ok = h.rpc.light === 'green';
+      return { status: ok ? 'healthy' : 'degraded', details: h.rpc } as any;
     }
       
     case 'jito': {
-      const { checkJito } = await import('@/lib/health/checks');
-      return checkJito();
+      const { probeHealth } = await import('@/lib/server/health');
+      const h = await probeHealth();
+      const ok = h.jito.tipFloor != null;
+      return { status: ok ? 'healthy' : 'degraded', details: h.jito } as any;
     }
       
     case 'database': {
-      const { checkDatabase } = await import('@/lib/health/checks');
-      return checkDatabase();
+      // Lightweight filesystem check for sqlite db
+      const { existsSync, statSync } = await import('fs');
+      const path = 'data/keymaker.db';
+      const ok = existsSync(path);
+      const size = ok ? statSync(path).size : 0;
+      return { status: ok ? 'healthy' : 'down', details: { path, size } } as any;
     }
       
     case 'redis': {
-      const { checkRedis } = await import('@/lib/health/checks');
-      return checkRedis();
+      const url = process.env.UPSTASH_REDIS_REST_URL;
+      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+      if (!url || !token) return { status: 'healthy', details: { configured: false } } as any;
+      try {
+        const { Redis } = await import('@upstash/redis');
+        const r = new Redis({ url, token });
+        const t0 = Date.now();
+        await r.ping();
+        const ms = Date.now() - t0;
+        return { status: ms < 500 ? 'healthy' : 'degraded', details: { url, latency_ms: ms } } as any;
+      } catch (e: any) {
+        return { status: 'down', error: e?.message || 'redis_failed' } as any;
+      }
     }
       
     case 'external': {
-      const { checkExternalDependencies } = await import('@/lib/health/checks');
-      return checkExternalDependencies();
+      try {
+        const j = await fetch('https://quote-api.jup.ag/v6/health', { method: 'HEAD', cache: 'no-store' });
+        const ok = j.ok;
+        return { status: ok ? 'healthy' : 'down', details: { jupiter: j.status } } as any;
+      } catch {
+        return { status: 'down', details: { jupiter: 'failed' } } as any;
+      }
     }
       
     default:

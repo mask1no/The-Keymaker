@@ -45,12 +45,17 @@ export async function GET(req: Request){
   const { searchParams } = new URL(req.url);
   const ca = searchParams.get('ca') || '';
   if (!ca) return NextResponse.json({ ok:false, error:'missing ca' }, { status: 400 });
-
-  const be = await birdeyeByCA(ca);
-  const out = be || await dexByCA(ca);
-  if (!out) return NextResponse.json({ ok:false, error:'not found' }, { status: 404 });
-
-  return NextResponse.json({ ok:true, coin: out });
+  // Back-compat: proxy to richer token meta API
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/token/${encodeURIComponent(ca)}/meta`, { cache: 'no-store' });
+    const j = await res.json().catch(()=> ({}));
+    if (!res.ok || !j?.draft) return NextResponse.json({ ok:false, error:'not_found' }, { status: 404 });
+    const d = j.draft as any;
+    const coin = { ca, name: d.name, symbol: d.symbol, image: d.image, website: d.website, twitter: d.twitter, telegram: d.telegram };
+    return new NextResponse(JSON.stringify({ ok:true, coin }), { status: 200, headers: { 'X-Deprecated': 'Use /api/token/[mint]/meta' } });
+  } catch {
+    return NextResponse.json({ ok:false, error:'failed' }, { status: 500 });
+  }
 }
 
 

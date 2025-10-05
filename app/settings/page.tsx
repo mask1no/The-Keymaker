@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 async function getUi(): Promise<any> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+  const base = '';
   const res = await fetch(`${base}/api/ui/settings`, { cache: 'no-store' });
   if (!res.ok) return null;
   return res.json();

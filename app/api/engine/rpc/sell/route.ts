@@ -8,6 +8,8 @@ import { getUiSettings } from '@/lib/server/settings';
 import { enforcePriorityFeeCeiling, enforceConcurrencyCeiling } from '@/lib/server/productionGuards';
 import { Connection } from '@solana/web3.js';
 import { getSplTokenBalance } from '@/lib/core/src/balances';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -27,14 +29,25 @@ const RpcSellSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const cfg = getRateConfig('submit');
+    const rl = await rateLimit(`engine:rpcsell:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
+    // Require authenticated session and ownership of the group
+    const session = getSession();
+    const user = session?.userPubkey || '';
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = RpcSellSchema.parse(body);
 
     const group = getWalletGroup(params.groupId);
     if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    if (!group.masterWallet || group.masterWallet !== user) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
 
     const walletPubkeys = params.wallets && params.wallets.length > 0
       ? group.executionWallets.filter((w) => params.wallets!.includes(w))
@@ -45,7 +58,7 @@ export async function POST(request: Request) {
     if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
     // Resolve per-wallet token balances for the input mint
-    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+    const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const walletToAmount: Record<string, number> = {};
     for (const kp of keypairs) {
@@ -79,7 +92,7 @@ export async function POST(request: Request) {
       priorityFeeMicrolamports: pri,
       dryRun: params.dryRun,
       cluster: params.cluster,
-      intentHash: `sell:${params.mint}:${params.percent}:${params.slippageBps}`,
+      intentHash: `sell:${params.groupId}:${params.mint}:${params.percent}:${params.slippageBps}`,
       buildTx: async (wallet) => {
         const base = walletToAmount[wallet.publicKey.toBase58()] || 0;
         const amountTokens = Math.floor((base * params.percent) / 100);

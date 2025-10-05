@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getWalletGroup } from '@/lib/server/walletGroups';
 import { SystemProgram, TransactionMessage, VersionedTransaction, PublicKey, Connection } from '@solana/web3.js';
+import { getSession } from '@/lib/server/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,12 +23,16 @@ function partition(total: number, n: number, strategy: 'equal'|'random'): number
 }
 
 export async function POST(req: Request) {
+  const session = getSession();
+  const user = session?.userPubkey || '';
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const body = await req.json().catch(()=> ({}));
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
 
   const g = getWalletGroup(parsed.data.groupId);
   if (!g) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
+  if (!g.masterWallet || g.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
   const dests = g.executionWallets;
   if (dests.length === 0) return NextResponse.json({ error: 'no_wallets' }, { status: 400 });

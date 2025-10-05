@@ -65,12 +65,17 @@ export default function TopBar() {
   const showLiveBanner = allowLive && (!requireArming || armed);
   const liveText = requireArming ? (armed ? `LIVE ARMED (${secondsLeft}s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
 
+  function getCsrf(): string {
+    if (typeof document === 'undefined') return '';
+    return document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '';
+  }
+
   async function callArm(minutes = 15) {
     setBusy(true); setErr(null);
     try {
       const headers: Record<string, string> = { 'content-type': 'application/json' };
-      const token = process.env.NEXT_PUBLIC_ENGINE_API_TOKEN;
-      if (token) headers['x-engine-token'] = token;
+      const csrf = getCsrf();
+      if (csrf) headers['x-csrf-token'] = csrf;
       const r = await fetch('/api/ops/arm', { method: 'POST', headers, body: JSON.stringify({ minutes }) });
       if (!r.ok) throw new Error(`arm failed: ${r.status}`);
     } catch (e: unknown) {
@@ -82,8 +87,8 @@ export default function TopBar() {
     setBusy(true); setErr(null);
     try {
       const headers: Record<string, string> = { 'content-type': 'application/json' };
-      const token = process.env.NEXT_PUBLIC_ENGINE_API_TOKEN;
-      if (token) headers['x-engine-token'] = token;
+      const csrf = getCsrf();
+      if (csrf) headers['x-csrf-token'] = csrf;
       const r = await fetch('/api/ops/disarm', { method: 'POST', headers });
       if (!r.ok) throw new Error(`disarm failed: ${r.status}`);
     } catch (e: unknown) {

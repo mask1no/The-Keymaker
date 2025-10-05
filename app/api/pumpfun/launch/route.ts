@@ -73,8 +73,8 @@ export async function POST(request: Request) {
         'Enable Live Mode in Settings and set KEYMAKER_ALLOW_LIVE=YES to launch.',
       );
     }
-    if (process.env.KEYMAKER_DISABLE_LIVE === 'YES') {
-      return apiError(403, 'live_disabled', requestId, 'KEYMAKER_DISABLE_LIVE=YES blocks live sends.');
+    if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
+      return apiError(403, 'live_disabled', requestId, 'KEYMAKER_DISABLE_LIVE_NOW=YES blocks live sends.');
     }
     if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
       const { isArmed } = await import('@/lib/server/arming');

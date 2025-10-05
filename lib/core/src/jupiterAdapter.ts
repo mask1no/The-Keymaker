@@ -6,7 +6,6 @@
 import {
   Connection,
   Keypair,
-  Transaction,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { createDailyJournal, logJsonLine } from './journal';
@@ -101,7 +100,7 @@ export async function buildJupiterSwapTx(params: {
   slippageBps: number;
   cluster?: 'mainnet-beta' | 'devnet';
   priorityFeeMicrolamports?: number;
-}): Promise<Transaction> {
+}): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
   
   // Convert SOL to lamports
@@ -128,6 +127,8 @@ export async function buildJupiterSwapTx(params: {
     logJsonLine(journal, {
       ev: 'jupiter_quote_received',
       wallet: params.wallet.publicKey.toBase58(),
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
       inAmount: quote.inAmount,
       outAmount: quote.outAmount,
       priceImpactPct: quote.priceImpactPct,
@@ -140,18 +141,24 @@ export async function buildJupiterSwapTx(params: {
       wrapUnwrapSOL: true,
       priorityFeeMicrolamports: params.priorityFeeMicrolamports,
     });
-    
-    // Convert VersionedTransaction to legacy Transaction for compatibility
-    // (or return versioned directly if your signing logic supports it)
-    const tx = Transaction.from(versionedTx.serialize());
+    // Attach minimal metadata for downstream journaling
+    try {
+      (versionedTx as any).__km_meta = {
+        kind: 'buy',
+        inputMint: params.inputMint,
+        outputMint: params.outputMint,
+        inAmount: quote.inAmount, // string (lamports for buy)
+        outAmount: quote.outAmount, // string (token base units)
+      };
+    } catch {}
     
     logJsonLine(journal, {
       ev: 'jupiter_tx_built',
       wallet: params.wallet.publicKey.toBase58(),
-      instructions: tx.instructions.length,
+      instructions: undefined,
     });
     
-    return tx;
+    return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
       ev: 'jupiter_error',
@@ -175,7 +182,7 @@ export async function buildJupiterSellTx(params: {
   minOutLamports?: number;
   cluster?: 'mainnet-beta' | 'devnet';
   priorityFeeMicrolamports?: number;
-}): Promise<Transaction> {
+}): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
   
   logJsonLine(journal, {
@@ -205,6 +212,8 @@ export async function buildJupiterSellTx(params: {
     logJsonLine(journal, {
       ev: 'jupiter_sell_quote_received',
       wallet: params.wallet.publicKey.toBase58(),
+      inputMint: params.inputMint,
+      outputMint: params.outputMint,
       inAmount: quote.inAmount,
       outAmount: quote.outAmount,
     });
@@ -216,16 +225,23 @@ export async function buildJupiterSellTx(params: {
       wrapUnwrapSOL: true,
       priorityFeeMicrolamports: params.priorityFeeMicrolamports,
     });
-    
-    const tx = Transaction.from(versionedTx.serialize());
+    try {
+      (versionedTx as any).__km_meta = {
+        kind: 'sell',
+        inputMint: params.inputMint,
+        outputMint: params.outputMint,
+        inAmount: quote.inAmount, // string (token base units)
+        outAmount: quote.outAmount, // string (lamports)
+      };
+    } catch {}
     
     logJsonLine(journal, {
       ev: 'jupiter_sell_tx_built',
       wallet: params.wallet.publicKey.toBase58(),
-      instructions: tx.instructions.length,
+      instructions: undefined,
     });
     
-    return tx;
+    return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
       ev: 'jupiter_sell_error',

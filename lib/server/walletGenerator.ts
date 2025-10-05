@@ -4,6 +4,7 @@ import { join } from 'path';
 import { Keypair } from '@solana/web3.js';
 import { getWalletGroup, addWalletToGroup, keypairPath } from './walletGroups';
 import { createDailyJournal, logJsonLine } from '@/lib/core/src/journal';
+import { saveKeypair as saveEncryptedKeypair } from './keystore';
 
 export type GeneratedWalletsResult = {
   groupId: string;
@@ -31,9 +32,8 @@ export function generateWalletsForGroup(groupId: string, count: number): Generat
   for (let i = 0; i < alloc; i++) {
     const kp = Keypair.generate();
     const pub = kp.publicKey.toBase58();
-    const file = keypairPath(group.masterWallet || 'unassigned', group.name, pub);
-    // Persist as Uint8Array array (standard Solana format)
-    writeFileSync(file, JSON.stringify(Array.from(kp.secretKey), null, 2), 'utf8');
+    // Save encrypted keystore entry
+    saveEncryptedKeypair(group.masterWallet || 'unassigned', group.name, kp);
     // Register to group execution wallets
     addWalletToGroup(groupId, pub);
     generated.push(pub);

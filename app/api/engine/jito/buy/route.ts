@@ -6,6 +6,8 @@ import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
 import { getUiSettings } from '@/lib/server/settings';
 import { enforceTipCeiling } from '@/lib/server/productionGuards';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,9 +30,17 @@ const JitoBuySchema = z.object({
  */
 export async function POST(request: Request) {
   try {
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const cfg = getRateConfig('submit');
+    const rl = await rateLimit(`engine:jito_buy:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
+    // Require authenticated session and verify ownership
+    const session = getSession();
+    const user = session?.userPubkey || '';
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = JitoBuySchema.parse(body);
     
@@ -41,6 +51,9 @@ export async function POST(request: Request) {
         { error: 'Group not found' },
         { status: 404 }
       );
+    }
+    if (!group.masterWallet || group.masterWallet !== user) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
     
     const walletPubkeys = group.executionWallets;
@@ -88,6 +101,7 @@ export async function POST(request: Request) {
           amountSol: params.amountSol,
           slippageBps: params.slippageBps,
           cluster: params.cluster,
+          priorityFeeMicrolamports: ui.priority === 'high' ? 800_000 : ui.priority === 'med' ? 300_000 : 0,
         });
       })
     );

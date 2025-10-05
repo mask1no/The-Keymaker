@@ -7,6 +7,7 @@
 import {
   Connection,
   ComputeBudgetProgram,
+  VersionedTransaction,
 } from '@solana/web3.js';
 import pLimit from 'p-limit';
 import { randomUUID } from 'crypto';
@@ -61,6 +62,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
     wallets.map((wallet) =>
       limiter(async () => {
         const walletPubkey = wallet.publicKey.toBase58();
+        const groupIdFromIntent = intentHash && intentHash.split(':').length > 1 ? intentHash.split(':')[1] : undefined;
         
         // Check idempotency
         if (isAlreadyProcessed({ runId, wallet: walletPubkey, intentHash })) {
@@ -77,30 +79,14 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
         
         try {
           // Build transaction
-          const tx = await buildTx(wallet);
-          
-          // Add compute budget if priority fee specified
-          if (priorityFeeMicrolamports > 0) {
-            tx.add(
-              ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports: priorityFeeMicrolamports,
-              })
-            );
-          }
-          
-          // Set fee payer
-          tx.feePayer = wallet.publicKey;
-          
-          // Get recent blockhash
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-          tx.recentBlockhash = blockhash;
-          
-          // Sign transaction (server-side only!)
-          await tx.sign(wallet);
+          const vtx = (await buildTx(wallet)) as unknown as VersionedTransaction;
+          // Jupiter build includes prioritization if requested; do not mutate instructions
+          // Sign the versioned transaction with the wallet
+          vtx.sign([wallet]);
           
           if (dryRun) {
             // SIMULATE ONLY - NO SEND
-            const simulation = await connection.simulateTransaction(tx, {
+            const simulation = await connection.simulateTransaction(vtx, {
               sigVerify: true,
             });
             
@@ -139,7 +125,8 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
           }
           
           // LIVE SEND
-          const signature = await connection.sendRawTransaction(tx.serialize(), {
+          const raw = vtx.serialize();
+          const signature = await connection.sendRawTransaction(raw, {
             skipPreflight: false,
             maxRetries: 3,
           });
@@ -147,11 +134,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
           // Confirm transaction with timeout
           const confirmation = await Promise.race([
             connection.confirmTransaction(
-              {
-                signature,
-                blockhash,
-                lastValidBlockHeight,
-              },
+              signature,
               'confirmed'
             ),
             new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
@@ -171,6 +154,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               wallet: walletPubkey,
               signature,
               timeoutMs,
+              groupId: groupIdFromIntent,
             });
           } else if (confirmation.value.err) {
             outcomes.push({
@@ -186,8 +170,13 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               wallet: walletPubkey,
               signature,
               error: confirmation.value.err,
+              groupId: groupIdFromIntent,
             });
           } else {
+            // Extract quote metadata if present
+            const meta = (vtx as any).__km_meta as {
+              kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string;
+            } | undefined;
             outcomes.push({
               wallet: walletPubkey,
               signature,
@@ -201,6 +190,27 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               wallet: walletPubkey,
               signature,
               slot: confirmation.context.slot,
+              groupId: groupIdFromIntent,
+            });
+            // Emit trade journal entry (approximate) for P&L
+            logJsonLine(journal, {
+              ev: 'trade',
+              ts: Date.now(),
+              side: meta?.kind === 'sell' ? 'sell' : 'buy',
+              mint: meta?.kind === 'sell' ? (meta.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
+              // qty in base units where possible; aggregator can convert
+              qty: Number(meta?.kind === 'sell' ? (meta.inAmount || '0') : (meta?.outAmount || '0')),
+              // price in lamports per token for buy; for sell, compute effective as out/in
+              price: (() => {
+                const inAmt = Number(meta?.inAmount || '0');
+                const outAmt = Number(meta?.outAmount || '0');
+                if (!inAmt || !outAmt) return 0;
+                if (meta?.kind === 'sell') return inAmt / outAmt; // lamports per token
+                return inAmt / outAmt; // lamports per token (buy path)
+              })(),
+              fee: 0,
+              groupId: groupIdFromIntent || 'unknown',
+              wallet: walletPubkey,
             });
           }
           

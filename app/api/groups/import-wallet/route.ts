@@ -6,6 +6,7 @@ import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { getWalletGroup, keypairPath, addWalletToGroup } from '@/lib/server/walletGroups';
 import { getSession } from '@/lib/server/session';
+import { saveKeypair as saveEncryptedKeypair } from '@/lib/server/keystore';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -42,14 +43,12 @@ export async function POST(request: Request) {
 
     const kp = Keypair.fromSecretKey(secretKey);
     const pub = kp.publicKey.toBase58();
-    const file = keypairPath(group.masterWallet, group.name, pub);
-    const dir = dirname(file);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(file, JSON.stringify(Array.from(kp.secretKey), null, 2), 'utf8');
+    // Save encrypted keystore entry
+    saveEncryptedKeypair(group.masterWallet, group.name, kp);
 
     addWalletToGroup(groupId, pub);
 
-    return NextResponse.json({ ok: true, pubkey: pub, path: file });
+    return NextResponse.json({ ok: true, pubkey: pub });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_request', details: error.issues }, { status: 400 });

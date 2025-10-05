@@ -64,9 +64,8 @@ export async function loadKeypairsForGroup(
 }
 
 export function saveKeypair(master: string, groupName: string, kp: Keypair) {
-  const p = keypairPath(master, groupName, kp.publicKey.toBase58());
-  mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, JSON.stringify(Array.from(kp.secretKey), null, 2));
+  // Deprecated plaintext writer: intentionally left no-op to prevent insecure writes.
+  // Use lib/server/keystore.saveKeypair instead.
 }
 
 export function parseSecretKey(input: string): Uint8Array {

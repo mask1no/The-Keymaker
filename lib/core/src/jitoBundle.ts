@@ -231,6 +231,13 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
               status: 'SIMULATED',
               simulationLogs: simulation.value.logs || [],
             });
+            // Log simulated trade metadata if available
+            try {
+              const meta = (tx as any).__km_meta as { kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string } | undefined;
+              if (meta) {
+                logJsonLine(journal, { ev:'trade_simulated', runId, side: meta.kind || 'buy', mint: meta.kind==='sell' ? meta.inputMint : meta?.outputMint, qty: Number(meta?.kind==='sell'?meta.inAmount:meta?.outAmount||'0'), price: 0 });
+              }
+            } catch {}
           }
         } catch (error) {
           outcomes.push({
@@ -300,14 +307,33 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
         });
         
         // Add outcomes
-        chunk.forEach(() => {
+        chunk.forEach((tx: any) => {
           outcomes.push({
-            wallet: 'bundled', // In bundle, individual wallets not tracked here
-            status: result.status === 'LANDED' ? 'LANDED' : 
-                    result.status === 'DROPPED' ? 'DROPPED' :
-                    result.status === 'EXPIRED' ? 'TIMEOUT' : 'ERROR',
+            wallet: 'bundled',
+            status: result.status === 'LANDED' ? 'LANDED' : result.status === 'DROPPED' ? 'DROPPED' : result.status === 'EXPIRED' ? 'TIMEOUT' : 'ERROR',
             slot: result.slot,
           });
+          if (result.status === 'LANDED') {
+            try {
+              const meta = (tx as any).__km_meta as { kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string } | undefined;
+              if (meta) {
+                logJsonLine(journal, {
+                  ev: 'trade',
+                  ts: Date.now(),
+                  side: meta.kind === 'sell' ? 'sell' : 'buy',
+                  mint: meta.kind === 'sell' ? (meta.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
+                  qty: Number(meta?.kind === 'sell' ? (meta.inAmount || '0') : (meta?.outAmount || '0')),
+                  price: (() => {
+                    const inAmt = Number(meta?.inAmount || '0');
+                    const outAmt = Number(meta?.outAmount || '0');
+                    if (!inAmt || !outAmt) return 0;
+                    return inAmt / outAmt;
+                  })(),
+                  fee: 0,
+                });
+              }
+            } catch {}
+          }
         });
         
         logJsonLine(journal, {

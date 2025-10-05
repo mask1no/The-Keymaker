@@ -9,9 +9,9 @@ import { join } from 'path';
 export interface PnLEntry {
   wallet: string;
   mint: string;
-  entryPrice: number;
-  currentPrice: number;
-  amount: number;
+  entryPrice: number; // avg cost
+  currentPrice: number; // spot
+  amount: number; // position size
   realizedPnL: number;
   unrealizedPnL: number;
   totalPnL: number;
@@ -95,7 +95,11 @@ export function aggregatePnL(params: {
   const walletPnLMap = new Map<string, WalletPnL>();
   
   for (const entry of entries) {
-    // Process buy events
+    // Observe Jupiter quote to infer price context
+    if (entry.ev === 'jupiter_quote_received' || entry.ev === 'jupiter_sell_quote_received') {
+      // Could cache price per (wallet,mint) for later aggregation
+    }
+    // Process buy confirmations (approximate P&L entries)
     if (entry.ev === 'rpc_confirmed' || entry.ev === 'jito_bundle_result') {
       const wallet = entry.wallet;
       if (!wallet || wallet === 'unknown' || wallet === 'bundled') continue;
@@ -110,7 +114,7 @@ export function aggregatePnL(params: {
         });
       }
       
-      // Track position (simplified - in real impl, track amounts and prices)
+      // Track/initialize position record
       const walletPnL = walletPnLMap.get(wallet)!;
       const mint = entry.mint || 'unknown';
       
@@ -123,6 +127,27 @@ export function aggregatePnL(params: {
           unrealizedPnL: 0,
           totalPnL: 0,
         });
+      }
+      const pos = walletPnL.positions.get(mint)!;
+      // If a trade record exists: update average cost and position size
+      if (entry.ev === 'trade') {
+        const qty = Number(entry.qty || 0);
+        const price = Number(entry.price || 0);
+        if (entry.side === 'buy' && qty > 0 && price > 0) {
+          const prevCost = pos.entryPrice * pos.amount;
+          const newCost = prevCost + qty * price;
+          const newAmt = pos.amount + qty;
+          pos.amount = newAmt;
+          pos.entryPrice = newAmt > 0 ? newCost / newAmt : 0;
+        }
+        if (entry.side === 'sell' && qty > 0 && price > 0) {
+          const sellProceeds = qty * price;
+          const costOut = Math.min(qty, pos.amount) * pos.entryPrice;
+          const realized = sellProceeds - costOut;
+          pos.amount = Math.max(0, pos.amount - qty);
+          walletPnL.realizedPnL += realized;
+          walletPnL.totalPnL += realized;
+        }
       }
     }
     

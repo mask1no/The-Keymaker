@@ -16,10 +16,12 @@ export default function CoinLibraryPage(){
     setError(null);
     setLoading(true);
     try{
-      const r = await fetch(`/api/coins/library?ca=${encodeURIComponent(ca)}`, { cache:'no-store' });
+      const r = await fetch(`/api/token/${encodeURIComponent(ca)}/meta`, { cache:'no-store' });
       const j = await r.json();
-      if(r.ok && j?.coin) setList(prev => [j.coin as Coin, ...prev.filter(x => x.ca!==j.coin.ca)]);
-      else setError(j?.error || 'not found');
+      if(r.ok && j?.draft) {
+        const coin = { ca, name: j.draft.name, symbol: j.draft.symbol, image: j.draft.image, website: j.draft.website, twitter: j.draft.twitter, telegram: j.draft.telegram } as Coin;
+        setList(prev => [coin, ...prev.filter(x => x.ca!==coin.ca)]);
+      } else setError(j?.error || 'not found');
     } catch (e:any) {
       setError(e?.message || 'failed');
     } finally { setLoading(false); setCA(''); }

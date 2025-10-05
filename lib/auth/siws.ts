@@ -40,6 +40,9 @@ export function verifySIWS(params: {
   signature: string;
   message: string;
   nonce?: string;
+  domain?: string;
+  uri?: string;
+  issuedAt?: string;
 }): { valid: boolean; error?: string } {
   const { pubkey, signature, message } = params;
   
@@ -68,6 +71,24 @@ export function verifySIWS(params: {
   // Verify the message contains the nonce
   if (!message.includes(stored.nonce)) {
     return { valid: false, error: 'Message does not contain the expected nonce.' };
+  }
+
+  // Optional: verify domain and URI echoed back in message
+  if (params.domain && !message.includes(`Domain: ${params.domain}`)) {
+    return { valid: false, error: 'Domain mismatch in SIWS message.' };
+  }
+  if (params.uri && !message.includes(`URI: ${params.uri}`)) {
+    return { valid: false, error: 'URI mismatch in SIWS message.' };
+  }
+  // Optional: check issuedAt freshness if provided
+  if (params.issuedAt) {
+    const ts = Date.parse(params.issuedAt);
+    if (!Number.isFinite(ts)) {
+      return { valid: false, error: 'Invalid issuedAt timestamp.' };
+    }
+    if (Math.abs(Date.now() - ts) > NONCE_TTL_MS) {
+      return { valid: false, error: 'Login message expired.' };
+    }
   }
   
   try {

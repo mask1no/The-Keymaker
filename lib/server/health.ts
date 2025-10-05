@@ -22,8 +22,8 @@ function lightFromLatency(ms: number | undefined, healthy: number, degraded: num
 
 function getRpcUrls(): { rpcUrl: string; wsUrl?: string } {
   const ui = getUiSettings();
-  const rpcUrl = ui.rpcHttp || process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
-  const wsUrl  = ui.wsUrl || process.env.HELIUS_WS_URL  || process.env.NEXT_PUBLIC_HELIUS_WS  || undefined;
+  const rpcUrl = ui.rpcHttp || process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
+  const wsUrl  = ui.wsUrl || process.env.HELIUS_WS_URL  || undefined;
   return { rpcUrl, wsUrl };
 }
 

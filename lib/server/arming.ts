@@ -1,13 +1,11 @@
 let ARMED_UNTIL = 0;
 
 export function isArmed(): boolean {
-  // If KEYMAKER_REQUIRE_ARMING is explicitly set to YES, enforce arming
-  // Otherwise, allow operations (removing production blocker)
+  // Default: not armed unless explicitly armed
   if (process.env.KEYMAKER_REQUIRE_ARMING === 'YES') {
     return Date.now() < ARMED_UNTIL;
   }
-  // Default: always armed (usable out of the box)
-  return true;
+  return Date.now() < ARMED_UNTIL;
 }
 
 export function arm(minutes = 15): boolean {

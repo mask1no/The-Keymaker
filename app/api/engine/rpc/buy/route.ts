@@ -6,6 +6,8 @@ import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
 import { getUiSettings } from '@/lib/server/settings';
 import { enforcePriorityFeeCeiling, enforceConcurrencyCeiling } from '@/lib/server/productionGuards';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,14 +25,26 @@ const RpcBuySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    // Rate limit per client
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const cfg = getRateConfig('submit');
+    const rl = await rateLimit(`engine:rpcbuy:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
+    // Require authenticated session and derive namespace/ownership
+    const session = getSession();
+    const user = session?.userPubkey || '';
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = RpcBuySchema.parse(body);
 
     const group = getWalletGroup(params.groupId);
     if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    if (!group.masterWallet || group.masterWallet !== user) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
 
     const walletPubkeys = group.executionWallets;
     if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
@@ -61,7 +75,7 @@ export async function POST(request: Request) {
       priorityFeeMicrolamports: pri,
       dryRun: params.dryRun,
       cluster: params.cluster,
-      intentHash: `buy:${params.mint}:${params.amountSol}:${params.slippageBps}`,
+      intentHash: `buy:${params.groupId}:${params.mint}:${params.amountSol}:${params.slippageBps}`,
       buildTx: async (wallet) =>
         buildJupiterSwapTx({
           wallet,

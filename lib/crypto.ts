@@ -43,7 +43,7 @@ const LEGACY_ALGO = 'aes-256-gcm';
 const LEGACY_IV_LEN = 16;
 function legacyKey(password?: string): Buffer {
   if (password) return pbkdf2Sync(password, 'salt', 100000, 32, 'sha512');
-  const fallback = process.env.SECRET_PASSPHRASE || process.env.NEXT_PUBLIC_SECRET_PASSPHRASE || 'keymaker-default-passphrase-change-this';
+  const fallback = process.env.SECRET_PASSPHRASE || 'keymaker-default-passphrase-change-this';
   return createHash('sha256').update(fallback).digest();
 }
 export function encrypt(text: string, password?: string): string {

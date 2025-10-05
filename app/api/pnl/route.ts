@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { getSession } from '@/lib/server/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,9 @@ const FILE = join(process.cwd(), 'data', 'trades.ndjson');
 type Trade = { ts:number; side:'buy'|'sell'; mint:string; qty:number; price:number; fee?:number; groupId?:string };
 
 export async function GET(){
+  const session = getSession();
+  const user = session?.userPubkey || '';
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const out = { buys:0, sells:0, fees:0, realized:0, net:0, count:0 };
   if (existsSync(FILE)) {
     const lines = readFileSync(FILE,'utf8').trim().split('\n').filter(Boolean);

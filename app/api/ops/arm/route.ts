@@ -3,25 +3,22 @@ import * as Sentry from '@sentry/nextjs';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { apiError } from '@/lib/server/apiError';
 import { arm, armedUntil } from '@/lib/server/arming';
+import { getSession } from '@/lib/server/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function requireToken(headers: Headers) {
+function allowArm(headers: Headers): boolean {
   const expected = process.env.ENGINE_API_TOKEN;
-  if (process.env.NODE_ENV === 'production') {
-    if (!expected) return false;
-    const got = headers.get('x-engine-token');
-    return got === expected;
-  }
-  if (!expected) return true;
-  const got = headers.get('x-engine-token');
-  return got === expected;
+  const token = headers.get('x-engine-token');
+  if (expected && token === expected) return true;
+  const s = getSession();
+  return !!s?.userPubkey;
 }
 
 export async function POST(request: Request) {
   try {
-    if (!requireToken(request.headers)) return apiError(401, 'unauthorized');
+    if (!allowArm(request.headers)) return apiError(401, 'unauthorized');
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const key = fwd || 'anon';
     const rl = await rateLimit(`ops:${key}`);

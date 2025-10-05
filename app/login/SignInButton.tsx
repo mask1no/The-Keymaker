@@ -80,7 +80,7 @@ function Inner() {
 
 export default function SignInButton() {
   const network = 'mainnet-beta';
-  const endpoint = useMemo(() => process.env.NEXT_PUBLIC_HELIUS_RPC || clusterApiUrl('mainnet-beta'), []);
+  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
   return (
     <ConnectionProvider endpoint={endpoint}>

@@ -6,6 +6,8 @@ import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
 import { executeJitoBundle } from '@/lib/core/src/jitoBundle';
 import { Connection } from '@solana/web3.js';
 import { getSplTokenBalance } from '@/lib/core/src/balances';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,20 +26,31 @@ const JitoSellSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+    const cfg = getRateConfig('submit');
+    const rl = await rateLimit(`engine:jito_sell:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
+    if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     if ((process.env.KEYMAKER_DISABLE_LIVE_NOW || '').toUpperCase() === 'YES') {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
+    // Require authenticated session and group ownership
+    const session = getSession();
+    const user = session?.userPubkey || '';
+    if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = JitoSellSchema.parse(body);
 
     const group = getWalletGroup(params.groupId);
     if (!group) return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    if (!group.masterWallet || group.masterWallet !== user) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
     const walletPubkeys = group.executionWallets.slice(0); // copy
     if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
 
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
-    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+    const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const walletToAmount: Record<string, number> = {};
     for (const kp of keypairs) {
@@ -59,6 +72,8 @@ export async function POST(request: Request) {
             amountTokens,
             slippageBps: params.slippageBps,
             cluster: params.cluster,
+            // Optional prioritization consistent with buy path
+            priorityFeeMicrolamports: 0,
           });
         })
       )
