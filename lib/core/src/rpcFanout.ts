@@ -4,11 +4,7 @@
  * With DRY_RUN support, idempotency, and proper error handling
  */
 
-import {
-  Connection,
-  ComputeBudgetProgram,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { Connection, ComputeBudgetProgram, VersionedTransaction } from '@solana/web3.js';
 import pLimit from 'p-limit';
 import { randomUUID } from 'crypto';
 import type { RpcFanoutOptions, EngineResult, EngineOutcome } from './types/engine';
@@ -23,7 +19,9 @@ function getRpcUrl(cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): string 
   }
   const primary = process.env.HELIUS_RPC_URL || '';
   const secondary = process.env.SECONDARY_RPC_URL || '';
-  return primary || secondary || process.env.PUBLIC_RPC_URL || 'https://api.mainnet-beta.solana.com';
+  return (
+    primary || secondary || process.env.PUBLIC_RPC_URL || 'https://api.mainnet-beta.solana.com'
+  );
 }
 
 /**
@@ -42,14 +40,14 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
     runId = randomUUID(),
     intentHash = 'default',
   } = opts;
-  
+
   const connection = new Connection(getRpcUrl(cluster), 'confirmed');
   const limiter = pLimit(concurrency);
   const outcomes: EngineOutcome[] = [];
   const journal = createDailyJournal('data');
   const jitterMinMs = 5;
   const jitterMaxMs = 40;
-  
+
   logJsonLine(journal, {
     ev: 'rpc_fanout_start',
     runId,
@@ -59,16 +57,17 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
     cluster,
     priorityFeeMicrolamports,
   });
-  
+
   await Promise.all(
     wallets.map((wallet) =>
       limiter(async () => {
         const walletPubkey = wallet.publicKey.toBase58();
-        const groupIdFromIntent = intentHash && intentHash.split(':').length > 1 ? intentHash.split(':')[1] : undefined;
+        const groupIdFromIntent =
+          intentHash && intentHash.split(':').length > 1 ? intentHash.split(':')[1] : undefined;
         // Small jitter to avoid clumping
         const jitter = Math.floor(Math.random() * (jitterMaxMs - jitterMinMs + 1)) + jitterMinMs;
         if (!dryRun) await new Promise((r) => setTimeout(r, jitter));
-        
+
         // Check idempotency
         if (isAlreadyProcessed({ runId, wallet: walletPubkey, intentHash })) {
           outcomes.push({
@@ -78,23 +77,23 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
           });
           return;
         }
-        
+
         // Mark as started
         markExecutionStarted({ runId, wallet: walletPubkey, intentHash });
-        
+
         try {
           // Build transaction (with optional priority fee CU params in builder)
           const vtx = (await buildTx(wallet)) as unknown as VersionedTransaction;
           // Jupiter build includes prioritization if requested; do not mutate instructions
-          // Sign the versioned transaction with the wallet 
+          // Sign the versioned transaction with the wallet
           vtx.sign([wallet]);
-          
+
           if (dryRun) {
             // SIMULATE ONLY - NO SEND
             const simulation = await connection.simulateTransaction(vtx, {
               sigVerify: true,
             });
-            
+
             if (simulation.value.err) {
               outcomes.push({
                 wallet: walletPubkey,
@@ -102,7 +101,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                 error: `Simulation failed: ${JSON.stringify(simulation.value.err)}`,
                 simulationLogs: simulation.value.logs || [],
               });
-              
+
               logJsonLine(journal, {
                 ev: 'rpc_simulate_error',
                 runId,
@@ -116,7 +115,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                 status: 'SIMULATED',
                 simulationLogs: simulation.value.logs || [],
               });
-              
+
               logJsonLine(journal, {
                 ev: 'rpc_simulate_ok',
                 runId,
@@ -124,13 +123,41 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                 logs: simulation.value.logs?.slice(0, 5),
               });
             }
-            
+
             markExecutionCompleted({ runId, wallet: walletPubkey, intentHash });
             return;
           }
-          
-          // LIVE SEND with basic retry for common transient errors
+
+          // LIVE SEND with idempotency backed by message hash and basic retry
           const raw = vtx.serialize();
+          let msgHashHex: string | null = null;
+          try {
+            // Compute sha256 of VersionedMessage
+            // @ts-expect-error access private field safely
+            const msgBytes: Uint8Array = vtx.message.serialize();
+            const digest = await crypto.subtle.digest('SHA-256', msgBytes);
+            msgHashHex = Buffer.from(new Uint8Array(digest)).toString('hex');
+            // Record in sqlite if not present
+            try {
+              const { db } = await import('@/lib/db');
+              const d = await db;
+              const row = await d.get('SELECT signature FROM tx_dedupe WHERE msgHash = ?', [
+                msgHashHex,
+              ]);
+              if (row?.signature) {
+                outcomes.push({
+                  wallet: walletPubkey,
+                  status: 'ERROR',
+                  error: 'Duplicate detected; returning original signature',
+                });
+                return;
+              }
+              await d.run(
+                'INSERT OR IGNORE INTO tx_dedupe (msgHash, firstSeenAt, status) VALUES (?, ?, ?)',
+                [msgHashHex, Date.now(), 'pending'],
+              );
+            } catch {}
+          } catch {}
           let signature: string | null = null;
           let attempts = 0;
           const maxAttempts = 3;
@@ -142,7 +169,8 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               });
             } catch (err: any) {
               const msg = String(err?.message || err);
-              const retryable = /BlockhashNotFound|AccountInUse|WouldExceedMaxAccountCostLimit/i.test(msg);
+              const retryable =
+                /BlockhashNotFound|AccountInUse|WouldExceedMaxAccountCostLimit/i.test(msg);
               if (retryable) {
                 attempts++;
                 // refresh blockhash and re-sign
@@ -152,7 +180,10 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                   // Fallback: rebuild tx
                   const rebuilt = (await buildTx(wallet)) as unknown as VersionedTransaction;
                   rebuilt.sign([wallet]);
-                  signature = await connection.sendRawTransaction(rebuilt.serialize(), { skipPreflight: false, maxRetries: 3 });
+                  signature = await connection.sendRawTransaction(rebuilt.serialize(), {
+                    skipPreflight: false,
+                    maxRetries: 3,
+                  });
                 } catch {
                   await new Promise((r) => setTimeout(r, 200 * attempts));
                 }
@@ -162,16 +193,24 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
             }
           }
           if (!signature) throw new Error('send_failed');
-          
+          if (msgHashHex) {
+            try {
+              const { db } = await import('@/lib/db');
+              const d = await db;
+              await d.run('UPDATE tx_dedupe SET status = ?, signature = ? WHERE msgHash = ?', [
+                'sent',
+                signature,
+                msgHashHex,
+              ]);
+            } catch {}
+          }
+
           // Confirm transaction with timeout
           const confirmation = await Promise.race([
-            connection.confirmTransaction(
-              signature,
-              'confirmed'
-            ),
+            connection.confirmTransaction(signature, 'confirmed'),
             new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
           ]);
-          
+
           if (!confirmation) {
             outcomes.push({
               wallet: walletPubkey,
@@ -180,7 +219,7 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               error: `Confirmation timeout after ${timeoutMs}
 ms`,
             });
-            
+
             logJsonLine(journal, {
               ev: 'rpc_timeout',
               runId,
@@ -196,7 +235,7 @@ ms`,
               status: 'ERROR',
               error: JSON.stringify(confirmation.value.err),
             });
-            
+
             logJsonLine(journal, {
               ev: 'rpc_error',
               runId,
@@ -207,16 +246,22 @@ ms`,
             });
           } else {
             // Extract quote metadata if present
-            const meta = (vtx as any).__km_meta as {
-              kind?: 'buy'|'sell'; inputMint?: string; outputMint?: string; inAmount?: string; outAmount?: string;
-            } | undefined;
+            const meta = (vtx as any).__km_meta as
+              | {
+                  kind?: 'buy' | 'sell';
+                  inputMint?: string;
+                  outputMint?: string;
+                  inAmount?: string;
+                  outAmount?: string;
+                }
+              | undefined;
             outcomes.push({
               wallet: walletPubkey,
               signature,
               slot: confirmation.context.slot,
               status: 'CONFIRMED',
             });
-            
+
             logJsonLine(journal, {
               ev: 'rpc_confirmed',
               runId,
@@ -227,17 +272,26 @@ ms`,
             });
             // Emit trade journal entry (approximate) for P&L
             try {
-              const qty = Number(meta?.kind === 'sell' ? (meta?.inAmount || '0') : (meta?.outAmount || '0'));
+              const qty = Number(
+                meta?.kind === 'sell' ? meta?.inAmount || '0' : meta?.outAmount || '0',
+              );
               const inAmt = Number(meta?.inAmount || '0');
               const outAmt = Number(meta?.outAmount || '0');
               const priceLamports = !inAmt || !outAmt ? 0 : inAmt / outAmt;
+              const priorityFeeLamports = Math.round(
+                ((priorityFeeMicrolamports || 0) / 1e6) * (meta?.cuLimit || 200_000),
+              );
               journalTrade({
                 ts: Date.now(),
                 side: meta?.kind === 'sell' ? 'sell' : 'buy',
-                mint: meta?.kind === 'sell' ? (meta?.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
+                mint:
+                  meta?.kind === 'sell'
+                    ? meta?.inputMint || 'unknown'
+                    : meta?.outputMint || 'unknown',
                 qty,
                 priceLamports,
                 feeLamports: 0,
+                priorityFeeLamports,
                 groupId: groupIdFromIntent,
                 wallet: walletPubkey,
                 txid: signature,
@@ -248,7 +302,10 @@ ms`,
                 recordTrade({
                   ts: Date.now(),
                   side: meta?.kind === 'sell' ? 'sell' : 'buy',
-                  mint: meta?.kind === 'sell' ? (meta?.inputMint || 'unknown') : (meta?.outputMint || 'unknown'),
+                  mint:
+                    meta?.kind === 'sell'
+                      ? meta?.inputMint || 'unknown'
+                      : meta?.outputMint || 'unknown',
                   qty,
                   priceLamports,
                   feeLamports: 0,
@@ -262,7 +319,7 @@ ms`,
               } catch {}
             } catch {}
           }
-          
+
           markExecutionCompleted({ runId, wallet: walletPubkey, intentHash });
         } catch (error: any) {
           outcomes.push({
@@ -270,7 +327,7 @@ ms`,
             status: 'ERROR',
             error: error?.message || String(error),
           });
-          
+
           logJsonLine(journal, {
             ev: 'rpc_exception',
             runId,
@@ -278,22 +335,22 @@ ms`,
             error: error?.message || String(error),
           });
         }
-      })
-    )
+      }),
+    ),
   );
-  
+
   logJsonLine(journal, {
     ev: 'rpc_fanout_complete',
     runId,
     totalWallets: wallets.length,
     outcomes: {
-      simulated: outcomes.filter(o => o.status === 'SIMULATED').length,
-      confirmed: outcomes.filter(o => o.status === 'CONFIRMED').length,
-      error: outcomes.filter(o => o.status === 'ERROR').length,
-      timeout: outcomes.filter(o => o.status === 'TIMEOUT').length,
+      simulated: outcomes.filter((o) => o.status === 'SIMULATED').length,
+      confirmed: outcomes.filter((o) => o.status === 'CONFIRMED').length,
+      error: outcomes.filter((o) => o.status === 'ERROR').length,
+      timeout: outcomes.filter((o) => o.status === 'TIMEOUT').length,
     },
   });
-  
+
   return {
     mode: 'RPC_FANOUT',
     runId,
@@ -302,4 +359,3 @@ ms`,
     timestamp: new Date().toISOString(),
   };
 }
-

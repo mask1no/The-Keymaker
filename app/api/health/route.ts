@@ -8,7 +8,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   // lazily start durable worker
-  try { ensureSellConditionsWorker(); } catch {}
+  try {
+    ensureSellConditionsWorker();
+  } catch {}
   const status = await probeHealth();
   const ui = getUiSettings();
   const allowLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
@@ -25,6 +27,9 @@ export async function GET() {
   };
   return new Response(JSON.stringify(body), {
     status: 200,
-    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Content-Type': 'application/json' },
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Content-Type': 'application/json',
+    },
   });
 }

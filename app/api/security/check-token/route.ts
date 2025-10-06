@@ -38,4 +38,3 @@ function calculateSafetyScore(securityInfo: any): number {
   if (securityInfo.transfer_pausable === '1') score -= 10;
   return Math.max(0, score);
 }
-

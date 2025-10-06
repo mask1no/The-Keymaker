@@ -15,19 +15,15 @@ export default function LeaderPanel() {
   if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;
   return (
     <div className="text-xs text-zinc-300 space-y-1">
-      
       <div>
-        
         Current slot: <span className="text-zinc-100">{data.currentSlot}</span>
       </div>
       <div className="space-y-1">
-        
         {data.nextLeaders.slice(0, 5).map((li) => (
           <div
             key={l}
             className="flex items-center justify-between rounded-lg border border-zinc-800 bg-black/30 px-2 py-1"
           >
-            
             <span className="text-zinc-400">+{i + 1}</span>
             <span className="truncate">{l}</span>
           </div>
@@ -36,4 +32,3 @@ export default function LeaderPanel() {
     </div>
   );
 }
-

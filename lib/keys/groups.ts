@@ -1,6 +1,9 @@
 import 'server-only';
 import { randomUUID } from 'crypto';
-import { WALLET_GROUP_CONSTRAINTS, type WalletGroup as CoreWalletGroup } from '@/lib/types/walletGroups';
+import {
+  WALLET_GROUP_CONSTRAINTS,
+  type WalletGroup as CoreWalletGroup,
+} from '@/lib/types/walletGroups';
 import {
   loadWalletGroupsFor,
   writeFileSync as _noop,
@@ -74,7 +77,12 @@ export function assignRole(groupId: string, wallet: string, role: Role): Group {
   // Enforce ≤20 wallets total
   const total = (g.masterWallet ? 1 : 0) + (dev ? 1 : 0) + snipers.size + buyers.size;
   if (total > WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup) throw new Error('too_many_wallets');
-  const next = _updateWalletGroup({ id: g.id, name: g.name, devWallet: dev, sniperWallets: Array.from(snipers) });
+  const next = _updateWalletGroup({
+    id: g.id,
+    name: g.name,
+    devWallet: dev,
+    sniperWallets: Array.from(snipers),
+  });
   // execution buyers written via addWalletToGroup when needed
   for (const b of buyers) {
     _addWalletToGroup(g.id, b);
@@ -89,5 +97,3 @@ export function addBuyer(groupId: string, wallet: string): Group {
   const updated = _getWalletGroup(groupId)!;
   return fromCore(updated);
 }
-
-

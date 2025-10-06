@@ -36,4 +36,3 @@ export function suggestPriorityFromRecentMicroLamports(avgMicroLamports: number)
   if (avgMicroLamports >= 60_000) return 'medium';
   return 'low';
 }
-

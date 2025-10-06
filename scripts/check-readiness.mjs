@@ -29,14 +29,18 @@ function checkEnvExample() {
       'UPSTASH_REDIS_REST_URL',
       'UPSTASH_REDIS_REST_TOKEN',
     ];
-    
-    const missing = requiredVars.filter(v => !envExample.includes(v));
-    
+
+    const missing = requiredVars.filter((v) => !envExample.includes(v));
+
     if (missing.length > 0) {
-      checks.push({ name: '.env.example', status: '❌', message: `Missing vars: ${missing.join(', ')}` });
+      checks.push({
+        name: '.env.example',
+        status: '❌',
+        message: `Missing vars: ${missing.join(', ')}`,
+      });
       return false;
     }
-    
+
     checks.push({ name: '.env.example', status: '✅', message: 'All required vars documented' });
     return true;
   } catch (e) {
@@ -49,12 +53,12 @@ function checkEnvExample() {
 function checkTests() {
   try {
     const packageJson = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf8'));
-    
+
     if (!packageJson.scripts || !packageJson.scripts.test) {
       checks.push({ name: 'Tests', status: '⚠️', message: 'No test script defined' });
       return false;
     }
-    
+
     checks.push({ name: 'Tests', status: '✅', message: 'Test script exists' });
     return true;
   } catch (e) {
@@ -72,7 +76,7 @@ function checkDocs() {
     'md/AUDIT_REPORT.md',
     'HONEST_STATUS.md',
   ];
-  
+
   const missing = [];
   for (const doc of requiredDocs) {
     try {
@@ -81,12 +85,12 @@ function checkDocs() {
       missing.push(doc);
     }
   }
-  
+
   if (missing.length > 0) {
     checks.push({ name: 'Documentation', status: '⚠️', message: `Missing: ${missing.join(', ')}` });
     return false;
   }
-  
+
   checks.push({ name: 'Documentation', status: '✅', message: 'All docs present' });
   return true;
 }
@@ -96,18 +100,26 @@ function checkBundleClaims() {
   try {
     const readme = readFileSync(join(rootDir, 'README.md'), 'utf8');
     const prd = readFileSync(join(rootDir, 'md/PRD.md'), 'utf8');
-    
+
     // Check for false claims
     if (readme.includes('≤5KB') || readme.includes('<5KB')) {
-      checks.push({ name: 'Bundle Claims', status: '❌', message: 'False bundle size claim in README' });
+      checks.push({
+        name: 'Bundle Claims',
+        status: '❌',
+        message: 'False bundle size claim in README',
+      });
       return false;
     }
-    
+
     if (prd.includes('≤5KB') || prd.includes('<5KB')) {
-      checks.push({ name: 'Bundle Claims', status: '❌', message: 'False bundle size claim in PRD' });
+      checks.push({
+        name: 'Bundle Claims',
+        status: '❌',
+        message: 'False bundle size claim in PRD',
+      });
       return false;
     }
-    
+
     checks.push({ name: 'Bundle Claims', status: '✅', message: 'No false bundle size claims' });
     return true;
   } catch (e) {
@@ -120,17 +132,17 @@ function checkBundleClaims() {
 function checkGitStatus() {
   try {
     const gitignore = readFileSync(join(rootDir, '.gitignore'), 'utf8');
-    
+
     if (!gitignore.includes('.env')) {
       checks.push({ name: 'Git Security', status: '❌', message: '.env not in .gitignore' });
       return false;
     }
-    
+
     if (!gitignore.includes('keypairs')) {
       checks.push({ name: 'Git Security', status: '❌', message: 'keypairs not in .gitignore' });
       return false;
     }
-    
+
     checks.push({ name: 'Git Security', status: '✅', message: 'Secrets properly ignored' });
     return true;
   } catch (e) {
@@ -150,17 +162,17 @@ const results = [
 
 // Print results
 console.log('CHECK RESULTS:\n');
-checks.forEach(check => {
+checks.forEach((check) => {
   console.log(`${check.status} ${check.name}: ${check.message}`);
 });
 
-const passedChecks = results.filter(r => r).length;
+const passedChecks = results.filter((r) => r).length;
 const totalChecks = results.length;
 const score = Math.round((passedChecks / totalChecks) * 10);
 
 console.log(`\n📊 Score: ${score}/10 (${passedChecks}/${totalChecks} checks passed)\n`);
 
-if (results.every(r => r)) {
+if (results.every((r) => r)) {
   console.log('✅ All checks passed! Ready for deployment.\n');
   exitCode = 0;
 } else if (passedChecks >= totalChecks * 0.8) {

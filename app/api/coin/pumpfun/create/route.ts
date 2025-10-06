@@ -51,12 +51,13 @@ export async function POST(request: Request) {
       if (!isArmed()) return NextResponse.json({ error: 'not_armed' }, { status: 403 });
     }
 
-    const sig = await conn.sendRawTransaction(tx.serialize(), { skipPreflight: false, maxRetries: 3 });
+    const sig = await conn.sendRawTransaction(tx.serialize(), {
+      skipPreflight: false,
+      maxRetries: 3,
+    });
     return NextResponse.json({ ok: true, signature: sig });
   } catch (e: unknown) {
     const msg = (e as Error)?.message || 'failed';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
-
-

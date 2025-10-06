@@ -13,21 +13,22 @@ export class MockEngine implements Engine {
       dryRun: opts.dryRun,
       priority: opts.priority,
     });
-    
+
     // Simulate processing delay (realistic timing)
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
+
     // Generate mock transaction IDs
-    const txids = plan.txs.map((_, i) => 
-      `mock_tx_${Date.now()}
+    const txids = plan.txs.map(
+      (_, i) =>
+        `mock_tx_${Date.now()}
 _${i}
-_${Math.random().toString(36).slice(2, 11)}`
+_${Math.random().toString(36).slice(2, 11)}`,
     );
-    
+
     // Generate mock bundle ID
     const bundleId = `mock_bundle_${Date.now()}
 _${Math.random().toString(36).slice(2, 11)}`;
-    
+
     const result: EngineSubmitResult = {
       corr: 'mock_correlation_' + Date.now(),
       mode: opts.mode,
@@ -36,23 +37,23 @@ _${Math.random().toString(36).slice(2, 11)}`;
       statusHint: 'submitted',
       simulated: true,
     };
-    
+
     console.log('[MockEngine] Submission result:', {
       statusHint: result.statusHint,
       txCount: txids.length,
       bundleId,
       simulated: result.simulated,
     });
-    
+
     return result;
   }
-  
+
   async pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
     console.log('[MockEngine] Polling status (mock)');
-    
+
     // Simulate status check delay
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     return {
       status: 'confirmed',
       confirmations: 32,
@@ -62,5 +63,3 @@ _${Math.random().toString(36).slice(2, 11)}`;
     };
   }
 }
-
-

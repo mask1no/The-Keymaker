@@ -1,10 +1,10 @@
-"use client";
+'use client';
 import { useEffect, useState } from 'react';
 
 type Trade = {
   id?: number;
   ts: number;
-  side: 'buy'|'sell';
+  side: 'buy' | 'sell';
   mint: string;
   qty: number;
   priceLamports: number;
@@ -14,7 +14,7 @@ type Trade = {
   bundleId?: string | null;
   wallet?: string | null;
   groupId?: string | null;
-  mode?: 'RPC'|'JITO'|null;
+  mode?: 'RPC' | 'JITO' | null;
 };
 
 function lamportsToSol(l: number): string {
@@ -40,7 +40,9 @@ export default function TradeHistoryPage() {
         if (!cancel) setLoading(false);
       }
     })();
-    return () => { cancel = true; };
+    return () => {
+      cancel = true;
+    };
   }, []);
 
   return (
@@ -69,9 +71,16 @@ export default function TradeHistoryPage() {
               </thead>
               <tbody>
                 {trades.map((t) => (
-                  <tr key={(t.id ?? `${t.ts}-${t.mint}-${t.side}`) as any} className="border-t border-zinc-900">
+                  <tr
+                    key={(t.id ?? `${t.ts}-${t.mint}-${t.side}`) as any}
+                    className="border-t border-zinc-900"
+                  >
                     <td className="py-2 pr-4">{new Date(t.ts).toLocaleString()}</td>
-                    <td className={`py-2 pr-4 ${t.side==='buy'?'text-emerald-400':'text-red-400'}`}>{t.side.toUpperCase()}</td>
+                    <td
+                      className={`py-2 pr-4 ${t.side === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}
+                    >
+                      {t.side.toUpperCase()}
+                    </td>
                     <td className="py-2 pr-4 break-all">{t.mint}</td>
                     <td className="py-2 pr-4">{t.qty}</td>
                     <td className="py-2 pr-4">{lamportsToSol(t.priceLamports)}</td>
@@ -87,4 +96,3 @@ export default function TradeHistoryPage() {
     </div>
   );
 }
-

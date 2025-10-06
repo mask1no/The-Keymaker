@@ -4,13 +4,22 @@ import { getSession } from '@/lib/server/session';
 import { getWalletGroup } from '@/lib/server/walletGroups';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { getUiSettings } from '@/lib/server/settings';
-import { enforceConcurrencyCeiling, enforcePriorityFeeCeiling } from '@/lib/server/productionGuards';
+import {
+  enforceConcurrencyCeiling,
+  enforcePriorityFeeCeiling,
+} from '@/lib/server/productionGuards';
 import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { Connection } from '@solana/web3.js';
 import { getSplTokenBalance } from '@/lib/core/src/balances';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
 import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
-import { evaluateSellConditions, calculateSellAmount, type SellCondition, type PercentTargetParams, type StopLossParams } from '@/lib/core/src/sellConditions';
+import {
+  evaluateSellConditions,
+  calculateSellAmount,
+  type SellCondition,
+  type PercentTargetParams,
+  type StopLossParams,
+} from '@/lib/core/src/sellConditions';
 import { promises as fsp } from 'fs';
 import { join } from 'path';
 import { journalTrade } from '@/lib/core/src/journal';
@@ -35,7 +44,9 @@ export async function GET(request: Request) {
       items = JSON.parse(raw);
       if (!Array.isArray(items)) items = [];
     } catch {}
-    const filtered = items.filter((e: any) => (!groupId || e.groupId === groupId) && (!mint || e.mint === mint));
+    const filtered = items.filter(
+      (e: any) => (!groupId || e.groupId === groupId) && (!mint || e.mint === mint),
+    );
     return NextResponse.json({ ok: true, items: filtered });
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
@@ -44,7 +55,7 @@ export async function GET(request: Request) {
 
 const ConditionSchema = z.object({
   id: z.string(),
-  type: z.enum(['percent_target','time_limit','stop_loss']),
+  type: z.enum(['percent_target', 'time_limit', 'stop_loss']),
   enabled: z.boolean().default(true),
   params: z.record(z.string(), z.number()),
 });
@@ -59,17 +70,27 @@ const BodySchema = z.object({
   priorityFeeMicrolamports: z.number().min(0).optional(),
   concurrency: z.number().min(1).max(20).default(5),
   dryRun: z.boolean().default(true),
-  cluster: z.enum(['mainnet-beta','devnet']).default('mainnet-beta'),
+  cluster: z.enum(['mainnet-beta', 'devnet']).default('mainnet-beta'),
 });
 
 async function fetchCurrentPriceLamportsPerToken(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`,
+      { cache: 'no-store' },
+    );
     if (!res.ok) return null;
     const j = await res.json();
-    const lpt = typeof j?.lamportsPerToken === 'string' ? Number(j.lamportsPerToken) : (typeof j?.lamportsPerToken === 'number' ? j.lamportsPerToken : 0);
+    const lpt =
+      typeof j?.lamportsPerToken === 'string'
+        ? Number(j.lamportsPerToken)
+        : typeof j?.lamportsPerToken === 'number'
+          ? j.lamportsPerToken
+          : 0;
     return Number.isFinite(lpt) && lpt > 0 ? lpt : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
@@ -112,7 +133,10 @@ export async function POST(request: Request) {
     const priceInfo = {
       entryPrice,
       currentPrice: currentPrice ?? entryPrice,
-      changePercent: entryPrice > 0 && currentPrice != null ? ((currentPrice - entryPrice) / entryPrice) * 100 : 0,
+      changePercent:
+        entryPrice > 0 && currentPrice != null
+          ? ((currentPrice - entryPrice) / entryPrice) * 100
+          : 0,
     };
 
     // Evaluate
@@ -133,9 +157,14 @@ export async function POST(request: Request) {
         if (afterMs > 0 && percent > 0) {
           scheduled.push({ id: c.id, afterMs, percent });
           // Schedule RPC sell with percent after delay
-          setTimeout(async () => {
-            try { await triggerSell(group.id, params.mint, percent, params); } catch {}
-          }, Math.min(afterMs, 60_000));
+          setTimeout(
+            async () => {
+              try {
+                await triggerSell(group.id, params.mint, percent, params);
+              } catch {}
+            },
+            Math.min(afterMs, 60_000),
+          );
         }
       }
     }
@@ -151,15 +180,30 @@ export async function POST(request: Request) {
     }
 
     // Persist to disk for durability
-    await persistConditions({ user, groupId: params.groupId, mint: params.mint, conditions: enabledConds });
+    await persistConditions({
+      user,
+      groupId: params.groupId,
+      mint: params.mint,
+      conditions: enabledConds,
+    });
 
-    return NextResponse.json({ ok: true, evaluated: { triggered: triggered.map(t=>t.id) }, executed, scheduled });
+    return NextResponse.json({
+      ok: true,
+      evaluated: { triggered: triggered.map((t) => t.id) },
+      executed,
+      scheduled,
+    });
   } catch (e: unknown) {
     return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
 
-async function triggerSell(groupId: string, mint: string, percent: number, base: z.infer<typeof BodySchema>) {
+async function triggerSell(
+  groupId: string,
+  mint: string,
+  percent: number,
+  base: z.infer<typeof BodySchema>,
+) {
   const group = getWalletGroup(groupId)!;
   const walletPubkeys = group.executionWallets;
   const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
@@ -207,7 +251,12 @@ type PersistShape = {
   updatedAt: number;
 };
 
-async function persistConditions(input: { user: string; groupId: string; mint: string; conditions: SellCondition[] }){
+async function persistConditions(input: {
+  user: string;
+  groupId: string;
+  mint: string;
+  conditions: SellCondition[];
+}) {
   try {
     const dir = join(process.cwd(), 'data', input.user);
     await fsp.mkdir(dir, { recursive: true });
@@ -218,12 +267,19 @@ async function persistConditions(input: { user: string; groupId: string; mint: s
       existing = JSON.parse(raw);
       if (!Array.isArray(existing)) existing = [] as any;
     } catch {}
-    const filtered = existing.filter(e => !(e.groupId === input.groupId && e.mint === input.mint));
-    filtered.push({ user: input.user, groupId: input.groupId, mint: input.mint, conditions: input.conditions, updatedAt: Date.now() });
+    const filtered = existing.filter(
+      (e) => !(e.groupId === input.groupId && e.mint === input.mint),
+    );
+    filtered.push({
+      user: input.user,
+      groupId: input.groupId,
+      mint: input.mint,
+      conditions: input.conditions,
+      updatedAt: Date.now(),
+    });
     await fsp.writeFile(file, JSON.stringify(filtered, null, 2));
   } catch {}
 }
-
 
 export async function PUT(request: Request) {
   try {
@@ -231,8 +287,13 @@ export async function PUT(request: Request) {
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
-    const { groupId, mint, conditions } = body as { groupId: string; mint: string; conditions: SellCondition[] };
-    if (!groupId || !mint || !Array.isArray(conditions)) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+    const { groupId, mint, conditions } = body as {
+      groupId: string;
+      mint: string;
+      conditions: SellCondition[];
+    };
+    if (!groupId || !mint || !Array.isArray(conditions))
+      return NextResponse.json({ error: 'invalid' }, { status: 400 });
     await persistConditions({ user, groupId, mint, conditions });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
@@ -265,4 +326,3 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
   }
 }
-

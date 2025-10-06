@@ -9,4 +9,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, items: [], error: e?.message ?? 'error' });
   }
 }
-

@@ -10,5 +10,7 @@ export function observeLatency(name: string, ms: number, labels: Labels = {}): v
 }
 
 export function renderMetrics(): string {
-  return Array.from(counters.entries()).map(([k, v]) => `${k} ${v}`).join('\n');
+  return Array.from(counters.entries())
+    .map(([k, v]) => `${k} ${v}`)
+    .join('\n');
 }

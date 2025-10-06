@@ -5,7 +5,10 @@ import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
 import { getUiSettings } from '@/lib/server/settings';
-import { enforcePriorityFeeCeiling, enforceConcurrencyCeiling } from '@/lib/server/productionGuards';
+import {
+  enforcePriorityFeeCeiling,
+  enforceConcurrencyCeiling,
+} from '@/lib/server/productionGuards';
 import { Connection } from '@solana/web3.js';
 import { getSplTokenBalance } from '@/lib/core/src/balances';
 import { getSession } from '@/lib/server/session';
@@ -49,13 +52,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
 
-    const walletPubkeys = params.wallets && params.wallets.length > 0
-      ? group.executionWallets.filter((w) => params.wallets!.includes(w))
-      : group.executionWallets;
-    if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
+    const walletPubkeys =
+      params.wallets && params.wallets.length > 0
+        ? group.executionWallets.filter((w) => params.wallets!.includes(w))
+        : group.executionWallets;
+    if (walletPubkeys.length === 0)
+      return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
 
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
-    if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
+    if (keypairs.length === 0)
+      return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
     // Resolve per-wallet token balances for the input mint
     const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
@@ -115,11 +121,11 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request', details: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
+      );
     }
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
-
-
-

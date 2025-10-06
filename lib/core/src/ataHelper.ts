@@ -3,11 +3,7 @@
  * Create ATAs as needed for SPL token operations
  */
 
-import {
-  Connection,
-  PublicKey,
-  Keypair,
-} from '@solana/web3.js';
+import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -22,7 +18,7 @@ export async function getOrCreateATA(
   connection: Connection,
   payer: Keypair,
   owner: PublicKey,
-  mint: PublicKey
+  mint: PublicKey,
 ): Promise<{ ata: PublicKey; instruction: any | null }> {
   // Derive ATA address
   const ata = await getAssociatedTokenAddress(
@@ -30,13 +26,13 @@ export async function getOrCreateATA(
     owner,
     false, // allowOwnerOffCurve
     TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
-  
+
   // Check if ATA exists
   try {
     const account = await connection.getAccountInfo(ata);
-    
+
     if (account) {
       // ATA already exists
       return { ata, instruction: null };
@@ -44,17 +40,17 @@ export async function getOrCreateATA(
   } catch (error) {
     // Account doesn't exist, we'll create it
   }
-  
+
   // Create ATA instruction
   const instruction = createAssociatedTokenAccountInstruction(
-    payer.publicKey,   // payer
-    ata,               // associated token account
-    owner,             // owner
-    mint,              // mint
+    payer.publicKey, // payer
+    ata, // associated token account
+    owner, // owner
+    mint, // mint
     TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
-  
+
   return { ata, instruction };
 }
 
@@ -65,17 +61,16 @@ export async function buildATAsForWallets(
   connection: Connection,
   payer: Keypair,
   wallets: PublicKey[],
-  mint: PublicKey
+  mint: PublicKey,
 ): Promise<Map<string, { ata: PublicKey; instruction: any | null }>> {
   const result = new Map<string, { ata: PublicKey; instruction: any | null }>();
-  
+
   await Promise.all(
     wallets.map(async (wallet) => {
       const ataInfo = await getOrCreateATA(connection, payer, wallet, mint);
       result.set(wallet.toBase58(), ataInfo);
-    })
+    }),
   );
-  
+
   return result;
 }
-

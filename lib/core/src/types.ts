@@ -36,4 +36,3 @@ export interface LatencySample {
   ms: number;
   labels?: Record<string, string>;
 }
-

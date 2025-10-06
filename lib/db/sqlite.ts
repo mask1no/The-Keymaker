@@ -10,6 +10,7 @@ export type TradeRow = {
   qty: number; // base units
   priceLamports: number; // lamports per token
   feeLamports: number;
+  priorityFeeLamports?: number;
   slot: number | null;
   signature: string | null;
   bundleId: string | null;
@@ -39,6 +40,7 @@ function init(d: Database.Database): void {
       qty INTEGER NOT NULL,
       priceLamports INTEGER NOT NULL,
       feeLamports INTEGER NOT NULL DEFAULT 0,
+      priorityFeeLamports INTEGER NOT NULL DEFAULT 0,
       slot INTEGER,
       signature TEXT,
       bundleId TEXT,
@@ -65,6 +67,42 @@ function init(d: Database.Database): void {
       key TEXT PRIMARY KEY,
       value TEXT
     );
+    CREATE TABLE IF NOT EXISTS tx_dedupe (
+      msgHash TEXT PRIMARY KEY,
+      firstSeenAt INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      signature TEXT,
+      slot INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS mm_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      createdAt INTEGER NOT NULL,
+      groupId TEXT NOT NULL,
+      wallet TEXT NOT NULL,
+      mint TEXT NOT NULL,
+      side TEXT NOT NULL,
+      buyLamports INTEGER,
+      sellTokens INTEGER,
+      slippageBps INTEGER NOT NULL,
+      turbo INTEGER NOT NULL DEFAULT 0,
+      tipLamports INTEGER DEFAULT 0,
+      priorityFeeMicrolamports INTEGER DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      error TEXT,
+      signature TEXT,
+      slot INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_mm_queue_status ON mm_queue(status);
+    CREATE INDEX IF NOT EXISTS idx_mm_queue_group ON mm_queue(groupId);
+    CREATE TABLE IF NOT EXISTS mm_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      queueId INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      signature TEXT,
+      slot INTEGER,
+      error TEXT,
+      createdAt INTEGER NOT NULL
+    );
   `);
 }
 
@@ -72,8 +110,8 @@ export function recordTrade(row: TradeRow): void {
   try {
     const d = getDb();
     const stmt = d.prepare(`
-      INSERT INTO trades (ts, side, mint, qty, priceLamports, feeLamports, slot, signature, bundleId, wallet, groupId, mode)
-      VALUES (@ts, @side, @mint, @qty, @priceLamports, @feeLamports, @slot, @signature, @bundleId, @wallet, @groupId, @mode)
+      INSERT INTO trades (ts, side, mint, qty, priceLamports, feeLamports, priorityFeeLamports, slot, signature, bundleId, wallet, groupId, mode)
+      VALUES (@ts, @side, @mint, @qty, @priceLamports, @feeLamports, @priorityFeeLamports, @slot, @signature, @bundleId, @wallet, @groupId, @mode)
     `);
     stmt.run({
       ts: row.ts,
@@ -88,6 +126,7 @@ export function recordTrade(row: TradeRow): void {
       wallet: row.wallet ?? null,
       groupId: row.groupId ?? null,
       mode: row.mode ?? null,
+      priorityFeeLamports: Math.floor(row.priorityFeeLamports || 0),
     });
   } catch {
     // swallow
@@ -113,21 +152,33 @@ export type PnLAggregates = {
 
 export function aggregatePnL(currentPricesLamports: Record<string, number>): PnLAggregates {
   const d = getDb();
-  const rows = d.prepare('SELECT side, mint, qty, priceLamports, feeLamports FROM trades ORDER BY ts ASC').all() as Array<{
-    side: 'buy' | 'sell'; mint: string; qty: number; priceLamports: number; feeLamports: number;
+  const rows = d
+    .prepare(
+      'SELECT side, mint, qty, priceLamports, feeLamports, priorityFeeLamports FROM trades ORDER BY ts ASC',
+    )
+    .all() as Array<{
+    side: 'buy' | 'sell';
+    mint: string;
+    qty: number;
+    priceLamports: number;
+    feeLamports: number;
+    priorityFeeLamports: number;
   }>;
   const pos: Record<string, { qty: number; cost: number }> = {};
-  let buys = 0, sells = 0, fees = 0, realized = 0;
+  let buys = 0,
+    sells = 0,
+    fees = 0,
+    realized = 0;
   for (const r of rows) {
-    fees += r.feeLamports || 0;
+    fees += (r.feeLamports || 0) + (r.priorityFeeLamports || 0);
     if (r.side === 'buy') {
-      buys += r.qty * r.priceLamports + (r.feeLamports || 0);
+      buys += r.qty * r.priceLamports + ((r.feeLamports || 0) + (r.priorityFeeLamports || 0));
       const p = pos[r.mint] || { qty: 0, cost: 0 };
       p.cost += r.qty * r.priceLamports;
       p.qty += r.qty;
       pos[r.mint] = p;
     } else {
-      sells += r.qty * r.priceLamports - (r.feeLamports || 0);
+      sells += r.qty * r.priceLamports - ((r.feeLamports || 0) + (r.priorityFeeLamports || 0));
       const p = pos[r.mint] || { qty: 0, cost: 0 };
       const qtyOut = Math.min(p.qty, r.qty);
       const avg = p.qty > 0 ? p.cost / p.qty : 0;
@@ -153,5 +204,3 @@ export function aggregatePnL(currentPricesLamports: Record<string, number>): PnL
     netLamports: realized + unrealized,
   };
 }
-
-

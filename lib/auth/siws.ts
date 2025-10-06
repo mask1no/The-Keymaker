@@ -12,7 +12,8 @@ type NonceRecord = { nonce: string; createdAt: number; used: boolean };
 const NONCE_STORE_KEY = '__KM_NONCE_STORE__';
 const g = globalThis as unknown as Record<string, unknown>;
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-const nonceStore = ((g[NONCE_STORE_KEY] as Map<string, NonceRecord> | undefined) ?? new Map<string, NonceRecord>());
+const nonceStore =
+  (g[NONCE_STORE_KEY] as Map<string, NonceRecord> | undefined) ?? new Map<string, NonceRecord>();
 g[NONCE_STORE_KEY] = nonceStore;
 
 const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -22,13 +23,13 @@ const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
  */
 export function generateNonce(pubkey: string): string {
   const nonce = bs58.encode(randomBytes(32));
-  
+
   nonceStore.set(pubkey, {
     nonce,
     createdAt: Date.now(),
     used: false,
   });
-  
+
   return nonce;
 }
 
@@ -45,7 +46,7 @@ export function verifySIWS(params: {
   issuedAt?: string;
 }): { valid: boolean; error?: string } {
   const { pubkey, signature, message } = params;
-  
+
   // Check if nonce exists
   let stored = nonceStore.get(pubkey);
   // Fallback: if not found (e.g. dev HMR), accept provided nonce if present in message
@@ -56,18 +57,18 @@ export function verifySIWS(params: {
     stored = { nonce: params.nonce, createdAt: Date.now(), used: false };
     // Do not persist fallback record to avoid extending TTL silently
   }
-  
+
   // Check if nonce is expired
   if (Date.now() - stored.createdAt > NONCE_TTL_MS) {
     nonceStore.delete(pubkey);
     return { valid: false, error: 'Nonce expired. Please request a new nonce.' };
   }
-  
+
   // Check if nonce already used
   if (stored.used) {
     return { valid: false, error: 'Nonce already used. Please request a new nonce.' };
   }
-  
+
   // Verify the message contains the nonce
   if (!message.includes(stored.nonce)) {
     return { valid: false, error: 'Message does not contain the expected nonce.' };
@@ -90,29 +91,29 @@ export function verifySIWS(params: {
       return { valid: false, error: 'Login message expired.' };
     }
   }
-  
+
   try {
     // Decode public key and signature from base58
     const pubkeyBytes = bs58.decode(pubkey);
     const signatureBytes = bs58.decode(signature);
     const messageBytes = new TextEncoder().encode(message);
-    
+
     // Verify signature
     const valid = sign.detached.verify(messageBytes, signatureBytes, pubkeyBytes);
-    
+
     if (!valid) {
       return { valid: false, error: 'Invalid signature.' };
     }
-    
+
     // Mark nonce as used if we own the stored record
     const current = nonceStore.get(pubkey);
     if (current && current.nonce === stored.nonce) {
       current.used = true;
     }
-    
+
     // Clean up old nonces
     cleanupExpiredNonces();
-    
+
     return { valid: true };
   } catch (error) {
     return { valid: false, error: `Verification failed: ${(error as Error).message}` };
@@ -130,7 +131,7 @@ export function buildSIWSMessage(params: {
   issuedAt: string;
 }): string {
   const { pubkey, nonce, domain, uri, issuedAt } = params;
-  
+
   return [
     'The Keymaker wants you to sign in with your Solana account:',
     pubkey,
@@ -169,4 +170,3 @@ if (typeof setInterval !== 'undefined' && !g[CLEAN_KEY]) {
   g[CLEAN_KEY] = true;
   setInterval(cleanupExpiredNonces, 60 * 1000);
 }
-

@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedNotificationCenter() { return null }
-
-
+export default function ArchivedNotificationCenter() {
+  return null;
+}

@@ -21,4 +21,3 @@ export function isValidJitoTipRecipient(
 ): boolean {
   return allowed.includes(recipient);
 }
-

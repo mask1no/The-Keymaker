@@ -22,17 +22,22 @@ export async function POST(request: Request) {
     const { groupId, count } = Body.parse(body);
     const group = getWalletGroup(groupId);
     if (!group) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (group.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    if (group.masterWallet !== user)
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
     const result = generateWalletsForGroup(groupId, count);
-    return NextResponse.json({ ok: true, generated: result.generated, available: result.available });
+    return NextResponse.json({
+      ok: true,
+      generated: result.generated,
+      available: result.available,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_request', details: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: 'invalid_request', details: error.issues },
+        { status: 400 },
+      );
     }
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
-
-
-

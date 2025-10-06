@@ -4,7 +4,7 @@ export async function register() {
     console.log('[Instrumentation] Skipped in development');
     return;
   }
-  
+
   // Production instrumentation
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     try {
@@ -16,7 +16,7 @@ export async function register() {
         console.warn('[Instrumentation] Env validation i, s, s, ue:', e);
         throw e; // fail early in production if critical
       }
-      
+
       await import('./lib/server/httpAgent');
     } catch (e) {
       console.warn('[Instrumentation] Failed to load h, t, t, pAgent:', e);

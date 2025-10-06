@@ -14,9 +14,12 @@ type CoinDraft = {
 
 async function fetchDexscreener(mint: string) {
   try {
-    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, {
-      next: { revalidate: 30 },
-    });
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`,
+      {
+        next: { revalidate: 30 },
+      },
+    );
     if (!res.ok) return null;
     const j = await res.json();
     const p = j?.pairs?.[0];
@@ -25,8 +28,12 @@ async function fetchDexscreener(mint: string) {
       name: p?.baseToken?.name as string | undefined,
       symbol: p?.baseToken?.symbol as string | undefined,
       website: (p?.info?.websites?.[0]?.url as string | undefined) || undefined,
-      twitter: (p?.info?.socials?.find((x: any) => x?.type === 'twitter')?.url as string | undefined) || undefined,
-      telegram: (p?.info?.socials?.find((x: any) => x?.type === 'telegram')?.url as string | undefined) || undefined,
+      twitter:
+        (p?.info?.socials?.find((x: any) => x?.type === 'twitter')?.url as string | undefined) ||
+        undefined,
+      telegram:
+        (p?.info?.socials?.find((x: any) => x?.type === 'telegram')?.url as string | undefined) ||
+        undefined,
       image: (p?.info?.imageUrl as string | undefined) || undefined,
     };
   } catch {
@@ -37,10 +44,13 @@ async function fetchDexscreener(mint: string) {
 async function fetchBirdeye(mint: string, apiKey?: string) {
   if (!apiKey) return null;
   try {
-    const res = await fetch(`https://public-api.birdeye.so/public/token_metadata?address=${encodeURIComponent(mint)}`, {
-      headers: { 'X-API-KEY': apiKey, accept: 'application/json' },
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `https://public-api.birdeye.so/public/token_metadata?address=${encodeURIComponent(mint)}`,
+      {
+        headers: { 'X-API-KEY': apiKey, accept: 'application/json' },
+        next: { revalidate: 60 },
+      },
+    );
     if (!res.ok) return null;
     const j = await res.json();
     const d = j?.data;
@@ -63,7 +73,10 @@ async function fetchMetaplexOnchain(mint: string) {
   try {
     const { PublicKey, Connection } = await import('@solana/web3.js');
     const mpl = await import('@metaplex-foundation/mpl-token-metadata');
-    const rpc = process.env.HELIUS_RPC_URL || process.env.NEXT_PUBLIC_HELIUS_RPC || 'https://api.mainnet-beta.solana.com';
+    const rpc =
+      process.env.HELIUS_RPC_URL ||
+      process.env.NEXT_PUBLIC_HELIUS_RPC ||
+      'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const mintPk = new PublicKey(mint);
     const pdas = await (mpl as any).Metadata.pda(mintPk);
@@ -114,5 +127,3 @@ export async function GET(_, request: Request, context: { params: { mint?: strin
 
   return NextResponse.json({ ok: true, mint, draft });
 }
-
-

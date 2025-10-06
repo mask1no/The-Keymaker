@@ -40,7 +40,11 @@ function listMasters(): string[] {
   if (!existsSync(DATA_DIR)) return [];
   const entries = readdirSync(DATA_DIR);
   const dirs = entries.filter((name) => {
-    try { return statSync(join(DATA_DIR, name)).isDirectory(); } catch { return false; }
+    try {
+      return statSync(join(DATA_DIR, name)).isDirectory();
+    } catch {
+      return false;
+    }
   });
   // Include legacy root file if present
   if (existsSync(join(DATA_DIR, 'wallet-groups.json'))) dirs.push('');
@@ -54,7 +58,9 @@ export function loadWalletGroups(): WalletGroup[] {
     if (m === '') {
       // legacy root
       try {
-        const legacy = JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as { groups: WalletGroup[] };
+        const legacy = JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as {
+          groups: WalletGroup[];
+        };
         all.push(...legacy.groups);
       } catch {}
     } else {
@@ -70,7 +76,19 @@ export function loadWalletGroupsFor(master: string): WalletGroup[] {
 
 export function getWalletGroup(id: string): WalletGroup | undefined {
   for (const m of listMasters()) {
-    const groups = m === '' ? ((): WalletGroup[] => { try { return (JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as any).groups || []; } catch { return []; } })() : readFor(m).groups;
+    const groups =
+      m === ''
+        ? ((): WalletGroup[] => {
+            try {
+              return (
+                (JSON.parse(readFileSync(join(DATA_DIR, 'wallet-groups.json'), 'utf8')) as any)
+                  .groups || []
+              );
+            } catch {
+              return [];
+            }
+          })()
+        : readFor(m).groups;
     const found = groups.find((g) => g.id === id);
     if (found) return found;
   }
@@ -108,10 +126,24 @@ export function addWalletToGroup(id: string, pubkey: string): void {
   const i = groups.findIndex((x) => x.id === id);
   if (i < 0) return;
   const cur = groups[i];
-  if (cur.executionWallets.includes(pubkey) || cur.sniperWallets.includes(pubkey) || cur.devWallet === pubkey || cur.masterWallet === pubkey) return;
-  const total = cur.executionWallets.length + cur.sniperWallets.length + (cur.devWallet ? 1 : 0) + (cur.masterWallet ? 1 : 0);
+  if (
+    cur.executionWallets.includes(pubkey) ||
+    cur.sniperWallets.includes(pubkey) ||
+    cur.devWallet === pubkey ||
+    cur.masterWallet === pubkey
+  )
+    return;
+  const total =
+    cur.executionWallets.length +
+    cur.sniperWallets.length +
+    (cur.devWallet ? 1 : 0) +
+    (cur.masterWallet ? 1 : 0);
   if (total >= (cur.maxWallets || WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup)) return;
-  groups[i] = { ...cur, executionWallets: [...cur.executionWallets, pubkey], updatedAt: Date.now() };
+  groups[i] = {
+    ...cur,
+    executionWallets: [...cur.executionWallets, pubkey],
+    updatedAt: Date.now(),
+  };
   writeFor(master, groups);
 }
 
@@ -167,5 +199,3 @@ export function deleteWalletGroup(id: string) {
 export function keypairPath(master: string, groupName: string, pubkey: string) {
   return join(process.cwd(), 'keypairs', master, groupName, `${pubkey}.json`);
 }
-
-

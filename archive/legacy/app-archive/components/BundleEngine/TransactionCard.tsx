@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedTransactionCard() { return null }
-
-
+export default function ArchivedTransactionCard() {
+  return null;
+}

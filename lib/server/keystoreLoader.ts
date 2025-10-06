@@ -20,15 +20,15 @@ export async function loadKeypairsForGroup(
   masterPubkey: string,
 ): Promise<Keypair[]> {
   const keypairs: Keypair[] = [];
-  
+
   for (const pubkey of walletPubkeys) {
     try {
       // Try loading from group directory by pubkey
       const path = keypairPath(masterPubkey, groupName, pubkey);
       const keypairData = JSON.parse(readFileSync(path, 'utf8'));
-      
+
       let secretKey: Uint8Array;
-      
+
       if (Array.isArray(keypairData)) {
         // Standard Solana keypair format: [byte array]
         secretKey = new Uint8Array(keypairData);
@@ -45,21 +45,21 @@ export async function loadKeypairsForGroup(
       } else {
         throw new Error('Unknown keypair format');
       }
-      
+
       const keypair = Keypair.fromSecretKey(secretKey);
-      
+
       // Verify public key matches
       if (keypair.publicKey.toBase58() !== pubkey) {
         throw new Error(`Public key mismatch for ${pubkey}`);
       }
-      
+
       keypairs.push(keypair);
     } catch (error) {
       console.error(`Failed to load keypair for ${pubkey}:`, error);
       // Continue with other wallets
     }
   }
-  
+
   return keypairs;
 }
 
@@ -72,7 +72,8 @@ export function parseSecretKey(input: string): Uint8Array {
   try {
     const arr = JSON.parse(input);
     if (Array.isArray(arr)) return Uint8Array.from(arr);
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   return bs58.decode(input.trim());
 }
-

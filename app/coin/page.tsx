@@ -46,7 +46,7 @@ export default function CoinPage() {
         });
       }
     } catch {}
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -57,7 +57,10 @@ export default function CoinPage() {
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
-        const gs: Array<{ id: string; name: string }> = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
+        const gs: Array<{ id: string; name: string }> = (j.groups || []).map((g: any) => ({
+          id: g.id,
+          name: g.name,
+        }));
         setGroups(gs);
         if (gs.length && !groupId) setGroupId(gs[0].id);
       } catch {}
@@ -70,12 +73,14 @@ export default function CoinPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
-        <p className="text-sm text-muted-foreground">Create (Pump.fun), dev buulti-wallet buith quick market lookup.</p>
+        <p className="text-sm text-muted-foreground">
+          Create (Pump.fun), dev buulti-wallet buith quick market lookup.
+        </p>
         <div className="mt-3 flex items-center gap-2">
           <button
             className="px-3 py-2 rounded-xl bg-zinc-800 , r:bg-zinc-700 text-sm"
             onClick={() => {
-              navigator.clipboard.readText().then(txt => {
+              navigator.clipboard.readText().then((txt) => {
                 try {
                   const j = JSON.parse(txt);
                   setDraft({
@@ -106,7 +111,13 @@ export default function CoinPage() {
                 <h3 className="text-sm font-medium">Sell Conditions</h3>
               </div>
               <div className="mt-3">
-                <ConditionBuilder groupId={groupId} mint={mint} onChange={() => { /* handled by save button */ }} />
+                <ConditionBuilder
+                  groupId={groupId}
+                  mint={mint}
+                  onChange={() => {
+                    /* handled by save button */
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -116,24 +127,36 @@ export default function CoinPage() {
       {mint ? (
         <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-medium">Buy {mint.slice(0,4)}...{mint.slice(-4)}</h2>
+            <h2 className="text-sm font-medium">
+              Buy {mint.slice(0, 4)}...{mint.slice(-4)}
+            </h2>
           </div>
           <BuyPanel mint={mint} groupId={groupId} onGroupIdChange={setGroupId} />
         </div>
       ) : null}
-      {(groupId && mint) ? (
+      {groupId && mint ? (
         <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-medium">Positions</h2>
             <div className="flex items-center gap-2 text-xs">
               <label>Group</label>
-              <select className="input bg-zinc-900" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+              <select
+                className="input bg-zinc-900"
+                value={groupId}
+                onChange={(e) => setGroupId(e.target.value)}
+              >
                 {groups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
                 ))}
               </select>
               <label>Mint</label>
-              <input value={mint} onChange={(e) => setMint(e.target.value)} className="input bg-zinc-900 w-[360px]" />
+              <input
+                value={mint}
+                onChange={(e) => setMint(e.target.value)}
+                className="input bg-zinc-900 w-[360px]"
+              />
             </div>
           </div>
           <PositionsTable groupId={groupId} mint={mint} />
@@ -142,9 +165,3 @@ export default function CoinPage() {
     </div>
   );
 }
-
-
-
-
-
-

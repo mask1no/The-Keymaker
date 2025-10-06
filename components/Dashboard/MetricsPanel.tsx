@@ -21,28 +21,22 @@ export default function MetricsPanel() {
   if (isLoading || !data) return <div className="text-xs text-zinc-500">Loading</div>;
   return (
     <div className="text-xs text-zinc-300 grid grid-cols-2 gap-2">
-      
       <div className="rounded-lg border border-zinc-800 bg-black/30 p-2">
-        
         <div className="text-zinc-400">Landed</div>
         <div className="text-zinc-100 text-sm font-semibold">{data.bundlesLanded}</div>
       </div>
       <div className="rounded-lg border border-zinc-800 bg-black/30 p-2">
-        
         <div className="text-zinc-400">Dropped</div>
         <div className="text-zinc-100 text-sm font-semibold">{data.bundlesDropped}</div>
       </div>
       <div className="rounded-lg border border-zinc-800 bg-black/30 p-2">
-        
         <div className="text-zinc-400">Avg RTT</div>
         <div className="text-zinc-100 text-sm font-semibold">{data.avgRttMs} ms</div>
       </div>
       <div className="rounded-lg border border-zinc-800 bg-black/30 p-2">
-        
         <div className="text-zinc-400">Version</div>
         <div className="text-zinc-100 text-sm font-semibold">{data.version}</div>
       </div>
     </div>
   );
 }
-

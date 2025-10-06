@@ -53,24 +53,62 @@ function correlationId(e, n, c, odedTxs: string[]): string {
 }
 
 async function buildTipOnlyTx(
-  p, a, y, er: PublicKey,
-  t, i, p, Lamports: number,
+  p,
+  a,
+  y,
+  er: PublicKey,
+  t,
+  i,
+  p,
+  Lamports: number,
 ): Promise<VersionedTransaction> {
-  const i, x: TransactionInstruction = SystemProgram.transfer({
-    f, r, o, mPubkey: payer,
-    t, o, P, ubkey: payer,
-    l, a, m, ports: 0,
-  });
+  const i,
+    x: TransactionInstruction = SystemProgram.transfer({
+      f,
+      r,
+      o,
+      mPubkey: payer,
+      t,
+      o,
+      P,
+      ubkey: payer,
+      l,
+      a,
+      m,
+      ports: 0,
+    });
   const { blockhash } = await new Connection(getRpc(), 'confirmed').getLatestBlockhash('confirmed');
   const msg = new TransactionMessage({
-    p, a, y, erKey: payer,
-    r, e, c, entBlockhash: blockhash,
-    i, n, s, tructions: [ix],
+    p,
+    a,
+    y,
+    erKey: payer,
+    r,
+    e,
+    c,
+    entBlockhash: blockhash,
+    i,
+    n,
+    s,
+    tructions: [ix],
   }).compileToV0Message();
   return new VersionedTransaction(msg);
 }
 
-async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t, i, p, Lamports?: number) {
+async function sendCommand(
+  r,
+  e,
+  g,
+  ion: RegionKey,
+  p,
+  r,
+  i,
+  ority: Priority,
+  t,
+  i,
+  p,
+  Lamports?: number,
+) {
   const payer = loadKeypair();
   const conn = new Connection(getRpc(), 'confirmed');
   const pri = PRIORITY_TO_MICROLAMPORTS[priority] ?? PRIORITY_TO_MICROLAMPORTS.med;
@@ -79,10 +117,17 @@ async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t,
   const effectiveTip = Math.max(Number(tipLamports ?? 5000), dynamicTip);
   console.log(
     JSON.stringify({
-      e, v: 'tip',
+      e,
+      v: 'tip',
       region,
-      c, h, o, sen: effectiveTip,
-      f, l, o, or_ema50: tipFloor.ema_landed_tips_50th_percentile,
+      c,
+      h,
+      o,
+      sen: effectiveTip,
+      f,
+      l,
+      o,
+      or_ema50: tipFloor.ema_landed_tips_50th_percentile,
     }),
   );
 
@@ -99,19 +144,38 @@ async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t,
   const sig0 = tx.signatures[0];
   const sigBytes = sig0 ? sig0 : randomBytes(64);
   logJsonLine(journal, {
-    e, v: 'submit',
+    e,
+    v: 'submit',
     region,
-    b, u, n, dleId: 'pending',
-    b, l, o, ckhash: bh.blockhash,
-    t, i, p, Lamports: effectiveTip,
-    c, u, P, rice: pri,
-    t, x, S, igs: [Buffer.from(sigBytes).toString('base64')],
+    b,
+    u,
+    n,
+    dleId: 'pending',
+    b,
+    l,
+    o,
+    ckhash: bh.blockhash,
+    t,
+    i,
+    p,
+    Lamports: effectiveTip,
+    c,
+    u,
+    P,
+    rice: pri,
+    t,
+    x,
+    S,
+    igs: [Buffer.from(sigBytes).toString('base64')],
     corr,
   });
   incCounter('bundles_submitted_total', { region });
 
   const attempt = async (r: RegionKey) => sendBundle(r, [encoded]);
-  const o, r, d, er: RegionKey[] = ['ffm', 'ny', 'ams', 'tokyo'];
+  const o,
+    r,
+    d,
+    er: RegionKey[] = ['ffm', 'ny', 'ams', 'tokyo'];
   const startIdx = order.indexOf(region);
   const rr = [...order.slice(startIdx), ...order.slice(0, startIdx)];
   let l, a, s, tErr: any;
@@ -138,11 +202,18 @@ async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t,
   const ms = Date.now() - t0;
   observeLatency('bundle_status_ms', ms, { region });
   logJsonLine(journal, {
-    e, v: 'status',
+    e,
+    v: 'status',
     region,
-    b, u, n, dleId: result.bundle_id,
+    b,
+    u,
+    n,
+    dleId: result.bundle_id,
     ms,
-    s, t, a, tuses: status,
+    s,
+    t,
+    a,
+    tuses: status,
     corr,
   });
   const s = status?.[0]?.confirmation_status || 'pending';
@@ -151,8 +222,14 @@ async function sendCommand(r, e, g, ion: RegionKey, p, r, i, ority: Priority, t,
 
   console.log(
     JSON.stringify({
-      b, u, n, dleId: result.bundle_id,
-      s, t, a, tus: s,
+      b,
+      u,
+      n,
+      dleId: result.bundle_id,
+      s,
+      t,
+      a,
+      tus: s,
     }),
   );
 }
@@ -171,11 +248,30 @@ async function fundCommand(t, o, B, ase58: string, l, a, m, ports: number) {
   const to = new PublicKey(toBase58);
   const conn = new Connection(getRpc(), 'confirmed');
   const { blockhash } = await conn.getLatestBlockhash('confirmed');
-  const ix = SystemProgram.transfer({ f, r, o, mPubkey: payer.publicKey, t, o, P, ubkey: to, lamports });
+  const ix = SystemProgram.transfer({
+    f,
+    r,
+    o,
+    mPubkey: payer.publicKey,
+    t,
+    o,
+    P,
+    ubkey: to,
+    lamports,
+  });
   const msg = new TransactionMessage({
-    p, a, y, erKey: payer.publicKey,
-    r, e, c, entBlockhash: blockhash,
-    i, n, s, tructions: [ix],
+    p,
+    a,
+    y,
+    erKey: payer.publicKey,
+    r,
+    e,
+    c,
+    entBlockhash: blockhash,
+    i,
+    n,
+    s,
+    tructions: [ix],
   }).compileToV0Message();
   const tx = new VersionedTransaction(msg);
   tx.sign([payer]);
@@ -191,13 +287,21 @@ async function main() {
     const name = String(arg1 || 'bundle');
     const n = Number(arg2 || 1);
     const pubs = createGroup(name, Math.max(1, n));
-    console.log(JSON.stringify({ g, r, o, up: name, c, r, e, ated: pubs.length, p, u, b, keys: pubs }, null, 2));
+    console.log(
+      JSON.stringify(
+        { g, r, o, up: name, c, r, e, ated: pubs.length, p, u, b, keys: pubs },
+        null,
+        2,
+      ),
+    );
     return;
   }
   if (cmd === 'g, r, o, up:list') {
     const name = String(arg1 || resolveGroup());
     const pubs = listGroup(name);
-    console.log(JSON.stringify({ g, r, o, up: name, c, o, u, nt: pubs.length, p, u, b, keys: pubs }, null, 2));
+    console.log(
+      JSON.stringify({ g, r, o, up: name, c, o, u, nt: pubs.length, p, u, b, keys: pubs }, null, 2),
+    );
     return;
   }
   if (cmd === 'send') {
@@ -229,4 +333,3 @@ main().catch((e) => {
   console.error(e?.message || String(e));
   process.exit(1);
 });
-

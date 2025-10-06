@@ -28,7 +28,7 @@ export async function getJupiterQuote(params: JupiterQuoteParams): Promise<Jupit
   // Use mock in dev/dry-run mode
   if (process.env.DRY_RUN === 'true') {
     console.log('[Jupiter] DRY_RUN mode: Returning mock quote');
-    
+
     return {
       inputMint: params.inputMint,
       outputMint: params.outputMint,
@@ -38,7 +38,7 @@ export async function getJupiterQuote(params: JupiterQuoteParams): Promise<Jupit
       route: [],
     };
   }
-  
+
   // Real Jupiter API call
   try {
     const url = new URL(`${JUPITER_API_BASE}/quote`);
@@ -47,32 +47,34 @@ export async function getJupiterQuote(params: JupiterQuoteParams): Promise<Jupit
     url.searchParams.append('amount', params.amount.toString());
     url.searchParams.append('slippageBps', (params.slippageBps || 50).toString());
     url.searchParams.append('swapMode', 'ExactIn');
-    
+
     console.log('[Jupiter] Fetching quote:', url.toString());
-    
+
     const response = await fetch(url.toString(), {
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       signal: AbortSignal.timeout(5000), // 5 second timeout
     });
-    
+
     if (!response.ok) {
       throw new Error(`Jupiter quote failed: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     console.log('[Jupiter] Quote received:', {
       inAmount: data.inAmount,
       outAmount: data.outAmount,
       priceImpact: data.priceImpactPct,
     });
-    
+
     return data;
   } catch (error) {
     console.error('[Jupiter] Quote fetch error:', error);
-    throw new Error(`Failed to get Jupiter quote: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to get Jupiter quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 }
 
@@ -87,7 +89,7 @@ export async function getJupiterSwapInstructions(params: {
   // Use mock in dev/dry-run mode
   if (process.env.DRY_RUN === 'true') {
     console.log('[Jupiter] DRY_RUN mode: Returning mock instructions');
-    
+
     return {
       computeBudgetInstructions: [],
       setupInstructions: [],
@@ -96,16 +98,16 @@ export async function getJupiterSwapInstructions(params: {
       addressLookupTableAddresses: [],
     };
   }
-  
+
   // Real Jupiter API call
   try {
     const url = `${JUPITER_API_BASE}/swap-instructions`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       body: JSON.stringify({
         quoteResponse: params.quoteResponse,
@@ -115,18 +117,20 @@ export async function getJupiterSwapInstructions(params: {
       }),
       signal: AbortSignal.timeout(5000),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Jupiter swap instructions failed: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     console.log('[Jupiter] Swap instructions received');
-    
+
     return data;
   } catch (error) {
     console.error('[Jupiter] Swap instructions error:', error);
-    throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 }

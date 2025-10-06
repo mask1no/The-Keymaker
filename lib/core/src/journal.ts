@@ -57,6 +57,7 @@ export type JournalTradeEntry = {
   qty: number; // token quantity in native units
   priceLamports: number; // lamports per token
   feeLamports?: number; // optional network/relayer fee in lamports
+  priorityFeeLamports?: number; // priority fee in lamports
   groupId?: string; // wallet group identifier
   wallet?: string; // executing wallet pubkey (if available)
   txid?: string; // transaction signature (if available)
@@ -82,6 +83,7 @@ export function journalTrade(entry: JournalTradeEntry): void {
       qty: entry.qty,
       priceLamports: entry.priceLamports,
       feeLamports: entry.feeLamports ?? 0,
+      priorityFeeLamports: entry.priorityFeeLamports ?? 0,
       groupId: entry.groupId,
       wallet: entry.wallet,
       txid: entry.txid,
@@ -92,4 +94,3 @@ export function journalTrade(entry: JournalTradeEntry): void {
     // swallow
   }
 }
-

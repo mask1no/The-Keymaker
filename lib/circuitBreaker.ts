@@ -23,7 +23,7 @@ export class CircuitBreaker {
       failureThreshold: 5,
       recoveryTimeout: 60000, // 60 seconds
       monitoringPeriod: 10000, // 10 seconds
-    }
+    },
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -132,8 +132,7 @@ export const databaseCircuitBreaker = new CircuitBreaker('DATABASE', {
 // Utility function to wrap any async operation with circuit breaker
 export function withCircuitBreaker<T>(
   circuitBreaker: CircuitBreaker,
-  operation: () => Promise<T>
+  operation: () => Promise<T>,
 ): Promise<T> {
   return circuitBreaker.execute(operation);
 }
-

@@ -64,7 +64,11 @@ function walkDirectory(dir, results = []) {
 
     if (stat.isDirectory()) {
       // Skip common directories
-      if (['node_modules', '.next', '.git', 'dist', 'build', 'coverage', 'test-results'].includes(item)) {
+      if (
+        ['node_modules', '.next', '.git', 'dist', 'build', 'coverage', 'test-results'].includes(
+          item,
+        )
+      ) {
         continue;
       }
       walkDirectory(fullPath, results);

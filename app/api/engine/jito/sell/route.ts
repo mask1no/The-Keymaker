@@ -46,10 +46,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
     const walletPubkeys = group.executionWallets.slice(0); // copy
-    if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
+    if (walletPubkeys.length === 0)
+      return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
 
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
-    if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
+    if (keypairs.length === 0)
+      return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
     const rpc = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const walletToAmount: Record<string, number> = {};
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
             // Optional prioritization consistent with buy path
             priorityFeeMicrolamports: 0,
           });
-        })
+        }),
       )
     ).filter(Boolean) as any[];
 
@@ -90,11 +92,11 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request', details: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
+      );
     }
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
-
-
-

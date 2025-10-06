@@ -7,4 +7,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'tokenAddress is required' }, { status: 400 });
   } // Stubbed response return NextResponse.json({ tokenAddress, priceUsd: null });
 }
-

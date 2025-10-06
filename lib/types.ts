@@ -105,4 +105,3 @@ export type Transaction = {
 };
 
 export type Bundle = Transaction[];
-

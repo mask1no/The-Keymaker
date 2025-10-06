@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const metrics = await metricsRegistry.metrics();
-    
+
     return new NextResponse(metrics, {
       status: 200,
       headers: {
@@ -21,10 +21,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Failed to generate Prometheus metrics:', error);
-    
-    return NextResponse.json(
-      { error: 'Failed to generate metrics' },
-      { status: 500 }
-    );
+
+    return NextResponse.json({ error: 'Failed to generate metrics' }, { status: 500 });
   }
 }

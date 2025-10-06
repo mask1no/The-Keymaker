@@ -37,7 +37,7 @@ export function FormField({
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setTouched(true);
     const value = e.target.value;
-    
+
     if (required && !value) {
       setError(`${label} is required`);
       return;
@@ -55,7 +55,7 @@ export function FormField({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (touched) {
       const value = e.target.value;
-      
+
       if (required && !value) {
         setError(`${label} is required`);
         return;
@@ -93,7 +93,7 @@ export function FormField({
         className={`input px-3 py-2 bg-zinc-900 border rounded-lg transition-colors ${
           error && touched
             ? 'border-red-500 focus:ring-red-500/50'
-            : 'border-zinc-800 focus:ring-sky-500/50'
+            : 'border-zinc-800 focus:ring-emerald-500/50'
         }`}
         aria-invalid={!!error && touched}
         aria-describedby={error ? `${name}-error` : helpText ? `${name}-help` : undefined}
@@ -111,4 +111,3 @@ export function FormField({
     </div>
   );
 }
-

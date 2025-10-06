@@ -4,6 +4,7 @@ import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-ad
 import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import { loadClientEnv } from '@/lib/env/client';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 function getCsrf(): string {
@@ -70,17 +71,29 @@ function Inner() {
   return (
     <div className="space-y-3">
       <WalletMultiButton />
-      <button onClick={onSignIn} className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-60" disabled={busy || !publicKey}>
+      <button
+        onClick={onSignIn}
+        className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-60"
+        disabled={busy || !publicKey}
+      >
         {publicKey ? (busy ? 'Signing...' : 'Sign in') : 'Connect wallet to sign'}
       </button>
-      {error ? <div className="text-xs text-red-400" aria-live="polite">{error}</div> : null}
+      {error ? (
+        <div className="text-xs text-red-400" aria-live="polite">
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export default function SignInButton() {
   const network = 'mainnet-beta';
-  const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
+  const { NEXT_PUBLIC_HELIUS_RPC } = loadClientEnv();
+  const endpoint = useMemo(
+    () => NEXT_PUBLIC_HELIUS_RPC || clusterApiUrl('mainnet-beta'),
+    [NEXT_PUBLIC_HELIUS_RPC],
+  );
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
   return (
     <ConnectionProvider endpoint={endpoint}>
@@ -92,4 +105,3 @@ export default function SignInButton() {
     </ConnectionProvider>
   );
 }
-

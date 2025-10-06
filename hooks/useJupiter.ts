@@ -1,52 +1,34 @@
 'use client';
 
-import { createJupiterApiClient } from '@jup-ag/api';
-import { Connection } from '@solana/web3.js';
-import { NEXT_PUBLIC_HELIUS_RPC } from '@/constants';
-import { useMemo } from 'react';
-
-const jupiterApi = createJupiterApiClient();
+// Client hook that calls server routes for Jupiter; no external calls from client.
 
 export function useJupiter() {
-  const connection = useMemo(() => new Connection(NEXT_PUBLIC_HELIUS_RPC), []);
-
   const getQuote = async (
-    f, r, o, mMint: string,
-    t, o, M, int: string,
-    a, m, o, unt: number,
+    inputMint: string,
+    outputMint: string,
+    amount: number,
     slippageBps = 50,
   ): Promise<unknown> => {
-    try {
-      const quote = await jupiterApi.quoteGet({
-        i, n, p, utMint: fromMint,
-        o, u, t, putMint: toMint,
-        amount,
-        slippageBps,
-      });
-      return quote as unknown;
-    } catch (err) {
-      console.error('Failed to get Jupiter q, u, o, te:', err);
-      return null;
-    }
+    const params = new URLSearchParams({
+      inputMint,
+      outputMint,
+      amount: String(amount),
+      slippageBps: String(slippageBps),
+    });
+    const res = await fetch(`/api/jupiter/quote?${params.toString()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Quote failed: ${res.status}`);
+    return res.json();
   };
 
-  const getSwapTransaction = async (q, u, o, te: unknown, u, s, e, rPublicKey: string): Promise<unknown> => {
-    try {
-      const transaction = await jupiterApi.swapPost({
-        s, w, a, pRequest: {
-          // Type-narrowing of the quote is left to callers
-          q, u, o, teResponse: quote as never,
-          userPublicKey,
-          d, y, n, amicComputeUnitLimit: true,
-        },
-      });
-      return transaction as unknown;
-    } catch (err) {
-      console.error('Failed to get Jupiter swap t, r, a, nsaction:', err);
-      return null;
-    }
+  const getSwapTransaction = async (quote: unknown, userPublicKey: string): Promise<unknown> => {
+    const res = await fetch('/api/jupiter/swap', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ quote, userPublicKey }),
+    });
+    if (!res.ok) throw new Error(`Swap build failed: ${res.status}`);
+    return res.json();
   };
 
-  return { getQuote, getSwapTransaction, connection };
+  return { getQuote, getSwapTransaction };
 }
-

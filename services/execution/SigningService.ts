@@ -9,9 +9,7 @@ export type WalletSigner = {
   gnTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>;
 };
 export class SigningService {
-  constructor(
-    private readonly signer: WalletSigner,
-  ) {}
+  constructor(private readonly signer: WalletSigner) {}
   async signAll(txs: VersionedTransaction[]): Promise<Result<VersionedTransaction[]>> {
     try {
       const out: VersionedTransaction[] = [];

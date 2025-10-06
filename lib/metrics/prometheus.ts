@@ -76,11 +76,9 @@ export function recordHttpRequest(
   method: string,
   route: string,
   statusCode: number,
-  durationMs: number
+  durationMs: number,
 ) {
-  httpRequestDuration
-    .labels(method, route, statusCode.toString())
-    .observe(durationMs / 1000);
+  httpRequestDuration.labels(method, route, statusCode.toString()).observe(durationMs / 1000);
 }
 
 /**
@@ -89,20 +87,15 @@ export function recordHttpRequest(
 export function recordBundleSubmission(
   status: 'success' | 'failed' | 'timeout',
   mode: 'JITO_BUNDLE' | 'RPC_FANOUT',
-  region?: string
+  region?: string,
 ) {
-  bundleSubmissions
-    .labels(status, mode, region || 'unknown')
-    .inc();
+  bundleSubmissions.labels(status, mode, region || 'unknown').inc();
 }
 
 /**
  * Update health check status
  */
-export function updateHealthStatus(
-  service: string,
-  status: 'healthy' | 'degraded' | 'down'
-) {
+export function updateHealthStatus(service: string, status: 'healthy' | 'degraded' | 'down') {
   const value = status === 'healthy' ? 1 : status === 'degraded' ? 0.5 : 0;
   healthCheckStatus.labels(service).set(value);
 }
@@ -128,7 +121,7 @@ export function updateJitoTipFloor(
   region: string,
   tips50th: number,
   tips75th: number,
-  ema: number
+  ema: number,
 ) {
   jitoTipFloor.labels(region, '50th').set(tips50th);
   jitoTipFloor.labels(region, '75th').set(tips75th);
@@ -141,4 +134,3 @@ export function updateJitoTipFloor(
 export async function getMetrics(): Promise<string> {
   return register.metrics();
 }
-

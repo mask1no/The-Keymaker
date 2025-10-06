@@ -16,4 +16,3 @@ export const buildSplMintDemo: InstructionBuilder<SplMintDemoParams> = async (
   const ix = new TransactionInstruction({ programId: MEMO_PROGRAM_ID, keys: [], data });
   return { ixs: [ix], note: `memo-demo:${params.memo?.slice(0, 16) || 'ok'}` };
 };
-

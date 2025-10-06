@@ -36,20 +36,14 @@ export interface PriceInfo {
 /**
  * Check if percent target condition is met
  */
-export function isPercentTargetMet(
-  condition: PercentTargetParams,
-  priceInfo: PriceInfo
-): boolean {
+export function isPercentTargetMet(condition: PercentTargetParams, priceInfo: PriceInfo): boolean {
   return priceInfo.changePercent >= condition.targetPercent;
 }
 
 /**
  * Check if stop loss triggered
  */
-export function isStopLossTriggered(
-  condition: StopLossParams,
-  priceInfo: PriceInfo
-): boolean {
+export function isStopLossTriggered(condition: StopLossParams, priceInfo: PriceInfo): boolean {
   return priceInfo.changePercent <= condition.stopLossPercent;
 }
 
@@ -58,24 +52,24 @@ export function isStopLossTriggered(
  */
 export function scheduleTimeLimitSell(
   condition: TimeLimitParams,
-  callback: () => void
+  callback: () => void,
 ): NodeJS.Timeout {
   const journal = createDailyJournal('data');
-  
+
   logJsonLine(journal, {
     ev: 'sell_condition_scheduled',
     type: 'time_limit',
     delayMs: condition.delayMs,
     sellPercent: condition.sellPercent,
   });
-  
+
   return setTimeout(() => {
     logJsonLine(journal, {
       ev: 'sell_condition_triggered',
       type: 'time_limit',
       sellPercent: condition.sellPercent,
     });
-    
+
     callback();
   }, condition.delayMs);
 }
@@ -89,17 +83,17 @@ export function evaluateSellConditions(params: {
 }): SellCondition[] {
   const { conditions, priceInfo } = params;
   const triggered: SellCondition[] = [];
-  
+
   for (const condition of conditions) {
     if (!condition.enabled) continue;
-    
+
     if (condition.type === 'percent_target') {
       const params = condition.params as PercentTargetParams;
       if (isPercentTargetMet(params, priceInfo)) {
         triggered.push(condition);
       }
     }
-    
+
     if (condition.type === 'stop_loss') {
       const params = condition.params as StopLossParams;
       if (isStopLossTriggered(params, priceInfo)) {
@@ -107,7 +101,7 @@ export function evaluateSellConditions(params: {
       }
     }
   }
-  
+
   return triggered;
 }
 
@@ -119,9 +113,9 @@ export function calculateSellAmount(params: {
   totalHoldings: number;
 }): number {
   const { condition, totalHoldings } = params;
-  
+
   let sellPercent = 0;
-  
+
   if (condition.type === 'percent_target') {
     sellPercent = (condition.params as PercentTargetParams).sellPercent;
   } else if (condition.type === 'time_limit') {
@@ -129,7 +123,6 @@ export function calculateSellAmount(params: {
   } else if (condition.type === 'stop_loss') {
     sellPercent = (condition.params as StopLossParams).sellPercent;
   }
-  
+
   return Math.floor((totalHoldings * sellPercent) / 100);
 }
-

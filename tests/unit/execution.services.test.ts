@@ -3,7 +3,10 @@ import { SubmissionService } from '@/services/execution/SubmissionService';
 import { validateTipAccount } from '@/lib/server/jitoService';
 describe('Execution Services', () => {
   test('SimulationService.simulateAll returns ok on empty list', async () => {
-    const c, o, n, n: any = { s, i, m, ulateTransaction: jest.fn() };
+    const c,
+      o,
+      n,
+      n: any = { s, i, m, ulateTransaction: jest.fn() };
     const sim = new SimulationService(conn);
     const res = await sim.simulateAll([] as any);
     expect(res.ok).toBe(true);
@@ -24,7 +27,10 @@ describe('Execution Services', () => {
     spyStat.mockRestore();
   });
   test('validateTipAccount returns false for malformed tx', () => {
-    const b, a, d, Tx: any = { m, e, s, sage: { c, o, m, piledInstructions: [], s, t, a, ticAccountKeys: [] } };
+    const b,
+      a,
+      d,
+      Tx: any = { m, e, s, sage: { c, o, m, piledInstructions: [], s, t, a, ticAccountKeys: [] } };
     expect(validateTipAccount(badTx)).toBe(false);
   });
 });

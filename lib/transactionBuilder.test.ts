@@ -36,4 +36,3 @@ describe('transactionBuilder', () => {
     expect(tx.message.compiledInstructions.length).toBeGreaterThan(1);
   });
 });
-

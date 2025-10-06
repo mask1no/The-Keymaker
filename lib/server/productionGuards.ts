@@ -15,6 +15,3 @@ export function enforcePriorityFeeCeiling(priorityMicrolamports: number, ceiling
 export function enforceConcurrencyCeiling(concurrency: number, ceiling: number): number {
   return clampNumber(concurrency, 1, ceiling);
 }
-
-
-

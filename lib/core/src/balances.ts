@@ -54,7 +54,11 @@ export async function getSplTokenBalance(
   let decimals: number | undefined;
 
   try {
-    const resp = await connection.getParsedTokenAccountsByOwner(owner, { mint: mintPk }, 'confirmed');
+    const resp = await connection.getParsedTokenAccountsByOwner(
+      owner,
+      { mint: mintPk },
+      'confirmed',
+    );
     for (const { account } of resp.value) {
       const data: any = account.data;
       const amtStr: string | undefined = data?.parsed?.info?.tokenAmount?.amount;
@@ -113,6 +117,3 @@ export async function getPositionsForGroup(
   );
   return results;
 }
-
-
-

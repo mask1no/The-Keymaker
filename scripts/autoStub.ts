@@ -27,16 +27,26 @@ function* walk(dir: string): Generator<string> {
 
 const targets: string[] = [];
 for (const p of walk(ROOT)) {
-  const rel = path.relative(ROOT, p).replace(/\\/g,'/');
+  const rel = path.relative(ROOT, p).replace(/\\/g, '/');
   if (!/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(p)) continue;
-  if (!rel.startsWith('app/') && !rel.startsWith('components/') && !rel.startsWith('hooks/') && !rel.startsWith('lib/')) continue;
+  if (
+    !rel.startsWith('app/') &&
+    !rel.startsWith('components/') &&
+    !rel.startsWith('hooks/') &&
+    !rel.startsWith('lib/')
+  )
+    continue;
   if (allowlistKeep.has(rel)) continue;
   const s = fs.readFileSync(p, 'utf8');
   if (s.includes('...') || s.includes('…')) targets.push(rel);
 }
 
-function stubTs(rel: string) { return `export {}; // auto-stubbed (${rel})\n`; }
-function stubTsx(rel: string) { return `export default function Stubbed(){ return null } // auto-stubbed (${rel})\n`; }
+function stubTs(rel: string) {
+  return `export {}; // auto-stubbed (${rel})\n`;
+}
+function stubTsx(rel: string) {
+  return `export default function Stubbed(){ return null } // auto-stubbed (${rel})\n`;
+}
 function stubApi(rel: string) {
   return `import { NextResponse } from 'next/server';
 export const runtime = 'nodejs'; export const dynamic = 'force-dynamic';

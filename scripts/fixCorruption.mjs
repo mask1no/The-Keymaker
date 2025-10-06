@@ -12,9 +12,18 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const START_DIRS = ['app','components','lib','services','stores','scripts','utils'];
-const EXTS = new Set(['.ts','.tsx','.js','.mjs','.cjs']);
-const EXCLUDE_DIRS = new Set(['node_modules','.git','.next','coverage','dist','public','assets','data']);
+const START_DIRS = ['app', 'components', 'lib', 'services', 'stores', 'scripts', 'utils'];
+const EXTS = new Set(['.ts', '.tsx', '.js', '.mjs', '.cjs']);
+const EXCLUDE_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.next',
+  'coverage',
+  'dist',
+  'public',
+  'assets',
+  'data',
+]);
 
 function detokenize(text) {
   let prev;
@@ -73,7 +82,9 @@ for (const rel of START_DIRS) {
 ['next.config.js'].forEach((f) => {
   const p = path.join(PROJECT_ROOT, f);
   if (fs.existsSync(p)) {
-    try { if (processFile(p)) changed++; } catch {}
+    try {
+      if (processFile(p)) changed++;
+    } catch {}
   }
 });
 

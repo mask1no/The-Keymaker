@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (!rl.allowed) return apiError(429, 'rate_limited');
   const cl = Number(req.headers.get('content-length') || '0');
   if (cl > 8192) return apiError(413, 'payload_too_large');
-  const body = await req.json().catch(() => ({} as any));
+  const body = await req.json().catch(() => ({}) as any);
 
   // If standard build fields are present, run metadata build path
   const BuildSchema = z.object({
@@ -52,4 +52,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ adapter, ixs: res.ixs.length, note: res.note });
   }
 }
-

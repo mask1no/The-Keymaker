@@ -49,18 +49,31 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'no-referrer' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           {
-            key: 'Content-Security-Policy-Report-Only',
-            value:
-              "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          // CSP baseline per spec
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "connect-src 'self' https://*.helius.dev https://*.jup.ag https://api.dexscreener.com",
+              "img-src 'self' data:",
+              "script-src 'self' 'wasm-unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "frame-ancestors 'none'",
+            ].join('; '),
           },
           ...(allowOrigin
             ? [
                 { key: 'Access-Control-Allow-Origin', value: allowOrigin },
                 { key: 'Vary', value: 'Origin' },
                 { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,PATCH,DELETE,OPTIONS' },
-                { key: 'Access-Control-Allow-Headers', value: 'Content-Type, X-CSRF-Token, X-Engine-Token' },
+                {
+                  key: 'Access-Control-Allow-Headers',
+                  value: 'Content-Type, X-CSRF-Token, X-Engine-Token',
+                },
                 { key: 'Access-Control-Allow-Credentials', value: 'true' },
               ]
             : []),

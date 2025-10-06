@@ -1,8 +1,14 @@
 'use client';
 import KCard from '@/components/UI/KCard';
 
-export default function SafetyPanel({ onArm, onDisarm, armedUntil }: {
-  onArm: (mins: number) => Promise<void> | void; onDisarm: () => Promise<void> | void; armedUntil?: string;
+export default function SafetyPanel({
+  onArm,
+  onDisarm,
+  armedUntil,
+}: {
+  onArm: (mins: number) => Promise<void> | void;
+  onDisarm: () => Promise<void> | void;
+  armedUntil?: string;
 }) {
   return (
     <KCard>
@@ -20,11 +26,10 @@ export default function SafetyPanel({ onArm, onDisarm, armedUntil }: {
         >
           Disarm
         </button>
-        <div className="ml-2 text-xs text-muted">{armedUntil ? `Armed until ${armedUntil}` : 'DryRun mode simulates without sending.'}</div>
+        <div className="ml-2 text-xs text-muted">
+          {armedUntil ? `Armed until ${armedUntil}` : 'DryRun mode simulates without sending.'}
+        </div>
       </div>
     </KCard>
   );
 }
-
-
-

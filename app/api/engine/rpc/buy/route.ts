@@ -5,9 +5,14 @@ import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
 import { getUiSettings } from '@/lib/server/settings';
-import { enforcePriorityFeeCeiling, enforceConcurrencyCeiling } from '@/lib/server/productionGuards';
+import {
+  enforcePriorityFeeCeiling,
+  enforceConcurrencyCeiling,
+} from '@/lib/server/productionGuards';
 import { getSession } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
+import { logEngineJsonl } from '@/lib/productionLogger';
+import { translateError } from '@/lib/server/errorDictionary';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,11 +52,14 @@ export async function POST(request: Request) {
     }
 
     const walletPubkeys = group.executionWallets;
-    if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
+    if (walletPubkeys.length === 0)
+      return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
 
-    if (!group.masterWallet) return NextResponse.json({ error: 'Group missing masterWallet' }, { status: 400 });
+    if (!group.masterWallet)
+      return NextResponse.json({ error: 'Group missing masterWallet' }, { status: 400 });
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
-    if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
+    if (keypairs.length === 0)
+      return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
     // Read UI settings only if needed later
     const pri = enforcePriorityFeeCeiling(params.priorityFeeMicrolamports || 0, 1_000_000);
@@ -88,14 +96,23 @@ export async function POST(request: Request) {
         }),
     });
 
+    logEngineJsonl({ route: '/api/engine/rpc/buy', status: 'ok', mint: params.mint, side: 'buy' });
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid request', details: error.issues }, { status: 400 });
+      logEngineJsonl({ route: '/api/engine/rpc/buy', status: 'error', message: 'invalid_request' });
+      return NextResponse.json(
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
+      );
     }
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    const info = translateError(error);
+    logEngineJsonl({ route: '/api/engine/rpc/buy', status: 'error', message: info.message });
+    return NextResponse.json(
+      { error: info.code, message: info.message, hint: info.hint },
+      { status: 500 },
+    );
   }
 }
 
 // Removed duplicate legacy handler block to ensure Jupiter swaps are used above.
-

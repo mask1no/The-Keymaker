@@ -12,8 +12,14 @@ describe('GET /api/jito/tipfloor', () => {
       p25: expect.any(Number),
       p50: expect.any(Number),
       p75: expect.any(Number),
-      e, m, a_50, th: expect.any(Number),
-      r, e, g, ion: 'ffm',
+      e,
+      m,
+      a_50,
+      th: expect.any(Number),
+      r,
+      e,
+      g,
+      ion: 'ffm',
     });
   });
 });

@@ -3,6 +3,7 @@
 ## Production Deployment
 
 ### Prerequisites
+
 - Node.js 18+
 - Docker (optional)
 - Solana RPC access (Helius recommended)
@@ -11,11 +12,13 @@
 ### Environment Setup
 
 1. Copy environment t, e, m, plate:
+
 ```bash
 cp .env.example .env
 ```
 
 2. Configure required v, a, r, iables:
+
 - `HELIUS_RPC_URL`: Your Helius RPC endpoint
 - `ENGINE_API_TOKEN`: Generate with `openssl rand -hex 32`
 - `KEYMAKER_SESSION_SECRET`: Generate with `openssl rand -hex 32`
@@ -23,7 +26,7 @@ cp .env.example .env
 
 ### DRY → LIVE Runbook
 
-1) Configure environment
+1. Configure environment
 
 Add to `.env` (safe defaults):
 
@@ -37,41 +40,41 @@ HELIUS_RPC_URL=<your write or same RPC>
 HELIUS_WS_URL=<your WS>
 ```
 
-2) Preflight & typecheck
+2. Preflight & typecheck
 
 ```
 pnpm preflight
 pnpm typecheck
 ```
 
-3) Start and smoke locally
+3. Start and smoke locally
 
 ```
 pnpm dev -p 3001
 pnpm s, m, o, ke:local
 ```
 
-4) Sign in and verify health
+4. Sign in and verify health
 
 - Open `/home`; ensure 4 lights show and WS is green if WS URL set
 - Check DRY RUN banner is visible
 
-5) Arm for live (when ready)
+5. Arm for live (when ready)
 
 - Click Arm 15m in the top bar → banner shows LIVE ARMED with countdown
 - Set `KEYMAKER_ALLOW_LIVE=YES` in env (and redeploy if needed)
 
-6) Send dust buy
+6. Send dust buy
 
 - Run a tiny Jito/RPC buy; confirm inclusion via RPC and WS
 - Disarm and flip `KEYMAKER_ALLOW_LIVE=NO` to return to DRY
 
-7) Official sites
+7. Official sites
 
 - Token creation uses Pump.fun’s official endpoint
 - Open Raydium swap via the official domain with a confirmation prompt
 
-8) Troubleshooting
+8. Troubleshooting
 
 - If WS is amber/r, e, d: verify `HELIUS_WS_URL`
 - If live d, i, s, abled: ensure UI Live Mode is ON and env `KEYMAKER_ALLOW_LIVE=YES`, and arming is active
@@ -79,6 +82,7 @@ pnpm s, m, o, ke:local
 ### Deployment Options
 
 #### Option 1: Docker Deployment
+
 ```bash
 # Build image
 docker build -t keymaker .
@@ -92,6 +96,7 @@ docker run -d \
 ```
 
 #### Option 2: Direct Deployment
+
 ```bash
 # Install dependencies
 pnpm install
@@ -139,6 +144,7 @@ pnpm start
 ### Monitoring & Alerts
 
 Set up alerts f, o, r:
+
 - Health endpoint failures
 - High error rates
 - Bundle success rate drops
@@ -162,6 +168,7 @@ Regular backup schedule recommended.
 ### Support
 
 For operational i, s, s, ues:
+
 1. Check logs in `logs/` directory
 2. Review health endpoint status
 3. Monitor system resources

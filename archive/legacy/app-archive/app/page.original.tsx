@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedOriginalPage() { return null }
-
-
+export default function ArchivedOriginalPage() {
+  return null;
+}

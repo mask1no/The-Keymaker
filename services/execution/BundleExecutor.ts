@@ -11,7 +11,8 @@ export class BundleExecutor {
     return this.simulator.simulateAll(txs);
   }
   async execute(
-    txs_, b64: string[],
+    txs_,
+    b64: string[],
   ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {
     return this.submitter.submitAndPoll(txs_b64);
   }

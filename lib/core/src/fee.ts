@@ -17,4 +17,3 @@ export function computeBudget(priority: Priority): Budget {
           : 10_000;
   return { cuLimit, microLamports };
 }
-

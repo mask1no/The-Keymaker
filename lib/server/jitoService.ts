@@ -251,3 +251,49 @@ export function validateTipAccount(transaction: VersionedTransaction): boolean {
   }
 }
 
+export async function submitJitoTurbo(params: {
+  region: RegionKey;
+  signedTxBase64: string;
+  tipLamports: number;
+  simulateFirst?: boolean;
+  maxRetries?: number;
+}): Promise<
+  { ok: true; bundleId: string; signature?: string; slot?: number } | { ok: false; error: string }
+> {
+  const { region, signedTxBase64, tipLamports, simulateFirst = true } = params;
+  try {
+    // Optionally simulate transaction via bundle-simulate
+    if (simulateFirst) {
+      try {
+        await jrpc(region, 'simulateBundle', { encodedTransactions: [signedTxBase64] });
+      } catch (e) {
+        return {
+          ok: false,
+          error: `simulate_bundle_failed: ${(e as Error)?.message || 'unknown'}`,
+        };
+      }
+    }
+
+    // Submit bundle of length 1
+    const { bundle_id } = await sendBundle(region, [signedTxBase64]);
+
+    // Poll inclusion
+    const startedAt = Date.now();
+    const timeoutMs = 12_000;
+    while (Date.now() - startedAt < timeoutMs) {
+      const statuses = await getBundleStatuses(region, [bundle_id]);
+      const st = statuses?.[0];
+      if (st?.confirmation_status === 'landed') {
+        const sig = st.transactions?.[0]?.signature;
+        return { ok: true, bundleId: bundle_id, signature: sig, slot: st.slot };
+      }
+      if (st?.confirmation_status === 'failed' || st?.confirmation_status === 'invalid') {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 400));
+    }
+    return { ok: false, error: 'bundle_not_landed' };
+  } catch (e: unknown) {
+    return { ok: false, error: (e as Error)?.message || 'submit_failed' };
+  }
+}

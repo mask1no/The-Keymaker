@@ -19,12 +19,6 @@ export async function GET() {
       },
     );
   } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: 'ready_probe_failed' },
-      { status: 503 },
-    );
+    return NextResponse.json({ ok: false, error: 'ready_probe_failed' }, { status: 503 });
   }
 }
-
-
-

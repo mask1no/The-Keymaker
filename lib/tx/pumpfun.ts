@@ -1,5 +1,6 @@
 import { Keypair, VersionedTransaction } from '@solana/web3.js';
 import { buildSwapTx } from '@/lib/tx/jupiter';
+import { isMigrated } from '@/lib/pump/migration';
 
 export async function buildCreateMintTx(_params: {
   devPubkey: string;
@@ -20,14 +21,17 @@ export async function buildBuyTx(params: {
   slippageBps: number;
   priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
-  return buildSwapTx({
-    wallet: params.buyer,
-    inputMint: 'So11111111111111111111111111111111111111112',
-    outputMint: params.mint,
-    amountLamports: params.solLamports,
-    slippageBps: params.slippageBps,
-    priorityFeeMicrolamports: params.priorityFeeMicrolamports,
-  });
+  // If migrated → Jupiter SOL→mint swap (V6)
+  if (await isMigrated(params.mint)) {
+    return buildSwapTx({
+      wallet: params.buyer,
+      inputMint: 'So11111111111111111111111111111111111111112',
+      outputMint: params.mint,
+      amountLamports: params.solLamports,
+      slippageBps: params.slippageBps,
+      priorityFeeMicrolamports: params.priorityFeeMicrolamports,
+    });
+  }
+  // Else: still on bonding curve → pump.fun buy path (to be implemented)
+  throw new Error('pumpfun_buy_not_implemented');
 }
-
-

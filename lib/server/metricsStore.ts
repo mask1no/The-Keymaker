@@ -20,4 +20,3 @@ export function observeLatency(
 export function renderMetrics(): string {
   return coreRender();
 }
-

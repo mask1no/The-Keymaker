@@ -52,17 +52,20 @@ function parseJournalFile(filePath: string): any[] {
   if (!existsSync(filePath)) {
     return [];
   }
-  
+
   const content = readFileSync(filePath, 'utf8').trim();
   if (!content) return [];
-  
-  return content.split('\n').map(line => {
-    try {
-      return JSON.parse(line);
-    } catch {
-      return null;
-    }
-  }).filter(Boolean);
+
+  return content
+    .split('\n')
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 /**
@@ -74,26 +77,26 @@ export function aggregatePnL(params: {
   runId?: string;
 }): GroupPnL {
   const { dataDir, groupId, runId } = params;
-  
+
   // Load all journal files
   const journalFiles = readdirSync(dataDir)
-    .filter(f => f.startsWith('journal.') && f.endsWith('.ndjson'))
-    .map(f => join(dataDir, f));
-  
-  const allEntries = journalFiles.flatMap(f => parseJournalFile(f));
-  
+    .filter((f) => f.startsWith('journal.') && f.endsWith('.ndjson'))
+    .map((f) => join(dataDir, f));
+
+  const allEntries = journalFiles.flatMap((f) => parseJournalFile(f));
+
   // Filter by groupId and runId if specified
   let entries = allEntries;
   if (groupId) {
-    entries = entries.filter(e => e.groupId === groupId);
+    entries = entries.filter((e) => e.groupId === groupId);
   }
   if (runId) {
-    entries = entries.filter(e => e.runId === runId);
+    entries = entries.filter((e) => e.runId === runId);
   }
-  
+
   // Build PnL structure
   const walletPnLMap = new Map<string, WalletPnL>();
-  
+
   for (const entry of entries) {
     // Observe Jupiter quote to infer price context
     if (entry.ev === 'jupiter_quote_received' || entry.ev === 'jupiter_sell_quote_received') {
@@ -103,7 +106,7 @@ export function aggregatePnL(params: {
     if (entry.ev === 'rpc_confirmed' || entry.ev === 'jito_bundle_result') {
       const wallet = entry.wallet;
       if (!wallet || wallet === 'unknown' || wallet === 'bundled') continue;
-      
+
       if (!walletPnLMap.has(wallet)) {
         walletPnLMap.set(wallet, {
           wallet,
@@ -113,11 +116,11 @@ export function aggregatePnL(params: {
           totalPnL: 0,
         });
       }
-      
+
       // Track/initialize position record
       const walletPnL = walletPnLMap.get(wallet)!;
       const mint = entry.mint || 'unknown';
-      
+
       if (!walletPnL.positions.has(mint)) {
         walletPnL.positions.set(mint, {
           mint,
@@ -150,12 +153,12 @@ export function aggregatePnL(params: {
         }
       }
     }
-    
+
     // Process sell events
     if (entry.ev === 'sell_executed') {
       const wallet = entry.wallet;
       if (!wallet) continue;
-      
+
       const walletPnL = walletPnLMap.get(wallet);
       if (walletPnL) {
         // Add realized P&L
@@ -165,16 +168,16 @@ export function aggregatePnL(params: {
       }
     }
   }
-  
+
   // Calculate totals
   let totalRealizedPnL = 0;
   let totalUnrealizedPnL = 0;
-  
+
   for (const walletPnL of walletPnLMap.values()) {
     totalRealizedPnL += walletPnL.realizedPnL;
     totalUnrealizedPnL += walletPnL.unrealizedPnL;
   }
-  
+
   return {
     groupId: groupId || 'all',
     groupName: groupId || 'All Groups',
@@ -196,7 +199,6 @@ export function formatPnLSummary(pnl: GroupPnL): string {
     `Unrealized P&L: ${(pnl.totalUnrealizedPnL / 1e9).toFixed(4)} SOL`,
     `Total P&L: ${(pnl.totalPnL / 1e9).toFixed(4)} SOL`,
   ];
-  
+
   return lines.join('\n');
 }
-

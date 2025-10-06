@@ -108,4 +108,3 @@ export function SlippageSettings({
     </div>
   );
 }
-

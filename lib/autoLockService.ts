@@ -123,4 +123,3 @@ class AutoLockService {
 
 export const autoLockService = typeof window !== 'undefined' ? new AutoLockService() : null;
 export default autoLockService;
-

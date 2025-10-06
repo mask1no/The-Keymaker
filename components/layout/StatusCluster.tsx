@@ -3,9 +3,20 @@ import { useEffect, useState } from 'react';
 import { Radio, Server, Zap, Activity } from 'lucide-react';
 import { useHealth } from '@/hooks/useHealth';
 
-function Light({ light, label, Icon, meta }: { light: 'green' | 'amber' | 'red' | undefined; label: string; Icon: any; meta?: string }) {
+function Light({
+  light,
+  label,
+  Icon,
+  meta,
+}: {
+  light: 'green' | 'amber' | 'red' | undefined;
+  label: string;
+  Icon: any;
+  meta?: string;
+}) {
   const ok = light === 'green';
-  const color = light === 'green' ? 'text-emerald-400' : light === 'amber' ? 'text-amber-400' : 'text-red-400';
+  const color =
+    light === 'green' ? 'text-emerald-400' : light === 'amber' ? 'text-amber-400' : 'text-red-400';
   return (
     <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-800/70 bg-zinc-900/40 px-3 py-2 text-xs">
       <div className="flex items-center gap-2 min-w-0">
@@ -74,13 +85,30 @@ export default function StatusCluster() {
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      <Light light={rpc?.light} label="RPC" Icon={Server} meta={rpc?.latencyMs ? `${rpc.latencyMs}
-ms` : undefined} />
+      <Light
+        light={rpc?.light}
+        label="RPC"
+        Icon={Server}
+        meta={
+          rpc?.latencyMs
+            ? `${rpc.latencyMs}
+ms`
+            : undefined
+        }
+      />
       <Light light={wsLight} label="WS" Icon={Radio} />
-      <Light light={jito?.light} label="JITO" Icon={Zap} meta={jito?.latencyMs ? `${jito.latencyMs}
-ms` : undefined} />
+      <Light
+        light={jito?.light}
+        label="JITO"
+        Icon={Zap}
+        meta={
+          jito?.latencyMs
+            ? `${jito.latencyMs}
+ms`
+            : undefined
+        }
+      />
       <Light light={sm?.light} label={net} Icon={Activity} />
     </div>
   );
 }
-

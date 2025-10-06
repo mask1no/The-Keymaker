@@ -39,4 +39,3 @@ export function removeTrackedWallet(wallet: string) {
   const next = read().filter((w) => w !== wallet);
   write(next);
 }
-

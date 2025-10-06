@@ -26,8 +26,9 @@ export async function POST(request: Request) {
     disarm();
     return NextResponse.json({ ok: true, disarmed: true, armedUntil: armedUntil() });
   } catch {
-    try { Sentry.captureMessage('disarm_failed', { level: 'error' }); } catch {}
+    try {
+      Sentry.captureMessage('disarm_failed', { level: 'error' });
+    } catch {}
     return apiError(500, 'failed');
   }
 }
-

@@ -10,7 +10,9 @@ export type TokenMetadata = {
   telegram?: string;
 };
 
-export function buildMetadata(input: Partial<TokenMetadata> & Pick<TokenMetadata, 'name' | 'symbol'>): TokenMetadata {
+export function buildMetadata(
+  input: Partial<TokenMetadata> & Pick<TokenMetadata, 'name' | 'symbol'>,
+): TokenMetadata {
   return {
     name: input.name,
     symbol: input.symbol,
@@ -48,6 +50,3 @@ export async function uploadMetadataJson(metadata: TokenMetadata): Promise<strin
     return null;
   }
 }
-
-
-

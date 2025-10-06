@@ -1,6 +1,10 @@
 import KCard from '@/components/UI/KCard';
 
-export default function EventTable({ rows }: { rows: Array<{ time: string; event: string; summary: string }> }) {
+export default function EventTable({
+  rows,
+}: {
+  rows: Array<{ time: string; event: string; summary: string }>;
+}) {
   return (
     <KCard>
       <div className="text-sm font-medium mb-2">Last 10 Events</div>
@@ -17,6 +21,3 @@ export default function EventTable({ rows }: { rows: Array<{ time: string; event
     </KCard>
   );
 }
-
-
-

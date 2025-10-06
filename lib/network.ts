@@ -39,9 +39,11 @@ export function reportRpcHealth(light: 'green' | 'amber' | 'red'): void {
   lastPrimary = primary;
 }
 
-export function getConnection(commitment: Commitment = 'processed', cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta'): Connection {
+export function getConnection(
+  commitment: Commitment = 'processed',
+  cluster: 'mainnet-beta' | 'devnet' = 'mainnet-beta',
+): Connection {
   const primary = primaryRpc(cluster);
-  const rpcUrl = usingSecondary ? (process.env.SECONDARY_RPC_URL || primary) : primary;
+  const rpcUrl = usingSecondary ? process.env.SECONDARY_RPC_URL || primary : primary;
   return new Connection(rpcUrl, commitment);
 }
-

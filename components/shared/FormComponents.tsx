@@ -30,7 +30,7 @@ export function InputField({
 }: InputFieldProps) {
   const baseClasses = 'input w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded';
   const finalClasses = className ? `${baseClasses} ${className}` : baseClasses;
-  
+
   return (
     <div>
       <label className="text-sm text-zinc-300">{label}</label>
@@ -69,15 +69,11 @@ export function Button({
     secondary: 'border border-zinc-800 hover:bg-zinc-800 text-zinc-300',
     danger: 'bg-red-900 hover:bg-red-800 text-red-100',
   };
-  
+
   const finalClasses = `${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`;
-  
+
   return (
-    <button
-      type={type}
-      disabled={disabled}
-      className={finalClasses}
-    >
+    <button type={type} disabled={disabled} className={finalClasses}>
       {children}
     </button>
   );
@@ -95,7 +91,7 @@ export function StatusMessage({ type, children }: StatusMessageProps) {
     warning: 'border-yellow-600/30 bg-yellow-900/20 text-yellow-200',
     info: 'border-blue-600/30 bg-blue-900/20 text-blue-200',
   };
-  
+
   return (
     <div
       role="status"
@@ -134,9 +130,9 @@ export function Badge({ children, variant = 'default', href }: BadgeProps) {
     active: 'bg-blue-900 text-blue-200',
     warning: 'bg-yellow-900 text-yellow-200',
   };
-  
+
   const baseClasses = `badge ${variantClasses[variant]}`;
-  
+
   if (href) {
     return (
       <a href={href} className={baseClasses} style={{ textDecoration: 'none' }}>
@@ -144,7 +140,6 @@ export function Badge({ children, variant = 'default', href }: BadgeProps) {
       </a>
     );
   }
-  
+
   return <span className={baseClasses}>{children}</span>;
 }
-

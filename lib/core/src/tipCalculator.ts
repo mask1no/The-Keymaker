@@ -20,14 +20,14 @@ const DEFAULT_MAX_TIP = 1_000_000; // 0.001 SOL
 export function selectTipLamports(
   floor: TipFloorData,
   min: number = DEFAULT_MIN_TIP,
-  max: number = DEFAULT_MAX_TIP
+  max: number = DEFAULT_MAX_TIP,
 ): number {
   // Use p50 (median) as base
   const base = floor.p50 || 50_000;
-  
+
   // Add 10% buffer to ensure competitive placement
   const calculated = Math.ceil(base * 1.1);
-  
+
   // Clamp to min/max bounds
   return Math.max(min, Math.min(calculated, max));
 }
@@ -51,15 +51,14 @@ export function estimateBundleCost(params: {
   avgComputeUnits?: number;
 }): { tipCost: number; computeCost: number; total: number } {
   const { tipLamports, numTransactions, avgComputeUnits = 200_000 } = params;
-  
+
   const tipCost = tipLamports;
   // Rough estimate: 5000 lamports per 200k CU
   const computeCost = Math.ceil((avgComputeUnits / 200_000) * 5_000) * numTransactions;
-  
+
   return {
     tipCost,
     computeCost,
     total: tipCost + computeCost,
   };
 }
-

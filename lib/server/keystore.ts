@@ -33,5 +33,3 @@ export function loadKeypair(master: string, groupName: string, pubkey: string): 
   else secret = decryptBytes(raw, passphrase());
   return Keypair.fromSecretKey(secret);
 }
-
-

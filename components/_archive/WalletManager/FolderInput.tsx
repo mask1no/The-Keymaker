@@ -31,4 +31,3 @@ export function FolderInput({ onFilesSelected }: FolderInputProps) {
     </div>
   );
 }
-

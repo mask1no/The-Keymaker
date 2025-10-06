@@ -27,7 +27,8 @@ export async function POST(request: Request) {
 
     const group = getWalletGroup(groupId);
     if (!group) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (group.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    if (group.masterWallet !== user)
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
     let secretKey: Uint8Array;
     try {
@@ -51,11 +52,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, pubkey: pub });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_request', details: error.issues }, { status: 400 });
+      return NextResponse.json(
+        { error: 'invalid_request', details: error.issues },
+        { status: 400 },
+      );
     }
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
-
-
-

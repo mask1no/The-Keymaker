@@ -9,4 +9,3 @@ export async function GET(_, request: Request) {
     return NextResponse.json({ ok: false, error: e?.message || 'failed' }, { status: 500 });
   }
 }
-

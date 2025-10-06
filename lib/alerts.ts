@@ -73,7 +73,7 @@ class AlertManager {
   async triggerAlert(
     configName: string,
     message: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     const config = this.alertConfigs.get(configName);
     if (!config || !config.enabled) {
@@ -112,7 +112,7 @@ class AlertManager {
     const alert = this.activeAlerts.get(alertId);
     if (alert) {
       alert.resolved = true;
-      
+
       log.info(`Alert resolved: ${alert.message}`, {
         alertId,
         alertName: alert.name,
@@ -124,7 +124,7 @@ class AlertManager {
   }
 
   getActiveAlerts(): Alert[] {
-    return Array.from(this.activeAlerts.values()).filter(a => !a.resolved);
+    return Array.from(this.activeAlerts.values()).filter((a) => !a.resolved);
   }
 
   private async sendAlert(alert: Alert): Promise<void> {
@@ -133,7 +133,7 @@ class AlertManager {
     // - PagerDuty
     // - Email notifications
     // - SMS alerts for critical issues
-    
+
     if (process.env.SLACK_WEBHOOK_URL && alert.severity === 'critical') {
       try {
         await fetch(process.env.SLACK_WEBHOOK_URL, {
@@ -141,15 +141,17 @@ class AlertManager {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             text: `🚨 CRITICAL ALERT: ${alert.message}`,
-            attachments: [{
-              color: 'danger',
-              fields: [
-                { title: 'Alert ID', value: alert.id, short: true },
-                { title: 'Severity', value: alert.severity.toUpperCase(), short: true },
-                { title: 'Timestamp', value: alert.timestamp.toISOString(), short: false },
-              ]
-            }]
-          })
+            attachments: [
+              {
+                color: 'danger',
+                fields: [
+                  { title: 'Alert ID', value: alert.id, short: true },
+                  { title: 'Severity', value: alert.severity.toUpperCase(), short: true },
+                  { title: 'Timestamp', value: alert.timestamp.toISOString(), short: false },
+                ],
+              },
+            ],
+          }),
         });
       } catch (error) {
         log.error('Failed to send Slack alert', error as Error);
@@ -168,30 +170,30 @@ export const alertManager = new AlertManager();
 
 // Convenience functions
 export function alertBundleFailure(bundleId: string, error: string) {
-  alertManager.triggerAlert('bundle_success_rate_low', 
-    `Bundle submission failed: ${bundleId}`, 
-    { bundleId, error }
-  );
+  alertManager.triggerAlert('bundle_success_rate_low', `Bundle submission failed: ${bundleId}`, {
+    bundleId,
+    error,
+  });
 }
 
 export function alertAPIError(path: string, statusCode: number, error: string) {
-  alertManager.triggerAlert('api_error_rate_high',
-    `High API error rate on ${path}`,
-    { path, statusCode, error }
-  );
+  alertManager.triggerAlert('api_error_rate_high', `High API error rate on ${path}`, {
+    path,
+    statusCode,
+    error,
+  });
 }
 
 export function alertHealthFailure(service: string, error: string) {
-  alertManager.triggerAlert('health_check_failure',
-    `Health check failed for ${service}`,
-    { service, error }
-  );
+  alertManager.triggerAlert('health_check_failure', `Health check failed for ${service}`, {
+    service,
+    error,
+  });
 }
 
 export function alertRateLimitExceeded(endpoint: string, ip: string) {
-  alertManager.triggerAlert('rate_limit_exceeded',
-    `Rate limit exceeded for ${endpoint}`,
-    { endpoint, ip: ip.replace(/\d+$/, 'xxx') }
-  );
+  alertManager.triggerAlert('rate_limit_exceeded', `Rate limit exceeded for ${endpoint}`, {
+    endpoint,
+    ip: ip.replace(/\d+$/, 'xxx'),
+  });
 }
-

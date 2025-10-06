@@ -43,19 +43,16 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = JitoBuySchema.parse(body);
-    
+
     // Validate group
     const group = getWalletGroup(params.groupId);
     if (!group) {
-      return NextResponse.json(
-        { error: 'Group not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
     if (!group.masterWallet || group.masterWallet !== user) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });
     }
-    
+
     // Deterministic order: dev -> snipers -> buyers
     const ordered: string[] = [];
     if (group.devWallet) ordered.push(group.devWallet);
@@ -63,24 +60,18 @@ export async function POST(request: Request) {
     ordered.push(...group.executionWallets);
     const walletPubkeys = ordered.filter(Boolean);
     if (walletPubkeys.length === 0) {
-      return NextResponse.json(
-        { error: 'No execution wallets in group' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
     }
-    
+
     // Load keypairs
     if (!group.masterWallet) {
       return NextResponse.json({ error: 'Group missing masterWallet' }, { status: 400 });
     }
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
     if (keypairs.length === 0) {
-      return NextResponse.json(
-        { error: 'Failed to load wallet keypairs' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
     }
-    
+
     // Enforce settings ceilings & LIVE gating
     const ui = getUiSettings();
     const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
@@ -94,7 +85,7 @@ export async function POST(request: Request) {
       }
     }
     // Enforce tip ceiling
-    const tip = enforceTipCeiling(params.tipLamports ?? (ui.tipLamports ?? 0), 200_000);
+    const tip = enforceTipCeiling(params.tipLamports ?? ui.tipLamports ?? 0, 200_000);
 
     // Build all transactions
     const transactions = await Promise.all(
@@ -106,11 +97,12 @@ export async function POST(request: Request) {
           amountSol: params.amountSol,
           slippageBps: params.slippageBps,
           cluster: params.cluster,
-          priorityFeeMicrolamports: ui.priority === 'high' ? 800_000 : ui.priority === 'med' ? 300_000 : 0,
+          priorityFeeMicrolamports:
+            ui.priority === 'high' ? 800_000 : ui.priority === 'med' ? 300_000 : 0,
         });
-      })
+      }),
     );
-    
+
     // Execute bundle
     const result = await executeJitoBundle({
       transactions,
@@ -119,20 +111,16 @@ export async function POST(request: Request) {
       chunkSize: Math.min(5, Math.max(1, params.chunkSize)),
       dryRun: params.dryRun,
     });
-    
+
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid request', details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
-

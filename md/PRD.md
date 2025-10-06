@@ -3,6 +3,7 @@
 ### Executive Summary
 
 The Keymaker is a **local, non-custodial Solana execution cockpit** with two send p, a, t, hs:
+
 - **JITO_BUNDLE** for atomic bursts (≤5 tx per bundle, chunked for >5).
 - **RPC_FANOUT** for parallel sends with priority fees (non-atomic).
 
@@ -11,6 +12,7 @@ The app is a **private tool** for creating meme coins (Pump.fun first), performi
 ### Navigation & Information Architecture
 
 Left nav (fixed):
+
 - **Home** — 4 live status lights (Jito, RPC, WS, Solana Mainnet), recent activity.
 - **Coin** — Create token (Pump.fun), dev buy, configure and run JITO/RPC multi-buy; live market-cap panel.
 - **Coin Library** — Bento grid of “copy-from-CA” templates (DexScreener/Birdeye/Metaplex sourced) with **Copy to Coin** prefill.
@@ -30,6 +32,7 @@ Left nav (fixed):
 ### Status & Health (Home)
 
 Four independent probes with green/amber/red l, i, g, hts:
+
 - **J, i, t, o:** `tip_floor` + lightweight bundle simulation reachability.
 - **R, P, C:** `getLatestBlockhash` round-trip + `getHealth`.
 - **W, S:** `slotSubscribe` heartbeat with missed-beat thresholds.
@@ -78,13 +81,11 @@ Four independent probes with green/amber/red l, i, g, hts:
 
 ### Acceptance Criteria (MVP)
 
-1) **Login** with Phantom/Backpack → workspace switches by wallet; Wallets page shows only that wallet’s groups.
-2) **Home** shows 4 status lights; toggling RPC URL/Jito URL flips lights accordingly.
-3) **Coin Library** paste CA → preview → Copy to Coin → Coin form prefilled.
-4) **Coin** create (dry-run) builds metadata; Live Mode actually creates Pump.fun token and returns sig.
-5) **Multi-buy** in JITO and RPC modes both execute (dry-run first, then live) with visible logs.
-6) **Manual per-wal let sells** work in RPC mode; JITO sells batch ≤5.
-7) **P&L** shows realized/unrealized per coin/group; export works.
-8) **Logs** downloadable; each action logged with ids, fees, and outcomes.
-
-
+1. **Login** with Phantom/Backpack → workspace switches by wallet; Wallets page shows only that wallet’s groups.
+2. **Home** shows 4 status lights; toggling RPC URL/Jito URL flips lights accordingly.
+3. **Coin Library** paste CA → preview → Copy to Coin → Coin form prefilled.
+4. **Coin** create (dry-run) builds metadata; Live Mode actually creates Pump.fun token and returns sig.
+5. **Multi-buy** in JITO and RPC modes both execute (dry-run first, then live) with visible logs.
+6. **Manual per-wal let sells** work in RPC mode; JITO sells batch ≤5.
+7. **P&L** shows realized/unrealized per coin/group; export works.
+8. **Logs** downloadable; each action logged with ids, fees, and outcomes.

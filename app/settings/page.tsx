@@ -23,22 +23,32 @@ export default async function SettingsPage() {
       <div className="bento">
         <section className="card">
           <div className="label mb-2">Engine Defaults</div>
-          <form action={async (formData: FormData) => {
-            'use server';
-            const body = {
-              mode: String(formData.get('mode') || 'JITO_BUNDLE'),
-              region: String(formData.get('region') || 'ffm'),
-              priority: String(formData.get('priority') || 'med'),
-              tipLamports: Number(formData.get('tipLamports') || 5000),
-              chunkSize: Number(formData.get('chunkSize') || 5),
-              concurrency: Number(formData.get('concurrency') || 4),
-              jitterMs: [Number(formData.get('jitterMin') || 50), Number(formData.get('jitterMax') || 150)],
-              dryRun: String(formData.get('dryRun') || '') === 'on',
-              liveMode: String(formData.get('liveMode') || '') === 'on',
-              cluster: String(formData.get('cluster') || 'mainnet-beta'),
-            } as any;
-            await fetch('/api/ui/settings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-          }} className="space-y-3">
+          <form
+            action={async (formData: FormData) => {
+              'use server';
+              const body = {
+                mode: String(formData.get('mode') || 'JITO_BUNDLE'),
+                region: String(formData.get('region') || 'ffm'),
+                priority: String(formData.get('priority') || 'med'),
+                tipLamports: Number(formData.get('tipLamports') || 5000),
+                chunkSize: Number(formData.get('chunkSize') || 5),
+                concurrency: Number(formData.get('concurrency') || 4),
+                jitterMs: [
+                  Number(formData.get('jitterMin') || 50),
+                  Number(formData.get('jitterMax') || 150),
+                ],
+                dryRun: String(formData.get('dryRun') || '') === 'on',
+                liveMode: String(formData.get('liveMode') || '') === 'on',
+                cluster: String(formData.get('cluster') || 'mainnet-beta'),
+              } as any;
+              await fetch('/api/ui/settings', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(body),
+              });
+            }}
+            className="space-y-3"
+          >
             <div>
               <label className="text-sm">Mode</label>
               <select
@@ -80,13 +90,13 @@ export default async function SettingsPage() {
               <label className="text-sm">Dry Run</label>
               <input type="checkbox" name="dryRun" defaultChecked={ui.dryRun ?? true} />
             </div>
-          <div>
-            <label className="text-sm">Live Mode (requires env + arming)</label>
-            <input type="checkbox" name="liveMode" defaultChecked={ui.liveMode ?? false} />
-            <div className="text-xs text-yellow-400 mt-1">
-              Live sends require: KEYMAKER_ALLOW_LIVE=YES and (optional) arming.
+            <div>
+              <label className="text-sm">Live Mode (requires env + arming)</label>
+              <input type="checkbox" name="liveMode" defaultChecked={ui.liveMode ?? false} />
+              <div className="text-xs text-yellow-400 mt-1">
+                Live sends require: KEYMAKER_ALLOW_LIVE=YES and (optional) arming.
+              </div>
             </div>
-          </div>
             <div>
               <label className="text-sm">Cluster (RPC)</label>
               <select
@@ -161,12 +171,21 @@ export default async function SettingsPage() {
         <section className="card">
           <div className="label mb-2">Logs & Exports</div>
           <div className="flex items-center gap-3 text-sm">
-            <a href="/api/logs/download" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Download logs (NDJSON)</a>
-            <a href="/api/pnl/export" className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50">Export P&L (CSV)</a>
+            <a
+              href="/api/logs/download"
+              className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50"
+            >
+              Download logs (NDJSON)
+            </a>
+            <a
+              href="/api/pnl/export"
+              className="rounded px-3 py-2 border border-zinc-700 hover:bg-zinc-800/50"
+            >
+              Export P&L (CSV)
+            </a>
           </div>
         </section>
       </div>
     </div>
   );
 }
-

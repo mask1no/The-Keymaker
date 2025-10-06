@@ -12,4 +12,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: e?.message || 'leader schedule failed' }, { status: 500 });
   }
 }
-

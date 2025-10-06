@@ -31,10 +31,10 @@ describe('Fee Calculator', () => {
   describe('calculatePerWalletFees', () => {
     it('should divide fees equally among wallets', () => {
       const totalFees: TransactionFees = {
-          gas: 100000 / LAMPORTS_PER_SOL,
-          jito: 1000000 / LAMPORTS_PER_SOL,
-          total: 1100000 / LAMPORTS_PER_SOL,
-        };
+        gas: 100000 / LAMPORTS_PER_SOL,
+        jito: 1000000 / LAMPORTS_PER_SOL,
+        total: 1100000 / LAMPORTS_PER_SOL,
+      };
       const result = calculatePerWalletFees(totalFees, 10);
       expect(result.gas).toBe(10000 / LAMPORTS_PER_SOL);
       expect(result.jito).toBe(100000 / LAMPORTS_PER_SOL);
@@ -42,10 +42,10 @@ describe('Fee Calculator', () => {
     });
     it('should handle single wallet', () => {
       const totalFees: TransactionFees = {
-          gas: 5000 / LAMPORTS_PER_SOL,
-          jito: 50000 / LAMPORTS_PER_SOL,
-          total: 55000 / LAMPORTS_PER_SOL,
-        };
+        gas: 5000 / LAMPORTS_PER_SOL,
+        jito: 50000 / LAMPORTS_PER_SOL,
+        total: 55000 / LAMPORTS_PER_SOL,
+      };
       const result = calculatePerWalletFees(totalFees, 1);
       expect(result.gas).toBe(5000 / LAMPORTS_PER_SOL);
       expect(result.jito).toBe(50000 / LAMPORTS_PER_SOL);
@@ -53,10 +53,10 @@ describe('Fee Calculator', () => {
     });
     it('should handle zero wallets', () => {
       const totalFees: TransactionFees = {
-          gas: 5000 / LAMPORTS_PER_SOL,
-          jito: 50000 / LAMPORTS_PER_SOL,
-          total: 55000 / LAMPORTS_PER_SOL,
-        };
+        gas: 5000 / LAMPORTS_PER_SOL,
+        jito: 50000 / LAMPORTS_PER_SOL,
+        total: 55000 / LAMPORTS_PER_SOL,
+      };
       const result = calculatePerWalletFees(totalFees, 0);
       expect(result.gas).toBe(0);
       expect(result.jito).toBe(0);
@@ -64,10 +64,10 @@ describe('Fee Calculator', () => {
     });
     it('should handle fractional division', () => {
       const totalFees: TransactionFees = {
-          gas: 10000 / LAMPORTS_PER_SOL,
-          jito: 10000 / LAMPORTS_PER_SOL,
-          total: 20000 / LAMPORTS_PER_SOL,
-        };
+        gas: 10000 / LAMPORTS_PER_SOL,
+        jito: 10000 / LAMPORTS_PER_SOL,
+        total: 20000 / LAMPORTS_PER_SOL,
+      };
       const result = calculatePerWalletFees(totalFees, 3);
       expect(result.gas).toBeCloseTo(3333.33 / LAMPORTS_PER_SOL, 1);
       expect(result.jito).toBeCloseTo(3333.33 / LAMPORTS_PER_SOL, 1);

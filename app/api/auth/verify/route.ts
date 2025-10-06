@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const key = `authv:${fwd || 'anon'}`;
     const body = await request.json();
     const { pubkey, signature, message, nonce } = VerifyRequestSchema.parse(body);
-    
+
     // Verify signature
     const verification = verifySIWS({
       pubkey,
@@ -36,14 +36,17 @@ export async function POST(request: Request) {
       message,
       nonce,
     });
-    
+
     if (!verification.valid) {
-      return NextResponse.json({ error: verification.error || 'Invalid signature' }, { status: 401 });
+      return NextResponse.json(
+        { error: verification.error || 'Invalid signature' },
+        { status: 401 },
+      );
     }
-    
+
     // Create session
     setSessionCookie(pubkey);
-    
+
     // Auto-set as master wallet if group has no master
     try {
       autoSetMasterWallet(pubkey);
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
       // Non-fatal - continue even if master wallet setting fails
       console.warn('Failed to auto-set master wallet:', error);
     }
-    
+
     return NextResponse.json({
       ok: true,
       session: {
@@ -65,14 +68,14 @@ export async function POST(request: Request) {
         extra: { route: '/api/auth/verify' },
       });
     } catch {}
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid request', details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }

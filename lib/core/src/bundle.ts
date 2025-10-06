@@ -50,4 +50,3 @@ export async function getStatuses(region: Region, ids: string[]) {
   }
   return out;
 }
-

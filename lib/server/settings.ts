@@ -77,4 +77,3 @@ export function setUiSettings(next: Partial<UiSettings>): UiSettings {
   writeToDisk(uiSettings);
   return getUiSettings();
 }
-

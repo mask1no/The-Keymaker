@@ -64,7 +64,7 @@ describe('Token Authentication', () => {
     it('should pass with valid configuration', () => {
       process.env.ENGINE_API_TOKEN = 'a'.repeat(64);
       process.env.KEYMAKER_SESSION_SECRET = 'b'.repeat(64);
-      
+
       const result = validateTokenConfiguration();
       expect(result.valid).toBe(true);
       expect(result.issues).toHaveLength(0);
@@ -73,7 +73,7 @@ describe('Token Authentication', () => {
     it('should fail with missing tokens', () => {
       delete process.env.ENGINE_API_TOKEN;
       delete process.env.KEYMAKER_SESSION_SECRET;
-      
+
       const result = validateTokenConfiguration();
       expect(result.valid).toBe(false);
       expect(result.issues).toContain('ENGINE_API_TOKEN not configured');
@@ -83,7 +83,7 @@ describe('Token Authentication', () => {
     it('should fail with short tokens', () => {
       process.env.ENGINE_API_TOKEN = 'short';
       process.env.KEYMAKER_SESSION_SECRET = 'short';
-      
+
       const result = validateTokenConfiguration();
       expect(result.valid).toBe(false);
       expect(result.issues).toContain('ENGINE_API_TOKEN too short (minimum 32 characters)');
@@ -92,9 +92,9 @@ describe('Token Authentication', () => {
 
     it('should fail with placeholder values', () => {
       // Set tokens that are long enough but still placeholders
-      process.env.ENGINE_API_TOKEN = 'generate-a-real-token-here-12345678';  // 36 chars
-      process.env.KEYMAKER_SESSION_SECRET = 'generate-32-char-secret-123456789012';  // 40 chars
-      
+      process.env.ENGINE_API_TOKEN = 'generate-a-real-token-here-12345678'; // 36 chars
+      process.env.KEYMAKER_SESSION_SECRET = 'generate-32-char-secret-123456789012'; // 40 chars
+
       const result = validateTokenConfiguration();
       expect(result.valid).toBe(false);
       expect(result.issues).toContain('ENGINE_API_TOKEN is still using placeholder value');

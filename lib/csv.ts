@@ -26,4 +26,3 @@ export function downloadCsv(content: string, filename = `export-${Date.now()}.cs
   a.download = filename;
   a.click();
 }
-

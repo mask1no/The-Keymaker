@@ -11,4 +11,3 @@ export async function GET(_, request: Request) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-

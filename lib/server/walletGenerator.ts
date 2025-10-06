@@ -23,7 +23,10 @@ export function generateWalletsForGroup(groupId: string, count: number): Generat
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
   const currentTotal =
-    (group.masterWallet ? 1 : 0) + (group.devWallet ? 1 : 0) + group.sniperWallets.length + group.executionWallets.length;
+    (group.masterWallet ? 1 : 0) +
+    (group.devWallet ? 1 : 0) +
+    group.sniperWallets.length +
+    group.executionWallets.length;
   const capacity = Math.max(0, group.maxWallets - currentTotal);
   const alloc = Math.min(safeCount, capacity);
 
@@ -48,6 +51,3 @@ export function generateWalletsForGroup(groupId: string, count: number): Generat
     available: Math.max(0, group.maxWallets - (currentTotal + alloc)),
   };
 }
-
-
-

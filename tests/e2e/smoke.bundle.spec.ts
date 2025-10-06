@@ -13,8 +13,14 @@ test.describe('Bundler smoke (test mode)', () => {
   });
   test('simulate-only accepts empty or dummy payload in test mode', async ({ page }) => {
     const res = await page.request.post('/api/bundles/submit', {
-      d, a, t, a: { t, x, s_, b64: [], s, i, m, ulateOnly: true },
-      h, e, a, ders: { 'content-type': 'application/json' },
+      d,
+      a,
+      t,
+      a: { t, x, s_, b64: [], s, i, m, ulateOnly: true },
+      h,
+      e,
+      a,
+      ders: { 'content-type': 'application/json' },
     });
     expect([200, 400, 500]).toContain(res.status());
   });

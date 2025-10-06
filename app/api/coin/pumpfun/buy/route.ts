@@ -38,10 +38,12 @@ export async function POST(request: Request) {
     }
 
     const walletPubkeys = group.executionWallets;
-    if (walletPubkeys.length === 0) return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
+    if (walletPubkeys.length === 0)
+      return NextResponse.json({ error: 'No execution wallets in group' }, { status: 400 });
 
     const keypairs = await loadKeypairsForGroup(group.name, walletPubkeys, group.masterWallet);
-    if (keypairs.length === 0) return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
+    if (keypairs.length === 0)
+      return NextResponse.json({ error: 'Failed to load wallet keypairs' }, { status: 500 });
 
     // LIVE gating
     const envLive = (process.env.KEYMAKER_ALLOW_LIVE || '').toUpperCase() === 'YES';
@@ -76,5 +78,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
-
-

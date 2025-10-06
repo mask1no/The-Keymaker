@@ -14,7 +14,11 @@ function local(key: string, limit = DEFAULT_MAX, windowMs = DEFAULT_WINDOW_MS): 
   }
   entry.count += 1;
   LRU.set(key, entry);
-  return { allowed: entry.count <= limit, remaining: Math.max(0, limit - entry.count), resetAt: entry.resetAt };
+  return {
+    allowed: entry.count <= limit,
+    remaining: Math.max(0, limit - entry.count),
+    resetAt: entry.resetAt,
+  };
 }
 
 let redis: Redis | null = null;
@@ -31,7 +35,11 @@ async function ensureRedis(): Promise<Redis | null> {
   }
 }
 
-export async function rateLimit(key: string, limit = DEFAULT_MAX, windowMs = DEFAULT_WINDOW_MS): Promise<RateLimitResult> {
+export async function rateLimit(
+  key: string,
+  limit = DEFAULT_MAX,
+  windowMs = DEFAULT_WINDOW_MS,
+): Promise<RateLimitResult> {
   const r = await ensureRedis();
   if (!r) return local(key, limit, windowMs);
   const windowKey = `rl:${Math.floor(Date.now() / windowMs)}:${key}`;
@@ -65,4 +73,3 @@ export function getRateConfig(kind: 'tipfloor' | 'submit' | 'status') {
       };
   }
 }
-

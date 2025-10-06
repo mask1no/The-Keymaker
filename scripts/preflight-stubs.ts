@@ -20,9 +20,7 @@ for (const root of roots) {
     const source = fs.readFileSync(file, 'utf8');
     const trimmed = source.trim();
     const isStub =
-      trimmed.length === 0 ||
-      /^export\s*\{\s*\};?$/m.test(trimmed) ||
-      /auto-stubbed/i.test(source);
+      trimmed.length === 0 || /^export\s*\{\s*\};?$/m.test(trimmed) || /auto-stubbed/i.test(source);
     if (isStub) offenders.push(file);
   }
 }
@@ -35,5 +33,3 @@ if (offenders.length) {
 }
 
 console.log('[preflight:stubs] ✅ No stubs/empties found.');
-
-

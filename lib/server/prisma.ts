@@ -14,4 +14,3 @@ export function getPrisma(): any | null {
   }
   return prisma;
 }
-

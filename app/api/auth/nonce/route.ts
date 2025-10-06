@@ -16,15 +16,17 @@ const NonceRequestSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const rl = await rateLimit((request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon');
+    const rl = await rateLimit(
+      (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon',
+    );
     if (!rl) {
       return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     }
     const body = await request.json();
     const { pubkey } = NonceRequestSchema.parse(body);
-    
+
     const nonce = generateNonce(pubkey);
-    
+
     return NextResponse.json({
       nonce,
       expiresIn: 300, // 5 minutes in seconds
@@ -33,13 +35,10 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid request', details: error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
-    return NextResponse.json(
-      { error: 'Failed to generate nonce' },
-      { status: 500 }
-    );
+
+    return NextResponse.json({ error: 'Failed to generate nonce' }, { status: 500 });
   }
 }

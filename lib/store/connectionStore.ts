@@ -34,4 +34,3 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     return state.rpcDown || state.wsDown || state.jitoDown || state.mainnetDown;
   },
 }));
-

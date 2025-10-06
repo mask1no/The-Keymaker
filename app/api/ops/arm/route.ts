@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     if (!ok) return apiError(403, 'live_disabled');
     return NextResponse.json({ ok: true, armedForMin: minutes, armedUntil: armedUntil() });
   } catch {
-    try { Sentry.captureMessage('arm_failed', { level: 'error' }); } catch {}
+    try {
+      Sentry.captureMessage('arm_failed', { level: 'error' });
+    } catch {}
     return apiError(500, 'failed');
   }
 }
-

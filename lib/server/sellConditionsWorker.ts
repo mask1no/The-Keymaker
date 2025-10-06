@@ -11,7 +11,13 @@ import { buildJupiterSellTx } from '@/lib/core/src/jupiterAdapter';
 import { evaluateSellConditions, type SellCondition } from '@/lib/core/src/sellConditions';
 import { journalTrade, createDailyJournal, logJsonLine } from '@/lib/core/src/journal';
 
-type Saved = { user: string; groupId: string; mint: string; conditions: SellCondition[]; updatedAt: number };
+type Saved = {
+  user: string;
+  groupId: string;
+  mint: string;
+  conditions: SellCondition[];
+  updatedAt: number;
+};
 
 let started = false;
 let timer: NodeJS.Timeout | null = null;
@@ -31,17 +37,29 @@ async function readAllConditions(): Promise<Saved[]> {
       } catch {}
     }
     return out;
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 async function fetchSpotLamports(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`,
+      { cache: 'no-store' },
+    );
     if (!res.ok) return null;
     const j = await res.json();
-    const lpt = typeof j?.lamportsPerToken === 'string' ? Number(j.lamportsPerToken) : (typeof j?.lamportsPerToken === 'number' ? j.lamportsPerToken : 0);
+    const lpt =
+      typeof j?.lamportsPerToken === 'string'
+        ? Number(j.lamportsPerToken)
+        : typeof j?.lamportsPerToken === 'number'
+          ? j.lamportsPerToken
+          : 0;
     return Number.isFinite(lpt) && lpt > 0 ? lpt : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function evaluateOnce(): Promise<void> {
@@ -55,7 +73,10 @@ async function evaluateOnce(): Promise<void> {
     const price = await fetchSpotLamports(item.mint);
     const entryPrice = price ?? 0;
     const priceInfo = { entryPrice, currentPrice: price ?? entryPrice, changePercent: 0 };
-    const triggered = evaluateSellConditions({ conditions: item.conditions.filter(c=>c.enabled), priceInfo });
+    const triggered = evaluateSellConditions({
+      conditions: item.conditions.filter((c) => c.enabled),
+      priceInfo,
+    });
     if (!triggered.length) continue;
 
     try {
@@ -93,9 +114,19 @@ async function evaluateOnce(): Promise<void> {
           });
         },
       });
-      logJsonLine(journal, { ev: 'sell_condition_executed', groupId: item.groupId, mint: item.mint, percent });
+      logJsonLine(journal, {
+        ev: 'sell_condition_executed',
+        groupId: item.groupId,
+        mint: item.mint,
+        percent,
+      });
     } catch (e: any) {
-      logJsonLine(journal, { ev: 'sell_condition_error', groupId: item.groupId, mint: item.mint, error: String(e?.message || e) });
+      logJsonLine(journal, {
+        ev: 'sell_condition_error',
+        groupId: item.groupId,
+        mint: item.mint,
+        error: String(e?.message || e),
+      });
     }
   }
 }
@@ -104,9 +135,12 @@ export function ensureSellConditionsWorker(): void {
   if (started) return;
   started = true;
   const intervalMs = Number(process.env.SELL_CONDITIONS_INTERVAL_MS || 7000);
-  timer = setInterval(() => {
-    evaluateOnce().catch(() => {});
-  }, Math.min(Math.max(5000, intervalMs), 15000));
+  timer = setInterval(
+    () => {
+      evaluateOnce().catch(() => {});
+    },
+    Math.min(Math.max(5000, intervalMs), 15000),
+  );
 }
 
 export function stopSellConditionsWorker(): void {
@@ -114,6 +148,3 @@ export function stopSellConditionsWorker(): void {
   timer = null;
   started = false;
 }
-
-
-

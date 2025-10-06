@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { loadWalletGroups, createWalletGroup, updateWalletGroup, deleteWalletGroup } from '@/lib/server/walletGroups';
+import {
+  loadWalletGroups,
+  createWalletGroup,
+  updateWalletGroup,
+  deleteWalletGroup,
+} from '@/lib/server/walletGroups';
 import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
 import { getSession } from '@/lib/server/session';
 
@@ -8,7 +13,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const CreateSchema = z.object({ name: z.string().min(1).max(64) });
-const UpdateSchema = z.object({ id: z.string().uuid(), name: z.string().min(1).max(64), devWallet: z.string().optional().nullable(), sniperWallets: z.array(z.string()).optional() });
+const UpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(64),
+  devWallet: z.string().optional().nullable(),
+  sniperWallets: z.array(z.string()).optional(),
+});
 
 export async function GET() {
   const session = getSession();
@@ -50,9 +60,18 @@ export async function PUT(req: Request) {
     if (snipers.length > WALLET_GROUP_CONSTRAINTS.maxSnipers) {
       return NextResponse.json({ error: 'too_many_snipers' }, { status: 400 });
     }
-    const g = updateWalletGroup({ id: parsed.data.id, name: parsed.data.name, devWallet: parsed.data.devWallet || null, sniperWallets: snipers });
+    const g = updateWalletGroup({
+      id: parsed.data.id,
+      name: parsed.data.name,
+      devWallet: parsed.data.devWallet || null,
+      sniperWallets: snipers,
+    });
     // Enforce overall wallet cap
-    const total = (g.masterWallet ? 1 : 0) + (g.devWallet ? 1 : 0) + g.sniperWallets.length + g.executionWallets.length;
+    const total =
+      (g.masterWallet ? 1 : 0) +
+      (g.devWallet ? 1 : 0) +
+      g.sniperWallets.length +
+      g.executionWallets.length;
     if (total > WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup) {
       return NextResponse.json({ error: 'too_many_wallets' }, { status: 400 });
     }
@@ -76,4 +95,3 @@ export async function DELETE(req: Request) {
   deleteWalletGroup(id);
   return NextResponse.json({ ok: true }, { status: 200 });
 }
-

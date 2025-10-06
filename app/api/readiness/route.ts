@@ -10,20 +10,23 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   const report = validateProductionReadiness();
-  
-  return NextResponse.json({
-    ready: report.ready,
-    score: report.score,
-    checks: report.checks,
-    blockers: report.blockers,
-    warnings: report.warnings,
-    timestamp: new Date().toISOString(),
-  }, {
-    status: report.ready ? 200 : 503,
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-    }
-  });
+
+  return NextResponse.json(
+    {
+      ready: report.ready,
+      score: report.score,
+      checks: report.checks,
+      blockers: report.blockers,
+      warnings: report.warnings,
+      timestamp: new Date().toISOString(),
+    },
+    {
+      status: report.ready ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    },
+  );
 }
 
 /**
@@ -31,12 +34,11 @@ export async function GET() {
  */
 export async function POST() {
   const textReport = generateReadinessReport();
-  
+
   return new Response(textReport, {
     headers: {
       'Content-Type': 'text/plain',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-    }
+    },
   });
 }
-

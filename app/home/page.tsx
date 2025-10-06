@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React from 'react';
 import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
 import EventsPanel from '@/components/Engine/EventsPanel';
@@ -6,7 +6,7 @@ import KCard from '@/components/UI/KCard';
 import BadgePill from '@/components/UI/BadgePill';
 import CodeBlock from '@/components/UI/CodeBlock';
 
-export default function HomePage(){
+export default function HomePage() {
   const cross = `PowerShell:  solana-keygen pubkey "$Env:KEYPAIR_JSON"
 macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
   const proof = `curl -s /api/engine/prove -H "x-engine-token: $ENGINE_API_TOKEN"`;
@@ -28,30 +28,49 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
         }
       } catch {}
     })();
-    return () => { abort = true; };
+    return () => {
+      abort = true;
+    };
   }, [groupId]);
   function getCsrf(): string {
     if (typeof document === 'undefined') return '';
     return document.cookie.match(/(?:^|; )csrf=([^;]+)/)?.[1] || '';
   }
-  async function dryRun(kind: 'jito'|'rpc') {
-    if (!groupId) { alert('Select a group'); return; }
-    if (!mint) { alert('Enter token mint'); return; }
+  async function dryRun(kind: 'jito' | 'rpc') {
+    if (!groupId) {
+      alert('Select a group');
+      return;
+    }
+    if (!mint) {
+      alert('Enter token mint');
+      return;
+    }
     const token = getCsrf();
     const url = kind === 'jito' ? '/api/engine/jito/buy' : '/api/engine/rpc/buy';
     const body = { groupId, mint, amountSol: amount, slippageBps: 100, dryRun: true } as any;
     try {
-      const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-csrf-token': token }, body: JSON.stringify(body) });
-      if (!r.ok) alert(`${kind.toUpperCase()} dry-run failed`); else alert(`${kind.toUpperCase()} dry-run queued`);
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-csrf-token': token },
+        body: JSON.stringify(body),
+      });
+      if (!r.ok) alert(`${kind.toUpperCase()} dry-run failed`);
+      else alert(`${kind.toUpperCase()} dry-run queued`);
     } catch {}
   }
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">Engine</h1>
-        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-950/60 text-violet-200 border-violet-900/60">Execution: JITO_BUNDLE</span>
-        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-300 border-amber-900/40">DryRun: ON</span>
-        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-zinc-900 text-zinc-300 border-zinc-800">Cluster: mainnet-beta</span>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-950/60 text-violet-200 border-violet-900/60">
+          Execution: JITO_BUNDLE
+        </span>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-300 border-amber-900/40">
+          DryRun: ON
+        </span>
+        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-zinc-900 text-zinc-300 border-zinc-800">
+          Cluster: mainnet-beta
+        </span>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
@@ -60,17 +79,27 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
             <div className="text-sm font-medium mb-2">Verify Deposit & Proof</div>
             <div className="text-xs text-zinc-500 mb-1">Deposit pubkey: Not configured</div>
             <div className="text-sm">Step 1: Cross-check</div>
-            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto"><code>{cross}</code></pre>
+            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto">
+              <code>{cross}</code>
+            </pre>
             <div className="mt-2 text-sm">Step 2: Proof (no funds)</div>
-            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto"><code>{proof}</code></pre>
+            <pre className="rounded-xl bg-black/70 border border-zinc-900 p-3 text-[11px] overflow-x-auto">
+              <code>{proof}</code>
+            </pre>
           </KCard>
 
           <KCard>
             <div className="text-sm font-medium mb-2">Safety</div>
             <div className="flex items-center gap-2">
-              <button className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm">Arm 15m</button>
-              <button className="border border-zinc-800 hover:bg-zinc-900 rounded px-3 py-2 text-sm">Disarm</button>
-              <div className="ml-2 text-xs text-zinc-500">Arming enables live sends for a limited window. Disarm to return to simulation.</div>
+              <button className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm">
+                Arm 15m
+              </button>
+              <button className="border border-zinc-800 hover:bg-zinc-900 rounded px-3 py-2 text-sm">
+                Disarm
+              </button>
+              <div className="ml-2 text-xs text-zinc-500">
+                Arming enables live sends for a limited window. Disarm to return to simulation.
+              </div>
             </div>
           </KCard>
 
@@ -79,22 +108,57 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <div className="md:col-span-2">
                 <label className="text-xs text-zinc-500">Group</label>
-                <select className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" value={groupId} onChange={e=>setGroupId(e.target.value)}>
-                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                <select
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm"
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                >
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="md:col-span-2">
                 <label className="text-xs text-zinc-500">Token Mint</label>
-                <input className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" value={mint} onChange={e=>setMint(e.target.value)} placeholder="Token mint address"/>
+                <input
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm"
+                  value={mint}
+                  onChange={(e) => setMint(e.target.value)}
+                  placeholder="Token mint address"
+                />
               </div>
               <div>
                 <label className="text-xs text-zinc-500">SOL</label>
-                <input type="number" min={0.0001} step={0.0001} className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm" value={amount} onChange={e=>setAmount(Number(e.target.value))}/>
+                <input
+                  type="number"
+                  min={0.0001}
+                  step={0.0001}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                />
               </div>
               <div className="md:col-span-3 flex items-end gap-2">
-                <button className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" onClick={()=>dryRun('jito')}>JITO dust (DRY)</button>
-                <button className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm" onClick={()=>dryRun('rpc')}>RPC dust (DRY)</button>
-                <a className="border border-zinc-800 hover:bg-zinc-900 rounded px-3 py-2 text-sm text-center" href="/settings">Open Settings</a>
+                <button
+                  className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm"
+                  onClick={() => dryRun('jito')}
+                >
+                  JITO dust (DRY)
+                </button>
+                <button
+                  className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm"
+                  onClick={() => dryRun('rpc')}
+                >
+                  RPC dust (DRY)
+                </button>
+                <a
+                  className="border border-zinc-800 hover:bg-zinc-900 rounded px-3 py-2 text-sm text-center"
+                  href="/settings"
+                >
+                  Open Settings
+                </a>
               </div>
             </div>
           </KCard>
@@ -114,4 +178,3 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
     </div>
   );
 }
-

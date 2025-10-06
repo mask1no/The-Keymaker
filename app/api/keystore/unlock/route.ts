@@ -24,5 +24,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 400 });
   }
 }
-
-

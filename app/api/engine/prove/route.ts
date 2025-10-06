@@ -55,4 +55,3 @@ export async function GET(request: Request) {
     return apiError(500, 'failed');
   }
 }
-

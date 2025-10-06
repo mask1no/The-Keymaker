@@ -19,4 +19,3 @@ export type BuildResult = {
 export interface InstructionBuilder<P> {
   (params: P, ctx: BuildContext): Promise<BuildResult>;
 }
-

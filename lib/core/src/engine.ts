@@ -41,4 +41,3 @@ export interface Engine {
   submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult>;
   pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any>;
 }
-

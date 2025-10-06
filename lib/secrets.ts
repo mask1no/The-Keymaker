@@ -15,4 +15,3 @@ export function verifySecrets(strict = false): void {
     }
   }
 }
-

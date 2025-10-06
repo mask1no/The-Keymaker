@@ -8,7 +8,10 @@ module.exports = {
   rules: {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
+    ],
     '@typescript-eslint/ban-ts-comment': ['warn', { 'ts-ignore': 'allow-with-description' }],
     'no-empty': ['warn', { allowEmptyCatch: true }],
     '@typescript-eslint/no-empty-function': 'warn',
@@ -16,5 +19,3 @@ module.exports = {
     '@next/next/no-img-element': 'off',
   },
 };
-
-

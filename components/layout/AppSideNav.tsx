@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Wallet, Coins, Library, LineChart, Settings } from 'lucide-react';
+import { Home, Wallet, Coins, Library, LineChart, Settings, Swords } from 'lucide-react';
 
 const NAV = [
   { name: 'Home', href: '/home', icon: Home },
   { name: 'Coin', href: '/coin', icon: Coins },
   { name: 'Coin Library', href: '/coin-library', icon: Library },
+  { name: 'Keymaker', href: '/keymaker', icon: Swords },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
   { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -25,10 +26,10 @@ export default function AppSideNav() {
               key={x.name}
               href={x.href}
               className={
-                'flex items-center gap-2 rounded-xl px-3 py-2 transition-colors max-w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 ' +
+                'flex items-center gap-2 rounded-xl px-3 py-2 transition-colors max-w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ' +
                 (active
-                  ? 'bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-[inset_0_0_0_1px_rgba(100,149,237,.15)]'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60')
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card/60')
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -40,4 +41,3 @@ export default function AppSideNav() {
     </aside>
   );
 }
-

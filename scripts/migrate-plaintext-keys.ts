@@ -30,7 +30,9 @@ try {
       if (Array.isArray(j)) bytes = Uint8Array.from(j);
       else if (typeof j === 'object' && (j as any)?.ct) continue; // already encrypted
     } catch {
-      try { bytes = bs58.decode(txt); } catch {}
+      try {
+        bytes = bs58.decode(txt);
+      } catch {}
     }
     if (!bytes) continue;
     const blob = encryptBytes(bytes, PASS);
@@ -42,5 +44,3 @@ try {
   console.error('Migration failed:', e);
   process.exit(1);
 }
-
-

@@ -3,11 +3,7 @@
  * Build buy/sell transactions using Jupiter aggregator
  */
 
-import {
-  Connection,
-  Keypair,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
 import { createDailyJournal, logJsonLine } from './journal';
 
 const JUPITER_API_BASE = process.env.JUPITER_API_BASE || 'https://quote-api.jup.ag/v6';
@@ -40,16 +36,16 @@ async function getJupiterQuote(params: {
   url.searchParams.set('slippageBps', params.slippageBps.toString());
   url.searchParams.set('onlyDirectRoutes', 'false');
   url.searchParams.set('asLegacyTransaction', 'false');
-  
+
   const response = await fetch(url.toString(), {
     method: 'GET',
-    headers: { 'Accept': 'application/json' },
+    headers: { Accept: 'application/json' },
   });
-  
+
   if (!response.ok) {
     throw new Error(`Jupiter quote failed: ${response.status} ${await response.text()}`);
   }
-  
+
   return response.json();
 }
 
@@ -70,20 +66,22 @@ async function buildSwapTransaction(params: {
       userPublicKey: params.userPublicKey,
       wrapAndUnwrapSol: params.wrapUnwrapSOL ?? true,
       dynamicComputeUnitLimit: true,
-      prioritizationFeeLamports: params.priorityFeeMicrolamports ? {
-        priorityLevelWithMaxLamports: {
-          maxLamports: params.priorityFeeMicrolamports,
-        },
-      } : undefined,
+      prioritizationFeeLamports: params.priorityFeeMicrolamports
+        ? {
+            priorityLevelWithMaxLamports: {
+              maxLamports: params.priorityFeeMicrolamports,
+            },
+          }
+        : undefined,
     }),
   });
-  
+
   if (!response.ok) {
     throw new Error(`Jupiter swap build failed: ${response.status} ${await response.text()}`);
   }
-  
+
   const { swapTransaction } = await response.json();
-  
+
   // Deserialize the transaction
   const transactionBuf = Buffer.from(swapTransaction, 'base64');
   return VersionedTransaction.deserialize(transactionBuf);
@@ -102,10 +100,10 @@ export async function buildJupiterSwapTx(params: {
   priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
-  
+
   // Convert SOL to lamports
   const amountLamports = Math.floor(params.amountSol * 1e9);
-  
+
   logJsonLine(journal, {
     ev: 'jupiter_quote_request',
     wallet: params.wallet.publicKey.toBase58(),
@@ -114,7 +112,7 @@ export async function buildJupiterSwapTx(params: {
     amountLamports,
     slippageBps: params.slippageBps,
   });
-  
+
   try {
     // Get quote
     const quote = await getJupiterQuote({
@@ -123,7 +121,7 @@ export async function buildJupiterSwapTx(params: {
       amount: amountLamports,
       slippageBps: params.slippageBps,
     });
-    
+
     logJsonLine(journal, {
       ev: 'jupiter_quote_received',
       wallet: params.wallet.publicKey.toBase58(),
@@ -133,7 +131,7 @@ export async function buildJupiterSwapTx(params: {
       outAmount: quote.outAmount,
       priceImpactPct: quote.priceImpactPct,
     });
-    
+
     // Build transaction
     const versionedTx = await buildSwapTransaction({
       quote,
@@ -151,13 +149,13 @@ export async function buildJupiterSwapTx(params: {
         outAmount: quote.outAmount, // string (token base units)
       };
     } catch {}
-    
+
     logJsonLine(journal, {
       ev: 'jupiter_tx_built',
       wallet: params.wallet.publicKey.toBase58(),
       instructions: undefined,
     });
-    
+
     return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
@@ -165,7 +163,7 @@ export async function buildJupiterSwapTx(params: {
       wallet: params.wallet.publicKey.toBase58(),
       error: (error as Error).message,
     });
-    
+
     throw error;
   }
 }
@@ -184,7 +182,7 @@ export async function buildJupiterSellTx(params: {
   priorityFeeMicrolamports?: number;
 }): Promise<VersionedTransaction> {
   const journal = createDailyJournal('data');
-  
+
   logJsonLine(journal, {
     ev: 'jupiter_sell_quote_request',
     wallet: params.wallet.publicKey.toBase58(),
@@ -192,7 +190,7 @@ export async function buildJupiterSellTx(params: {
     outputMint: params.outputMint,
     amountTokens: params.amountTokens,
   });
-  
+
   try {
     // Get quote
     const quote = await getJupiterQuote({
@@ -201,14 +199,12 @@ export async function buildJupiterSellTx(params: {
       amount: Math.floor(params.amountTokens),
       slippageBps: params.slippageBps,
     });
-    
+
     // Check minimum output if specified
     if (params.minOutLamports && Number(quote.outAmount) < params.minOutLamports) {
-      throw new Error(
-        `Output ${quote.outAmount} below minimum ${params.minOutLamports}`
-      );
+      throw new Error(`Output ${quote.outAmount} below minimum ${params.minOutLamports}`);
     }
-    
+
     logJsonLine(journal, {
       ev: 'jupiter_sell_quote_received',
       wallet: params.wallet.publicKey.toBase58(),
@@ -217,7 +213,7 @@ export async function buildJupiterSellTx(params: {
       inAmount: quote.inAmount,
       outAmount: quote.outAmount,
     });
-    
+
     // Build transaction
     const versionedTx = await buildSwapTransaction({
       quote,
@@ -234,13 +230,13 @@ export async function buildJupiterSellTx(params: {
         outAmount: quote.outAmount, // string (lamports)
       };
     } catch {}
-    
+
     logJsonLine(journal, {
       ev: 'jupiter_sell_tx_built',
       wallet: params.wallet.publicKey.toBase58(),
       instructions: undefined,
     });
-    
+
     return versionedTx;
   } catch (error) {
     logJsonLine(journal, {
@@ -248,7 +244,7 @@ export async function buildJupiterSellTx(params: {
       wallet: params.wallet.publicKey.toBase58(),
       error: (error as Error).message,
     });
-    
+
     throw error;
   }
 }
@@ -262,15 +258,15 @@ export async function simulateTransaction(params: {
   wallet: Keypair;
 }): Promise<{ success: boolean; error?: string; logs?: string[] }> {
   const { connection, transaction, wallet } = params;
-  
+
   try {
     // Get recent blockhash
     // For VersionedTransaction, we cannot set recentBlockhash/feePayer directly.
     // Assume the built transaction already contains a valid message; just simulate.
-    
+
     // Simulate
     const simulation = await connection.simulateTransaction(transaction);
-    
+
     if (simulation.value.err) {
       return {
         success: false,
@@ -278,7 +274,7 @@ export async function simulateTransaction(params: {
         logs: simulation.value.logs || [],
       };
     }
-    
+
     return {
       success: true,
       logs: simulation.value.logs || [],
@@ -290,4 +286,3 @@ export async function simulateTransaction(params: {
     };
   }
 }
-

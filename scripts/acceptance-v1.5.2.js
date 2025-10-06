@@ -29,7 +29,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.
 test(
   'Package.json version is 1.5.2',
   packageJson.version === '1.5.2',
-  `Expected 1.5.2, got ${packageJson.version}`
+  `Expected 1.5.2, got ${packageJson.version}`,
 );
 
 // Test 2: Version module exists and exports correct version
@@ -38,7 +38,7 @@ try {
   test(
     'Version module exists',
     versionModule.includes("APP_VERSION = '1.5.2'"),
-    'lib/version.ts not found or wrong version'
+    'lib/version.ts not found or wrong version',
   );
 } catch (error) {
   test('Version module exists', false, 'lib/version.ts not found');
@@ -50,12 +50,12 @@ try {
   test(
     'Health API imports version module',
     healthRoute.includes("import { APP_VERSION } from '@/lib/version'"),
-    'Health API not importing version module'
+    'Health API not importing version module',
   );
   test(
     'Health API uses APP_VERSION',
     healthRoute.includes('version: APP_VERSION'),
-    'Health API not using APP_VERSION'
+    'Health API not using APP_VERSION',
   );
 } catch (error) {
   test('Health API exists', false, 'app/api/health/route.ts not found');
@@ -68,30 +68,23 @@ try {
   test(
     'Wallets page has only one export default',
     exportDefaultCount === 1,
-    `Found ${exportDefaultCount} export default statements`
+    `Found ${exportDefaultCount} export default statements`,
   );
-  
+
   test(
     'Wallets page is reasonable length',
     walletsPage.split('\n').length < 200,
-    `Wallets page is ${walletsPage.split('\n').length} lines (should be < 200)`
+    `Wallets page is ${walletsPage.split('\n').length} lines (should be < 200)`,
   );
 } catch (error) {
   test('Wallets page exists', false, 'app/wallets/page.tsx not found');
 }
 
 // Test 5: Required files exist
-const requiredFiles = [
-  '.env.example',
-  'md/OPS.md'
-];
+const requiredFiles = ['.env.example', 'md/OPS.md'];
 
-requiredFiles.forEach(file => {
-  test(
-    `${file} exists`,
-    fs.existsSync(path.join(__dirname, '..', file)),
-    `${file} not found`
-  );
+requiredFiles.forEach((file) => {
+  test(`${file} exists`, fs.existsSync(path.join(__dirname, '..', file)), `${file} not found`);
 });
 
 // Test 6: PRD is not corrupted
@@ -100,7 +93,7 @@ try {
   test(
     'PRD.md is not corrupted',
     !prd.includes('Flow') && !prd.includes('Structure'),
-    'PRD.md contains corrupted text'
+    'PRD.md contains corrupted text',
   );
 } catch (error) {
   test('PRD.md exists', false, 'md/PRD.md not found');
@@ -128,7 +121,7 @@ try {
   test(
     'Middleware exists and gates routes',
     middlewareFile.includes('km_session') && middlewareFile.includes('login'),
-    'Middleware missing or not properly configured'
+    'Middleware missing or not properly configured',
   );
 } catch (error) {
   test('Middleware exists', false, 'middleware.ts not found');

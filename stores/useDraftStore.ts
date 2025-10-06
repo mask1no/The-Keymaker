@@ -23,7 +23,9 @@ export const useDraftStore = create<DraftState>((set) => ({
   setDraft: (d) => set({ draft: d }),
   clear: () => set({ draft: null }),
   setLastMint: (mint) =>
-    set((s) => ({ draft: s.draft ? { ...s.draft, lastMint: mint } : { name: '', symbol: '', image: '', lastMint: mint } })),
+    set((s) => ({
+      draft: s.draft
+        ? { ...s.draft, lastMint: mint }
+        : { name: '', symbol: '', image: '', lastMint: mint },
+    })),
 }));
-
-

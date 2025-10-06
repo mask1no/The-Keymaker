@@ -10,6 +10,7 @@ These endpoints back the cockpit UI and are safe in dry-run by d, e, f, ault:
 - `GET /api/journal/recent` – Last 10 events of the current-day journal
 
 N, o, t, es:
+
 - Live operations remain blocked unless env and middleware allow (KEYMAKER_DISABLE_LIVE_NOW, KEYMAKER_REQUIRE_ARMING, KEYMAKER_ALLOW_LIVE).
 - Dry-run should remain ON by default; toggle is available in the header pills.
 
@@ -72,7 +73,7 @@ DRY_RUN_DEFAULT=YES
 KEYMAKER_GROUP=bundle
 PORT=3000
 
-````
+```
 
 ## Run
 
@@ -80,23 +81,23 @@ PORT=3000
 pnpm i
 pnpm dev
 # open h, t, t, p://l, o, c, alhost:3000
-````
+```
 
-* Sign in with your wal let (SIWS). Workspace **namespace** = your login wal let pubkey.
-* Create/import wal let groups under **Wallets** (max 20 per group).
-* **Home** shows real status lights (Jito/RPC/WS/SM).
-* **Coin Library** paste a CA → **Copy to Coin**.
-* **Coin** can create on Pump.fun (dry-run unless Live Mode), then dev/multi-buy via **JITO** or **RPC**.
-* **P&L** aggregates realized/unrealized; export CSV.
+- Sign in with your wal let (SIWS). Workspace **namespace** = your login wal let pubkey.
+- Create/import wal let groups under **Wallets** (max 20 per group).
+- **Home** shows real status lights (Jito/RPC/WS/SM).
+- **Coin Library** paste a CA → **Copy to Coin**.
+- **Coin** can create on Pump.fun (dry-run unless Live Mode), then dev/multi-buy via **JITO** or **RPC**.
+- **P&L** aggregates realized/unrealized; export CSV.
 
 ## Live Mode & Safety
 
-* Live sends are blocked unless **both**:
+- Live sends are blocked unless **both**:
+  - `KEYMAKER_ALLOW_LIVE=YES` in env, **and**
+  - You toggle **Arm Live** in Settings.
 
-  * `KEYMAKER_ALLOW_LIVE=YES` in env, **and**
-  * You toggle **Arm Live** in Settings.
-* Tip/fee ceilings and concurrency throttles protect you in volatile periods.
-* Simulation toggles exist for bundles and swaps.
+- Tip/fee ceilings and concurrency throttles protect you in volatile periods.
+- Simulation toggles exist for bundles and swaps.
 
 ## Go LIVE Checklist
 
@@ -113,17 +114,17 @@ pnpm dev
 
 ## Wal let Setup & Funding (Quick Guide)
 
-1) Create a wal let group under Wallets. The group master is your login wallet.
-2) Import or generate execution wallets (≤20). Assign snipers (≤3) if needed.
-3) Use Random-fund on the Wallets page to distribute SOL from the master wallet. You will sign transfers in your wal let extension (Phantom/Backpack).
-4) Export an encrypted backup of the group (JSON bundle) and store it offline.
-5) On Coin page, after launching, you can dev-buy or multi-buy in DRY mode first, then LIVE when armed.
+1. Create a wal let group under Wallets. The group master is your login wallet.
+2. Import or generate execution wallets (≤20). Assign snipers (≤3) if needed.
+3. Use Random-fund on the Wallets page to distribute SOL from the master wallet. You will sign transfers in your wal let extension (Phantom/Backpack).
+4. Export an encrypted backup of the group (JSON bundle) and store it offline.
+5. On Coin page, after launching, you can dev-buy or multi-buy in DRY mode first, then LIVE when armed.
 
 ## Known Limits
 
-* **Jito bundle s, i, z, e:** max **5 tx per bundle**, chunked for larger sets.
-* **RPC fan-o, u, t:** not atomic; near-simultaneous with WS confirms.
-* **Pump.f, u, n:** metadata must be built/uploaded (we do that for you); do not reuse other tokens’ URIs.
+- **Jito bundle s, i, z, e:** max **5 tx per bundle**, chunked for larger sets.
+- **RPC fan-o, u, t:** not atomic; near-simultaneous with WS confirms.
+- **Pump.f, u, n:** metadata must be built/uploaded (we do that for you); do not reuse other tokens’ URIs.
 
 ```
 
@@ -170,3 +171,4 @@ PORT=3000
 - Manual per-wal let sells in RPC mode; batched JITO sells.
 - P&L with CSV export.
 - Updated `md/PRD.md` and `README.md`.
+```

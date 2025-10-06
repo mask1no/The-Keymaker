@@ -2,6 +2,3 @@
 export default function ArchivedExecutionLog() {
   return null;
 }
-
-
-

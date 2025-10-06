@@ -63,4 +63,3 @@ export async function getBundleStatuses(region: RegionKey, bundleIds: string[]) 
     return await jrpc<any[]>(region, 'getBundleStatuses', bundleIds);
   }
 }
-

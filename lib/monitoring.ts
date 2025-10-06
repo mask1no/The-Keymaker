@@ -100,7 +100,12 @@ export const performanceTimer = (name: string) => {
 };
 
 // Utility functions for metrics
-export function recordBundleSubmission(mode: string, region: string, success: boolean, latency: number) {
+export function recordBundleSubmission(
+  mode: string,
+  region: string,
+  success: boolean,
+  latency: number,
+) {
   bundleSubmissions.inc({ status: success ? 'success' : 'failure', mode, region });
   if (success) {
     bundleSuccess.inc({ mode, region });
@@ -113,7 +118,11 @@ export function recordHealthCheck(service: string, healthy: boolean, duration: n
   healthCheckDuration.observe({ service }, duration);
 }
 
-export function recordError(type: string, severity: 'low' | 'medium' | 'high' | 'critical', component: string) {
+export function recordError(
+  type: string,
+  severity: 'low' | 'medium' | 'high' | 'critical',
+  component: string,
+) {
   errorCount.inc({ type, severity, component });
 }
 
@@ -123,4 +132,3 @@ export function recordRateLimit(endpoint: string, identifier: string, blocked: b
     rateLimitBlocks.inc({ endpoint, identifier });
   }
 }
-

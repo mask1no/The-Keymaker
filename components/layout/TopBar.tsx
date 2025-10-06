@@ -57,14 +57,20 @@ export default function TopBar() {
         }
       } catch {}
     })();
-    return () => { stop = true; };
+    return () => {
+      stop = true;
+    };
   }, []);
 
   const now = Date.now();
   const secondsLeft = armedUntil ? Math.max(0, Math.floor((armedUntil - now) / 1000)) : 0;
   const showLiveBanner = allowLive && (!requireArming || armed);
-  const liveText = requireArming ? (armed ? `LIVE ARMED (${secondsLeft}
-s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
+  const liveText = requireArming
+    ? armed
+      ? `LIVE ARMED (${secondsLeft}
+s)`
+      : 'LIVE LOCKED (not armed)'
+    : 'LIVE ENABLED';
 
   function getCsrf(): string {
     if (typeof document === 'undefined') return '';
@@ -72,20 +78,28 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
   }
 
   async function callArm(minutes = 15) {
-    setBusy(true); setErr(null);
+    setBusy(true);
+    setErr(null);
     try {
       const headers: Record<string, string> = { 'content-type': 'application/json' };
       const csrf = getCsrf();
       if (csrf) headers['x-csrf-token'] = csrf;
-      const r = await fetch('/api/ops/arm', { method: 'POST', headers, body: JSON.stringify({ minutes }) });
+      const r = await fetch('/api/ops/arm', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ minutes }),
+      });
       if (!r.ok) throw new Error(`arm failed: ${r.status}`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'failed');
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function callDisarm() {
-    setBusy(true); setErr(null);
+    setBusy(true);
+    setErr(null);
     try {
       const headers: Record<string, string> = { 'content-type': 'application/json' };
       const csrf = getCsrf();
@@ -94,7 +108,9 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
       if (!r.ok) throw new Error(`disarm failed: ${r.status}`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'failed');
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -113,28 +129,47 @@ s)` : 'LIVE LOCKED (not armed)') : 'LIVE ENABLED';
           )}
           {requireArming ? (
             <div className="flex items-center gap-2">
-              <button onClick={() => callArm(15)} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Arm 15m</button>
-              <button onClick={() => callDisarm()} disabled={busy} className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Disarm</button>
+              <button
+                onClick={() => callArm(15)}
+                disabled={busy}
+                className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+              >
+                Arm 15m
+              </button>
+              <button
+                onClick={() => callDisarm()}
+                disabled={busy}
+                className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+              >
+                Disarm
+              </button>
             </div>
           ) : null}
           {pubkey ? (
             <form action="/api/auth/logout" method="post">
-              <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Logout</button>
+              <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">
+                Logout
+              </button>
             </form>
           ) : (
-            <a href="/login" className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">Login</a>
+            <a
+              href="/login"
+              className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
+            >
+              Login
+            </a>
           )}
         </div>
       </div>
       {wsWarn ? (
         <div className="px-4 pb-2 text-[11px] text-amber-300">
-          {wsWarn} {(!process.env.NEXT_PUBLIC_HELIUS_WS && !process.env.HELIUS_WS_URL) ? ' Set HELIUS_WS_URL or NEXT_PUBLIC_HELIUS_WS.' : ''}
+          {wsWarn}{' '}
+          {!process.env.NEXT_PUBLIC_HELIUS_WS && !process.env.HELIUS_WS_URL
+            ? ' Set HELIUS_WS_URL or NEXT_PUBLIC_HELIUS_WS.'
+            : ''}
         </div>
       ) : null}
       {err ? <div className="px-4 pb-2 text-[11px] text-red-400">{err}</div> : null}
     </header>
   );
 }
-
-
-

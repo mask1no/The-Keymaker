@@ -14,9 +14,7 @@ export function GlassCard({ children, className }: GlassCardProps) {
         className,
       )}
     >
-      
       {children}
     </motion.div>
   );
 }
-

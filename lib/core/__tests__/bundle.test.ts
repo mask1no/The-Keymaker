@@ -13,4 +13,3 @@ describe('status mapping', () => {
     (global as any).fetch = originalFetch;
   });
 });
-

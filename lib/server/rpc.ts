@@ -12,4 +12,3 @@ export function getServerRpc(): string {
   if (publicRpc) return publicRpc; // last resort
   return 'https://api.mainnet-beta.solana.com';
 }
-

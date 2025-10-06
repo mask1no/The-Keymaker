@@ -24,4 +24,3 @@ export function getAllowedAuthHosts(): { allowedHosts: Set<string>; allowedOrigi
 
   return { allowedHosts: hosts, allowedOrigins: origins };
 }
-

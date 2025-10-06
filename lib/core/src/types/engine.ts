@@ -7,20 +7,20 @@ import type { Keypair } from '@solana/web3.js';
 
 export type ExecutionMode = 'RPC_FANOUT' | 'JITO_BUNDLE';
 
-export type OutcomeStatus = 
-  | 'SIMULATED'   // Dry-run simulation successful
-  | 'CONFIRMED'   // Transaction confirmed on-chain
-  | 'TIMEOUT'     // Transaction timed out
-  | 'DROPPED'     // Transaction dropped
-  | 'ERROR'       // Error during execution
-  | 'LANDED';     // Jito bundle landed
+export type OutcomeStatus =
+  | 'SIMULATED' // Dry-run simulation successful
+  | 'CONFIRMED' // Transaction confirmed on-chain
+  | 'TIMEOUT' // Transaction timed out
+  | 'DROPPED' // Transaction dropped
+  | 'ERROR' // Error during execution
+  | 'LANDED'; // Jito bundle landed
 
 export interface EngineOutcome {
-  wallet: string;        // Wallet public key (base58)
-  signature?: string;    // Transaction signature
-  slot?: number;         // Slot number if confirmed
+  wallet: string; // Wallet public key (base58)
+  signature?: string; // Transaction signature
+  slot?: number; // Slot number if confirmed
   status: OutcomeStatus;
-  error?: string;        // Error message if failed
+  error?: string; // Error message if failed
   simulationLogs?: string[]; // Simulation logs
 }
 
@@ -73,4 +73,3 @@ export const PRIORITY_FEE_PRESETS = {
 } as const;
 
 export type PriorityPreset = keyof typeof PRIORITY_FEE_PRESETS;
-

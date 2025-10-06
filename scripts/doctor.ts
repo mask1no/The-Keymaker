@@ -11,8 +11,7 @@ const sess = process.env.KEYMAKER_SESSION_SECRET || '';
 if (sess.length < 32) fail('KEYMAKER_SESSION_SECRET missing/weak (<32)');
 
 const api = process.env.ENGINE_API_TOKEN || '';
-if (api.length < 32) console.warn('[doctor] ⚠ ENGINE_API_TOKEN missing/weak (<32) — set before live.');
+if (api.length < 32)
+  console.warn('[doctor] ⚠ ENGINE_API_TOKEN missing/weak (<32) — set before live.');
 
 console.log('[doctor] ✅ Secrets sane enough to start.');
-
-

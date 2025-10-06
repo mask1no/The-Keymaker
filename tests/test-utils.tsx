@@ -1,10 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { Toaster } from 'sonner';
-function Providers({ children }: { c; h; i, l, d, ren: React.ReactNode }) {
+function Providers({ children }: { c; h; i; l; d; ren: React.ReactNode }) {
   return (
     <>
-      
       <Toaster /> {children}
     </>
   );

@@ -2,15 +2,18 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-async function birdeyeByCA(ca: string){
+async function birdeyeByCA(ca: string) {
   const key = process.env.BIRDEYE_API_KEY || '';
   if (!key) return null;
-  const r = await fetch(`https://public-api.birdeye.so/defi/token_overview?address=${encodeURIComponent(ca)}`, {
-    headers: { 'X-API-KEY': key, 'accept': 'application/json' },
-    cache: 'no-store'
-  });
+  const r = await fetch(
+    `https://public-api.birdeye.so/defi/token_overview?address=${encodeURIComponent(ca)}`,
+    {
+      headers: { 'X-API-KEY': key, accept: 'application/json' },
+      cache: 'no-store',
+    },
+  );
   if (!r.ok) return null;
-  const j: any = await r.json().catch(()=>null);
+  const j: any = await r.json().catch(() => null);
   if (!j?.data) return null;
   const d = j.data;
   return {
@@ -24,39 +27,53 @@ async function birdeyeByCA(ca: string){
   };
 }
 
-async function dexByCA(ca: string){
-  const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(ca)}`, { cache: 'no-store' });
+async function dexByCA(ca: string) {
+  const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(ca)}`, {
+    cache: 'no-store',
+  });
   if (!r.ok) return null;
-  const j: any = await r.json().catch(()=>null);
+  const j: any = await r.json().catch(() => null);
   const p = j?.pairs?.[0];
-  if(!p) return null;
+  if (!p) return null;
   return {
     ca,
     name: p.baseToken?.name || '',
     symbol: p.baseToken?.symbol || '',
     image: p.info?.imageUrl || '',
     website: p.info?.websites?.[0]?.url || '',
-    twitter: p.info?.socials?.find((s:any)=>s.type==='twitter')?.url || '',
-    telegram: p.info?.socials?.find((s:any)=>s.type==='telegram')?.url || '',
+    twitter: p.info?.socials?.find((s: any) => s.type === 'twitter')?.url || '',
+    telegram: p.info?.socials?.find((s: any) => s.type === 'telegram')?.url || '',
   };
 }
 
-export async function GET(req: Request){
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const ca = searchParams.get('ca') || '';
-  if (!ca) return NextResponse.json({ ok:false, error:'missing ca' }, { status: 400 });
+  if (!ca) return NextResponse.json({ ok: false, error: 'missing ca' }, { status: 400 });
   // Back-compat: proxy to richer token meta API
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/token/${encodeURIComponent(ca)}/meta`, { cache: 'no-store' });
-    const j = await res.json().catch(()=> ({}));
-    if (!res.ok || !j?.draft) return NextResponse.json({ ok:false, error:'not_found' }, { status: 404 });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/token/${encodeURIComponent(ca)}/meta`,
+      { cache: 'no-store' },
+    );
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j?.draft)
+      return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 });
     const d = j.draft as any;
-    const coin = { ca, name: d.name, symbol: d.symbol, image: d.image, website: d.website, twitter: d.twitter, telegram: d.telegram };
-    return new NextResponse(JSON.stringify({ ok:true, coin }), { status: 200, headers: { 'X-Deprecated': 'Use /api/token/[mint]/meta' } });
+    const coin = {
+      ca,
+      name: d.name,
+      symbol: d.symbol,
+      image: d.image,
+      website: d.website,
+      twitter: d.twitter,
+      telegram: d.telegram,
+    };
+    return new NextResponse(JSON.stringify({ ok: true, coin }), {
+      status: 200,
+      headers: { 'X-Deprecated': 'Use /api/token/[mint]/meta' },
+    });
   } catch {
-    return NextResponse.json({ ok:false, error:'failed' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: 'failed' }, { status: 500 });
   }
 }
-
-
-

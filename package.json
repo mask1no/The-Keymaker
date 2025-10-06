@@ -8,11 +8,11 @@
     "doctor": "tsx scripts/doctor.ts",
     "readiness": "node scripts/check-readiness.mjs",
     "check:placeholders": "node scripts/check_placeholders.mjs",
-    "precommit": "npm run readiness && npm run check:placeholders && npm test",
+    "precommit": "npm run readiness && npm run check:placeholders && npm run verify:splits && npm test",
     "check:node": "node -e \"const [mj]=process.versions.node.split('.') ; if(+mj<18){console.error('Node>=18 required'); process.exit(1)} else console.log('Node OK')\"",
     "core:build": "tsc --project tsconfig.core.json --noEmit",
     "dev": "pnpm preflight && pnpm preflight:stubs && pnpm doctor && next dev -p 3001",
-    "build": "pnpm preflight && pnpm preflight:stubs && pnpm doctor && next build",
+    "build": "pnpm preflight && pnpm preflight:stubs && pnpm doctor && pnpm verify:splits && next build",
     "build:scripts": "tsc --project tsconfig.node.json",
     "build:standalone": "cross-env NEXT_STANDALONE=1 next build",
     "analyze": "cross-env ANALYZE=true next build",
@@ -60,7 +60,8 @@
     "sanity": "node scripts/sanity.mjs",
     "bundle:zip": "node scripts/bundle-zip.mjs",
     "secrets:scan": "gitleaks detect --no-git -v || true",
-    "codemod:fix": "pnpm de-stub && pnpm format && pnpm lint || true"
+    "codemod:fix": "pnpm de-stub && pnpm format && pnpm lint || true",
+    "verify:splits": "node scripts/verifySplits.mjs"
   },
   "dependencies": {
     "2captcha": "^3.0.5-2",
@@ -87,7 +88,6 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@raydium-io/raydium-sdk": "^1.3.1-beta.58",
     "@sentry/nextjs": "^9.38.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.27",

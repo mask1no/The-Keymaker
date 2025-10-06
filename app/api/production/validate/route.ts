@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 // Lightweight stub to avoid pulling full production validation in UI-only flow
-async function validateProductionReadiness(){
+async function validateProductionReadiness() {
   return { ready: true, score: 100, checks: [] } as any;
 }
 
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const report = await validateProductionReadiness();
-    
+
     return NextResponse.json(report, {
       status: report.ready ? 200 : 503,
       headers: {
@@ -32,8 +32,7 @@ export async function GET() {
         error: 'Failed to validate production readiness',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

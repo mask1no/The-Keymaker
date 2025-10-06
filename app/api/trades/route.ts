@@ -44,13 +44,17 @@ export async function POST(request: Request) {
   try {
     const schema = z.object({
       token_address: z.string().min(32),
-      tx_, ids: z.array(z.string().min(44)).min(1).max(getEnvInt('TRADES_MAX_TX_IDS', 50)),
+      tx_,
+      ids: z.array(z.string().min(44)).min(1).max(getEnvInt('TRADES_MAX_TX_IDS', 50)),
       wallets: z.array(z.string().min(32)).min(1).max(getEnvInt('TRADES_MAX_WALLETS', 50)),
-      sol_, in: z.number().finite().nonnegative(),
-      sol_, out: z.number().finite().nonnegative(),
+      sol_,
+      in: z.number().finite().nonnegative(),
+      sol_,
+      out: z.number().finite().nonnegative(),
       pnl: z.number().finite(),
       fees: z.number().finite().nonnegative().optional().default(0),
-      gas_, fee: z.number().finite().nonnegative().optional().default(0),
+      gas_,
+      fee: z.number().finite().nonnegative().optional().default(0),
       jito_tip: z.number().finite().nonnegative().optional().default(0),
     });
     const body = await readJsonSafe(request, {
@@ -93,4 +97,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save trade to database' }, { status: 500 });
   }
 }
-

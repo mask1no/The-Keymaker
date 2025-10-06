@@ -39,20 +39,19 @@ export function setMasterWalletCookie(pubkey: string): void {
  */
 export function autoSetMasterWallet(pubkey: string, groupName?: string): void {
   const groups = loadWalletGroups();
-  
+
   // Try to find active group or first group
-  let targetGroup = groups.find(g => g.name === groupName);
-  
+  let targetGroup = groups.find((g) => g.name === groupName);
+
   if (!targetGroup && groups.length > 0) {
     targetGroup = groups[0]; // Use first group if no specific group
   }
-  
-  // Only set if group has no master wallet 
+
+  // Only set if group has no master wallet
   if (targetGroup && !targetGroup.masterWallet) {
     setMasterWallet(targetGroup.id, pubkey);
   }
-  
+
   // Set master wallet cookie
   setMasterWalletCookie(pubkey);
 }
-

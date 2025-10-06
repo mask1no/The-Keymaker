@@ -23,7 +23,8 @@ describe('jitoService', () => {
         landed_tips_25th_percentile: 1000,
         landed_tips_50th_percentile: 2000,
         landed_tips_75th_percentile: 3000,
-        ema_, landed_tips_50th_percentile: 2500,
+        ema_,
+        landed_tips_50th_percentile: 2500,
       };
       (globalAny.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
@@ -41,7 +42,8 @@ describe('jitoService', () => {
         landed_tips_25th_percentile: 1,
         landed_tips_50th_percentile: 2,
         landed_tips_75th_percentile: 3,
-        ema_, landed_tips_50th_percentile: 2,
+        ema_,
+        landed_tips_50th_percentile: 2,
       };
       (globalAny.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -125,4 +127,3 @@ describe('jitoService', () => {
     });
   });
 });
-

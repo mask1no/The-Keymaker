@@ -24,4 +24,3 @@ export async function getNextLeaders(
     return { currentSlot: -1, nextLeaders: [] };
   }
 }
-

@@ -19,4 +19,3 @@ export const VERSION_INFO = Object.freeze({
   buildDate: new Date().toISOString(),
   nodeVersion: process.version,
 } as const);
-

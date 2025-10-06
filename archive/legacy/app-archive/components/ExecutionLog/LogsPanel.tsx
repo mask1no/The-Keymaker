@@ -2,6 +2,3 @@
 export default function ArchivedLogsPanel() {
   return null;
 }
-
-
-

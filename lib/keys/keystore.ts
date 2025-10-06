@@ -133,5 +133,3 @@ export function exportWallet(pubkey: string): { pubkey: string; secretKey: strin
   const secret = decryptBytes(e.secret, pass);
   return { pubkey, secretKey: bs58.encode(Buffer.from(secret)) };
 }
-
-

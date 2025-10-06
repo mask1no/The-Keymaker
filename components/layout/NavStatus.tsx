@@ -4,7 +4,6 @@ import { Radio, Server, Zap } from 'lucide-react';
 import { useHealth } from '@/hooks/useHealth';
 const Chip = ({ ok, label, Icon }: { ok: boolean; label: string; Icon: any }) => (
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1 text-xs bg-card">
-    
     <Icon className="h-3.5 w-3.5 opacity-90" />
     <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>{label}</span>
   </div>
@@ -29,4 +28,3 @@ export default function NavStatus() {
     </div>
   );
 }
-

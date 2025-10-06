@@ -3,9 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --k-bg:#0b0b0c; --k-surface:#111113; --k-border:#222326;
-  --k-text:#e7e7ea; --k-muted:#9a9aa3;
-  --k-success:#10b981; --k-warn:#f59e0b; --k-danger:#ef4444; --k-accent:#8b5cf6;
+  --k-bg: #0b0b0c;
+  --k-surface: #111113;
+  --k-border: #222326;
+  --k-text: #e7e7ea;
+  --k-muted: #9a9aa3;
+  --k-success: #10b981;
+  --k-warn: #f59e0b;
+  --k-danger: #ef4444;
+  --k-accent: #8b5cf6;
   --radius: 1.25rem;
 
   /* Theme tokens (HSL) */
@@ -18,7 +24,7 @@
   --popover: 222 47% 6%;
   --popover-foreground: 210 20% 98%;
 
-  --primary: 217 91% 60%; /* sky-500 */
+  --primary: 160 84% 39%; /* emerald-500 */
   --primary-foreground: 222 47% 6%;
 
   --secondary: 240 5% 20%;
@@ -35,7 +41,7 @@
 
   --border: 240 5% 26%;
   --input: 240 5% 26%;
-  --ring: 217 91% 60%;
+  --ring: 160 84% 39%;
 }
 
 html,
@@ -138,8 +144,12 @@ a:hover {
 }
 
 /* Utilities */
-.border-k{border-color:var(--k-border)}
-.text-muted{color:var(--k-muted)}
+.border-k {
+  border-color: var(--k-border);
+}
+.text-muted {
+  color: var(--k-muted);
+}
 .divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
@@ -170,7 +180,7 @@ a:hover {
 .select:focus,
 .button:focus {
   outline: none;
-  box-shadow: 0 0 0 2px hsla(217, 91%, 60%, 0.35);
+  box-shadow: 0 0 0 2px hsla(160, 84%, 39%, 0.35);
 }
 .button:hover {
   background: hsl(var(--accent)) / 0.8;
@@ -207,7 +217,7 @@ a:hover {
 /* Focus & a11y */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px hsla(217, 91%, 60%, 0.35);
+  box-shadow: 0 0 0 2px hsla(160, 84%, 39%, 0.35);
   border-radius: 10px;
 }
 

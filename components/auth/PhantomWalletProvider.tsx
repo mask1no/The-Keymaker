@@ -28,17 +28,14 @@ export function PhantomWalletProvider({ children }: { children: React.ReactNode 
       new PhantomWalletAdapter(),
       // Add other wallets here if needed
     ],
-    []
+    [],
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect={false}>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
 }
-

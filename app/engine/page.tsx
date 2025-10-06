@@ -1,3 +1,4 @@
 import { redirect } from 'next/navigation';
-export default function EnginePage(){ redirect('/home'); }
-
+export default function EnginePage() {
+  redirect('/home');
+}

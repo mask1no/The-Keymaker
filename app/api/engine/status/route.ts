@@ -70,7 +70,14 @@ export async function POST(request: Request) {
       return apiError(413, 'payload_too_large', requestId);
     }
     const body = rawText ? JSON.parse(rawText) : {};
-    const { mode = 'JITO_BUNDLE', region = 'ffm', bundleId, bundleIds, sigs, cluster } = Body.parse(body);
+    const {
+      mode = 'JITO_BUNDLE',
+      region = 'ffm',
+      bundleId,
+      bundleIds,
+      sigs,
+      cluster,
+    } = Body.parse(body);
     const opts: ExecOptions = {
       mode: mode as ExecutionMode,
       region: region as any,
@@ -93,4 +100,3 @@ export async function POST(request: Request) {
     return apiError(500, 'failed');
   }
 }
-

@@ -1,4 +1,12 @@
-import { randomBytes, scryptSync, timingSafeEqual, createCipheriv, createDecipheriv, pbkdf2Sync, createHash } from 'node:crypto';
+import {
+  randomBytes,
+  scryptSync,
+  timingSafeEqual,
+  createCipheriv,
+  createDecipheriv,
+  pbkdf2Sync,
+  createHash,
+} from 'node:crypto';
 
 const SALT_LEN = 16;
 const IV_LEN = 12;
@@ -8,7 +16,14 @@ export function kdf(passphrase: string, salt: Buffer) {
   return scryptSync(passphrase, salt, KEY_LEN);
 }
 
-export type EncryptedBlob = { v: 1; kdf: 'scrypt'; salt: string; iv: string; tag: string; ct: string };
+export type EncryptedBlob = {
+  v: 1;
+  kdf: 'scrypt';
+  salt: string;
+  iv: string;
+  tag: string;
+  ct: string;
+};
 
 export function encryptBytes(plain: Uint8Array, passphrase: string): EncryptedBlob {
   const salt = randomBytes(SALT_LEN);
@@ -17,7 +32,14 @@ export function encryptBytes(plain: Uint8Array, passphrase: string): EncryptedBl
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   const ciphertext = Buffer.concat([cipher.update(Buffer.from(plain)), cipher.final()]);
   const tag = cipher.getAuthTag();
-  return { v: 1, kdf: 'scrypt', salt: salt.toString('base64'), iv: iv.toString('base64'), tag: tag.toString('base64'), ct: ciphertext.toString('base64') };
+  return {
+    v: 1,
+    kdf: 'scrypt',
+    salt: salt.toString('base64'),
+    iv: iv.toString('base64'),
+    tag: tag.toString('base64'),
+    ct: ciphertext.toString('base64'),
+  };
 }
 
 export function decryptBytes(blob: EncryptedBlob, passphrase: string): Uint8Array {
@@ -34,7 +56,8 @@ export function decryptBytes(blob: EncryptedBlob, passphrase: string): Uint8Arra
 }
 
 export function safeEqual(a: Uint8Array, b: Uint8Array) {
-  const A = Buffer.from(a), B = Buffer.from(b);
+  const A = Buffer.from(a),
+    B = Buffer.from(b);
   return A.length === B.length && timingSafeEqual(A, B);
 }
 
@@ -67,4 +90,3 @@ export function decrypt(encryptedText: string, password?: string): string {
   decrypted += decipher.final('utf8');
   return decrypted;
 }
-

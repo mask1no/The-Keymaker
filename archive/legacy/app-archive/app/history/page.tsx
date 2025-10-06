@@ -1,4 +1,4 @@
 // Archived client page
-export default function ArchivedHistory() { return null }
-
-
+export default function ArchivedHistory() {
+  return null;
+}

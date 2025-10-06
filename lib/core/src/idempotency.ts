@@ -1,6 +1,6 @@
 /**
  * Idempotency Service
- * Prevents accidental double-buys per wallet 
+ * Prevents accidental double-buys per wallet
  */
 
 import { createHash } from 'crypto';
@@ -27,17 +27,17 @@ export function generateIdempotencyHash(key: IdempotencyKey): string {
 export function isAlreadyProcessed(key: IdempotencyKey): boolean {
   const hash = generateIdempotencyHash(key);
   const entry = executionLog.get(hash);
-  
+
   if (!entry) {
     return false;
   }
-  
+
   // Check if entry is still valid (not expired)
   if (Date.now() - entry.timestamp > ENTRY_TTL_MS) {
     executionLog.delete(hash);
     return false;
   }
-  
+
   return entry.completed;
 }
 
@@ -58,7 +58,7 @@ export function markExecutionStarted(key: IdempotencyKey): void {
 export function markExecutionCompleted(key: IdempotencyKey): void {
   const hash = generateIdempotencyHash(key);
   const entry = executionLog.get(hash);
-  
+
   if (entry) {
     entry.completed = true;
     entry.timestamp = Date.now();
@@ -99,4 +99,3 @@ export function generateIntentHash(params: {
 if (typeof setInterval !== 'undefined') {
   setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
 }
-

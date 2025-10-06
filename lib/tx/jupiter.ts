@@ -38,5 +38,3 @@ export async function buildSellTx(params: {
     priorityFeeMicrolamports: params.priorityFeeMicrolamports,
   });
 }
-
-

@@ -10,6 +10,3 @@ export function lightToTailwind(light: 'green' | 'amber' | 'red'): string {
       return 'text-red-400';
   }
 }
-
-
-

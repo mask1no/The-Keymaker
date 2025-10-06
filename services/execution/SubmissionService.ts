@@ -3,7 +3,8 @@ import { sendBundle, getBundleStatuses } from '@/lib/server/jitoService';
 export class SubmissionService {
   constructor(private readonly region: 'ffm' | 'ams' | 'ny' | 'tokyo' | 'unknown' = 'ffm') {}
   async submitAndPoll(
-    txs_, b64: string[],
+    txs_,
+    b64: string[],
     polls = 20,
     delayMs = 1200,
   ): Promise<Result<{ bundleId: string; landedSlot: number | null }>> {

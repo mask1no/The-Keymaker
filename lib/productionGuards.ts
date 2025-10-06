@@ -30,9 +30,11 @@ export function validateProductionStartup(): void {
   // Redis validation (if rate limiting is used)
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  
+
   if (!redisUrl || !redisToken) {
-    errors.push('Redis configuration (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) is required in production for rate limiting');
+    errors.push(
+      'Redis configuration (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN) is required in production for rate limiting',
+    );
   }
 
   // RPC configuration
@@ -47,7 +49,7 @@ export function validateProductionStartup(): void {
 
   if (errors.length > 0) {
     console.error('❌ PRODUCTION STARTUP VALIDATION FAILED:');
-    errors.forEach(error => console.error(`  • ${error}`));
+    errors.forEach((error) => console.error(`  • ${error}`));
     console.error('\n💡 Fix these configuration issues before deploying to production.');
     throw new Error(`Production validation failed: ${errors.length} configuration errors`);
   }
@@ -61,4 +63,3 @@ if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
 }
 
 export default validateProductionStartup;
-

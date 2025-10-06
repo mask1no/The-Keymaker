@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedPnLPanel() { return null }
-
-
+export default function ArchivedPnLPanel() {
+  return null;
+}

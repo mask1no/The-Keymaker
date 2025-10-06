@@ -31,4 +31,3 @@ export async function getDb(): Promise<any> {
 // Export a promise to avoid circular import issues
 const promisedDb = getDb();
 export { promisedDb as db };
-

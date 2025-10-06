@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedMemecoinCreator() { return null }
-
-
+export default function ArchivedMemecoinCreator() {
+  return null;
+}

@@ -8,25 +8,40 @@ export const dynamic = 'force-dynamic';
 
 const FILE = join(process.cwd(), 'data', 'trades.ndjson');
 
-type Trade = { ts:number; side:'buy'|'sell'; mint:string; qty:number; priceLamports?:number; price?:number; feeLamports?:number; fee?:number; groupId?:string };
+type Trade = {
+  ts: number;
+  side: 'buy' | 'sell';
+  mint: string;
+  qty: number;
+  priceLamports?: number;
+  price?: number;
+  feeLamports?: number;
+  fee?: number;
+  groupId?: string;
+};
 
 async function fetchSpotLamports(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`,
+      { cache: 'no-store' },
+    );
     if (!res.ok) return null;
     const j = await res.json();
     // Prefer direct lamportsPerToken if provided by endpoint; else convert USD→lamports is not available here
     if (typeof j?.lamportsPerToken === 'string') return Number(j.lamportsPerToken);
     if (typeof j?.lamportsPerToken === 'number') return j.lamportsPerToken;
     return null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-export async function GET(){
+export async function GET() {
   const session = getSession();
   const user = session?.userPubkey || '';
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const out = { buys:0, sells:0, fees:0, realized:0, unrealized:0, net:0, count:0 } as any;
+  const out = { buys: 0, sells: 0, fees: 0, realized: 0, unrealized: 0, net: 0, count: 0 } as any;
   // Preferred path: compute from DB if present
   try {
     const prices: Record<string, number> = {};
@@ -37,18 +52,24 @@ export async function GET(){
     out.realized = agg.realizedLamports / 1e9;
     out.unrealized = agg.unrealizedLamports / 1e9;
     out.net = agg.netLamports / 1e9;
-    return NextResponse.json({ ok:true, pnl: out });
+    return NextResponse.json({ ok: true, pnl: out });
   } catch {}
-  const openPositions: Record<string, { qty:number; costLamports:number }> = {};
+  const openPositions: Record<string, { qty: number; costLamports: number }> = {};
   if (existsSync(FILE)) {
-    const lines = readFileSync(FILE,'utf8').trim().split('\n').filter(Boolean);
+    const lines = readFileSync(FILE, 'utf8').trim().split('\n').filter(Boolean);
     for (const line of lines) {
       try {
         const t = JSON.parse(line) as Trade;
         out.count++;
-        const price = typeof t.priceLamports === 'number' ? t.priceLamports : (typeof t.price === 'number' ? t.price : 0);
-        const fee = typeof t.feeLamports === 'number' ? t.feeLamports : (typeof t.fee === 'number' ? t.fee : 0);
-        if (t.side==='buy') {
+        const price =
+          typeof t.priceLamports === 'number'
+            ? t.priceLamports
+            : typeof t.price === 'number'
+              ? t.price
+              : 0;
+        const fee =
+          typeof t.feeLamports === 'number' ? t.feeLamports : typeof t.fee === 'number' ? t.fee : 0;
+        if (t.side === 'buy') {
           out.buys += t.qty * price + fee;
           out.fees += fee;
           const p = openPositions[t.mint] || { qty: 0, costLamports: 0 };
@@ -87,6 +108,5 @@ export async function GET(){
   }
   out.unrealized = unreal;
   out.net = out.realized + out.unrealized;
-  return NextResponse.json({ ok:true, pnl: out });
+  return NextResponse.json({ ok: true, pnl: out });
 }
-

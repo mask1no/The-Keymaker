@@ -30,4 +30,3 @@
 
   return { valid: score >= 4, score, feedback };
 }
-

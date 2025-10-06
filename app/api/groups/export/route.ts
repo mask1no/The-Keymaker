@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     const { groupId, password } = Body.parse(body);
     const group = getWalletGroup(groupId);
     if (!group) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
-    if (!group.masterWallet || group.masterWallet !== user) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    if (!group.masterWallet || group.masterWallet !== user)
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
 
     const base = join(process.cwd(), 'keypairs', group.masterWallet || 'unassigned', group.name);
     const entries: Array<{ name: string; content: string }> = [];
@@ -32,7 +33,12 @@ export async function POST(request: Request) {
       entries.push({ name: `${pub}.enc`, content: encrypted });
     }
 
-    const payload = JSON.stringify({ group: group.name, master: group.masterWallet, createdAt: Date.now(), entries });
+    const payload = JSON.stringify({
+      group: group.name,
+      master: group.masterWallet,
+      createdAt: Date.now(),
+      entries,
+    });
     const filename = `${group.name.replace(/[^a-z0-9-_]+/gi, '_')}.keybundle.json`;
     return new NextResponse(payload, {
       status: 200,
@@ -47,7 +53,15 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(){ return NextResponse.json({ ok:false, stub:true, route:'app/api/groups/export/route.ts' }, { status: 501 }); }
-export async function PUT(req: Request){ return GET(); }
-export async function DELETE(req: Request){ return GET(); }
-
+export async function GET() {
+  return NextResponse.json(
+    { ok: false, stub: true, route: 'app/api/groups/export/route.ts' },
+    { status: 501 },
+  );
+}
+export async function PUT(req: Request) {
+  return GET();
+}
+export async function DELETE(req: Request) {
+  return GET();
+}

@@ -1,4 +1,4 @@
 // Archived
-export default function ArchivedMarketCapCard() { return null }
-
-
+export default function ArchivedMarketCapCard() {
+  return null;
+}

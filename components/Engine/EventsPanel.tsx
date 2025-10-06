@@ -29,10 +29,18 @@ export default function EventsPanel() {
 
   return (
     <div className="space-y-1">
-      {rows.map((r:any) => (
+      {rows.map((r: any) => (
         <div key={r.id} className="text-xs text-zinc-400 flex items-center justify-between">
           <span>#{r.id}</span>
-          <span className={r.status === 'success' ? 'text-emerald-400' : r.status === 'failed' ? 'text-red-400' : 'text-amber-400'}>
+          <span
+            className={
+              r.status === 'success'
+                ? 'text-emerald-400'
+                : r.status === 'failed'
+                  ? 'text-red-400'
+                  : 'text-amber-400'
+            }
+          >
             {r.status || 'unknown'}
           </span>
         </div>
@@ -40,6 +48,3 @@ export default function EventsPanel() {
     </div>
   );
 }
-
-
-

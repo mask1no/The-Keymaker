@@ -24,6 +24,3 @@ export function setActiveGroupId(id: string) {
     // ignore
   }
 }
-
-
-

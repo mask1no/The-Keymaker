@@ -13,6 +13,3 @@ export async function GET() {
     return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
-
-
-
