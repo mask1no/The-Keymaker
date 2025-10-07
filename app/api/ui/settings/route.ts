@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { DEFAULT_CUSTOM_FEES, DEFAULT_HOTKEYS } from '@/lib/types/ui';
 import { getSession } from '@/lib/server/session';
 
 export const runtime = 'nodejs';
@@ -45,12 +44,76 @@ const HotkeysSchema = z.object({
   help: z.string(),
 });
 
+const VolumeDefaultsSchema = z.object({
+  delaySecMin: z.number().int().min(1).max(600).default(2),
+  delaySecMax: z.number().int().min(1).max(600).default(5),
+  slippageBps: z.number().int().min(1).max(10_000).default(150),
+  bias: z
+    .tuple([z.number().int().min(0).default(2), z.number().int().min(0).default(1)])
+    .default([2, 1]),
+});
+
+const FundingDefaultsSchema = z.object({
+  masterReserveSol: z.number(),
+  defaultBufferSol: z.number(),
+  defaultJitterPct: z.number(),
+  defaultMinThresholdSol: z.number(),
+});
+
 const UiSettingsSchema = z.object({
   customFees: CustomFeesSchema,
   hotkeys: HotkeysSchema,
+  volumeDefaults: VolumeDefaultsSchema,
+  fundingDefaults: FundingDefaultsSchema,
 });
 
-async function ensureTables() {
+const DEFAULT_CUSTOM_FEES: z.infer<typeof CustomFeesSchema> = {
+  useCustomFees: true,
+  rpc: {
+    buyPriorityLamports: 5_000,
+    sellPriorityLamports: 5_000,
+    cuLimit: 900_000,
+    preset: 'med',
+    autoPriority: true,
+  },
+  jito: { enabled: false, buyTipLamports: 0, sellTipLamports: 0 },
+  slippageBpsDefault: 150,
+};
+
+const DEFAULT_HOTKEYS: z.infer<typeof HotkeysSchema> = {
+  row1: '1',
+  row2: '2',
+  row3: '3',
+  row4: '4',
+  row5: '5',
+  row6: '6',
+  row7: '7',
+  row8: '8',
+  row9: '9',
+  buy: 'b',
+  sell: 's',
+  enqueueToggle: 'q',
+  refresh: 'r',
+  simulate: 'Enter',
+  sendLive: 'Ctrl+Enter',
+  help: '?',
+};
+
+const DEFAULT_VOLUME_DEFAULTS: z.infer<typeof VolumeDefaultsSchema> = {
+  delaySecMin: 2,
+  delaySecMax: 5,
+  slippageBps: 150,
+  bias: [2, 1],
+};
+
+const DEFAULT_FUNDING_DEFAULTS: z.infer<typeof FundingDefaultsSchema> = {
+  masterReserveSol: 1,
+  defaultBufferSol: 0.02,
+  defaultJitterPct: 10,
+  defaultMinThresholdSol: 0.005,
+};
+
+async function ensureTable() {
   const db = await getDb();
   await db.exec(`
     CREATE TABLE IF NOT EXISTS ui_settings (
@@ -60,104 +123,82 @@ async function ensureTables() {
   `);
 }
 
-async function readSettings(): Promise<z.infer<typeof UiSettingsSchema>> {
-  await ensureTables();
+async function readKey<T>(key: string, fallback: T): Promise<T> {
+  await ensureTable();
   const db = await getDb();
-  const rows = await db.all('SELECT key, value FROM ui_settings');
-  const map = new Map<string, string>(rows.map((r: any) => [r.key, r.value]));
-  const customFees = map.get('customFees');
-  const hotkeys = map.get('hotkeys');
-  const data = {
-    customFees: customFees ? JSON.parse(customFees) : DEFAULT_CUSTOM_FEES,
-    hotkeys: hotkeys ? JSON.parse(hotkeys) : DEFAULT_HOTKEYS,
-  };
-  return UiSettingsSchema.parse(data);
+  const row = await db.get('SELECT value FROM ui_settings WHERE key = ?', [key]);
+  if (!row?.value) return fallback;
+  try {
+    const parsed = JSON.parse(row.value);
+    return parsed as T;
+  } catch {
+    return fallback;
+  }
 }
 
-async function writeSettings(next: z.infer<typeof UiSettingsSchema>) {
-  await ensureTables();
+async function writeKey(key: string, value: unknown): Promise<void> {
   const db = await getDb();
-  const tx = await db.exec('BEGIN');
-  try {
-    await db.run('INSERT OR REPLACE INTO ui_settings (key, value) VALUES (?, ?)', [
-      'customFees',
-      JSON.stringify(next.customFees),
-    ]);
-    await db.run('INSERT OR REPLACE INTO ui_settings (key, value) VALUES (?, ?)', [
-      'hotkeys',
-      JSON.stringify(next.hotkeys),
-    ]);
-    await db.exec('COMMIT');
-  } catch (e) {
-    await db.exec('ROLLBACK');
-    throw e;
-  }
+  const val = JSON.stringify(value);
+  await db.run(
+    'INSERT INTO ui_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+    [key, val],
+  );
 }
 
 export async function GET() {
   try {
     const s = getSession();
     if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const data = await readSettings();
-    return NextResponse.json(data);
-  } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const s = getSession();
-    if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const payload = await req.json();
-    const parsed = UiSettingsSchema.parse(payload);
-    await writeSettings(parsed);
-    return NextResponse.json({ ok: true });
+    const customFees = await readKey('customFees', DEFAULT_CUSTOM_FEES);
+    const hotkeys = await readKey('hotkeys', DEFAULT_HOTKEYS);
+    const volumeDefaults = await readKey('volumeDefaults', DEFAULT_VOLUME_DEFAULTS);
+    const fundingDefaults = await readKey('fundingDefaults', DEFAULT_FUNDING_DEFAULTS);
+    const data = UiSettingsSchema.parse({ customFees, hotkeys, volumeDefaults, fundingDefaults });
+    return NextResponse.json(data, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_request', details: e.issues }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_settings', details: e.issues }, { status: 500 });
     }
     return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
   }
 }
 
-import { NextResponse } from 'next/server';
-import { getUiSettings, setUiSettings } from '@/lib/server/settings';
-import { z } from 'zod';
-
-export const dynamic = 'force-dynamic';
-
-export async function GET() {
-  try {
-    const ui = getUiSettings();
-    return NextResponse.json(ui);
-  } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
-  }
-}
-
-const UpdateSchema = z.object({
-  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
-  region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
-  priority: z.enum(['low', 'med', 'high']).optional(),
-  tipLamports: z.number().int().min(0).optional(),
-  chunkSize: z.number().int().min(1).max(50).optional(),
-  concurrency: z.number().int().min(1).max(20).optional(),
-  jitterMs: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
-  dryRun: z.boolean().optional(),
-  cluster: z.enum(['mainnet-beta', 'devnet']).optional(),
-  liveMode: z.boolean().optional(),
-  rpcHttp: z.string().url().optional(),
-  wsUrl: z.string().url().optional(),
+const UpsertSchema = z.object({
+  customFees: CustomFeesSchema.optional(),
+  hotkeys: HotkeysSchema.optional(),
+  volumeDefaults: VolumeDefaultsSchema.optional(),
+  fundingDefaults: FundingDefaultsSchema.optional(),
 });
 
 export async function POST(request: Request) {
   try {
+    const s = getSession();
+    if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json().catch(() => ({}));
-    const next = UpdateSchema.parse(body);
-    setUiSettings(next);
-    const ui = getUiSettings();
-    return NextResponse.json(ui);
+    const next = UpsertSchema.parse(body);
+
+    const current = {
+      customFees: await readKey('customFees', DEFAULT_CUSTOM_FEES),
+      hotkeys: await readKey('hotkeys', DEFAULT_HOTKEYS),
+      volumeDefaults: await readKey('volumeDefaults', DEFAULT_VOLUME_DEFAULTS),
+      fundingDefaults: await readKey('fundingDefaults', DEFAULT_FUNDING_DEFAULTS),
+    } as z.infer<typeof UiSettingsSchema>;
+
+    const merged: z.infer<typeof UiSettingsSchema> = {
+      customFees: next.customFees ?? current.customFees,
+      hotkeys: next.hotkeys ?? current.hotkeys,
+      volumeDefaults: next.volumeDefaults ?? current.volumeDefaults,
+      fundingDefaults: next.fundingDefaults ?? current.fundingDefaults,
+    };
+
+    // Persist only provided keys
+    if (next.customFees) await writeKey('customFees', merged.customFees);
+    if (next.hotkeys) await writeKey('hotkeys', merged.hotkeys);
+    if (next.volumeDefaults) await writeKey('volumeDefaults', merged.volumeDefaults);
+    if (next.fundingDefaults) await writeKey('fundingDefaults', merged.fundingDefaults);
+
+    const response = UiSettingsSchema.parse(merged);
+    return NextResponse.json(response, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: 'invalid_request', details: e.issues }, { status: 400 });

@@ -4,13 +4,8 @@ import type { HealthStatus, HealthLight } from '@/lib/types/health';
 
 function Dot({ light }: { light: HealthLight }) {
   const color =
-    light === 'green' ? 'bg-emerald-500' : light === 'amber' ? 'bg-amber-400' : 'bg-red-500';
-  const ring =
-    light === 'green'
-      ? 'ring-emerald-500/30'
-      : light === 'amber'
-        ? 'ring-amber-400/30'
-        : 'ring-red-500/30';
+    light === 'green' ? 'bg-[--k-success]' : light === 'amber' ? 'bg-amber-400' : 'bg-[--k-danger]';
+  const ring = 'ring-[--ring]';
   return <span className={`inline-block w-2.5 h-2.5 rounded-full ${color} ring-4 ${ring}`} />;
 }
 

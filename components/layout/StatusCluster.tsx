@@ -16,7 +16,11 @@ function Light({
 }) {
   const ok = light === 'green';
   const color =
-    light === 'green' ? 'text-emerald-400' : light === 'amber' ? 'text-amber-400' : 'text-red-400';
+    light === 'green'
+      ? 'text-[--k-success]'
+      : light === 'amber'
+        ? 'text-amber-400'
+        : 'text-[--k-danger]';
   return (
     <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-800/70 bg-zinc-900/40 px-3 py-2 text-xs">
       <div className="flex items-center gap-2 min-w-0">
