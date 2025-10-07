@@ -1,7 +1,9 @@
 import type { NextRequest } from 'next/server';
 
 const buckets = new Map<string, { tokens: number; updated: number }>();
-const CAP = 30, REFILL = 1, WINDOW = 1000; // 30/30s, refill 1/s
+const CAP = 30,
+  REFILL = 1,
+  WINDOW = 1000; // 30/30s, refill 1/s
 
 function okSession(req: NextRequest) {
   // Implement your SIWS session check. Placeholder:
@@ -38,5 +40,3 @@ export function withSessionAndLimit<T>(handler: (req: NextRequest, sid: string) 
     }
   };
 }
-
-

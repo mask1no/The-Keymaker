@@ -2,9 +2,7 @@
 import { useState } from 'react';
 import KCard from '@/components/UI/KCard';
 
-export default function TestBundleForm({
-  defaultMode = 'RPC_FANOUT' as 'RPC_FANOUT',
-}) {
+export default function TestBundleForm({ defaultMode = 'RPC_FANOUT' as const }) {
   const [mode, setMode] = useState<'RPC_FANOUT'>(defaultMode);
   const [amount, setAmount] = useState('0.001');
   const [slip, setSlip] = useState('100');

@@ -3,8 +3,15 @@ import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 
 export const runtime = 'nodejs';
 
-type Item = { ts: number; side: 'buy'|'sell'; price: number; qty: number; wallet: string; sig?: string };
-let cache: Record<string, { at: number; items: Item[] }> = {};
+type Item = {
+  ts: number;
+  side: 'buy' | 'sell';
+  price: number;
+  qty: number;
+  wallet: string;
+  sig?: string;
+};
+const cache: Record<string, { at: number; items: Item[] }> = {};
 
 export const GET = withSessionAndLimit(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url);
@@ -26,9 +33,7 @@ export const GET = withSessionAndLimit(async (req: NextRequest) => {
     }));
     cache[key] = { at: now, items: base };
   }
-  const all = cache[key].items
-    .filter((x) => (sinceTs ? x.ts >= sinceTs : true))
-    .slice(0, limit);
+  const all = cache[key].items.filter((x) => (sinceTs ? x.ts >= sinceTs : true)).slice(0, limit);
   const stale = now - (cache[key]?.at || 0) > 8000;
   return { items: all, stale } as any;
 });

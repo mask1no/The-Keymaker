@@ -34,7 +34,9 @@ export default function ModeTiles({
           title="Jito Bundle"
           desc="Turbo tip (1-tx); Bundler disabled"
           active={false}
-          onClick={async () => { /* no-op */ }}
+          onClick={async () => {
+            /* no-op */
+          }}
         />
         <Tile
           title="Direct RPC"

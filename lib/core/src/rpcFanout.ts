@@ -154,11 +154,10 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                 });
                 return;
               }
-              await d.run('INSERT OR IGNORE INTO tx_dedupe (msgHash, firstSeenAt, status) VALUES (?, ?, ?)', [
-                msgHashHex,
-                Date.now(),
-                'pending',
-              ]);
+              await d.run(
+                'INSERT OR IGNORE INTO tx_dedupe (msgHash, firstSeenAt, status) VALUES (?, ?, ?)',
+                [msgHashHex, Date.now(), 'pending'],
+              );
             } catch {}
           } catch {}
           let signature: string | null = null;
