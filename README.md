@@ -1,3 +1,80 @@
+### The Keymaker
+
+RPC-first cockpit for Solana trading and token ops. No bundler required; Jito Turbo is optional per-action as an added 1-tx tip.
+
+### What it includes
+
+- Coin: Create (pump.fun path) and Buy
+- Keymaker Manual: manual fan-out, activity feed, funding/sweep/clean
+- Keymaker Volume: buy-biased profiles with caps and impact-aware execution
+- P&L and Wallets
+- Settings: Custom Fees, Keybinds, Volume defaults, Funding defaults
+
+### Navigation
+
+- Home, Coin, Coin Library, Keymaker, Wallets, P&L, Settings
+
+### Login
+
+- SIWS: Sign in with Solana (Phantom/Backpack/etc.)
+
+### Settings
+
+- Custom Fees: Network priority and Turbo tip (Jito optional)
+- Keybinds for Manual
+- Volume defaults
+- Funding defaults
+
+### Health
+
+`/api/health` returns:
+
+```
+{ rpc: { rttMs, health }, ws: { lastHeartbeatMs, health }, slot: { current, delta }, jito: { enabled } }
+```
+
+### Idempotency
+
+- Stable JSON hashing; `tx_dedupe.msg_hash` unique. Selftest returns the same signature on re-send.
+
+### Live Markets
+
+- `/api/markets/tickers` returns BTC/ETH/CAKE from CoinGecko and SOL from Birdeye. Cache 5s; stale after 10s.
+
+### Activity Feed
+
+- `/api/mint/activity` windowed feed of recent trades. Default last 5 minutes; supports `sinceTs` and `limit`.
+
+### Per-mint lock
+
+- Process-local leases with advisory gap using `mint_activity` table. Shared by Manual and Volume.
+
+### Funding / Sweep / Deep Clean
+
+- `/api/wallets/fund` supports strategies: equal, per_wallet, target, volume_stipend; preview with `?dryRun=1`.
+- `/api/wallets/sweep` leaves buffer, skips dust; one tx per wallet; preview with `?dryRun=1`.
+- `/api/wallets/deepclean` closes empty ATAs and unwraps WSOL (guarded); preview supported.
+
+All routes require SIWS and are rate-limited.
+
+### Volume
+
+- Profiles CRUD `/api/volume/profiles` (zod validated; fills defaults from volume defaults)
+- Start/Stop/Status APIs; runner resumes on boot
+
+### Theme
+
+- White-primary theme tokens enforced in `app/globals.css`.
+
+### Run locally
+
+```
+pnpm i
+pnpm dev
+```
+
+Default dev server: http://localhost:3001
+
 ## UI API Endpoints
 
 These endpoints back the cockpit UI and are safe in dry-run by d, e, f, ault:

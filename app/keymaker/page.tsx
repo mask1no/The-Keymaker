@@ -37,21 +37,6 @@ export default function KeymakerPage() {
         const idx = Number(e.key) - 1;
         const w = rows[idx]?.wallet;
         if (w) setSelected((s) => ({ ...s, [w]: !s[w] }));
-      } else if (e.key === 'b') {
-        // set focus to buy input or trigger enqueue
-      } else if (e.key === 's') {
-        // set focus to sell input or trigger enqueue
-      } else if (e.key.toLowerCase() === 'q') {
-        // enqueue toggle
-      } else if (e.key.toLowerCase() === 'r') {
-        // refresh
-      } else if (e.key === 'Enter') {
-        // simulate
-      } else if (
-        (e.metaKey || (e.ctrlKey && navigator.platform.includes('Win'))) &&
-        e.key === 'Enter'
-      ) {
-        // send live
       }
     };
     window.addEventListener('keydown', handler);
@@ -98,21 +83,14 @@ export default function KeymakerPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <input
-            id="turbo"
-            type="checkbox"
-            checked={turbo}
-            onChange={(e) => setTurbo(e.target.checked)}
-          />
+          <input id="turbo" type="checkbox" checked={turbo} onChange={(e) => setTurbo(e.target.checked)} />
           <label htmlFor="turbo" className="text-xs text-zinc-400">
             Turbo (Jito)
           </label>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button className="px-3 py-1.5 rounded-lg border border-zinc-800 text-sm">
-            Simulate
-          </button>
-          <button className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm">
+          <button className="px-3 py-1.5 rounded-lg border border-zinc-800 text-sm">Simulate</button>
+          <button className="px-3 py-1.5 rounded-lg bg-[--primary] text-[--primary-foreground] hover:bg-[--primary-hover] active:bg-[--primary-active] text-sm">
             Send Live
           </button>
         </div>
@@ -124,7 +102,7 @@ export default function KeymakerPage() {
               <th className="px-3 py-2">Pick</th>
               <th className="px-3 py-2">Wallet</th>
               <th className="px-3 py-2">SOL</th>
-              <th className="px-3 py-2">Token Bal</th>
+              <th className="px-3 py-2">Token</th>
               <th className="px-3 py-2">Est. Value</th>
               <th className="px-3 py-2">BUY (SOL)</th>
               <th className="px-3 py-2">SELL (%)</th>

@@ -1,7 +1,41 @@
 export async function register() {
-  // Skip all instrumentation in development
+  // Apply lightweight DB migration and resume volume runs even in development
+  try {
+    const { getDb } = await import('./lib/db');
+    const { readFileSync } = await import('fs');
+    const { join } = await import('path');
+    try {
+      const sql = readFileSync(
+        join(process.cwd(), 'lib', 'db', 'migrations', '005_keymaker_extras.sql'),
+        'utf8',
+      );
+      const db = await getDb();
+      await db.exec(sql);
+      // TTL cleanup for tx_dedupe (older than 24h)
+      try {
+        const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+        await db
+          .run('DELETE FROM tx_dedupe WHERE first_seen_at < ?', [cutoff])
+          .catch(() => undefined);
+        setInterval(
+          () => {
+            db.run('DELETE FROM tx_dedupe WHERE first_seen_at < ?', [
+              Date.now() - 24 * 60 * 60 * 1000,
+            ]).catch(() => undefined);
+          },
+          60 * 60 * 1000,
+        );
+      } catch {}
+    } catch {}
+    try {
+      const { resumeRunsOnBoot } = await import('./lib/volume/runner');
+      await resumeRunsOnBoot();
+    } catch {}
+  } catch {}
+
+  // Skip heavy instrumentation in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('[Instrumentation] Skipped in development');
+    console.log('[Instrumentation] Skipped heavy hooks in development');
     return;
   }
 

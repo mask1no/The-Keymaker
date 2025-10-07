@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import StatusBentoPanel from '@/components/UI/StatusBentoPanel';
+import LiveMarketsBento from '@/components/Home/LiveMarketsBento';
 import EventsPanel from '@/components/Engine/EventsPanel';
 import KCard from '@/components/UI/KCard';
 import BadgePill from '@/components/UI/BadgePill';
@@ -165,6 +166,7 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
         </div>
 
         <div className="xl:col-span-4 space-y-4">
+          <LiveMarketsBento />
           <KCard>
             <div className="text-sm font-medium mb-2">Live Health</div>
             <StatusBentoPanel />

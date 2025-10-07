@@ -9,6 +9,7 @@ const NAV = [
   { name: 'Coin', href: '/coin', icon: Coins },
   { name: 'Coin Library', href: '/coin-library', icon: Library },
   { name: 'Keymaker', href: '/keymaker', icon: Swords },
+  { name: 'Volume', href: '/engine', icon: LineChart },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
   { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
