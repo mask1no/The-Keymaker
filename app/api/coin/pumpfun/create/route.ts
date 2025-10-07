@@ -18,6 +18,10 @@ const Body = z.object({
 
 export async function POST(request: Request) {
   try {
+    return NextResponse.json(
+      { error: 'not_supported', reason: 'pump.fun does not accept custom mint keys' },
+      { status: 501 },
+    );
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
     const cfg = getRateConfig('submit');
     const rl = await rateLimit(`coin:pumpfun_create:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);

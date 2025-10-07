@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { Connection, VersionedTransaction } from '@solana/web3.js';
 import { webcrypto as nodeWebcrypto } from 'crypto';
 import { z } from 'zod';
-import { sendBundle, getBundleStatuses, validateTipAccount } from '@/lib/server/jitoService';
+// Legacy Jito submission disabled in current build scope
+// import { sendBundle, getBundleStatuses, validateTipAccount } from '@/lib/server/jitoService';
 import { isTestMode } from '@/lib/testMode';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 import { readJsonSafe, getEnvInt } from '@/lib/server/request';
@@ -89,12 +90,12 @@ export async function POST(request: Request) {
     }
 
     const lastTx = transactions[transactions.length - 1];
-    if (!isTestMode() && !validateTipAccount(lastTx)) {
-      return NextResponse.json(
-        { error: 'Last transaction must contain a valid JITO tip transfer' },
-        { status: 400 },
-      );
-    }
+    // if (!isTestMode() && !validateTipAccount(lastTx)) {
+    //   return NextResponse.json(
+    //     { error: 'Last transaction must contain a valid JITO tip transfer' },
+    //     { status: 400 },
+    //   );
+    // }
 
     if (simulateOnly) {
       // In test mode, skip RPC simulation and return a stubbed success
@@ -223,97 +224,7 @@ export async function POST(request: Request) {
         data: { region },
       });
     }
-    const { bundle_id } = await sendBundle(region as RegionKey, txs_b64);
-    let attempts = 0;
-    const maxAttempts = 20;
-    const pollInterval = 1200;
-    while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
-      attempts++;
-      try {
-        type JitoBundleStatus = {
-          confirmation_status?: string;
-          slot?: number | null;
-          transactions?: { signature: string }[];
-        };
-        const statuses = (await getBundleStatuses(region as RegionKey, [
-          bundle_id,
-        ])) as unknown as JitoBundleStatus[];
-        const status = statuses?.[0];
-        if (status && status.confirmation_status !== 'pending') {
-          Sentry.captureMessage('Bundle finalized', {
-            level: 'info',
-            extra: { bundle_id, status: status.confirmation_status, slot: status.slot, attempts },
-          });
-          try {
-            const prisma = getPrisma();
-            if (prisma) {
-              await prisma.bundle.create({
-                data: {
-                  status: status.confirmation_status,
-                  fees: null,
-                  outcomes: { bundle_id, slot: status.slot, attempts },
-                },
-              });
-            } else {
-              const conn = await db;
-              await conn.run('INSERT INTO bundles (status, fees, outcomes) VALUES (?, ?, ?)', [
-                status.confirmation_status,
-                null,
-                JSON.stringify({ bundle_id, slot: status.slot, attempts }),
-              ]);
-            }
-          } catch (_e) {
-            /* noop on journal write failure */
-          }
-          return NextResponse.json({
-            bundle_id,
-            signatures: status.transactions?.map((tx: { signature: string }) => tx.signature) ?? [],
-            slot: status.slot ?? null,
-            status: status.confirmation_status,
-            attempts,
-            payloadHash,
-          });
-        }
-      } catch (error) {
-        Sentry.addBreadcrumb({
-          category: 'bundles',
-          message: 'Poll error',
-          level: 'warning',
-          data: { error: (error as Error).message },
-        });
-        // continue polling on errors
-      }
-    }
-
-    Sentry.captureMessage('Bundle timeout', { level: 'warning', extra: { bundle_id, attempts } });
-    try {
-      const prisma = getPrisma();
-      if (prisma) {
-        await prisma.bundle.create({
-          data: { status: 'timeout', fees: null, outcomes: { bundle_id, attempts } },
-        });
-      } else {
-        const conn = await db;
-        await conn.run('INSERT INTO bundles (status, fees, outcomes) VALUES (?, ?, ?)', [
-          'timeout',
-          null,
-          JSON.stringify({ bundle_id, attempts }),
-        ]);
-      }
-    } catch (_e) {
-      void 0;
-    }
-    return NextResponse.json({
-      bundle_id,
-      signatures: transactions.map((tx) => {
-        const sig = tx.signatures[0];
-        return sig ? Buffer.from(sig).toString('base64') : null;
-      }),
-      status: 'timeout',
-      attempts,
-      payloadHash,
-    });
+    return NextResponse.json({ error: 'bundler_disabled' }, { status: 501 });
   } catch (error: any) {
     console.error('Bundle submission error:', error);
     Sentry.captureException(error);

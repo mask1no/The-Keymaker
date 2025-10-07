@@ -23,7 +23,7 @@ export default function CreateForm() {
   const [slippageBps, setSlippageBps] = useState(150);
   const [priorityFee, setPriorityFee] = useState<number>(0);
   const [jitoTipLamports, setJitoTipLamports] = useState<number>(0);
-  const [mode, setMode] = useState<'JITO_BUNDLE' | 'RPC_FANOUT'>('JITO_BUNDLE');
+  const [mode, setMode] = useState<'RPC_FANOUT'>('RPC_FANOUT');
   const [launching, setLaunching] = useState(false);
   const [result, setResult] = useState<{
     mint?: string | null;
@@ -301,7 +301,7 @@ export default function CreateForm() {
             onChange={(e) => setMode(e.target.value as any)}
             className="input bg-zinc-900"
           >
-            <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+            {/* Bundler disabled */}
             <option value="RPC_FANOUT">RPC_FANOUT</option>
           </select>
         </div>

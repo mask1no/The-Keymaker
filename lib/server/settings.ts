@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 type UiSettings = {
-  mode: 'JITO_BUNDLE' | 'RPC_FANOUT';
+  mode: 'RPC_FANOUT';
   region: 'ffm' | 'ams' | 'ny' | 'tokyo';
   priority: 'low' | 'med' | 'high';
   tipLamports: number;
@@ -18,7 +18,7 @@ type UiSettings = {
 };
 
 const DEFAULTS: UiSettings = {
-  mode: 'JITO_BUNDLE',
+  mode: 'RPC_FANOUT',
   region: 'ffm',
   priority: 'med',
   tipLamports: Number(process.env.NEXT_PUBLIC_JITO_TIP_LAMPORTS || 5000),

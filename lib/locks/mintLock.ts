@@ -1,3 +1,52 @@
+type Lease = { until: number };
+const leases = new Map<string, Lease>();
+
+let lastAction: Map<string, number> | null = null;
+
+function getLastActionTs(mint: string): number | undefined {
+  try {
+    if (!lastAction) lastAction = new Map<string, number>();
+    return lastAction.get(mint);
+  } catch {
+    return undefined;
+  }
+}
+
+function setLastActionTs(mint: string, ts: number): void {
+  try {
+    if (!lastAction) lastAction = new Map<string, number>();
+    lastAction.set(mint, ts);
+  } catch {
+    // ignore
+  }
+}
+
+export async function acquire(mint: string, minGapMs = 1500, leaseMs = 4000): Promise<() => void> {
+  const now = Date.now();
+  const persisted = getLastActionTs(mint);
+  const needDelay = persisted ? Math.max(0, persisted + minGapMs - now) : 0;
+  if (needDelay > 0) await new Promise((r) => setTimeout(r, needDelay));
+
+  // Spin until lease available
+  while (true) {
+    const l = leases.get(mint);
+    const now2 = Date.now();
+    if (!l || l.until <= now2) {
+      leases.set(mint, { until: now2 + leaseMs });
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 25));
+  }
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    setLastActionTs(mint, Date.now());
+    leases.delete(mint);
+  };
+}
+
 import { getDb } from '@/lib/db';
 
 const leases = new Map<string, number>();

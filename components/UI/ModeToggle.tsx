@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export type ExecutionMode = 'RPC_FANOUT' | 'JITO_BUNDLE';
+export type ExecutionMode = 'RPC_FANOUT';
 
 interface ModeToggleProps {
   currentMode: ExecutionMode;
@@ -27,14 +27,7 @@ export function ModeToggle({ currentMode, onModeChange }: ModeToggleProps) {
       >
         RPC Fan-Out
       </button>
-      <button
-        onClick={() => handleChange('JITO_BUNDLE')}
-        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-          mode === 'JITO_BUNDLE' ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
-        }`}
-      >
-        Jito Bundle
-      </button>
+      {/* Bundler mode intentionally hidden from primary UI; Turbo tips are handled per-action */}
     </div>
   );
 }

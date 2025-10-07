@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { getBundleStatuses } from '@/lib/server/jitoService';
+// import { getBundleStatuses } from '@/lib/server/jitoService';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,12 +26,7 @@ export async function GET(request: NextRequest) {
       }
       async function loop() {
         while (active) {
-          try {
-            const statuses = await getBundleStatuses(region as any, ids);
-            await push({ region, statuses });
-          } catch (e) {
-            await push({ error: (e as Error).message });
-          }
+          await push({ error: 'bundler_disabled' });
           await new Promise((r) => setTimeout(r, interval));
         }
       }

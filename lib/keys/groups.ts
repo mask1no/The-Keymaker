@@ -58,7 +58,7 @@ export function assignRole(groupId: string, wallet: string, role: Role): Group {
   if (!g) throw new Error('group_not_found');
   const snipers = new Set(g.sniperWallets);
   let dev = g.devWallet ?? null;
-  let buyers = new Set(g.executionWallets);
+  const buyers = new Set(g.executionWallets);
   // Remove from all roles first
   snipers.delete(wallet);
   buyers.delete(wallet);

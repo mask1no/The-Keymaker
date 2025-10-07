@@ -1,4 +1,15 @@
-﻿# Keep config files tracked
+﻿node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+.DS_Store
+.env
+.env.*
+data/*.db
+dev.out.log
+dev.err.log
+# Keep config files tracked
 !components.json
 !package.json
 !tsconfig.json

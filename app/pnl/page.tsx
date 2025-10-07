@@ -51,6 +51,6 @@ function Tile({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function colorize(n: number) {
-  const c = n > 0 ? 'text-emerald-400' : n < 0 ? 'text-red-400' : 'text-zinc-200';
+  const c = n > 0 ? 'text-green-400' : n < 0 ? 'text-red-400' : 'text-zinc-200';
   return <span className={c}>{n.toFixed(4)}</span>;
 }

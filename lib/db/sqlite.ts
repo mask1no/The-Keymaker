@@ -74,6 +74,7 @@ function init(d: Database.Database): void {
       signature TEXT,
       slot INTEGER
     );
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_tx_dedupe_msgHash ON tx_dedupe(msgHash);
     CREATE TABLE IF NOT EXISTS mm_queue (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       createdAt INTEGER NOT NULL,

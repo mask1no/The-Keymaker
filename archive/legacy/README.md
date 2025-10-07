@@ -1,3 +1,5 @@
+Legacy bundler and Jito-related routes and pages moved here to keep history while excluding from build.
+
 # Legacy Code - Deprecated
 
 **⚠️ This directory contains deprecated code paths.**
