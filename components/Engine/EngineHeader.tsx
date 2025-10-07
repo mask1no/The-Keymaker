@@ -7,7 +7,7 @@ export default function EngineHeader({
   cluster,
   onOpenSettings,
 }: {
-  mode: 'JITO_BUNDLE' | 'RPC_FANOUT';
+  mode: 'RPC_FANOUT';
   armedUntilLabel: string;
   dryRun: boolean;
   cluster: string;

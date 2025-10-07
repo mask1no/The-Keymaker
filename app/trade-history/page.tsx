@@ -77,7 +77,7 @@ export default function TradeHistoryPage() {
                   >
                     <td className="py-2 pr-4">{new Date(t.ts).toLocaleString()}</td>
                     <td
-                      className={`py-2 pr-4 ${t.side === 'buy' ? 'text-emerald-400' : 'text-red-400'}`}
+                      className={`py-2 pr-4 ${t.side === 'buy' ? 'text-green-400' : 'text-red-400'}`}
                     >
                       {t.side.toUpperCase()}
                     </td>

@@ -64,7 +64,7 @@ macOS/Linux: solana-keygen pubkey ~/keymaker-payer.json`;
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">Engine</h1>
         <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-950/60 text-violet-200 border-violet-900/60">
-          Execution: JITO_BUNDLE
+          Execution: Turbo (1-tx tip)
         </span>
         <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/15 text-amber-300 border-amber-900/40">
           DryRun: ON

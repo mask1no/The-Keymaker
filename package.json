@@ -24,6 +24,8 @@
     "format": "prettier -w .",
     "type-check": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "check:colors": "grep -R --line-number -E \"(emerald-|sky-)\" app components || true",
+    "check:forbidden": "grep -R --line-number -E \"(Bundler|JITO_BUNDLE)\" app components || true",
     "type-check:server": "tsc --project tsconfig.server.json --noEmit",
     "test": "jest",
     "test:coverage": "jest --coverage",

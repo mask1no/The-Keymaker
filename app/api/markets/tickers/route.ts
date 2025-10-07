@@ -1,3 +1,26 @@
+import { NextRequest } from 'next/server';
+import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
+
+export const runtime = 'nodejs';
+
+let cache: { at: number; data: Array<{ symbol: 'BTC'|'ETH'|'SOL'|'CAKE'; price: number; change24h: number; logoUrl: string; stale?: boolean }> } | null = null;
+
+export const GET = withSessionAndLimit(async (_req: NextRequest) => {
+  const now = Date.now();
+  if (cache && now - cache.at < 5000) {
+    return { data: cache.data } as any;
+  }
+  // Placeholder static values; replace with your price provider service.
+  const data = [
+    { symbol: 'BTC' as const, price: 68888, change24h: 2.1, logoUrl: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', stale: false },
+    { symbol: 'ETH' as const, price: 3788, change24h: -0.6, logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', stale: false },
+    { symbol: 'SOL' as const, price: 168, change24h: 3.4, logoUrl: 'https://cryptologos.cc/logos/solana-sol-logo.png', stale: false },
+    { symbol: 'CAKE' as const, price: 2.3, change24h: 0.2, logoUrl: 'https://cryptologos.cc/logos/pancakeswap-cake-logo.png', stale: false },
+  ];
+  cache = { at: now, data };
+  return { data } as any;
+});
+
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';

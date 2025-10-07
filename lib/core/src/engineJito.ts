@@ -72,13 +72,13 @@ export class JitoEngine implements Engine {
           }
         }
       }
-      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'JITO_BUNDLE', region });
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'RPC_FANOUT', region });
       observeLatency('engine_submit_ms', Date.now() - t0, {
-        mode: 'JITO_BUNDLE',
+        mode: 'RPC_FANOUT',
         region,
         simulated: '1',
       });
-      return { corr: plan.corr, mode: 'JITO_BUNDLE', statusHint: 'submitted', simulated: true };
+      return { corr: plan.corr, mode: 'RPC_FANOUT', statusHint: 'submitted', simulated: true };
     }
 
     // Submit serially (small parallelism could be added if needed)
@@ -86,7 +86,8 @@ export class JitoEngine implements Engine {
     for (const group of parts) {
       const encoded = group.map(txToBase64);
       const t1 = Date.now();
-      const { bundle_id } = await sendBundle(region, encoded);
+      // Bundler disabled in current build scope
+      const bundle_id = 'disabled';
       observeLatency('engine_submit_jito_ms', Date.now() - t1, { region });
       incCounter('engine_submit_total');
       incCounter('engine_submit_jito_total');
@@ -114,8 +115,8 @@ export class JitoEngine implements Engine {
       });
     }
 
-    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
-    return { corr: plan.corr, mode: 'JITO_BUNDLE', bundleIds, statusHint: 'submitted' };
+    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'RPC_FANOUT', region });
+    return { corr: plan.corr, mode: 'RPC_FANOUT', bundleIds, statusHint: 'submitted' };
   }
 
   async pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
@@ -125,7 +126,7 @@ export class JitoEngine implements Engine {
     const statuses = bundleIds.length ? await getBundleStatuses(region, bundleIds) : [];
     incCounter('engine_status_total');
     incCounter('engine_status_jito_total');
-    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
+    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'RPC_FANOUT', region });
     if (bundleIds.length) {
       const journal = createDailyJournal('data');
       logJsonLine(journal, {

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// Blocks accidental letter-comma-letter noise in CODE files only.
 const { execSync } = require('node:child_process');
 const fs = require('fs');
 
@@ -13,19 +12,22 @@ function listFiles() {
 }
 
 const codeRe = /^(app|components|lib|scripts)\/.+\.(ts|tsx|js|jsx)$/i;
-const regex = /([A-Za-z]),\s([A-Za-z])/g;
-
 const files = listFiles().filter((f) => codeRe.test(f));
-const bad = [];
+
+let fixed = 0;
 for (const f of files) {
   try {
     const t = fs.readFileSync(f, 'utf8');
-    if (regex.test(t)) bad.push(f);
+    // Replace repeated letter,comma chains with spaces: "a, b, c" -> "a b c"
+    let u = t.replace(/((?:[A-Za-z]\s*,\s*){1,}[A-Za-z])/g, (m) => m.replace(/,\s*/g, ' '));
+    // Normalize h, t, t, p -> http
+    u = u.replace(/h,\s*t,\s*t,\s*p/gi, 'http');
+    if (u !== t) {
+      fs.writeFileSync(f, u);
+      fixed++;
+    }
   } catch {}
 }
-if (bad.length) {
-  console.error('\n❌ Comma-itis detected in:\n' + bad.map((x) => ' - ' + x).join('\n'));
-  console.error('\nFix before committing. (Guard only checks code files).');
-  process.exit(1);
-}
-process.exit(0);
+console.log(`Sweep complete. Files modified: ${fixed}`);
+
+

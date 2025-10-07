@@ -1,3 +1,38 @@
+import { NextRequest } from 'next/server';
+import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
+
+export const runtime = 'nodejs';
+
+type Item = { ts: number; side: 'buy'|'sell'; price: number; qty: number; wallet: string; sig?: string };
+let cache: Record<string, { at: number; items: Item[] }> = {};
+
+export const GET = withSessionAndLimit(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url);
+  const mint = searchParams.get('mint') || 'unknown';
+  const sinceTs = Number(searchParams.get('sinceTs') || '0');
+  const limit = Math.max(1, Math.min(200, Number(searchParams.get('limit') || '50')));
+
+  const key = `${mint}`;
+  const now = Date.now();
+  const entry = cache[key];
+  if (!entry || now - entry.at > 5000) {
+    // Replace with real provider; here we just synthesize placeholder items
+    const base: Item[] = Array.from({ length: 60 }).map((_, i) => ({
+      ts: now - i * 2000,
+      side: Math.random() > 0.5 ? 'buy' : 'sell',
+      price: 0.0001 + Math.random() * 0.0002,
+      qty: Math.random() * 1000,
+      wallet: 'DevWallet',
+    }));
+    cache[key] = { at: now, items: base };
+  }
+  const all = cache[key].items
+    .filter((x) => (sinceTs ? x.ts >= sinceTs : true))
+    .slice(0, limit);
+  const stale = now - (cache[key]?.at || 0) > 8000;
+  return { items: all, stale } as any;
+});
+
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';

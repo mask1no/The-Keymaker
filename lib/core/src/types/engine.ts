@@ -5,7 +5,7 @@
 
 import type { Keypair } from '@solana/web3.js';
 
-export type ExecutionMode = 'RPC_FANOUT' | 'JITO_BUNDLE';
+export type ExecutionMode = 'RPC_FANOUT';
 
 export type OutcomeStatus =
   | 'SIMULATED' // Dry-run simulation successful

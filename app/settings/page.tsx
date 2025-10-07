@@ -27,7 +27,7 @@ export default async function SettingsPage() {
             action={async (formData: FormData) => {
               'use server';
               const body = {
-                mode: String(formData.get('mode') || 'JITO_BUNDLE'),
+                mode: String(formData.get('mode') || 'RPC_FANOUT'),
                 region: String(formData.get('region') || 'ffm'),
                 priority: String(formData.get('priority') || 'med'),
                 tipLamports: Number(formData.get('tipLamports') || 5000),
@@ -56,7 +56,7 @@ export default async function SettingsPage() {
                 defaultValue={ui.mode}
                 className="input w-full px-2 py-1 bg-zinc-900"
               >
-                <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+                <option value="RPC_FANOUT">RPC_FANOUT</option>
                 <option value="RPC_FANOUT">RPC_FANOUT</option>
               </select>
             </div>

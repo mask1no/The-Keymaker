@@ -4,8 +4,8 @@ export default function ModeTiles({
   mode,
   setMode,
 }: {
-  mode: 'JITO_BUNDLE' | 'RPC_FANOUT';
-  setMode: (m: 'JITO_BUNDLE' | 'RPC_FANOUT') => void;
+  mode: 'RPC_FANOUT';
+  setMode: (m: 'RPC_FANOUT') => void;
 }) {
   const Tile = ({
     title,
@@ -32,16 +32,9 @@ export default function ModeTiles({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Tile
           title="Jito Bundle"
-          desc="Same-block ordered bundle with tip"
-          active={mode === 'JITO_BUNDLE'}
-          onClick={async () => {
-            setMode('JITO_BUNDLE');
-            await fetch('/api/ui/settings', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ mode: 'JITO_BUNDLE' }),
-            });
-          }}
+          desc="Turbo tip (1-tx); Bundler disabled"
+          active={false}
+          onClick={async () => { /* no-op */ }}
         />
         <Tile
           title="Direct RPC"

@@ -76,6 +76,23 @@ export default function CoinPage() {
         <p className="text-sm text-muted-foreground">
           Create (Pump.fun), dev buulti-wallet buith quick market lookup.
         </p>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-zinc-400">Developer Wallet</label>
+            <select className="select w-full bg-zinc-900">
+              <option>Master</option>
+            </select>
+          </div>
+          <div className="flex items-end gap-2">
+            <div className="flex items-center gap-2">
+              <input id="vanity" type="checkbox" disabled />
+              <label htmlFor="vanity" className="text-xs text-zinc-400">
+                Vanity mint (disabled on pump.fun)
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="mt-1 text-xs text-zinc-500">pump.fun does not accept custom mint keys.</div>
         <div className="mt-3 flex items-center gap-2">
           <button
             className="px-3 py-2 rounded-xl bg-zinc-800 , r:bg-zinc-700 text-sm"

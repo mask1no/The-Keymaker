@@ -132,11 +132,13 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
           const raw = vtx.serialize();
           let msgHashHex: string | null = null;
           try {
-            // Compute sha256 of VersionedMessage
-            // @ts-expect-error access private field safely
-            const msgBytes: Uint8Array = vtx.message.serialize();
-            const digest = await crypto.subtle.digest('SHA-256', msgBytes);
-            msgHashHex = Buffer.from(new Uint8Array(digest)).toString('hex');
+            const { stableStringify, sha256Hex } = await import('@/lib/util/jsonStableHash');
+            // Canonical hash: stable stringify of core message fields
+            const core = {
+              message: Buffer.from(vtx.message.serialize()).toString('base64'),
+              // optional: include first account+recent blockhash in case of rebuilds
+            };
+            msgHashHex = sha256Hex(stableStringify(core));
             // Record in sqlite if not present
             try {
               const { db } = await import('@/lib/db');
@@ -147,15 +149,16 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
               if (row?.signature) {
                 outcomes.push({
                   wallet: walletPubkey,
-                  status: 'ERROR',
-                  error: 'Duplicate detected; returning original signature',
+                  status: 'CONFIRMED',
+                  signature: row.signature,
                 });
                 return;
               }
-              await d.run(
-                'INSERT OR IGNORE INTO tx_dedupe (msgHash, firstSeenAt, status) VALUES (?, ?, ?)',
-                [msgHashHex, Date.now(), 'pending'],
-              );
+              await d.run('INSERT OR IGNORE INTO tx_dedupe (msgHash, firstSeenAt, status) VALUES (?, ?, ?)', [
+                msgHashHex,
+                Date.now(),
+                'pending',
+              ]);
             } catch {}
           } catch {}
           let signature: string | null = null;

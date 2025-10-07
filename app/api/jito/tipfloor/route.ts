@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getTipFloor } from '@/lib/server/jitoService';
+// import { getTipFloor } from '@/lib/server/jitoService';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 
 const cache = new Map<string, { at: number; data: any }>();
@@ -21,22 +21,7 @@ export async function GET(request: Request) {
         headers: { 'content-type': 'application/json' },
       });
 
-    const now = Date.now();
-    const c = cache.get(region);
-    if (c && now - c.at < 1000) return NextResponse.json(c.data);
-
-    const tipFloor = await getTipFloor(region as any);
-    const payload = {
-      p25: tipFloor.landed_tips_25th_percentile,
-      p50: tipFloor.landed_tips_50th_percentile,
-      p75: tipFloor.landed_tips_75th_percentile,
-      ema_50th: tipFloor.ema_landed_tips_50th_percentile,
-      region,
-    };
-    cache.set(region, { at: now, data: payload });
-    return new Response(JSON.stringify(payload), {
-      headers: { 'content-type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'bundler_disabled' }, { status: 501 });
   } catch (error: any) {
     console.error('Tip floor request failed:', error);
     return new Response(JSON.stringify({ error: error?.message || 'Failed to get tip floor' }), {

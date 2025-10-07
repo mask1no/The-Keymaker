@@ -15,7 +15,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
-  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
+  mode: z.enum(['RPC_FANOUT']).optional(),
   region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
   bundleId: z.string().min(4).optional(),
   bundleIds: z.array(z.string().min(4)).optional(),
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     }
     const body = rawText ? JSON.parse(rawText) : {};
     const {
-      mode = 'JITO_BUNDLE',
+      mode = 'RPC_FANOUT',
       region = 'ffm',
       bundleId,
       bundleIds,
