@@ -1,6 +1,5 @@
 import { acquire } from '@/lib/locks/mintLock';
 import type { VolumeProfile, VolumeRunStatus, VolumeRunStats } from '@/lib/types/volume';
-import { getDb } from '@/lib/db';
 
 type Scheduled = {
   runId: string;
@@ -28,37 +27,57 @@ function randomDelay(msMin: number, msMax: number): number {
 }
 
 async function getProfile(profileId: string): Promise<VolumeProfile | null> {
-  const db = await getDb();
-  const row = await db.get('SELECT id, name, json FROM volume_profiles WHERE id = ?', [profileId]);
-  if (!row) return null;
   try {
-    const j = JSON.parse(row.json);
-    return { id: row.id, name: row.name, ...j } as VolumeProfile;
+    const { getDb } = await import('@/lib/db');
+    const db = await getDb();
+    const row = await db.get('SELECT id, name, json FROM volume_profiles WHERE id = ?', [
+      profileId,
+    ]);
+    if (!row) return null;
+    try {
+      const j = JSON.parse(row.json);
+      return { id: row.id, name: row.name, ...j } as VolumeProfile;
+    } catch {
+      return null;
+    }
   } catch {
     return null;
   }
 }
 
 async function updateStats(runId: string, fn: (s: VolumeRunStats) => void) {
-  const db = await getDb();
-  const row = await db.get('SELECT stats_json FROM volume_runs WHERE id = ?', [runId]);
-  const stats: VolumeRunStats = row?.stats_json
-    ? JSON.parse(row.stats_json)
-    : { actions: 0, buys: 0, sells: 0, spendLamports: 0, startedAt: Date.now() };
-  fn(stats);
-  await db.run('UPDATE volume_runs SET stats_json = ? WHERE id = ?', [
-    JSON.stringify(stats),
-    runId,
-  ]);
+  try {
+    const { getDb } = await import('@/lib/db');
+    const db = await getDb();
+    const row = await db.get('SELECT stats_json FROM volume_runs WHERE id = ?', [runId]);
+    const stats: VolumeRunStats = row?.stats_json
+      ? JSON.parse(row.stats_json)
+      : { actions: 0, buys: 0, sells: 0, spendLamports: 0, startedAt: Date.now() };
+    fn(stats);
+    await db.run('UPDATE volume_runs SET stats_json = ? WHERE id = ?', [
+      JSON.stringify(stats),
+      runId,
+    ]);
+  } catch {}
 }
 
 async function shouldStop(runId: string): Promise<string | null> {
-  const db = await getDb();
-  const row = await db.get('SELECT status, stats_json FROM volume_runs WHERE id = ?', [runId]);
-  const status: VolumeRunStatus = row?.status || 'stopped';
-  if (status === 'stopping' || status === 'stopped' || status === 'completed' || status === 'error')
-    return status;
-  return null;
+  try {
+    const { getDb } = await import('@/lib/db');
+    const db = await getDb();
+    const row = await db.get('SELECT status, stats_json FROM volume_runs WHERE id = ?', [runId]);
+    const status: VolumeRunStatus = row?.status || 'stopped';
+    if (
+      status === 'stopping' ||
+      status === 'stopped' ||
+      status === 'completed' ||
+      status === 'error'
+    )
+      return status;
+    return null;
+  } catch {
+    return 'stopped';
+  }
 }
 
 async function enqueueOne(runId: string, mint: string, profile: VolumeProfile): Promise<void> {
@@ -94,8 +113,12 @@ function ensurePump() {
       }
       const stop = await shouldStop(due.runId);
       if (stop) continue;
-      const db = await getDb();
-      const run = await db.get('SELECT profile_id FROM volume_runs WHERE id = ?', [due.runId]);
+      let run: any = null;
+      try {
+        const { getDb } = await import('@/lib/db');
+        const db = await getDb();
+        run = await db.get('SELECT profile_id FROM volume_runs WHERE id = ?', [due.runId]);
+      } catch {}
       const profile = run ? await getProfile(run.profile_id) : null;
       if (!profile) continue;
       await enqueueOne(due.runId, due.mint, profile);
@@ -120,6 +143,7 @@ export async function scheduleRun(runId: string, profile: VolumeProfile) {
 
 export async function resumeRunsOnBoot() {
   try {
+    const { getDb } = await import('@/lib/db');
     const db = await getDb();
     const rows = await db.all("SELECT id, profile_id FROM volume_runs WHERE status = 'running'");
     for (const r of rows || []) {

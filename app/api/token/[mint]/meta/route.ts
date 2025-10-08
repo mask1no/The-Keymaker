@@ -102,7 +102,7 @@ async function fetchMetaplexOnchain(mint: string) {
   }
 }
 
-export async function GET(_, request: Request, context: { params: { mint?: string } }) {
+export async function GET(request: Request, context: { params: { mint?: string } }) {
   const mint = context.params?.mint;
   if (!mint || typeof mint !== 'string') {
     return NextResponse.json({ error: 'invalid_mint' }, { status: 400 });

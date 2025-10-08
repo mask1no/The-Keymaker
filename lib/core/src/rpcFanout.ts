@@ -299,26 +299,7 @@ ms`,
                 txid: signature,
                 mode: 'RPC',
               });
-              try {
-                const { recordTrade } = await import('@/lib/db/sqlite');
-                recordTrade({
-                  ts: Date.now(),
-                  side: meta?.kind === 'sell' ? 'sell' : 'buy',
-                  mint:
-                    meta?.kind === 'sell'
-                      ? meta?.inputMint || 'unknown'
-                      : meta?.outputMint || 'unknown',
-                  qty,
-                  priceLamports,
-                  feeLamports: 0,
-                  slot: confirmation.context.slot,
-                  signature,
-                  bundleId: null,
-                  wallet: walletPubkey,
-                  groupId: groupIdFromIntent || null,
-                  mode: 'RPC',
-                });
-              } catch {}
+              // DB record disabled in this build
             } catch {}
           }
 

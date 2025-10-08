@@ -55,8 +55,11 @@
     "utils/crypto.ts",
     "**/*.test.ts",
     "lib/core/src/jitoBundle.ts",
-    "app/api/engine/selftest/**",
+    "lib/core/src/jito.ts",
+    "lib/core/src/engineJito.ts",
     "app/api/bundles/**",
+    "tests/e2e/smoke.bundle.spec.ts",
+    "app/api/engine/selftest/**",
     "app/api/pumpfun-fallback/**",
     "scripts/**"
   ]

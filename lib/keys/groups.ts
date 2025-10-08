@@ -6,7 +6,6 @@ import {
 } from '@/lib/types/walletGroups';
 import {
   loadWalletGroupsFor,
-  writeFileSync as _noop,
   setMasterWallet as _setMasterWallet,
   updateWalletGroup as _updateWalletGroup,
   createWalletGroup as _createWalletGroup,

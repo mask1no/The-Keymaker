@@ -20,8 +20,8 @@ export default function MarketPanel() {
   const [market, setMarket] = useState<Market | null>(null);
 
   useEffect(() => {
-    if (draft?.lastMint) setMint(draft.lastMint);
-  }, [draft?.lastMint]);
+    if (draft?.mint) setMint(draft.mint);
+  }, [draft?.mint]);
 
   async function fetchMarket(e: React.FormEvent) {
     e.preventDefault();
@@ -107,14 +107,8 @@ function Stat({ label, value }: { label: string; value?: string }) {
 
 function fmtUsd(v?: number) {
   if (typeof v !== 'number' || !isFinite(v)) return undefined;
-  if (v >= 1_000_000_000)
-    return `$${(v / 1_000_000_000).toFixed(2)}
-B`;
-  if (v >= 1_000_000)
-    return `$${(v / 1_000_000).toFixed(2)}
-M`;
-  if (v >= 1_000)
-    return `$${(v / 1_000).toFixed(2)}
-K`;
+  if (v >= 1_000_000_000) return `$${(v / 1_000_000_000).toFixed(2)}B`;
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(2)}K`;
   return `$${v.toFixed(4)}`;
 }

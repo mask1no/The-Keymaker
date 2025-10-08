@@ -1,31 +1,17 @@
 import { create } from 'zustand';
-
 export type CoinDraft = {
   name: string;
   symbol: string;
-  image: string;
+  image?: string;
   description?: string;
   website?: string;
   twitter?: string;
   telegram?: string;
-  lastMint?: string | null;
+  mint?: string;
 };
-
-type DraftState = {
-  draft: CoinDraft | null;
-  setDraft: (d: CoinDraft | null) => void;
-  clear: () => void;
-  setLastMint: (mint: string | null) => void;
-};
-
-export const useDraftStore = create<DraftState>((set) => ({
-  draft: null,
-  setDraft: (d) => set({ draft: d }),
-  clear: () => set({ draft: null }),
-  setLastMint: (mint) =>
-    set((s) => ({
-      draft: s.draft
-        ? { ...s.draft, lastMint: mint }
-        : { name: '', symbol: '', image: '', lastMint: mint },
-    })),
+type S = { draft: CoinDraft; setDraft: (d: Partial<CoinDraft>) => void; reset: () => void };
+export const useDraftStore = create<S>((set) => ({
+  draft: { name: '', symbol: '' },
+  setDraft: (d) => set((s) => ({ draft: { ...s.draft, ...d } })),
+  reset: () => set({ draft: { name: '', symbol: '' } }),
 }));

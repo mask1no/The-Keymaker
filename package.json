@@ -23,7 +23,7 @@
     "lint:fix": "pnpm lint --fix",
     "format": "prettier -w .",
     "type-check": "tsc --noEmit",
-    "typecheck": "tsc --project tsconfig.core.json --noEmit",
+    "typecheck": "tsc -p . --noEmit",
     "check:ellipses": "node scripts/check_ellipses.cjs",
     "check:colors": "node scripts/check_colors.cjs",
     "check:forbidden": "node scripts/check_forbidden.cjs",

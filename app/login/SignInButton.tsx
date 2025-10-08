@@ -73,7 +73,7 @@ function Inner() {
       <WalletMultiButton />
       <button
         onClick={onSignIn}
-        className="w-full bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 text-sm disabled:opacity-60"
+        className="w-full rounded px-3 py-2 text-sm disabled:opacity-60 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
         disabled={busy || !publicKey}
       >
         {publicKey ? (busy ? 'Signing' : 'Sign in') : 'Connect wallet to sign'}

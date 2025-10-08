@@ -1,29 +1,23 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/server/session';
-import { scheduleRun } from '@/lib/volume/runner';
-import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
-
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 const Body = z.object({ profileId: z.string().min(3) });
 
-export const POST = withSessionAndLimit(async (request: NextRequest) => {
-  const body = await request.json().catch(() => ({}));
-  const { profileId } = Body.parse(body);
+export const POST = withSessionAndLimit(async (req: NextRequest) => {
+  const body = Body.parse(await req.json());
   const db = await getDb();
   const now = Date.now();
-  const runId = (globalThis.crypto?.randomUUID?.() ||
-    Math.random().toString(36).slice(2)) as string;
-  await db.run(
-    "INSERT INTO volume_runs (id, profile_id, status, started_at, stats_json) VALUES (?, ?, 'running', ?, '{}')",
-    [runId, profileId, now],
+  const id = `run_${now}_${Math.random().toString(16).slice(2)}`;
+  await db.exec(
+    'CREATE TABLE IF NOT EXISTS volume_runs (id TEXT PRIMARY KEY, profileId TEXT, status TEXT, startedAt INTEGER, stoppedAt INTEGER, statsJson TEXT)',
   );
-  const row = await db.get('SELECT json FROM volume_profiles WHERE id = ?', [profileId]);
-  const profile = row ? { id: profileId, name: profileId, ...JSON.parse(row.json) } : null;
-  if (!profile) throw new Error('profile_not_found');
-  await scheduleRun(runId, profile);
-  return { ok: true, runId } as any;
+  await db.run('INSERT INTO volume_runs(id,profileId,status,startedAt) VALUES (?,?,?,?)', [
+    id,
+    body.profileId,
+    'running',
+    now,
+  ]);
+  return { runId: id, status: 'running' };
 });

@@ -26,7 +26,8 @@ export default function CustomFeesPage() {
   }
 
   const pricePerCu = Math.ceil(
-    (fees.rpc.buyPriorityLamports * 1e6) / Math.max(1, fees.rpc.cuLimit),
+    (Number(fees.rpc?.buyPriorityLamports || 0) * 1e6) /
+      Math.max(1, Number(fees.rpc?.cuLimit || 0)),
   );
 
   return (
@@ -50,7 +51,7 @@ export default function CustomFeesPage() {
             <input
               type="number"
               className="input bg-zinc-900 w-full"
-              defaultValue={fees.rpc.buyPriorityLamports}
+              defaultValue={fees.rpc?.buyPriorityLamports || 0}
               onBlur={(e) =>
                 save({ ...fees, rpc: { ...fees.rpc, buyPriorityLamports: Number(e.target.value) } })
               }
@@ -65,7 +66,7 @@ export default function CustomFeesPage() {
               onBlur={(e) =>
                 save({
                   ...fees,
-                  rpc: { ...fees.rpc, sellPriorityLamports: Number(e.target.value) },
+                  rpc: { ...(fees.rpc || {}), sellPriorityLamports: Number(e.target.value) },
                 })
               }
             />
@@ -75,9 +76,9 @@ export default function CustomFeesPage() {
             <input
               type="number"
               className="input bg-zinc-900 w-full"
-              defaultValue={fees.rpc.cuLimit}
+              defaultValue={fees.rpc?.cuLimit || 0}
               onBlur={(e) =>
-                save({ ...fees, rpc: { ...fees.rpc, cuLimit: Number(e.target.value) } })
+                save({ ...fees, rpc: { ...(fees.rpc || {}), cuLimit: Number(e.target.value) } })
               }
             />
             <div className="text-[11px] text-zinc-500 mt-1">SetComputeUnitLimit</div>
@@ -86,9 +87,9 @@ export default function CustomFeesPage() {
             <label className="text-xs text-zinc-400">Preset</label>
             <select
               className="input bg-zinc-900 w-full"
-              defaultValue={fees.rpc.preset || 'med'}
+              defaultValue={(fees.rpc?.preset as any) || 'med'}
               onChange={(e) =>
-                save({ ...fees, rpc: { ...fees.rpc, preset: e.target.value as any } })
+                save({ ...fees, rpc: { ...(fees.rpc || {}), preset: e.target.value as any } })
               }
             >
               <option value="low">low</option>
@@ -101,9 +102,9 @@ export default function CustomFeesPage() {
             <input
               id="auto"
               type="checkbox"
-              defaultChecked={fees.rpc.autoPriority}
+              defaultChecked={!!fees.rpc?.autoPriority}
               onChange={(e) =>
-                save({ ...fees, rpc: { ...fees.rpc, autoPriority: e.target.checked } })
+                save({ ...fees, rpc: { ...(fees.rpc || {}), autoPriority: e.target.checked } })
               }
             />
             <label htmlFor="auto" className="text-xs text-zinc-400">
@@ -117,9 +118,12 @@ export default function CustomFeesPage() {
             <input
               type="number"
               className="input bg-zinc-900 w-full"
-              defaultValue={fees.jito.buyTipLamports}
+              defaultValue={fees.jito?.buyTipLamports || 0}
               onBlur={(e) =>
-                save({ ...fees, jito: { ...fees.jito, buyTipLamports: Number(e.target.value) } })
+                save({
+                  ...fees,
+                  jito: { ...(fees.jito || {}), buyTipLamports: Number(e.target.value) },
+                })
               }
             />
           </div>
@@ -128,9 +132,12 @@ export default function CustomFeesPage() {
             <input
               type="number"
               className="input bg-zinc-900 w-full"
-              defaultValue={fees.jito.sellTipLamports}
+              defaultValue={fees.jito?.sellTipLamports || 0}
               onBlur={(e) =>
-                save({ ...fees, jito: { ...fees.jito, sellTipLamports: Number(e.target.value) } })
+                save({
+                  ...fees,
+                  jito: { ...(fees.jito || {}), sellTipLamports: Number(e.target.value) },
+                })
               }
             />
           </div>
@@ -138,8 +145,10 @@ export default function CustomFeesPage() {
             <input
               id="jito"
               type="checkbox"
-              defaultChecked={fees.jito.enabled}
-              onChange={(e) => save({ ...fees, jito: { ...fees.jito, enabled: e.target.checked } })}
+              defaultChecked={!!fees.jito?.enabled}
+              onChange={(e) =>
+                save({ ...fees, jito: { ...(fees.jito || {}), enabled: e.target.checked } })
+              }
             />
             <label htmlFor="jito" className="text-xs text-zinc-400">
               Enable Turbo UI

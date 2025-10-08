@@ -367,26 +367,7 @@ export async function executeJitoBundle(opts: JitoBundleOptions): Promise<Engine
                   txid: undefined,
                   mode: 'JITO',
                 });
-                try {
-                  const { recordTrade } = await import('@/lib/db/sqlite');
-                  recordTrade({
-                    ts: Date.now(),
-                    side: meta.kind === 'sell' ? 'sell' : 'buy',
-                    mint:
-                      meta.kind === 'sell'
-                        ? meta.inputMint || 'unknown'
-                        : meta?.outputMint || 'unknown',
-                    qty,
-                    priceLamports,
-                    feeLamports: finalTip || 0,
-                    slot: result.slot ?? null,
-                    signature: null,
-                    bundleId,
-                    wallet: null,
-                    groupId: null,
-                    mode: 'JITO',
-                  });
-                } catch {}
+                // DB record disabled in this build
               }
             } catch {}
           }

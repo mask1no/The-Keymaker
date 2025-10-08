@@ -1,74 +1,44 @@
 import { create } from 'zustand';
 
 export interface HotkeysConfig {
-  openSellMonitor: string;
-  fundGroup: string;
-  startBundle: string;
-  exportCsv: string;
-  walletToggle: string;
-  commandPalette: string;
+  row1?: string;
+  row2?: string;
+  row3?: string;
+  row4?: string;
+  row5?: string;
+  row6?: string;
+  row7?: string;
+  row8?: string;
+  row9?: string;
+  buy?: string;
+  sell?: string;
+  enqueueToggle?: string;
+  refresh?: string;
+  simulate?: string;
+  sendLive?: string;
+  help?: string;
 }
-
-export interface SettingsState {
-  heliusRpc: string;
-  birdeyeApiKey?: string;
-  pumpfunApiKey?: string;
-  jupiterApiKey?: string;
-  jitoAuthToken?: string;
-  jitoWsUrl?: string;
-  twoCaptchaKey?: string;
-  headlessTimeout: number;
-  jitoTipLamports: number;
-  jupiterFeeBps: number;
+export interface CustomFees {
+  useCustomFees?: boolean;
+  rpc?: {
+    buyPriorityLamports?: number;
+    sellPriorityLamports?: number;
+    cuLimit?: number;
+    preset?: string;
+    autoPriority?: boolean;
+  };
+  jito?: { enabled?: boolean; buyTipLamports?: number; sellTipLamports?: number };
+  slippageBpsDefault?: number;
+}
+type SettingsState = {
   hotkeys: HotkeysConfig;
-  lastCreatedTokenAddress?: string;
-  setSettings: (settings: Partial<SettingsState>) => void;
-  setHotkeys: (hotkeys: Partial<HotkeysConfig>) => void;
-  setLastCreatedTokenAddress: (address: string) => void;
-  fetchSettings: () => Promise<void>;
-}
-
-export const useSettingsStore = create<SettingsState>((set, get) => ({
-  heliusRpc: process.env.NEXT_PUBLIC_HELIUS_RPC || '',
-  birdeyeApiKey: '',
-  pumpfunApiKey: undefined,
-  jupiterApiKey: undefined,
-  jitoAuthToken: undefined,
-  jitoWsUrl: process.env.NEXT_PUBLIC_JITO_ENDPOINT,
-  twoCaptchaKey: undefined,
-  headlessTimeout: 30,
-  jitoTipLamports: Number(process.env.NEXT_PUBLIC_JITO_TIP_LAMPORTS || 5000),
-  jupiterFeeBps: Number(process.env.NEXT_PUBLIC_JUPITER_FEE_BPS || 5),
-  hotkeys: {
-    openSellMonitor: 'Meta+ECtrl+E',
-    fundGroup: 'g',
-    startBundle: 'b',
-    exportCsv: 'e',
-    walletToggle: 'w',
-    commandPalette: 'Meta+KCtrl+K',
-  },
-  lastCreatedTokenAddress: undefined,
-  setSettings: (settings) => set((state) => ({ ...state, ...settings })),
-  setHotkeys: (hotkeys) =>
-    set((state) => ({
-      hotkeys: { ...state.hotkeys, ...hotkeys },
-    })),
-  setLastCreatedTokenAddress: (address) => set({ lastCreatedTokenAddress: address }),
-  fetchSettings: async () => {
-    try {
-      const response = await fetch('/api/ui/settings');
-      if (!response.ok) return;
-      const data = (await response.json()) as any;
-      set((state) => ({
-        ...state,
-        jitoTipLamports:
-          typeof data?.jitoTipLamports === 'number' ? data.jitoTipLamports : state.jitoTipLamports,
-        jupiterFeeBps:
-          typeof data?.jupiterFeeBps === 'number' ? data.jupiterFeeBps : state.jupiterFeeBps,
-      }));
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch settings:', error);
-    }
-  },
+  customFees: CustomFees;
+  setHotkeys: (h: HotkeysConfig) => void;
+  setCustomFees: (f: CustomFees) => void;
+};
+export const useSettingsStore = create<SettingsState>((set) => ({
+  hotkeys: {},
+  customFees: {},
+  setHotkeys: (hotkeys) => set({ hotkeys }),
+  setCustomFees: (customFees) => set({ customFees }),
 }));

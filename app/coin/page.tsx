@@ -19,7 +19,7 @@ export default function CoinPage() {
     async function run() {
       try {
         if (!draft) return;
-        if (draft.lastMint) setMint(draft.lastMint);
+        if (draft.mint) setMint(draft.mint);
       } catch {}
     }
     run();
@@ -42,7 +42,7 @@ export default function CoinPage() {
           website: j.website || '',
           twitter: j.twitter || '',
           telegram: j.telegram || '',
-          lastMint: null,
+          mint: undefined,
         });
       }
     } catch {}
@@ -108,7 +108,7 @@ export default function CoinPage() {
                     website: j.website || '',
                     twitter: j.twitter || '',
                     telegram: j.telegram || '',
-                    lastMint: null,
+                    mint: undefined,
                   });
                 } catch {
                   alert('Clipboard did not contain JSON');

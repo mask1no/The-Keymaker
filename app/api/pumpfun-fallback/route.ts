@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
-export async function POST(_, request: Request) {
+export async function POST(request: Request) {
   return NextResponse.json(
     {
       error: 'pumpfun-fallback is not available in this deployment',
@@ -10,7 +10,7 @@ export async function POST(_, request: Request) {
     { status: 501 },
   );
 }
-export async function GET(_, request: Request) {
+export async function GET(request: Request) {
   return NextResponse.json(
     {
       ok: false,

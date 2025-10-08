@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-export async function GET(_, request: Request) {
+export async function GET(request: Request) {
   return NextResponse.json({
     version: '1.4.0',
     releaseDate: new Date().toISOString().slice(0, 10),

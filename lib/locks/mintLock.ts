@@ -1,47 +1,36 @@
 const leases = new Map<string, number>(); // mint -> leaseUntilTs
-
-async function nowMs() {
-  return Date.now();
-}
-
-// minimal DB helpers (use better-sqlite3 adapter)
-import { getDb } from '@/lib/db/sqlite';
+import { getDb } from '@/lib/db';
 
 export async function acquire(mint: string, minGapMs = 1500, leaseMs = 4000) {
-  const db = getDb();
-  const now = await nowMs();
-  // enforce min gap across crashes
-  const row = db.prepare('SELECT last_action_ts FROM mint_activity WHERE mint=?').get(mint) as
-    | { last_action_ts?: number }
-    | undefined;
-  const last = row?.last_action_ts ?? 0;
+  const db = await getDb();
+  const now = Date.now();
+  try {
+    await db.exec(
+      'CREATE TABLE IF NOT EXISTS mint_activity (mint TEXT PRIMARY KEY, last_action_ts INTEGER NOT NULL)',
+    );
+  } catch {}
+  let last = 0;
+  try {
+    const row = await db.get('SELECT last_action_ts FROM mint_activity WHERE mint = ?', [mint]);
+    last = (row?.last_action_ts as number) || 0;
+  } catch {}
   const gap = now - last;
   if (gap < minGapMs) await new Promise((r) => setTimeout(r, minGapMs - gap));
 
-  // process-local lease
-  const lease = leases.get(mint) ?? 0;
-  if (lease > now) {
-    await new Promise((r) => setTimeout(r, lease - now));
-  }
-  leases.set(mint, now + leaseMs);
+  const leaseUntil = leases.get(mint) ?? 0;
+  if (leaseUntil > now) await new Promise((r) => setTimeout(r, leaseUntil - now));
+  leases.set(mint, Date.now() + leaseMs);
 
   let released = false;
   return async () => {
     if (released) return;
     released = true;
-    const t = await nowMs();
-    db.prepare(
-      `
-      CREATE TABLE IF NOT EXISTS mint_activity (mint TEXT PRIMARY KEY, last_action_ts INTEGER NOT NULL);
-    `,
-    ).run();
-    db.prepare(
-      `
-      INSERT INTO mint_activity (mint, last_action_ts)
-      VALUES (?, ?)
-      ON CONFLICT(mint) DO UPDATE SET last_action_ts=excluded.last_action_ts
-    `,
-    ).run(mint, t);
+    try {
+      await db.run(
+        'INSERT INTO mint_activity (mint, last_action_ts) VALUES (?, ?) ON CONFLICT(mint) DO UPDATE SET last_action_ts=excluded.last_action_ts',
+        [mint, Date.now()],
+      );
+    } catch {}
     leases.delete(mint);
   };
 }

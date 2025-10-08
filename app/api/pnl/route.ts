@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { getSession } from '@/lib/server/session';
-import { aggregatePnL as aggregateFromDb } from '@/lib/db/sqlite';
+// Avoid better-sqlite3 in build; compute from flat file only in this build
 
 export const dynamic = 'force-dynamic';
 
@@ -42,18 +42,7 @@ export async function GET() {
   const user = session?.userPubkey || '';
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const out = { buys: 0, sells: 0, fees: 0, realized: 0, unrealized: 0, net: 0, count: 0 } as any;
-  // Preferred path: compute from DB if present
-  try {
-    const prices: Record<string, number> = {};
-    const agg = aggregateFromDb(prices);
-    out.buys = agg.buysLamports / 1e9;
-    out.sells = agg.sellsLamports / 1e9;
-    out.fees = agg.feesLamports / 1e9;
-    out.realized = agg.realizedLamports / 1e9;
-    out.unrealized = agg.unrealizedLamports / 1e9;
-    out.net = agg.netLamports / 1e9;
-    return NextResponse.json({ ok: true, pnl: out });
-  } catch {}
+  // DB path disabled in this build; fall back to flat-file P&L below
   const openPositions: Record<string, { qty: number; costLamports: number }> = {};
   if (existsSync(FILE)) {
     const lines = readFileSync(FILE, 'utf8').trim().split('\n').filter(Boolean);

@@ -1,64 +1,60 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/server/session';
-
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
-const ProfileSchema = z.object({
+const Schema = z.object({
   id: z.string().min(3),
   name: z.string().min(1),
-  mints: z.array(z.string().min(32)).min(1),
-  delaySecMin: z.number().int().min(1).max(600).default(2),
-  delaySecMax: z.number().int().min(1).max(600).default(5),
-  slippageBps: z.number().int().min(1).max(10_000).default(150),
-  bias: z
-    .tuple([z.number().int().min(0).default(2), z.number().int().min(0).default(1)])
-    .default([2, 1]),
-  caps: z
-    .object({
-      maxActions: z.number().int().positive().optional(),
-      maxSpendSol: z.number().positive().optional(),
-      timeStopMin: z.number().int().positive().optional(),
-      maxDrawdownPct: z.number().positive().max(100).optional(),
-    })
-    .optional(),
+  mint: z.string().min(32),
+  mode: z.enum(['BuyOnly', 'BuyThenSell', 'RandomWalk']).default('BuyThenSell'),
+  minBuySol: z.number().positive(),
+  maxBuySol: z.number().positive(),
+  minSellPct: z.number().min(0).max(100).optional(),
+  maxSellPct: z.number().min(0).max(100).optional(),
+  delaySecMin: z.number().min(1),
+  delaySecMax: z.number().min(1),
+  slippageBps: z.number().min(1),
+  priceImpactCapPct: z.number().min(0),
+  buySellBias: z.tuple([z.number().positive(), z.number().positive()]).default([2, 1]),
+  maxActions: z.number().int().positive().optional(),
+  maxSpendSol: z.number().positive().optional(),
+  maxDrawdownPct: z.number().min(0).max(100).optional(),
+  timeStopMin: z.number().int().positive().optional(),
+  allowTurbo: z.boolean().optional(),
 });
 
-export const GET = withSessionAndLimit(async (_req: NextRequest) => {
+export const GET = withSessionAndLimit(async () => {
   const db = await getDb();
-  const rows = await db.all('SELECT id, name, json, created_at, updated_at FROM volume_profiles');
-  const profiles = (rows || []).map((r: any) => ({
+  await db.exec(
+    'CREATE TABLE IF NOT EXISTS volume_profiles (id TEXT PRIMARY KEY, name TEXT, json TEXT, createdAt INTEGER, updatedAt INTEGER)',
+  );
+  const rows = await db.all(
+    'SELECT id,name,json,updatedAt FROM volume_profiles ORDER BY updatedAt DESC',
+  );
+  const items = (rows || []).map((r: any) => ({
     id: r.id,
     name: r.name,
-    ...JSON.parse(r.json),
+    ...JSON.parse(r.json || '{}'),
+    updatedAt: r.updatedAt,
   }));
-  return { profiles } as any;
+  return { items };
 });
 
-export const POST = withSessionAndLimit(async (request: NextRequest) => {
-  const body = await request.json().catch(() => ({}));
-  const p = ProfileSchema.parse(body);
+export const POST = withSessionAndLimit(async (req: NextRequest) => {
+  const body = await req.json();
+  const parsed = Schema.safeParse(body);
+  if (!parsed.success) return { error: 'bad_request', details: parsed.error.flatten() };
   const db = await getDb();
   const now = Date.now();
-  await db.run(
-    'INSERT INTO volume_profiles (id, name, json, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, json=excluded.json, updated_at=excluded.updated_at',
-    [
-      p.id,
-      p.name,
-      JSON.stringify({
-        mints: p.mints,
-        delaySecMin: p.delaySecMin,
-        delaySecMax: p.delaySecMax,
-        slippageBps: p.slippageBps,
-        bias: p.bias,
-        caps: p.caps || undefined,
-      }),
-      now,
-      now,
-    ],
+  const { id, name, ...rest } = parsed.data;
+  await db.exec(
+    'CREATE TABLE IF NOT EXISTS volume_profiles (id TEXT PRIMARY KEY, name TEXT, json TEXT, createdAt INTEGER, updatedAt INTEGER)',
   );
-  return { ok: true, profile: p } as any;
+  await db.run(
+    `INSERT INTO volume_profiles (id,name,json,createdAt,updatedAt) VALUES (?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, json=excluded.json, updatedAt=excluded.updatedAt`,
+    [id, name, JSON.stringify(rest), now, now],
+  );
+  return { ok: true };
 });

@@ -1,18 +1,21 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { getSession } from '@/lib/server/session';
-import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
-
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 const Body = z.object({ runId: z.string().min(3) });
 
-export const POST = withSessionAndLimit(async (request: NextRequest) => {
-  const body = await request.json().catch(() => ({}));
-  const { runId } = Body.parse(body);
+export const POST = withSessionAndLimit(async (req: NextRequest) => {
+  const { runId } = Body.parse(await req.json());
   const db = await getDb();
-  await db.run("UPDATE volume_runs SET status = 'stopping' WHERE id = ?", [runId]);
-  return { ok: true } as any;
+  const now = Date.now();
+  await db.exec(
+    'CREATE TABLE IF NOT EXISTS volume_runs (id TEXT PRIMARY KEY, profileId TEXT, status TEXT, startedAt INTEGER, stoppedAt INTEGER, statsJson TEXT)',
+  );
+  await db.run('UPDATE volume_runs SET status = ?, stoppedAt = ? WHERE id = ?', [
+    'stopped',
+    now,
+    runId,
+  ]);
+  return { ok: true };
 });
