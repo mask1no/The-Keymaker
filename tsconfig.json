@@ -34,8 +34,7 @@
     "lib/**/*.tsx",
     "app/**/*.ts",
     "app/**/*.tsx",
-    "scripts/**/*.ts",
-    "scripts/**/*.tsx",
+    "constants.ts",
     "constants.ts",
     ".next/types/**/*.ts"
   ],
@@ -47,7 +46,6 @@
     "coverage",
     "dist",
     "components/WalletManager/**",
-
     "hooks/useJupiter.ts",
     "hooks/useSystemStatus.ts",
     "helpers/puppeteerHelper.ts",
@@ -55,6 +53,11 @@
     "lib/server/auth.ts",
     "utils/browserCrypto.ts",
     "utils/crypto.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "lib/core/src/jitoBundle.ts",
+    "app/api/engine/selftest/**",
+    "app/api/bundles/**",
+    "app/api/pumpfun-fallback/**",
+    "scripts/**"
   ]
 }

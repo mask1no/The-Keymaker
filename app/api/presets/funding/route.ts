@@ -10,7 +10,7 @@ const Upsert = z.object({
   id: z.string().min(3),
   name: z.string().min(1),
   strategy: z.enum(['equal', 'per_wallet', 'target', 'volume_stipend']),
-  json: z.record(z.any()),
+  json: z.record(z.string(), z.any()),
 });
 
 export async function GET() {

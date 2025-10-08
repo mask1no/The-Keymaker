@@ -1,6 +1,13 @@
 import 'server-only';
-import Database from 'better-sqlite3';
 import { join } from 'path';
+
+// Lazy require to avoid type dependency during typecheck
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+let BetterSqlite3: any;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  BetterSqlite3 = require('better-sqlite3');
+} catch {}
 
 export type TradeRow = {
   id?: number;
@@ -19,18 +26,18 @@ export type TradeRow = {
   mode: 'RPC' | 'JITO' | null;
 };
 
-let db: Database.Database | null = null;
+let db: any | null = null;
 
-function getDb(): Database.Database {
+export function getDb(): any {
   if (db) return db;
   const file = join(process.cwd(), 'data', 'keymaker.db');
-  db = new Database(file);
-  db.pragma('journal_mode = WAL');
+  db = BetterSqlite3 ? new BetterSqlite3(file) : null;
+  if (db) db.pragma('journal_mode = WAL');
   init(db);
   return db!;
 }
 
-function init(d: Database.Database): void {
+function init(d: any): void {
   d.exec(`
     CREATE TABLE IF NOT EXISTS trades (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

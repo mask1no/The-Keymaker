@@ -50,7 +50,7 @@ export default function TradeHistoryPage() {
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Trade History</h1>
         {loading ? (
-          <div className="text-sm text-muted-foreground mt-2">Loading…</div>
+          <div className="text-sm text-muted-foreground mt-2">Loading...</div>
         ) : error ? (
           <div className="text-sm text-red-400 mt-2">{error}</div>
         ) : trades.length === 0 ? (

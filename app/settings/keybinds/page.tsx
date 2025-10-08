@@ -33,7 +33,7 @@ function KeyInput({
 
 export default function KeybindsPage() {
   const { data, error, mutate, isLoading } = useSWR<UiPayload>('/api/ui/settings', fetcher);
-  if (isLoading) return <div className="p-6 text-sm text-zinc-500">Loading…</div>;
+  if (isLoading) return <div className="p-6 text-sm text-zinc-500">Loading...</div>;
   if (error || !data) return <div className="p-6 text-sm text-red-400">Settings unavailable</div>;
   const hot = data.hotkeys;
 

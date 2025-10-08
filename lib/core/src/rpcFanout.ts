@@ -281,7 +281,7 @@ ms`,
               const outAmt = Number(meta?.outAmount || '0');
               const priceLamports = !inAmt || !outAmt ? 0 : inAmt / outAmt;
               const priorityFeeLamports = Math.round(
-                ((priorityFeeMicrolamports || 0) / 1e6) * (meta?.cuLimit || 200_000),
+                ((priorityFeeMicrolamports || 0) / 1e6) * 200_000,
               );
               journalTrade({
                 ts: Date.now(),
@@ -315,7 +315,7 @@ ms`,
                   signature,
                   bundleId: null,
                   wallet: walletPubkey,
-                  groupId: groupIdFromIntent,
+                  groupId: groupIdFromIntent || null,
                   mode: 'RPC',
                 });
               } catch {}

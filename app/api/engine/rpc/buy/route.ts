@@ -4,6 +4,7 @@ import { getWalletGroup } from '@/lib/server/walletGroups';
 import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
 import { buildJupiterSwapTx } from '@/lib/core/src/jupiterAdapter';
 import { executeRpcFanout } from '@/lib/core/src/rpcFanout';
+import { acquire } from '@/lib/locks/mintLock';
 import { getUiSettings } from '@/lib/server/settings';
 import {
   enforcePriorityFeeCeiling,
@@ -77,24 +78,30 @@ export async function POST(request: Request) {
       }
     }
 
-    const result = await executeRpcFanout({
-      wallets: keypairs,
-      concurrency: conc,
-      priorityFeeMicrolamports: pri,
-      dryRun: params.dryRun,
-      cluster: params.cluster,
-      intentHash: `buy:${params.groupId}:${params.mint}:${params.amountSol}:${params.slippageBps}`,
-      buildTx: async (wallet) =>
-        buildJupiterSwapTx({
-          wallet,
-          inputMint: 'So11111111111111111111111111111111111111112',
-          outputMint: params.mint,
-          amountSol: params.amountSol,
-          slippageBps: params.slippageBps,
-          cluster: params.cluster,
-          priorityFeeMicrolamports: params.priorityFeeMicrolamports,
-        }),
-    });
+    const release = await acquire(params.mint, 1500, 4000);
+    let result;
+    try {
+      result = await executeRpcFanout({
+        wallets: keypairs,
+        concurrency: conc,
+        priorityFeeMicrolamports: pri,
+        dryRun: params.dryRun,
+        cluster: params.cluster,
+        intentHash: `buy:${params.groupId}:${params.mint}:${params.amountSol}:${params.slippageBps}`,
+        buildTx: async (wallet) =>
+          buildJupiterSwapTx({
+            wallet,
+            inputMint: 'So11111111111111111111111111111111111111112',
+            outputMint: params.mint,
+            amountSol: params.amountSol,
+            slippageBps: params.slippageBps,
+            cluster: params.cluster,
+            priorityFeeMicrolamports: params.priorityFeeMicrolamports,
+          }),
+      });
+    } finally {
+      await release();
+    }
 
     logEngineJsonl({ route: '/api/engine/rpc/buy', status: 'ok', mint: params.mint, side: 'buy' });
     return NextResponse.json(result);

@@ -13,6 +13,7 @@ import { Connection } from '@solana/web3.js';
 import { getSplTokenBalance } from '@/lib/core/src/balances';
 import { getSession } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
+import { acquire } from '@/lib/locks/mintLock';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -92,31 +93,38 @@ export async function POST(request: Request) {
     }
     const pri = enforcePriorityFeeCeiling(params.priorityFeeMicrolamports || 0, 1_000_000);
     const conc = enforceConcurrencyCeiling(params.concurrency, 16);
-    const result = await executeRpcFanout({
-      wallets: keypairs,
-      concurrency: conc,
-      priorityFeeMicrolamports: pri,
-      dryRun: params.dryRun,
-      cluster: params.cluster,
-      intentHash: `sell:${params.groupId}:${params.mint}:${params.percent}:${params.slippageBps}`,
-      buildTx: async (wallet) => {
-        const base = walletToAmount[wallet.publicKey.toBase58()] || 0;
-        const amountTokens = Math.floor((base * params.percent) / 100);
-        if (!amountTokens || amountTokens <= 0) {
-          // Skip building tx for zero balance
-          throw new Error('skip_zero_balance');
-        }
-        return buildJupiterSellTx({
-          wallet,
-          inputMint: params.mint,
-          outputMint: 'So11111111111111111111111111111111111111112',
-          amountTokens,
-          slippageBps: params.slippageBps,
+    const release = await acquire(params.mint, 1500, 4000);
+    const result = await (async () => {
+      try {
+        return await executeRpcFanout({
+          wallets: keypairs,
+          concurrency: conc,
+          priorityFeeMicrolamports: pri,
+          dryRun: params.dryRun,
           cluster: params.cluster,
-          priorityFeeMicrolamports: params.priorityFeeMicrolamports,
+          intentHash: `sell:${params.groupId}:${params.mint}:${params.percent}:${params.slippageBps}`,
+          buildTx: async (wallet) => {
+            const base = walletToAmount[wallet.publicKey.toBase58()] || 0;
+            const amountTokens = Math.floor((base * params.percent) / 100);
+            if (!amountTokens || amountTokens <= 0) {
+              // Skip building tx for zero balance
+              throw new Error('skip_zero_balance');
+            }
+            return buildJupiterSellTx({
+              wallet,
+              inputMint: params.mint,
+              outputMint: 'So11111111111111111111111111111111111111112',
+              amountTokens,
+              slippageBps: params.slippageBps,
+              cluster: params.cluster,
+              priorityFeeMicrolamports: params.priorityFeeMicrolamports,
+            });
+          },
         });
-      },
-    });
+      } finally {
+        await release();
+      }
+    })();
 
     return NextResponse.json(result);
   } catch (error) {

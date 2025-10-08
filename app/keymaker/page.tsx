@@ -160,7 +160,7 @@ export default function KeymakerPage() {
                     />
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">
-                    {r.wallet.slice(0, 4)}…{r.wallet.slice(-4)}
+                    {r.wallet.slice(0, 4)}...{r.wallet.slice(-4)}
                   </td>
                   <td className="px-3 py-2">{r.sol.toFixed(4)}</td>
                   <td className="px-3 py-2">{r.token.toFixed(2)}</td>

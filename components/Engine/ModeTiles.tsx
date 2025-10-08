@@ -31,14 +31,6 @@ export default function ModeTiles({
       <div className="text-sm font-medium mb-3">Mode</div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Tile
-          title="Jito Bundle"
-          desc="Turbo tip (1-tx); Bundler disabled"
-          active={false}
-          onClick={async () => {
-            /* no-op */
-          }}
-        />
-        <Tile
           title="Direct RPC"
           desc="Concurrency & jitter; non-atomic"
           active={mode === 'RPC_FANOUT'}

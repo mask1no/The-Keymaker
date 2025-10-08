@@ -73,7 +73,7 @@ export default function MarketPanel() {
           />
           <Stat label="Liquidity" value={fmtUsd(market.liquidityUsd)} />
           {market.pair?.url && (
-            <div className="col-span-2 md:col-span-4 text-xs text-emerald-400">
+            <div className="col-span-2 md:col-span-4 text-xs text-green-400">
               <a
                 className="hover:underline"
                 href={market.pair.url}

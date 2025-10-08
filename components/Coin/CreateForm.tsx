@@ -121,7 +121,7 @@ export default function CreateForm() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          devPubkey: sessionPubkey,
+          devPubkey: '',
           name,
           symbol,
           supply: 10 ** 15,
@@ -177,7 +177,7 @@ export default function CreateForm() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="input w-full bg-zinc-900 h-24"
-              placeholder="Short mission statement..."
+              placeholder="Short mission statement"
             />
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function CreateForm() {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="button bg-zinc-800 , r:bg-zinc-700 px-3 py-2"
+              className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2"
             >
               Upload
             </button>
@@ -223,7 +223,7 @@ export default function CreateForm() {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 className="input w-full bg-zinc-900"
-                placeholder=", s://..."
+                placeholder="https://example.com"
               />
             </div>
             <div>
@@ -232,7 +232,7 @@ export default function CreateForm() {
                 value={twitter}
                 onChange={(e) => setTwitter(e.target.value)}
                 className="input w-full bg-zinc-900"
-                placeholder=", s://twitter.com/..."
+                placeholder="https://twitter.com/yourhandle"
               />
             </div>
             <div>
@@ -241,29 +241,29 @@ export default function CreateForm() {
                 value={telegram}
                 onChange={(e) => setTelegram(e.target.value)}
                 className="input w-full bg-zinc-900"
-                placeholder=", s://t.me/..."
+                placeholder="https://t.me/yourchannel"
               />
             </div>
           </div>
           {/* Validation chips */}
           <div className="flex flex-wrap gap-2 text-[11px]">
             <span
-              className={`px-2 py-0.5 rounded-full border ${nameCount > 0 ? 'border-emerald-700 text-emerald-300 bg-emerald-500/10' : 'border-zinc-700 text-zinc-400'}`}
+              className={`px-2 py-0.5 rounded-full border ${nameCount > 0 ? 'border-green-700 text-green-300 bg-green-500/10' : 'border-zinc-700 text-zinc-400'}`}
             >
               Name
             </span>
             <span
-              className={`px-2 py-0.5 rounded-full border ${symbolCount > 0 ? 'border-emerald-700 text-emerald-300 bg-emerald-500/10' : 'border-zinc-700 text-zinc-400'}`}
+              className={`px-2 py-0.5 rounded-full border ${symbolCount > 0 ? 'border-green-700 text-green-300 bg-green-500/10' : 'border-zinc-700 text-zinc-400'}`}
             >
               Symbol
             </span>
             <span
-              className={`px-2 py-0.5 rounded-full border ${image ? 'border-emerald-700 text-emerald-300 bg-emerald-500/10' : 'border-zinc-700 text-zinc-400'}`}
+              className={`px-2 py-0.5 rounded-full border ${image ? 'border-green-700 text-green-300 bg-green-500/10' : 'border-zinc-700 text-zinc-400'}`}
             >
               Image
             </span>
             <span
-              className={`px-2 py-0.5 rounded-full border ${/^https?:\/\//.test(website || '') ? 'border-emerald-700 text-emerald-300 bg-emerald-500/10' : 'border-zinc-700 text-zinc-400'}`}
+              className={`px-2 py-0.5 rounded-full border ${/^https?:\/\//.test(website || '') ? 'border-green-700 text-green-300 bg-green-500/10' : 'border-zinc-700 text-zinc-400'}`}
             >
               Website
             </span>
@@ -301,7 +301,6 @@ export default function CreateForm() {
             onChange={(e) => setMode(e.target.value as any)}
             className="input bg-zinc-900"
           >
-            {/* Bundler disabled */}
             <option value="RPC_FANOUT">RPC_FANOUT</option>
           </select>
         </div>
@@ -334,31 +333,17 @@ export default function CreateForm() {
               className="input w-full bg-zinc-900"
             />
           </div>
-          {mode === 'RPC_FANOUT' ? (
-            <div>
-              <label className="text-xs text-zinc-400">Priority Fee (microlamports)</label>
-              <input
-                type="number"
-                min={0}
-                step={100}
-                value={priorityFee}
-                onChange={(e) => setPriorityFee(Number(e.target.value))}
-                className="input w-full bg-zinc-900"
-              />
-            </div>
-          ) : (
-            <div>
-              <label className="text-xs text-zinc-400">Jito Tip (lamports)</label>
-              <input
-                type="number"
-                min={0}
-                step={1000}
-                value={jitoTipLamports}
-                onChange={(e) => setJitoTipLamports(Number(e.target.value))}
-                className="input w-full bg-zinc-900"
-              />
-            </div>
-          )}
+          <div>
+            <label className="text-xs text-zinc-400">Priority Fee (microlamports)</label>
+            <input
+              type="number"
+              min={0}
+              step={100}
+              value={priorityFee}
+              onChange={(e) => setPriorityFee(Number(e.target.value))}
+              className="input w-full bg-zinc-900"
+            />
+          </div>
         </div>
       )}
 
@@ -379,7 +364,7 @@ export default function CreateForm() {
             <button
               disabled={buildDisabled}
               onClick={buildMetadata}
-              className="button bg-zinc-800 , r:bg-zinc-700 px-3 py-2 , bled:opacity-60"
+              className="button bg-zinc-800 hover:bg-zinc-700 px-3 py-2 disabled:opacity-60"
             >
               Build Metadata
             </button>
@@ -389,7 +374,7 @@ export default function CreateForm() {
             <button
               disabled={launchDisabled || launching}
               onClick={launch}
-              className="button bg-emerald-600 hover:bg-emerald-500 px-3 py-2 disabled:opacity-60"
+              className="button bg-green-600 hover:bg-green-500 px-3 py-2 disabled:opacity-60"
             >
               {launching ? 'Launching' : dryRun ? 'Simulate Launch' : 'Launch'}
             </button>
@@ -400,17 +385,17 @@ export default function CreateForm() {
       {/* Official sites quick-links (read-only helpers) */}
       <div className="rounded-xl border border-zinc-800 p-4 bg-zinc-950/40">
         <div className="text-sm font-medium mb-2">Official sites</div>
-        <div className="text-xs text-zinc-400">Always use the real , ins:</div>
+        <div className="text-xs text-zinc-400">Always use the real links:</div>
         <div className="mt-2 flex flex-wrap gap-2">
           <a
-            href=", s://pump.fun"
+            href="https://pump.fun"
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => {
               if (!window.confirm('Open the official Pump.fun site in a new tab?'))
                 e.preventDefault();
             }}
-            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs , r:bg-zinc-900"
+            className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
           >
             pump.fun
           </a>
@@ -425,8 +410,8 @@ export default function CreateForm() {
             <div className="text-zinc-300">Simulated successfully.</div>
           )}
           {!result.error && !result.simulated && (
-            <div className="text-emerald-400">
-              Launched! , : {result.mint || 'unknown'}
+            <div className="text-green-400">
+              Launched! : {result.mint || 'unknown'}
               {result.mint ? (
                 <span className="ml-2 inline-flex items-center gap-2">
                   {/* Raydium swap link removed; post-migration routes via Jupiter */}

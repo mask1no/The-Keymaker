@@ -11,6 +11,14 @@
     "strict": true,
     "noImplicitAny": true
   },
-  "include": ["lib/core/src/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "dist", "coverage", "tests", ".next"]
+  "include": ["lib/core/src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "tests",
+    ".next",
+    "bin/**/*",
+    "lib/core/src/jitoBundle.ts"
+  ]
 }

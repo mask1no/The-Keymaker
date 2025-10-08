@@ -35,7 +35,7 @@ export default function EventsPanel() {
           <span
             className={
               r.status === 'success'
-                ? 'text-emerald-400'
+                ? 'text-green-400'
                 : r.status === 'failed'
                   ? 'text-red-400'
                   : 'text-amber-400'

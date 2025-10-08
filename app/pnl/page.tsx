@@ -22,7 +22,7 @@ export default function PnlPage() {
     refreshInterval: 10000,
     revalidateOnFocus: false,
   });
-  if (isLoading) return <div className="p-6 text-sm text-zinc-500">Loading…</div>;
+  if (isLoading) return <div className="p-6 text-sm text-zinc-500">Loading...</div>;
   if (error || !data) return <div className="p-6 text-sm text-red-400">P&L unavailable</div>;
   const p = data.pnl;
   return (

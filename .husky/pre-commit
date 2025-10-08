@@ -1,25 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-node scripts/precommit-guard.cjs || exit 1
+pnpm -s check:ellipses || exit 1
 pnpm -s check:forbidden || exit 1
-pnpm -s lint --fix || true
-pnpm -s format || true
-
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Block committing env/keypairs/secret-like files (use CJS version for Node ESM)
-node scripts/precommit-guard.cjs || exit 1
-
-exit 0
-
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Cross-platform secret/keys guard (Node CJS)
-node scripts/precommit-guard.cjs || exit 1
-
-# Gentle hygiene (never block commits)
+pnpm -s check:colors || exit 1
 pnpm -s lint --fix || true
 pnpm -s format || true

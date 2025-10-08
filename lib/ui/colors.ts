@@ -2,7 +2,7 @@
 export function lightToTailwind(light: 'green' | 'amber' | 'red'): string {
   switch (light) {
     case 'green':
-      return 'text-emerald-400';
+      return 'text-[--k-success]';
     case 'amber':
       return 'text-amber-400';
     case 'red':

@@ -27,7 +27,6 @@ export function ModeToggle({ currentMode, onModeChange }: ModeToggleProps) {
       >
         RPC Fan-Out
       </button>
-      {/* Bundler mode intentionally hidden from primary UI; Turbo tips are handled per-action */}
     </div>
   );
 }

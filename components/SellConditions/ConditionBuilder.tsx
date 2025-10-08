@@ -113,11 +113,11 @@ export default function ConditionBuilder({
             </span>
           ) : null}
           <button
-            className="px-2 py-1 text-xs rounded bg-emerald-700 disabled:opacity-60"
+            className="px-2 py-1 text-xs rounded bg-green-700 disabled:opacity-60"
             onClick={save}
             disabled={!groupId || !mint || saving}
           >
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? 'Saving' : 'Save'}
           </button>
         </div>
       </div>

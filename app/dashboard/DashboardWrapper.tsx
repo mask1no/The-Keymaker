@@ -6,14 +6,12 @@ const DashboardWrapper = () => {
         <a href="/engine" className="card hover:border-white/30 transition-colors">
           <div className="font-medium mb-2">Engine Control</div>
           <div className="text-sm text-zinc-400">
-            Configure and execute bundles with JITO or RPC modes
+            Configure and execute trades in RPC mode; Turbo tip optional per action
           </div>
         </a>
-        <a href="/bundle" className="card hover:border-white/30 transition-colors">
-          <div className="font-medium mb-2">Bundle Manager</div>
-          <div className="text-sm text-zinc-400">
-            Set token parameters and manage bundle execution
-          </div>
+        <a href="/keymaker" className="card hover:border-white/30 transition-colors">
+          <div className="font-medium mb-2">Keymaker</div>
+          <div className="text-sm text-zinc-400">Manual cockpit and volume profiles</div>
         </a>
         <a href="/wallets" className="card hover:border-white/30 transition-colors">
           <div className="font-medium mb-2">Wallet Groups</div>

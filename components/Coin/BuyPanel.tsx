@@ -177,7 +177,7 @@ export default function BuyPanel({
               onClick={rpcBuy}
               className="button bg-blue-700 hover:bg-blue-600 px-3 py-2 disabled:opacity-60"
             >
-              {busy === 'rpc' ? 'Sending...' : 'RPC Buy'}
+              {busy === 'rpc' ? 'Sending' : 'RPC Buy'}
             </button>
           </div>
           <div className="mt-2 text-[11px] text-zinc-500">
@@ -185,7 +185,7 @@ export default function BuyPanel({
           </div>
         </div>
         <div className="rounded-lg border border-zinc-800 p-3">
-          <div className="text-xs text-zinc-400 mb-2">JITO Bundle Buy</div>
+          <div className="text-xs text-zinc-400 mb-2">Turbo Buy (1‑tx tip)</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
             <div>
               <label className="text-xs text-zinc-400">Region</label>
@@ -215,9 +215,9 @@ export default function BuyPanel({
               <button
                 disabled={!canBuy || busy === 'jito'}
                 onClick={jitoBuy}
-                className="button bg-emerald-700 hover:bg-emerald-600 px-3 py-2 w-full disabled:opacity-60"
+                className="button bg-green-700 hover:bg-green-600 px-3 py-2 w-full disabled:opacity-60"
               >
-                {busy === 'jito' ? 'Bundling...' : 'JITO Buy'}
+                {busy === 'jito' ? 'Bundling' : 'Turbo Buy'}
               </button>
             </div>
           </div>
@@ -228,9 +228,7 @@ export default function BuyPanel({
       </div>
 
       {msg ? (
-        <div
-          className={`text-sm ${/failed|error/i.test(msg) ? 'text-red-400' : 'text-emerald-400'}`}
-        >
+        <div className={`text-sm ${/failed|error/i.test(msg) ? 'text-red-400' : 'text-green-400'}`}>
           {msg}
         </div>
       ) : null}

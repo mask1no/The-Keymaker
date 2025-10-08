@@ -1,9 +1,99 @@
 #!/usr/bin/env ts-node
 import 'dotenv/config';
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, ComputeBudgetProgram, VersionedTransaction, TransactionMessage } from '@solana/web3.js';
-import bs58 from 'bs58'; const SMOKE_SECRET = process.env.SMOKE_SECRET;
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  ComputeBudgetProgram,
+  VersionedTransaction,
+  TransactionMessage,
+} from '@solana/web3.js';
+import bs58 from 'bs58';
+
+const SMOKE_SECRET = process.env.SMOKE_SECRET;
 const RPC_URL = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
-const REGION = (process.env.JITO_REGION as 'ffm' | 'ams' | 'ny' | 'tokyo') || 'ffm'; if (!SMOKE_SECRET) { console.error('❌ SMOKE_SECRET not set. Provide a funded keypair (bs58) in .env'); process.exit(1);
-} async function main() { console.log('Starting Keymaker smoke test'); const keypair = Keypair.fromSecretKey(bs58.decode(SMOKE_SECRET)); const connection = new Connection(RPC_URL, 'confirmed'); console.log(`Wallet: ${keypair.publicKey.toBase58()}`); console.log(`RPC: ${RPC_URL}`); const balance = await connection.getBalance(keypair.publicKey); if (balance < 50_000) { console.error('Insufficient balance (need ≥ 0.00005 SOL)'); process.exit(1); } const { blockhash } = await connection.getLatestBlockhash('confirmed'); const tx1 = new Transaction().add( ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000 }), ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }), SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: keypair.publicKey, lamports: 1 })); tx1.recentBlockhash = blockhash; tx1.feePayer = keypair.publicKey; const tx2 = new Transaction().add( // Tip transfer: 1000 lamports to a known Jito tip account SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe'), lamports: 1000 })); tx2.recentBlockhash = blockhash; tx2.feePayer = keypair.publicKey; const msg1 = new TransactionMessage({ payerKey: keypair.publicKey, recentBlockhash: blockhash, instructions: tx1.instructions }).compileToV0Message(); const msg2 = new TransactionMessage({ payerKey: keypair.publicKey, recentBlockhash: blockhash, instructions: tx2.instructions }).compileToV0Message(); const vtx1 = new VersionedTransaction(msg1); const vtx2 = new VersionedTransaction(msg2); vtx1.sign([keypair]); vtx2.sign([keypair]); const txs_b64 = [ Buffer.from(vtx1.serialize()).toString('base64'), Buffer.from(vtx2.serialize()).toString('base64'), ]; const BASE = `http://localhost:${process.env.PORT || 3001}`; // Simulate first const simRes = await fetch(`${BASE}/api/bundles/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: true }) }); const simJson = await simRes.json(); if (!simRes.ok) throw new Error('Simulation failed: ' + JSON.stringify(simJson)); // Execute const execRes = await fetch(`${BASE}/api/bundles/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-payload-hash': simJson.payloadHash }, body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: false }) }); const execJson = await execRes.json(); console.log('Execute response:', execJson);
-} main().catch((e) => { console.error('Smoke test error:', e); process.exit(1);
+const REGION = (process.env.JITO_REGION as 'ffm' | 'ams' | 'ny' | 'tokyo') || 'ffm';
+
+if (!SMOKE_SECRET) {
+  console.error('SMOKE_SECRET not set. Provide a funded keypair (bs58) in .env');
+  process.exit(1);
+}
+
+async function main() {
+  console.log('Starting Keymaker smoke test');
+  const keypair = Keypair.fromSecretKey(bs58.decode(SMOKE_SECRET as string));
+  const connection = new Connection(RPC_URL, 'confirmed');
+  console.log(`Wallet: ${keypair.publicKey.toBase58()}`);
+  console.log(`RPC: ${RPC_URL}`);
+  const balance = await connection.getBalance(keypair.publicKey);
+  if (balance < 50_000) {
+    console.error('Insufficient balance (need ≥ 0.00005 SOL)');
+    process.exit(1);
+  }
+
+  const { blockhash } = await connection.getLatestBlockhash('confirmed');
+
+  const tx1 = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
+    SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: keypair.publicKey, lamports: 1 }),
+  );
+  tx1.recentBlockhash = blockhash;
+  tx1.feePayer = keypair.publicKey;
+
+  const tx2 = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: keypair.publicKey,
+      toPubkey: new PublicKey('HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe'),
+      lamports: 1000,
+    }),
+  );
+  tx2.recentBlockhash = blockhash;
+  tx2.feePayer = keypair.publicKey;
+
+  const msg1 = new TransactionMessage({
+    payerKey: keypair.publicKey,
+    recentBlockhash: blockhash,
+    instructions: tx1.instructions,
+  }).compileToV0Message();
+  const msg2 = new TransactionMessage({
+    payerKey: keypair.publicKey,
+    recentBlockhash: blockhash,
+    instructions: tx2.instructions,
+  }).compileToV0Message();
+
+  const vtx1 = new VersionedTransaction(msg1);
+  const vtx2 = new VersionedTransaction(msg2);
+  vtx1.sign([keypair]);
+  vtx2.sign([keypair]);
+
+  const txs_b64 = [
+    Buffer.from(vtx1.serialize()).toString('base64'),
+    Buffer.from(vtx2.serialize()).toString('base64'),
+  ];
+
+  const BASE = `http://localhost:${process.env.PORT || 3001}`;
+
+  const simRes = await fetch(`${BASE}/api/bundles/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: true }),
+  });
+  const simJson = await simRes.json();
+  if (!simRes.ok) throw new Error('Simulation failed: ' + JSON.stringify(simJson));
+
+  const execRes = await fetch(`${BASE}/api/bundles/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-payload-hash': simJson.payloadHash },
+    body: JSON.stringify({ region: REGION, txs_b64, simulateOnly: false }),
+  });
+  const execJson = await execRes.json();
+  console.log('Execute response:', execJson);
+}
+
+main().catch((e) => {
+  console.error('Smoke test error:', e);
+  process.exit(1);
 });

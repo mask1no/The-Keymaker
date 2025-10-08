@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/server/session';
@@ -26,53 +27,38 @@ const ProfileSchema = z.object({
     .optional(),
 });
 
-export async function GET() {
-  try {
-    const s = getSession();
-    if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const db = await getDb();
-    const rows = await db.all('SELECT id, name, json, created_at, updated_at FROM volume_profiles');
-    const profiles = (rows || []).map((r: any) => ({
-      id: r.id,
-      name: r.name,
-      ...JSON.parse(r.json),
-    }));
-    return NextResponse.json({ profiles }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
-  }
-}
+export const GET = withSessionAndLimit(async (_req: NextRequest) => {
+  const db = await getDb();
+  const rows = await db.all('SELECT id, name, json, created_at, updated_at FROM volume_profiles');
+  const profiles = (rows || []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    ...JSON.parse(r.json),
+  }));
+  return { profiles } as any;
+});
 
-export async function POST(request: Request) {
-  try {
-    const s = getSession();
-    if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    const body = await request.json().catch(() => ({}));
-    const p = ProfileSchema.parse(body);
-    const db = await getDb();
-    const now = Date.now();
-    await db.run(
-      'INSERT INTO volume_profiles (id, name, json, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, json=excluded.json, updated_at=excluded.updated_at',
-      [
-        p.id,
-        p.name,
-        JSON.stringify({
-          mints: p.mints,
-          delaySecMin: p.delaySecMin,
-          delaySecMax: p.delaySecMax,
-          slippageBps: p.slippageBps,
-          bias: p.bias,
-          caps: p.caps || undefined,
-        }),
-        now,
-        now,
-      ],
-    );
-    return NextResponse.json({ ok: true, profile: p });
-  } catch (e: unknown) {
-    if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: 'invalid_request', details: e.issues }, { status: 400 });
-    }
-    return NextResponse.json({ error: (e as Error)?.message || 'failed' }, { status: 500 });
-  }
-}
+export const POST = withSessionAndLimit(async (request: NextRequest) => {
+  const body = await request.json().catch(() => ({}));
+  const p = ProfileSchema.parse(body);
+  const db = await getDb();
+  const now = Date.now();
+  await db.run(
+    'INSERT INTO volume_profiles (id, name, json, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, json=excluded.json, updated_at=excluded.updated_at',
+    [
+      p.id,
+      p.name,
+      JSON.stringify({
+        mints: p.mints,
+        delaySecMin: p.delaySecMin,
+        delaySecMax: p.delaySecMax,
+        slippageBps: p.slippageBps,
+        bias: p.bias,
+        caps: p.caps || undefined,
+      }),
+      now,
+      now,
+    ],
+  );
+  return { ok: true, profile: p } as any;
+});
