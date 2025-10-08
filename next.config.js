@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   reactStrictMode: true,
-  experimental: { instrumentationHook: true },
-  typescript: { ignoreBuildErrors: false },
+  experimental: {
+    instrumentationHook: true,
+  },
 };
-module.exports = nextConfig;

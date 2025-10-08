@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 export function stableStringify(x: any): string {
   if (x === null || typeof x !== 'object') return JSON.stringify(x);
   if (Array.isArray(x)) return `[${x.map(stableStringify).join(',')}]`;
@@ -7,6 +8,7 @@ export function stableStringify(x: any): string {
     .map((k) => JSON.stringify(k) + ':' + stableStringify((x as any)[k]))
     .join(',')}}`;
 }
-export function sha256Hex(s: string): string {
+
+export function sha256Hex(s: string) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }

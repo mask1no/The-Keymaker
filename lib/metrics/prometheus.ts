@@ -86,7 +86,7 @@ export function recordHttpRequest(
  */
 export function recordBundleSubmission(
   status: 'success' | 'failed' | 'timeout',
-  mode: 'JITO_BUNDLE' | 'RPC_FANOUT',
+  mode: 'RPC_FANOUT',
   region?: string,
 ) {
   bundleSubmissions.labels(status, mode, region || 'unknown').inc();

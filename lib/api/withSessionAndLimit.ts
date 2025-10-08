@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { verifySessionValue } from '@/lib/server/session';
 
 const buckets = new Map<string, { tokens: number; updated: number }>();
 const CAP = 30,
@@ -6,9 +7,9 @@ const CAP = 30,
   WINDOW = 1000; // 30/30s, refill 1/s
 
 function okSession(req: NextRequest) {
-  // Implement your SIWS session check. Placeholder:
-  const sid = req.cookies.get('siws')?.value;
-  return sid || null;
+  const cookieValue = req.cookies.get('km_session')?.value;
+  const payload = verifySessionValue(cookieValue);
+  return payload?.sub || null;
 }
 
 export function withSessionAndLimit<T>(handler: (req: NextRequest, sid: string) => Promise<T>) {
