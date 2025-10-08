@@ -11,12 +11,21 @@ function hasProblematicEllipsis(line) {
   if (/['"`].*….*['"`]/.test(line)) return false;
   if (/['"`].*\.\.\..*['"`]/.test(line)) return false;
   
-  // Allow spread operators in any context
-  if (/\.\.\./.test(line) && /\{\.\.\.|\[\.\.\.|\(\.\.\./.test(line)) return false;
-  if (/\.\.\.[\w\(\[\{]/.test(line)) return false;
+  // Allow spread operators: if line has { before first ..., it's likely a spread in object
+  const firstDotDotDot = line.indexOf('...');
+  if (firstDotDotDot !== -1) {
+    const beforeDots = line.substring(0, firstDotDotDot);
+    // If there's a { or [ or ( before the ..., it's likely a spread
+    if (/[\{\[\(]/.test(beforeDots)) return false;
+    // Check if it's ...identifier or ...(expr)
+    if (/\.\.\.[\w\(\[\{]/.test(line)) return false;
+  }
+  
+  // Comments are ok
+  if (/\/\/.*\.\.\./.test(line) || /\/\*.*\.\.\./.test(line)) return false;
   
   // Detect standalone ... or … that isn't part of spread/string/comment
-  if (/(?:^|[^.\w])\.\.\.(?:[^.\w\(\[\{]|$)/.test(line) && !/\/\/.*\.\.\./.test(line) && !/\/\*.*\.\.\./.test(line)) return true;
+  if (/(?:^|[^.\w])\.\.\.(?:[^.\w\(\[\{]|$)/.test(line)) return true;
   if (/…/.test(line)) return true;
   
   return false;

@@ -36,6 +36,93 @@ export default function KeymakerPage() {
     return wallets.map((w) => ({ wallet: w, sol: 0, token: 0, est: 0 }));
   }, [group]);
 
+  async function handleFund() {
+    if (!group) return alert('Select a group first');
+    const totalSol = prompt('Enter total SOL to distribute:');
+    if (!totalSol) return;
+
+    try {
+      const dryRunRes = await fetch('/api/wallets/fund', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          groupId: group.id,
+          strategy: 'equal',
+          totalSol: parseFloat(totalSol),
+          dryRun: true,
+        }),
+      });
+      const dryRunData = await dryRunRes.json();
+
+      if (!dryRunRes.ok) {
+        return alert(`Preview failed: ${dryRunData.error || 'Unknown error'}`);
+      }
+
+      const confirm = window.confirm(
+        `Fund ${dryRunData.walletsCount} wallets with ${dryRunData.totalNeeded.toFixed(4)} SOL total?\n\n` +
+          `Available: ${dryRunData.availableSol.toFixed(4)} SOL`,
+      );
+
+      if (!confirm) return;
+
+      const liveRes = await fetch('/api/wallets/fund', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          groupId: group.id,
+          strategy: 'equal',
+          totalSol: parseFloat(totalSol),
+          dryRun: false,
+        }),
+      });
+      const liveData = await liveRes.json();
+
+      if (!liveRes.ok) {
+        return alert(`Funding failed: ${liveData.error || 'Unknown error'}`);
+      }
+
+      alert(
+        `Funded ${liveData.results.filter((r: any) => r.signature).length} wallets successfully`,
+      );
+    } catch (e: any) {
+      alert(`Error: ${e.message}`);
+    }
+  }
+
+  async function handleSweep() {
+    if (!group) return alert('Select a group first');
+
+    const confirm = window.confirm(
+      'Sweep SOL from all execution wallets to master?\n\n' +
+        'Buffer: 0.001 SOL will be left in each wallet.',
+    );
+
+    if (!confirm) return;
+
+    try {
+      const res = await fetch('/api/wallets/sweep', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          groupId: group.id,
+          bufferSol: 0.001,
+          minThresholdSol: 0.002,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        return alert(`Sweep failed: ${data.error || 'Unknown error'}`);
+      }
+
+      alert(
+        `Swept ${data.totalSwept.toFixed(4)} SOL from ${data.results.filter((r: any) => r.signature).length} wallets`,
+      );
+    } catch (e: any) {
+      alert(`Error: ${e.message}`);
+    }
+  }
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key >= '1' && e.key <= '9') {
@@ -200,10 +287,10 @@ export default function KeymakerPage() {
 
       {/* Bulk actions */}
       <div className="flex items-center gap-3">
-        <button className="button" onClick={() => void 0}>
+        <button className="button" onClick={handleFund}>
           Fund from Master
         </button>
-        <button className="button" onClick={() => void 0}>
+        <button className="button" onClick={handleSweep}>
           Sweep SOL
         </button>
         <div className="ml-auto flex gap-2">
