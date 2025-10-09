@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
               decimals: number;
             }>;
           }
-          
+
           const result: BalanceResult = {
             wallet: walletAddress,
             sol: {

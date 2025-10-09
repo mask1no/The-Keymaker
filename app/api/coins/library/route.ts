@@ -13,7 +13,9 @@ async function birdeyeByCA(ca: string) {
     },
   );
   if (!r.ok) return null;
-  const j = await r.json().catch(() => null) as { data?: { name?: string; symbol?: string; logoURI?: string; websites?: string[] } } | null;
+  const j = (await r.json().catch(() => null)) as {
+    data?: { name?: string; symbol?: string; logoURI?: string; websites?: string[] };
+  } | null;
   if (!j?.data) return null;
   const d = j.data;
   return {
@@ -32,7 +34,15 @@ async function dexByCA(ca: string) {
     cache: 'no-store',
   });
   if (!r.ok) return null;
-  const j = await r.json().catch(() => null) as { pairs?: Array<{ info?: { imageUrl?: string; websites?: Array<{ url?: string }>; socials?: Array<{ type: string; url?: string }> } }> } | null;
+  const j = (await r.json().catch(() => null)) as {
+    pairs?: Array<{
+      info?: {
+        imageUrl?: string;
+        websites?: Array<{ url?: string }>;
+        socials?: Array<{ type: string; url?: string }>;
+      };
+    }>;
+  } | null;
   const p = j?.pairs?.[0];
   if (!p) return null;
   return {
@@ -41,8 +51,11 @@ async function dexByCA(ca: string) {
     symbol: p.baseToken?.symbol || '',
     image: p.info?.imageUrl || '',
     website: p.info?.websites?.[0]?.url || '',
-    twitter: p.info?.socials?.find((s: { type: string; url?: string }) => s.type === 'twitter')?.url || '',
-    telegram: p.info?.socials?.find((s: { type: string; url?: string }) => s.type === 'telegram')?.url || '',
+    twitter:
+      p.info?.socials?.find((s: { type: string; url?: string }) => s.type === 'twitter')?.url || '',
+    telegram:
+      p.info?.socials?.find((s: { type: string; url?: string }) => s.type === 'telegram')?.url ||
+      '',
   };
 }
 
@@ -59,7 +72,14 @@ export async function GET(req: Request) {
     const j = await res.json().catch(() => ({}));
     if (!res.ok || !j?.draft)
       return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 });
-    const d = j.draft as { name?: string; symbol?: string; image?: string; website?: string; twitter?: string; telegram?: string };
+    const d = j.draft as {
+      name?: string;
+      symbol?: string;
+      image?: string;
+      website?: string;
+      twitter?: string;
+      telegram?: string;
+    };
     const coin = {
       ca,
       name: d.name,

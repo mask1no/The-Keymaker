@@ -9,8 +9,8 @@ export default function SentryExamplePage() {
   const [errorCount, setErrorCount] = useState(0);
 
   const triggerTestError = () => {
-    setErrorCount(prev => prev + 1);
-    
+    setErrorCount((prev) => prev + 1);
+
     // Trigger a test error that will be caught by Sentry
     try {
       // Call a function that doesn't exist
@@ -38,10 +38,10 @@ export default function SentryExamplePage() {
   const triggerManualCapture = () => {
     // Manually capture a message
     Sentry.captureMessage('Manual test message from Sentry example page', 'info');
-    
+
     // Manually capture an exception
     Sentry.captureException(new Error('Manual test exception from Sentry example page'));
-    
+
     alert('Manual Sentry events sent! Check your Sentry dashboard.');
   };
 
@@ -57,37 +57,25 @@ export default function SentryExamplePage() {
           <CardHeader>
             <CardTitle className="text-green-400">Sentry Integration Test Page</CardTitle>
             <CardDescription className="text-zinc-400">
-              Test various error scenarios to verify Sentry is working correctly.
-              Check your Sentry dashboard after triggering errors.
+              Test various error scenarios to verify Sentry is working correctly. Check your Sentry
+              dashboard after triggering errors.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button 
-                onClick={triggerTestError}
-                variant="destructive"
-                className="w-full"
-              >
+              <Button onClick={triggerTestError} variant="destructive" className="w-full">
                 Trigger Test Error ({errorCount})
               </Button>
-              
-              <Button 
-                onClick={triggerAsyncError}
-                variant="destructive"
-                className="w-full"
-              >
+
+              <Button onClick={triggerAsyncError} variant="destructive" className="w-full">
                 Trigger Async Error
               </Button>
-              
-              <Button 
-                onClick={triggerManualCapture}
-                variant="outline"
-                className="w-full"
-              >
+
+              <Button onClick={triggerManualCapture} variant="outline" className="w-full">
                 Send Manual Events
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={triggerUnhandledPromiseRejection}
                 variant="destructive"
                 className="w-full"
@@ -95,7 +83,7 @@ export default function SentryExamplePage() {
                 Unhandled Promise Rejection
               </Button>
             </div>
-            
+
             <div className="mt-6 p-4 bg-zinc-800 rounded-lg">
               <h3 className="text-sm font-medium text-zinc-300 mb-2">Test Instructions:</h3>
               <ol className="text-sm text-zinc-400 space-y-1 list-decimal list-inside">
@@ -105,9 +93,11 @@ export default function SentryExamplePage() {
                 <li>Verify that errors appear in your Sentry Issues section</li>
               </ol>
             </div>
-            
+
             <div className="mt-4 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
-              <h3 className="text-sm font-medium text-blue-300 mb-2">Sentry Configuration Status:</h3>
+              <h3 className="text-sm font-medium text-blue-300 mb-2">
+                Sentry Configuration Status:
+              </h3>
               <div className="text-sm text-blue-200 space-y-1">
                 <p>✅ Client-side error tracking enabled</p>
                 <p>✅ Server-side error tracking enabled</p>

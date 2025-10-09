@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       group_id: string;
       [key: string]: unknown;
     }
-    
+
     const presets = (rows || []).map((r: WalletSelectionPreset) => ({
       id: r.id,
       groupId: r.group_id,

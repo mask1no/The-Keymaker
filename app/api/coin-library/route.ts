@@ -16,13 +16,13 @@ const templateSchema = z.object({
 });
 
 const querySchema = z.object({
-  search: z.string().optional(),
-  category: z.string().optional(),
-  limit: z.string().optional(),
-  offset: z.string().optional(),
+  search: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  limit: z.string().nullable().optional(),
+  offset: z.string().nullable().optional(),
 });
 
-// GET - Fetch coin templates
+// GET - Fetch coin templates (public endpoint)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const templates = db.all(sql, ...params);
+    const templates = db.prepare(sql).all(...params);
 
     return NextResponse.json({
       success: true,

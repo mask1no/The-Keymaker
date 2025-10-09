@@ -27,31 +27,48 @@ export default function HomePage() {
   } = useWalletBalances({
     wallets: mockWallets,
     refreshInterval: 30000, // 30 seconds
-    enabled: true,
+    enabled: false, // Disabled until user is authenticated
   });
 
   // Fetch stats on component mount
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch volume tasks count
-        const volumeResponse = await fetch('/api/keymaker/volume-tasks');
-        const volumeResult = await volumeResponse.json();
-        if (volumeResult.success) {
-          setVolumeTaskCount(volumeResult.tasks.length);
+        // Fetch volume tasks count (only if authenticated)
+        try {
+          const volumeResponse = await fetch('/api/keymaker/volume-tasks');
+          if (volumeResponse.ok) {
+            const volumeResult = await volumeResponse.json();
+            if (volumeResult.success) {
+              setVolumeTaskCount(volumeResult.tasks.length);
+            }
+          }
+        } catch {
+          // Not authenticated or API error - use default value
+          setVolumeTaskCount(0);
         }
 
-        // Fetch token creations count
-        const tokenResponse = await fetch('/api/coin-library');
-        const tokenResult = await tokenResponse.json();
-        if (tokenResult.success) {
-          setTokenCount(tokenResult.templates.length);
+        // Fetch token creations count (public endpoint)
+        try {
+          const tokenResponse = await fetch('/api/coin-library');
+          if (tokenResponse.ok) {
+            const tokenResult = await tokenResponse.json();
+            if (tokenResult.success) {
+              setTokenCount(tokenResult.templates.length);
+            }
+          }
+        } catch {
+          // API error - use default value
+          setTokenCount(0);
         }
 
         // Mock wallet count (in real app, fetch from wallet groups)
         setWalletCount(mockWallets.length);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        // Set default values on any error
+        setVolumeTaskCount(0);
+        setTokenCount(0);
+        setWalletCount(0);
       }
     };
 
@@ -84,7 +101,7 @@ export default function HomePage() {
             </div>
             <div className="text-sm text-zinc-400">Active Wallets</div>
             <div className="text-xs text-zinc-500 mt-1">
-              Total: {totalSolBalance.toFixed(4)} SOL
+              Total: {balancesLoading ? '...' : totalSolBalance.toFixed(4)} SOL
             </div>
           </CardContent>
         </Card>

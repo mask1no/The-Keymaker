@@ -26,7 +26,7 @@ async function jrpc<T>(
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Jito ${method} HTTP ${res.status}`);
-  const json = await res.json() as { error?: { message?: string }; result: T };
+  const json = (await res.json()) as { error?: { message?: string }; result: T };
   if (json?.error) throw new Error(json.error?.message || `Jito ${method} error`);
   return json.result as T;
 }

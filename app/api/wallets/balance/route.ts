@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         balanceLamports: number;
       };
     }
-    
+
     const result: BalanceResult = {
       wallet: walletAddress,
       sol: {

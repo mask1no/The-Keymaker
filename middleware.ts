@@ -14,7 +14,7 @@ export function middleware(req: NextRequest) {
   if (needsSession) {
     const sessionCookie = req.cookies.get('km_session')?.value;
     const session = verifySessionValue(sessionCookie);
-    
+
     if (!session) {
       const url = req.nextUrl.clone();
       url.pathname = '/login';
@@ -38,7 +38,7 @@ export function middleware(req: NextRequest) {
     // Check origin header
     const origin = req.headers.get('origin');
     const host = req.headers.get('host');
-    
+
     if (origin && host) {
       try {
         const originUrl = new URL(origin);
@@ -68,7 +68,7 @@ export function middleware(req: NextRequest) {
     // Require session for all state-changing API requests
     const sessionCookie = req.cookies.get('km_session')?.value;
     const session = verifySessionValue(sessionCookie);
-    
+
     if (!session) {
       return new NextResponse('Unauthorized: Session required', { status: 401 });
     }

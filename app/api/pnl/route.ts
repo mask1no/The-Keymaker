@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       ts: number;
       mint: string;
     }
-    
+
     const pnlEntries = trades.map((trade: Trade) => {
       const priceSol = trade.priceLamports / 1e9;
       const qtySol = trade.qty / 1e9;

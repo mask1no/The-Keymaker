@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export async function GET(_req: NextRequest) {
   let bundleEnabled = false;
   let dbHealthy = false;
-  
+
   // Check database health
   try {
     const db = await getDb();
@@ -34,32 +34,35 @@ export async function GET(_req: NextRequest) {
           status: healthStatus.rpc.light,
           latencyMs: healthStatus.rpc.latencyMs,
           endpoint: healthStatus.rpc.endpoint,
-          message: healthStatus.rpc.message
+          message: healthStatus.rpc.message,
         },
         ws: {
           status: healthStatus.ws.light,
           lastHeartbeatAt: healthStatus.ws.lastHeartbeatAt,
           missed: healthStatus.ws.missed,
-          message: healthStatus.ws.message
+          message: healthStatus.ws.message,
         },
         slot: {
           status: healthStatus.sm.light,
           current: healthStatus.sm.slot,
           delta: healthStatus.sm.slotDelta,
-          message: healthStatus.sm.message
+          message: healthStatus.sm.message,
         },
         jito: {
           status: healthStatus.jito.light,
           tipFloor: healthStatus.jito.tipFloor,
-          message: healthStatus.jito.message
+          message: healthStatus.jito.message,
         },
         database: {
           status: dbHealthy ? 'ok' : 'down',
-          message: dbHealthy ? undefined : 'database connection failed'
-        }
+          message: dbHealthy ? undefined : 'database connection failed',
+        },
       },
       bundle: { enabled: bundleEnabled },
-      overall: healthStatus.rpc.light === 'green' && healthStatus.sm.light === 'green' && dbHealthy ? 'healthy' : 'degraded'
+      overall:
+        healthStatus.rpc.light === 'green' && healthStatus.sm.light === 'green' && dbHealthy
+          ? 'healthy'
+          : 'degraded',
     }),
     { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } },
   );

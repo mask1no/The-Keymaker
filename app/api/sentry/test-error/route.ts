@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // Trigger a test error
     const error = new Error('Test server-side error for Sentry');
     error.name = 'SentryTestError';
-    
+
     // Add some context
     Sentry.setContext('test_context', {
       endpoint: '/api/sentry/test-error',
@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: errorMessage,
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Trigger an error with custom data
     const error = new Error(`Custom test error: ${body.message || 'No message provided'}`);
     error.name = 'CustomSentryTestError';
-    
+
     // Add custom context from request body
     Sentry.setContext('custom_test', {
       ...body,
@@ -72,12 +72,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: errorMessage,
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

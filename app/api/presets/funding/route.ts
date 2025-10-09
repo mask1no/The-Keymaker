@@ -24,7 +24,7 @@ export async function GET() {
       name: string;
       [key: string]: unknown;
     }
-    
+
     const presets = (rows || []).map((r: FundingPreset) => ({
       id: r.id,
       name: r.name,

@@ -75,7 +75,8 @@ export async function POST(request: Request) {
     });
 
     let transactions: VersionedTransaction[];
-    const subtle = (globalThis as { crypto?: { subtle?: unknown } }).crypto?.subtle || nodeWebcrypto?.subtle;
+    const subtle =
+      (globalThis as { crypto?: { subtle?: unknown } }).crypto?.subtle || nodeWebcrypto?.subtle;
     if (!subtle) throw new Error('WebCrypto not available');
     const originalHash = await subtle.digest(
       'SHA-256',
@@ -230,9 +231,6 @@ export async function POST(request: Request) {
     const errorMessage = error instanceof Error ? error.message : 'unknown error';
     // Bundle submission error
     Sentry.captureException(error);
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

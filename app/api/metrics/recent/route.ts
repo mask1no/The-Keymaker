@@ -13,7 +13,7 @@ export async function GET(_request: Request) {
       executed_at: string;
       [key: string]: unknown;
     }
-    
+
     const recent = rows.map((r: RecentRow) => ({
       id: r.id,
       executed_at: r.executed_at,

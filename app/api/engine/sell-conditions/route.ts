@@ -43,7 +43,7 @@ export async function GET(request: Request) {
       mint?: string;
       [key: string]: unknown;
     }
-    
+
     let items: SellConditionItem[] = [];
     try {
       const raw = await fsp.readFile(file, 'utf8');

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     const masterKeypair = Keypair.generate();
 
     // Upload metadata to IPFS if image is provided
-    let metadataUri = 'https://via.placeholder.com/500x500.png';
+    const metadataUri = 'https://via.placeholder.com/500x500.png';
     if (validatedData.image) {
       try {
         // metadataUri = await uploadMetadataToIPFS({
