@@ -49,7 +49,11 @@ async function fetchWithBackoff(url: string, retries = MAX_RETRIES): Promise<Res
   return null;
 }
 
-async function fetchDexScreenerTrades(mint: string, sinceTs: number, limit: number): Promise<TradeItem[]> {
+async function fetchDexScreenerTrades(
+  mint: string,
+  sinceTs: number,
+  limit: number,
+): Promise<TradeItem[]> {
   const url = `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`;
   const res = await fetchWithBackoff(url);
 
@@ -90,7 +94,11 @@ async function fetchDexScreenerTrades(mint: string, sinceTs: number, limit: numb
   return trades.slice(0, limit);
 }
 
-async function fetchBirdeyeTrades(mint: string, sinceTs: number, limit: number): Promise<TradeItem[]> {
+async function fetchBirdeyeTrades(
+  mint: string,
+  sinceTs: number,
+  limit: number,
+): Promise<TradeItem[]> {
   const apiKey = process.env.BIRDEYE_API_KEY;
   if (!apiKey) {
     throw new Error('birdeye_not_configured');
@@ -169,4 +177,3 @@ export const GET = withSessionAndLimit(async (request) => {
     return NextResponse.json({ error: 'Failed to fetch mint activity' }, { status: 500 });
   }
 });
-

@@ -27,7 +27,7 @@ export default function AppSideNav() {
               key={x.name}
               href={x.href}
               className={
-                'flex items-center gap-2 rounded-xl px-3 py-2 transition-colors max-w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 ' +
+                'flex items-center gap-2 rounded-xl px-3 py-2 transition-colors max-w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 ' +
                 (active
                   ? 'bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-[inset_0_0_0_1px_rgba(100,149,237,.15)]'
                   : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60')

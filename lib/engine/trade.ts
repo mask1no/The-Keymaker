@@ -1,17 +1,14 @@
 import 'server-only';
 import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { quoteAndBuildSwap, getQuote, getPriceImpact } from '@/lib/tx/jupiter';
+import { buildSwapTx, buildSellTx } from '@/lib/tx/jupiter';
 import { isMigrated } from '@/lib/pump/migration';
-import { buildBuyOnCurveTx } from '@/lib/tx/pumpfun';
 import { acquireMintLock, releaseMintLock } from '@/lib/locks/mintLock';
 import { hashTransactionMessage } from '@/lib/util/jsonStableHash';
-import { getDb, recordTrade } from '@/lib/db/sqlite';
-import { logger } from '@/lib/logger';
-import bs58 from 'bs58';
+import { getDb, recordTrade, checkTxDedupe, recordTxDedupe } from '@/lib/db/sqlite';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
-interface TradeResult {
+export interface TradeResult {
   wallet: string;
   success: boolean;
   signature?: string;
@@ -26,43 +23,45 @@ interface MultiWalletBuyParams {
   perWalletSolLamports: number;
   slippageBps: number;
   impactCapPct?: number;
-  priorityFeeMicroLamports?: number;
-  connection: Connection;
+  priorityFeeMicrolamports?: number;
   dryRun?: boolean;
 }
 
 interface MultiWalletSellParams {
   mint: string;
   wallets: Keypair[];
-  sellPctOrAmount: number | 'all';
+  sellPctOrLamports: number | 'all';
   slippageBps: number;
-  priorityFeeMicroLamports?: number;
-  connection: Connection;
+  priorityFeeMicrolamports?: number;
   dryRun?: boolean;
 }
 
-/**
- * Execute multi-wallet buy with idempotency and impact cap
- */
 export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<TradeResult[]> {
   const {
     mint,
     wallets,
     perWalletSolLamports,
     slippageBps,
-    impactCapPct = 5,
-    priorityFeeMicroLamports = 50_000,
-    connection,
+    impactCapPct = 2,
+    priorityFeeMicrolamports,
     dryRun = false,
   } = params;
 
   const results: TradeResult[] = [];
   const mintPubkey = new PublicKey(mint);
 
-  // Check if migrated
+  const connection = new Connection(
+    process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+    'confirmed',
+  );
+
   const migrated = await isMigrated(mintPubkey, connection);
 
-  logger.info('Starting multi-wallet buy', {
+  if (!migrated) {
+    throw new Error('bonding_curve_not_supported');
+  }
+
+  console.log('[multiWalletBuy]', {
     mint,
     wallets: wallets.length,
     perWalletSol: perWalletSolLamports / LAMPORTS_PER_SOL,
@@ -72,25 +71,27 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
 
   for (const wallet of wallets) {
     try {
-      // Acquire per-mint lock
       await acquireMintLock(mint, wallet.publicKey.toBase58());
 
-      // Check price impact
-      const quote = await getQuote({
-        inMint: SOL_MINT,
-        outMint: mint,
-        inAmountLamports: perWalletSolLamports,
+      const tx = await buildSwapTx({
+        wallet,
+        inputMint: SOL_MINT,
+        outputMint: mint,
+        amountLamports: perWalletSolLamports,
         slippageBps,
+        priorityFeeMicrolamports,
       });
 
-      const impact = getPriceImpact(quote);
+      const simulation = await connection.simulateTransaction(tx, {
+        replaceRecentBlockhash: true,
+        commitment: 'processed',
+      });
 
-      if (impact > impactCapPct) {
+      if (simulation.value.err) {
         results.push({
           wallet: wallet.publicKey.toBase58(),
           success: false,
-          error: `Price impact ${impact.toFixed(2)}% exceeds cap ${impactCapPct}%`,
-          priceImpact: impact,
+          error: `Simulation failed: ${JSON.stringify(simulation.value.err)}`,
         });
         continue;
       }
@@ -99,73 +100,40 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
         results.push({
           wallet: wallet.publicKey.toBase58(),
           success: true,
-          tokensOut: Number(quote.outAmount),
-          priceImpact: impact,
         });
         continue;
       }
 
-      // Build transaction
-      let tx;
-      if (migrated) {
-        // Use Jupiter for migrated tokens
-        tx = await quoteAndBuildSwap({
-          owner: wallet,
-          inMint: SOL_MINT,
-          outMint: mint,
-          inAmountLamports: perWalletSolLamports,
-          slippageBps,
-          connection,
-          priorityFeeMicroLamports,
-        });
-      } else {
-        // Use pump.fun curve for non-migrated
-        tx = await buildBuyOnCurveTx({
-          buyer: wallet,
-          mint: mintPubkey,
-          solLamports: perWalletSolLamports,
-          slippageBps,
-          connection,
-          priorityFeeMicroLamports,
-        });
-      }
-
-      // Check idempotency
       const msgHash = hashTransactionMessage(tx.message.serialize());
-      const db = await getDb();
-      const existing = await db.get('SELECT sig FROM tx_dedupe WHERE sig = ?', [msgHash]);
+      const existingSig = checkTxDedupe(msgHash);
 
-      if (existing) {
+      if (existingSig) {
         results.push({
           wallet: wallet.publicKey.toBase58(),
           success: true,
-          signature: existing.sig,
+          signature: existingSig,
         });
         continue;
       }
 
-      // Send transaction
       const signature = await connection.sendTransaction(tx, {
         skipPreflight: false,
         maxRetries: 3,
       });
 
-      // Wait for confirmation
       await connection.confirmTransaction(signature, 'confirmed');
 
-      // Record in dedupe table
-      await db.run('INSERT INTO tx_dedupe (sig) VALUES (?)', [msgHash]);
+      recordTxDedupe(msgHash, signature);
 
-      // Record trade
-      await recordTrade({
+      recordTrade({
         ts: Date.now(),
         wallet: wallet.publicKey.toBase58(),
         mint,
         side: 'buy',
-        qty: Number(quote.outAmount),
-        priceLamports: Math.floor((perWalletSolLamports / Number(quote.outAmount)) * LAMPORTS_PER_SOL),
+        qty: perWalletSolLamports,
+        priceLamports: perWalletSolLamports,
         feeLamports: 5000,
-        priorityFeeLamports: priorityFeeMicroLamports,
+        priorityFeeLamports: priorityFeeMicrolamports ?? 0,
         sig: signature,
       });
 
@@ -173,17 +141,14 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
         wallet: wallet.publicKey.toBase58(),
         success: true,
         signature,
-        tokensOut: Number(quote.outAmount),
-        priceImpact: impact,
       });
 
-      logger.info('Buy completed', {
+      console.log('[buy] Success', {
         wallet: wallet.publicKey.toBase58(),
         signature,
-        tokensOut: quote.outAmount,
       });
     } catch (error) {
-      logger.error('Buy failed for wallet', {
+      console.error('[buy] Failed', {
         wallet: wallet.publicKey.toBase58(),
         error,
       });
@@ -197,40 +162,39 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
       releaseMintLock(mint);
     }
 
-    // Small delay between wallets
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 
   return results;
 }
 
-/**
- * Execute multi-wallet sell
- */
 export async function multiWalletSell(params: MultiWalletSellParams): Promise<TradeResult[]> {
   const {
     mint,
     wallets,
-    sellPctOrAmount,
+    sellPctOrLamports,
     slippageBps,
-    priorityFeeMicroLamports = 50_000,
-    connection,
+    priorityFeeMicrolamports,
     dryRun = false,
   } = params;
 
   const results: TradeResult[] = [];
   const mintPubkey = new PublicKey(mint);
 
-  logger.info('Starting multi-wallet sell', {
+  const connection = new Connection(
+    process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+    'confirmed',
+  );
+
+  console.log('[multiWalletSell]', {
     mint,
     wallets: wallets.length,
-    sellPctOrAmount,
+    sellPctOrLamports,
     dryRun,
   });
 
   for (const wallet of wallets) {
     try {
-      // Get token balance
       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
         mint: mintPubkey,
       });
@@ -244,9 +208,10 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         continue;
       }
 
-      const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
+      const balance = tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount;
+      const balanceNum = Number(balance);
 
-      if (!balance || balance === 0) {
+      if (balanceNum === 0) {
         results.push({
           wallet: wallet.publicKey.toBase58(),
           success: false,
@@ -255,24 +220,18 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         continue;
       }
 
-      // Calculate sell amount
-      let sellAmount = balance;
-      if (sellPctOrAmount !== 'all') {
-        if (sellPctOrAmount > 0 && sellPctOrAmount <= 100) {
-          // Percentage
-          sellAmount = (balance * sellPctOrAmount) / 100;
+      let sellAmount = balanceNum;
+      if (sellPctOrLamports !== 'all') {
+        if (sellPctOrLamports > 0 && sellPctOrLamports <= 100) {
+          sellAmount = Math.floor((balanceNum * sellPctOrLamports) / 100);
         } else {
-          // Absolute amount
-          sellAmount = Math.min(sellPctOrAmount, balance);
+          sellAmount = Math.min(sellPctOrLamports, balanceNum);
         }
       }
 
-      // Dust clamping
-      if (sellAmount < 0.0001) {
-        sellAmount = balance; // Sell all dust
+      if (sellAmount < 1000) {
+        sellAmount = balanceNum;
       }
-
-      const sellLamports = Math.floor(sellAmount * Math.pow(10, 9)); // Assuming 9 decimals
 
       if (dryRun) {
         results.push({
@@ -283,35 +242,43 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         continue;
       }
 
-      // Acquire lock
       await acquireMintLock(mint, wallet.publicKey.toBase58());
 
-      // Build swap transaction
-      const tx = await quoteAndBuildSwap({
-        owner: wallet,
-        inMint: mint,
-        outMint: SOL_MINT,
-        inAmountLamports: sellLamports,
+      const tx = await buildSellTx({
+        wallet,
+        inputMint: mint,
+        outputMint: SOL_MINT,
+        amountTokens: sellAmount,
         slippageBps,
-        connection,
-        priorityFeeMicroLamports,
+        priorityFeeMicrolamports,
       });
 
-      // Check idempotency
-      const msgHash = hashTransactionMessage(tx.message.serialize());
-      const db = await getDb();
-      const existing = await db.get('SELECT sig FROM tx_dedupe WHERE sig = ?', [msgHash]);
+      const simulation = await connection.simulateTransaction(tx, {
+        replaceRecentBlockhash: true,
+        commitment: 'processed',
+      });
 
-      if (existing) {
+      if (simulation.value.err) {
         results.push({
           wallet: wallet.publicKey.toBase58(),
-          success: true,
-          signature: existing.sig,
+          success: false,
+          error: `Simulation failed: ${JSON.stringify(simulation.value.err)}`,
         });
         continue;
       }
 
-      // Send
+      const msgHash = hashTransactionMessage(tx.message.serialize());
+      const existingSig = checkTxDedupe(msgHash);
+
+      if (existingSig) {
+        results.push({
+          wallet: wallet.publicKey.toBase58(),
+          success: true,
+          signature: existingSig,
+        });
+        continue;
+      }
+
       const signature = await connection.sendTransaction(tx, {
         skipPreflight: false,
         maxRetries: 3,
@@ -319,18 +286,17 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
 
       await connection.confirmTransaction(signature, 'confirmed');
 
-      // Record
-      await db.run('INSERT INTO tx_dedupe (sig) VALUES (?)', [msgHash]);
+      recordTxDedupe(msgHash, signature);
 
-      await recordTrade({
+      recordTrade({
         ts: Date.now(),
         wallet: wallet.publicKey.toBase58(),
         mint,
         side: 'sell',
-        qty: sellLamports,
-        priceLamports: 0, // Will be calculated from actual output
+        qty: sellAmount,
+        priceLamports: 0,
         feeLamports: 5000,
-        priorityFeeLamports: priorityFeeMicroLamports,
+        priorityFeeLamports: priorityFeeMicrolamports ?? 0,
         sig: signature,
       });
 
@@ -341,13 +307,13 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         tokensOut: sellAmount,
       });
 
-      logger.info('Sell completed', {
+      console.log('[sell] Success', {
         wallet: wallet.publicKey.toBase58(),
         signature,
         tokensSold: sellAmount,
       });
     } catch (error) {
-      logger.error('Sell failed for wallet', {
+      console.error('[sell] Failed', {
         wallet: wallet.publicKey.toBase58(),
         error,
       });
@@ -361,9 +327,8 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
       releaseMintLock(mint);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 
   return results;
 }
-

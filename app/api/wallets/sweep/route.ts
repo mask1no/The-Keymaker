@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import 'server-only';
 import { z } from 'zod';
 import {
@@ -11,64 +11,113 @@ import {
   VersionedTransaction,
   ComputeBudgetProgram,
 } from '@solana/web3.js';
-import { withSessionAndLimit } from '@/lib/server/withSessionAndLimit';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 import { getDb } from '@/lib/db/sqlite';
 import { decrypt } from '@/lib/crypto';
 import bs58 from 'bs58';
-import { logger } from '@/lib/logger';
+import { readFileSync } from 'fs';
 
 const sweepSchema = z.object({
-  walletPubkeys: z.array(z.string().min(32).max(44)).min(1).max(20),
-  toAddress: z.string().min(32).max(44),
+  groupId: z.string().uuid().optional(),
+  walletPubkeys: z.array(z.string().min(32).max(44)).optional(),
   bufferSol: z.number().nonnegative().default(0.001),
   minThresholdSol: z.number().nonnegative().default(0.001),
-  password: z.string().min(1),
-  priorityFeeMicroLamports: z.number().int().nonnegative().default(10_000),
+  priorityFeeMicrolamports: z.number().int().nonnegative().default(10_000),
   dryRun: z.boolean().default(false),
 });
 
-function getRpcUrl(): string {
-  return (
-    process.env.HELIUS_RPC_URL ||
-    process.env.NEXT_PUBLIC_HELIUS_RPC ||
-    'https://api.mainnet-beta.solana.com'
-  );
+function getMasterWallet(): PublicKey {
+  const keypairPath = process.env.KEYPAIR_JSON || process.env.MASTER_WALLET_KEY;
+  if (!keypairPath) {
+    throw new Error('KEYPAIR_JSON or MASTER_WALLET_KEY env var not set');
+  }
+  const keypairData = JSON.parse(readFileSync(keypairPath, 'utf8'));
+  const keypair = Keypair.fromSecretKey(Uint8Array.from(keypairData));
+  return keypair.publicKey;
 }
 
-export const POST = withSessionAndLimit(async (request) => {
+function getRpcUrl(): string {
+  return process.env.HELIUS_RPC_URL || process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
+}
+
+export async function POST(request: NextRequest) {
+  const session = getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { limit: rateLimitNum, windowMs } = getRateConfig('walletOps');
+  const rateLimitResult = rateLimit(session.sub, rateLimitNum, windowMs);
+
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      },
+      { status: 429 },
+    );
+  }
+
   try {
     const body = await request.json();
     const validated = sweepSchema.parse(body);
 
+    if (!validated.groupId && !validated.walletPubkeys) {
+      return NextResponse.json(
+        { error: 'Either groupId or walletPubkeys must be provided' },
+        { status: 400 },
+      );
+    }
+
     const connection = new Connection(getRpcUrl(), 'confirmed');
-    const db = await getDb();
-    const toPublicKey = new PublicKey(validated.toAddress);
+    const db = getDb();
+    const toPublicKey = getMasterWallet();
+
+    let walletPubkeys: string[] = [];
+
+    if (validated.groupId) {
+      const group = db
+        .prepare('SELECT wallet_pubkeys FROM wallet_groups WHERE id = ?')
+        .get(validated.groupId) as { wallet_pubkeys: string } | undefined;
+
+      if (!group) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+      }
+
+      walletPubkeys = JSON.parse(group.wallet_pubkeys);
+    } else if (validated.walletPubkeys) {
+      walletPubkeys = validated.walletPubkeys;
+    }
 
     const walletKeypairs: Keypair[] = [];
 
-    for (const pubkey of validated.walletPubkeys) {
-      const wallet = await db.get('SELECT * FROM wallets WHERE address = ?', [pubkey]);
+    for (const pubkey of walletPubkeys) {
+      const walletRow = db.prepare('SELECT keypair FROM wallets WHERE address = ?').get(pubkey) as
+        | { keypair: string }
+        | undefined;
 
-      if (!wallet) {
+      if (!walletRow) {
         continue;
       }
 
       try {
-        const decryptedKey = decrypt(wallet.keypair, validated.password);
+        const decryptedKey = decrypt(walletRow.keypair, process.env.WALLET_PASSWORD || '');
         const keypair = Keypair.fromSecretKey(bs58.decode(decryptedKey));
         walletKeypairs.push(keypair);
       } catch {
-        return NextResponse.json(
-          { error: `Invalid password for wallet ${pubkey}` },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: `Failed to decrypt wallet ${pubkey}` }, { status: 500 });
       }
     }
 
     const results = [];
     const rentExemption = await connection.getMinimumBalanceForRentExemption(0);
 
-    for (const wallet of walletKeypairs) {
+    for (let i = 0; i < walletKeypairs.length; i++) {
+      const wallet = walletKeypairs[i];
+
       try {
         const balance = await connection.getBalance(wallet.publicKey);
         const bufferLamports = Math.floor(validated.bufferSol * LAMPORTS_PER_SOL);
@@ -97,7 +146,7 @@ export const POST = withSessionAndLimit(async (request) => {
         const { blockhash } = await connection.getLatestBlockhash('confirmed');
 
         const computeBudgetIx = ComputeBudgetProgram.setComputeUnitPrice({
-          microLamports: validated.priorityFeeMicroLamports,
+          microLamports: validated.priorityFeeMicrolamports,
         });
 
         const transferIx = SystemProgram.transfer({
@@ -127,11 +176,12 @@ export const POST = withSessionAndLimit(async (request) => {
           success: true,
           signature,
           amountSol: sweepAmount / LAMPORTS_PER_SOL,
+          memo: `sweep:${Date.now()}:${i}`,
         });
 
-        logger.info('Wallet swept', {
+        console.log('[sweep] Success', {
           from: wallet.publicKey.toBase58(),
-          to: validated.toAddress,
+          to: toPublicKey.toBase58(),
           amount: sweepAmount / LAMPORTS_PER_SOL,
           signature,
         });
@@ -160,12 +210,15 @@ export const POST = withSessionAndLimit(async (request) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 },
+      );
     }
-    logger.error('Wallet sweep failed', { error });
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to sweep wallets' },
-      { status: 500 }
+      { status: 500 },
     );
   }
-});
+}

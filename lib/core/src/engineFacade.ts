@@ -3,7 +3,7 @@ import { JitoEngine } from './engineJito';
 import { RpcEngine } from './engineRpc';
 
 const engines: Record<ExecutionMode, Engine> = {
-  JITO_BUNDLE: new JitoEngine(),
+  RPC: new JitoEngine(),
   RPC_FANOUT: new RpcEngine(),
 };
 

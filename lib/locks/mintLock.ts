@@ -54,4 +54,3 @@ export function isMintLocked(mint: string): boolean {
 
   return true;
 }
-

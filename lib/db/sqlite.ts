@@ -1,28 +1,14 @@
 import 'server-only';
-import path from 'path';
-import fs from 'fs';
-import { logger } from '@/lib/logger';
+import * as path from 'path';
+import * as fs from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const BetterSqlite3 = require('better-sqlite3');
 
-let dbInstance: any = null;
+type Database = ReturnType<typeof BetterSqlite3>;
+
+let dbInstance: Database | null = null;
 
 const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS wallets (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  address TEXT UNIQUE NOT NULL,
-  keypair TEXT NOT NULL,
-  role TEXT DEFAULT 'normal',
-  network TEXT DEFAULT 'mainnet',
-  balance INTEGER DEFAULT 0,
-  name TEXT,
-  group_name TEXT DEFAULT 'default',
-  color TEXT DEFAULT '#FFFFFF',
-  isActive INTEGER DEFAULT 1,
-  created_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_wallets_address ON wallets(address);
-CREATE INDEX IF NOT EXISTS idx_wallets_role ON wallets(role);
-
 CREATE TABLE IF NOT EXISTS trades (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ts INTEGER NOT NULL,
@@ -42,70 +28,21 @@ CREATE TABLE IF NOT EXISTS trades (
 CREATE INDEX IF NOT EXISTS idx_trades_ts ON trades(ts DESC);
 CREATE INDEX IF NOT EXISTS idx_trades_mint ON trades(mint);
 CREATE INDEX IF NOT EXISTS idx_trades_wallet ON trades(wallet);
+CREATE INDEX IF NOT EXISTS idx_trades_sig ON trades(sig);
 
 CREATE TABLE IF NOT EXISTS positions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  mint TEXT NOT NULL UNIQUE,
-  entry_price REAL,
-  current_price REAL,
-  quantity REAL DEFAULT 0,
-  realized_pnl REAL DEFAULT 0,
-  unrealized_pnl REAL DEFAULT 0,
-  updated_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE TABLE IF NOT EXISTS volume_profiles (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet TEXT NOT NULL,
   mint TEXT NOT NULL,
-  period TEXT NOT NULL,
-  volume REAL NOT NULL DEFAULT 0,
-  txn_count INTEGER NOT NULL DEFAULT 0,
-  updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+  qty INTEGER NOT NULL DEFAULT 0,
+  cost_basis_lamports INTEGER NOT NULL DEFAULT 0,
+  realized_pnl_lamports INTEGER DEFAULT 0,
+  updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+  UNIQUE(wallet, mint)
 );
 
-CREATE INDEX IF NOT EXISTS idx_volume_mint_period ON volume_profiles(mint, period);
-
-CREATE TABLE IF NOT EXISTS volume_runs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  mint TEXT NOT NULL,
-  start_ts INTEGER NOT NULL,
-  end_ts INTEGER,
-  peak_volume REAL DEFAULT 0,
-  status TEXT DEFAULT 'active',
-  created_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE TABLE IF NOT EXISTS mint_activity (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  mint TEXT NOT NULL,
-  ts INTEGER NOT NULL,
-  side TEXT CHECK(side IN ('buy', 'sell')),
-  price REAL,
-  amount REAL,
-  sig TEXT,
-  created_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_activity_mint_ts ON mint_activity(mint, ts DESC);
-
-CREATE TABLE IF NOT EXISTS tx_dedupe (
-  sig TEXT PRIMARY KEY,
-  processed_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE TABLE IF NOT EXISTS ui_settings (
-  key TEXT PRIMARY KEY,
-  value TEXT,
-  updated_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE TABLE IF NOT EXISTS dev_mints (
-  mint TEXT PRIMARY KEY,
-  dev_wallet TEXT NOT NULL,
-  created_at INTEGER DEFAULT (strftime('%s', 'now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_dev_mints_wallet ON dev_mints(dev_wallet);
+CREATE INDEX IF NOT EXISTS idx_positions_wallet ON positions(wallet);
+CREATE INDEX IF NOT EXISTS idx_positions_mint ON positions(mint);
 
 CREATE TABLE IF NOT EXISTS volume_profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,15 +79,54 @@ CREATE TABLE IF NOT EXISTS volume_runs (
 
 CREATE INDEX IF NOT EXISTS idx_volume_runs_status ON volume_runs(status);
 CREATE INDEX IF NOT EXISTS idx_volume_runs_profile ON volume_runs(profile_id);
+
+CREATE TABLE IF NOT EXISTS mint_activity (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  mint TEXT NOT NULL,
+  ts INTEGER NOT NULL,
+  side TEXT CHECK(side IN ('buy', 'sell')),
+  price REAL,
+  amount REAL,
+  sig TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_mint_ts ON mint_activity(mint, ts DESC);
+
+CREATE TABLE IF NOT EXISTS tx_dedupe (
+  msg_hash TEXT PRIMARY KEY,
+  sig TEXT NOT NULL,
+  processed_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_tx_dedupe_sig ON tx_dedupe(sig);
+
+CREATE TABLE IF NOT EXISTS ui_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS wallet_groups (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  wallet_pubkeys TEXT NOT NULL,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS dev_mints (
+  mint TEXT PRIMARY KEY,
+  dev_wallet TEXT NOT NULL,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_dev_mints_wallet ON dev_mints(dev_wallet);
 `;
 
-export async function getDb(): Promise<any> {
+export function getDb(): Database {
   if (dbInstance) return dbInstance;
 
   try {
-    const sqlite3 = (await import('sqlite3')).default;
-    const { open } = await import('sqlite');
-
     const dataDir = path.join(process.cwd(), 'data');
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
@@ -158,35 +134,22 @@ export async function getDb(): Promise<any> {
 
     const dbPath = path.join(dataDir, 'keymaker.db');
 
-    dbInstance = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
-    });
+    dbInstance = new Database(dbPath);
 
-    await dbInstance.exec('PRAGMA journal_mode = WAL;');
-    await dbInstance.exec('PRAGMA synchronous = NORMAL;');
-    await dbInstance.exec('PRAGMA foreign_keys = ON;');
+    dbInstance.pragma('journal_mode = WAL');
+    dbInstance.pragma('synchronous = NORMAL');
+    dbInstance.pragma('foreign_keys = ON');
 
-    await dbInstance.exec(SCHEMA_SQL);
+    dbInstance.exec(SCHEMA_SQL);
 
     return dbInstance;
   } catch (err) {
-    logger.error('DB initialization error:', { error: err });
-    const noop = async () => undefined;
-    const noopAll = async () => [] as any[];
-    const noopRun = async () => ({ lastID: 0, changes: 0 });
-    dbInstance = {
-      exec: noop,
-      run: noopRun,
-      all: noopAll,
-      get: noop,
-      close: noop,
-    };
-    return dbInstance;
+    console.error('[sqlite] Initialization error:', err);
+    throw new Error('Failed to initialize database');
   }
 }
 
-interface RecordTradeParams {
+export interface TradeRow {
   ts: number;
   slot?: number;
   sig?: string;
@@ -200,46 +163,72 @@ interface RecordTradeParams {
   note?: string;
 }
 
-export async function recordTrade(params: RecordTradeParams): Promise<number> {
-  const db = await getDb();
-  const result = await db.run(
-    `INSERT INTO trades (ts, slot, sig, wallet, mint, side, qty, priceLamports, feeLamports, priorityFeeLamports, note)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      params.ts,
-      params.slot ?? null,
-      params.sig ?? null,
-      params.wallet ?? null,
-      params.mint,
-      params.side,
-      params.qty,
-      params.priceLamports,
-      params.feeLamports ?? 0,
-      params.priorityFeeLamports ?? 0,
-      params.note ?? null,
-    ]
-  );
-  return result.lastID;
+export function recordTrade(row: TradeRow): number {
+  const db = getDb();
+  const stmt = db.prepare(`
+    INSERT INTO trades (ts, slot, sig, wallet, mint, side, qty, priceLamports, feeLamports, priorityFeeLamports, note)
+    VALUES (@ts, @slot, @sig, @wallet, @mint, @side, @qty, @priceLamports, @feeLamports, @priorityFeeLamports, @note)
+  `);
+
+  const result = stmt.run({
+    ts: row.ts,
+    slot: row.slot ?? null,
+    sig: row.sig ?? null,
+    wallet: row.wallet ?? null,
+    mint: row.mint,
+    side: row.side,
+    qty: row.qty,
+    priceLamports: row.priceLamports,
+    feeLamports: row.feeLamports ?? 0,
+    priorityFeeLamports: row.priorityFeeLamports ?? 0,
+    note: row.note ?? null,
+  });
+
+  return result.lastInsertRowid as number;
 }
 
-interface ListTradesParams {
+export interface ListTradesParams {
   limit?: number;
   offset?: number;
+  mint?: string;
+  wallet?: string;
 }
 
-export async function listTrades(params: ListTradesParams = {}): Promise<any[]> {
-  const db = await getDb();
-  const limit = Math.min(params.limit ?? 500, 500);
+export function listTrades(params: ListTradesParams = {}): any[] {
+  const db = getDb();
+  const limit = Math.min(params.limit ?? 500, 5000);
   const offset = params.offset ?? 0;
 
-  const trades = await db.all(
-    `SELECT * FROM trades ORDER BY ts DESC LIMIT ? OFFSET ?`,
-    [limit, offset]
-  );
+  let query = 'SELECT * FROM trades WHERE 1=1';
+  const bindings: any = {};
 
-  return trades;
+  if (params.mint) {
+    query += ' AND mint = @mint';
+    bindings.mint = params.mint;
+  }
+
+  if (params.wallet) {
+    query += ' AND wallet = @wallet';
+    bindings.wallet = params.wallet;
+  }
+
+  query += ' ORDER BY ts DESC LIMIT @limit OFFSET @offset';
+  bindings.limit = limit;
+  bindings.offset = offset;
+
+  const stmt = db.prepare(query);
+  return stmt.all(bindings);
 }
 
-const promisedDb = getDb();
-export { promisedDb as db };
+export function checkTxDedupe(msgHash: string): string | null {
+  const db = getDb();
+  const stmt = db.prepare('SELECT sig FROM tx_dedupe WHERE msg_hash = ?');
+  const row = stmt.get(msgHash) as { sig: string } | undefined;
+  return row?.sig ?? null;
+}
 
+export function recordTxDedupe(msgHash: string, sig: string): void {
+  const db = getDb();
+  const stmt = db.prepare('INSERT OR IGNORE INTO tx_dedupe (msg_hash, sig) VALUES (?, ?)');
+  stmt.run(msgHash, sig);
+}

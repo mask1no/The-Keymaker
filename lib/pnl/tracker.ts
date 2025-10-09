@@ -34,10 +34,10 @@ export async function calculatePnL(mint: string, wallet?: string): Promise<Posit
 
   let trades: Trade[];
   if (wallet) {
-    trades = await db.all(
-      'SELECT * FROM trades WHERE mint = ? AND wallet = ? ORDER BY ts ASC',
-      [mint, wallet]
-    );
+    trades = await db.all('SELECT * FROM trades WHERE mint = ? AND wallet = ? ORDER BY ts ASC', [
+      mint,
+      wallet,
+    ]);
   } else {
     trades = await db.all('SELECT * FROM trades WHERE mint = ? ORDER BY ts ASC', [mint]);
   }
@@ -77,8 +77,7 @@ export async function calculatePnL(mint: string, wallet?: string): Promise<Posit
 
         // Calculate realized P&L for this match
         const costBasis = (qtyToMatch * buy.pricePerUnit + buy.fees * (qtyToMatch / buy.qty)) / 1e9;
-        const saleProceeds =
-          (qtyToMatch * sellPricePerUnit - sellFeesPerUnit * qtyToMatch) / 1e9;
+        const saleProceeds = (qtyToMatch * sellPricePerUnit - sellFeesPerUnit * qtyToMatch) / 1e9;
         realizedPnl += saleProceeds - costBasis;
 
         remaining -= qtyToMatch;
@@ -115,9 +114,7 @@ export async function calculatePnL(mint: string, wallet?: string): Promise<Posit
 export async function getAllPositions(): Promise<Position[]> {
   const db = await getDb();
 
-  const mints = await db.all(
-    'SELECT DISTINCT mint FROM trades ORDER BY MIN(ts) DESC LIMIT 50'
-  );
+  const mints = await db.all('SELECT DISTINCT mint FROM trades ORDER BY MIN(ts) DESC LIMIT 50');
 
   const positions: Position[] = [];
 
@@ -165,4 +162,3 @@ export async function exportPnLToCSV(): Promise<string> {
 
   return csv;
 }
-

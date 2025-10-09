@@ -42,10 +42,7 @@ export const POST = withSessionAndLimit(async (request) => {
       const wallet = await db.get('SELECT * FROM wallets WHERE address = ?', [pubkey]);
 
       if (!wallet) {
-        return NextResponse.json(
-          { error: `Wallet ${pubkey} not found` },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: `Wallet ${pubkey} not found` }, { status: 404 });
       }
 
       try {
@@ -55,7 +52,7 @@ export const POST = withSessionAndLimit(async (request) => {
       } catch {
         return NextResponse.json(
           { error: `Invalid password for wallet ${pubkey}` },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
@@ -88,7 +85,7 @@ export const POST = withSessionAndLimit(async (request) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -96,8 +93,7 @@ export const POST = withSessionAndLimit(async (request) => {
       {
         error: error instanceof Error ? error.message : 'Failed to execute buy',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
-

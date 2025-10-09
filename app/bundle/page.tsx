@@ -12,34 +12,49 @@ async function MarketCard({ mint }: { mint: string | null }) {
   }
   try {
     const base = process.env.NEXT_PUBLIC_BASE_URL || '';
-    const res = await fetch(`${base}/api/market/${mint}`, { cache: 'no-store', headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' } });
+    const res = await fetch(`${base}/api/market/${mint}`, {
+      cache: 'no-store',
+      headers: { 'x-engine-token': process.env.ENGINE_API_TOKEN || '' },
+    });
     if (!res.ok) throw new Error('failed');
     const data = (await res.json()) as any;
     return (
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="text-zinc-400 text-xs">Price</div>
-          <div className="text-lg font-semibold">${'{'}data.price?.toFixed?.(6) ?? data.price{'}'}</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.price?.toFixed?.(6) ?? data.price{'}'}
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">24h</div>
-          <div className="text-lg font-semibold">${'{'}data.priceChange24h ?? 0{'}'}%</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.priceChange24h ?? 0{'}'}%
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">FDV/MC</div>
-          <div className="text-lg font-semibold">${'{'}data.marketCap ?? 0{'}'}</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.marketCap ?? 0{'}'}
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">Liquidity</div>
-          <div className="text-lg font-semibold">${'{'}data.liquidityUsd ?? 0{'}'}</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.liquidityUsd ?? 0{'}'}
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">Volume 24h</div>
-          <div className="text-lg font-semibold">${'{'}data.volume24h ?? 0{'}'}</div>
+          <div className="text-lg font-semibold">
+            ${'{'}data.volume24h ?? 0{'}'}
+          </div>
         </div>
         <div>
           <div className="text-zinc-400 text-xs">Top Pair</div>
-          <div className="text-sm">${'{'}data.pair?.symbol ?? '—'}{' '}(${ '{'}data.pair?.dex ?? '—'{ }'})</div>
+          <div className="text-sm">
+            {data.pair?.symbol ?? '—'} ({data.pair?.dex ?? '—'})
+          </div>
         </div>
       </div>
     );
@@ -93,13 +108,18 @@ export default async function Page() {
             if (!wallets.length)
               return (
                 <div className="text-sm text-zinc-400">
-                  No tracked wallets. <a className="underline" href="/wallets">Configure →</a>
+                  No tracked wallets.{' '}
+                  <a className="underline" href="/wallets">
+                    Configure →
+                  </a>
                 </div>
               );
             return (
               <div className="text-sm text-zinc-400">
                 Shard PnL — temporarily disabled. Using wallets: {wallets.length}.{' '}
-                <a className="underline" href="/wallets">Edit →</a>
+                <a className="underline" href="/wallets">
+                  Edit →
+                </a>
               </div>
             );
           })()}

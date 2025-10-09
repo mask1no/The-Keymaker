@@ -32,10 +32,9 @@ async function main() {
 
       const ellipsisIndex = line.indexOf('...');
 
-      const beforeEllipsis = line.substring(0, ellipsisIndex);
-      const hasOpenBracket = /[{\[(]/.test(beforeEllipsis);
-
-      if (hasOpenBracket) continue;
+      // Allow object/array spreads: ...identifier or ...identifier.property
+      const isSpread = /\.{3}[a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*/.test(line);
+      if (isSpread) continue;
 
       const inString = /'[^']*\.\.\./.test(line) || /"[^"]*\.\.\./.test(line) || /`[^`]*\.\.\./.test(line);
       if (inString) continue;
@@ -65,4 +64,3 @@ main().catch((err) => {
   console.error('Error running check:', err);
   process.exit(1);
 });
-

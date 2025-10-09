@@ -38,4 +38,3 @@ function sortKeys(obj: any): any {
 export function hashTransactionMessage(messageBuffer: Uint8Array): string {
   return createHash('sha256').update(Buffer.from(messageBuffer)).digest('hex');
 }
-

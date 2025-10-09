@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import 'server-only';
 import { z } from 'zod';
 import {
@@ -11,105 +11,173 @@ import {
   VersionedTransaction,
   ComputeBudgetProgram,
 } from '@solana/web3.js';
-import { withSessionAndLimit } from '@/lib/server/withSessionAndLimit';
+import { getSession } from '@/lib/server/session';
+import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
+import { getDb } from '@/lib/db/sqlite';
 import { readFileSync } from 'fs';
-import { logger } from '@/lib/logger';
 
 const fundSchema = z.object({
-  walletPubkeys: z.array(z.string().min(32).max(44)).min(1).max(20),
-  strategy: z.enum(['equal', 'per_wallet', 'target']).default('equal'),
+  groupId: z.string().uuid().optional(),
+  walletPubkeys: z.array(z.string().min(32).max(44)).optional(),
+  strategy: z.enum(['equal', 'per_wallet', 'target']),
   totalSol: z.number().positive().max(100).optional(),
-  perWalletSol: z.number().positive().max(10).optional(),
-  priorityFeeMicroLamports: z.number().int().nonnegative().default(10_000),
+  perWallet: z.number().positive().max(10).optional(),
+  targetSol: z.number().positive().max(10).optional(),
+  priorityFeeMicrolamports: z.number().int().nonnegative().default(10_000),
   dryRun: z.boolean().default(false),
 });
 
 function getPayerKeypair(): Keypair {
-  const keypairPath = process.env.KEYPAIR_JSON;
+  const keypairPath = process.env.KEYPAIR_JSON || process.env.MASTER_WALLET_KEY;
   if (!keypairPath) {
-    throw new Error('KEYPAIR_JSON env var not set');
+    throw new Error('KEYPAIR_JSON or MASTER_WALLET_KEY env var not set');
   }
   const keypairData = JSON.parse(readFileSync(keypairPath, 'utf8'));
   return Keypair.fromSecretKey(Uint8Array.from(keypairData));
 }
 
 function getRpcUrl(): string {
-  return (
-    process.env.HELIUS_RPC_URL ||
-    process.env.NEXT_PUBLIC_HELIUS_RPC ||
-    'https://api.mainnet-beta.solana.com'
-  );
+  return process.env.HELIUS_RPC_URL || process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
 }
 
-export const POST = withSessionAndLimit(async (request) => {
+export async function POST(request: NextRequest) {
+  const session = getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { limit: rateLimitNum, windowMs } = getRateConfig('walletOps');
+  const rateLimitResult = rateLimit(session.sub, rateLimitNum, windowMs);
+
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        remaining: rateLimitResult.remaining,
+        resetAt: rateLimitResult.resetAt,
+      },
+      { status: 429 },
+    );
+  }
+
   try {
     const body = await request.json();
     const validated = fundSchema.parse(body);
 
+    if (!validated.groupId && !validated.walletPubkeys) {
+      return NextResponse.json(
+        { error: 'Either groupId or walletPubkeys must be provided' },
+        { status: 400 },
+      );
+    }
+
     const payer = getPayerKeypair();
     const connection = new Connection(getRpcUrl(), 'confirmed');
+    const db = getDb();
 
-    const amountsPerWallet: number[] = [];
+    let walletPubkeys: string[] = [];
+
+    if (validated.groupId) {
+      const group = db
+        .prepare('SELECT wallet_pubkeys FROM wallet_groups WHERE id = ?')
+        .get(validated.groupId) as { wallet_pubkeys: string } | undefined;
+
+      if (!group) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+      }
+
+      walletPubkeys = JSON.parse(group.wallet_pubkeys);
+    } else if (validated.walletPubkeys) {
+      walletPubkeys = validated.walletPubkeys;
+    }
+
+    const amountsPerWallet: Map<string, number> = new Map();
 
     if (validated.strategy === 'per_wallet') {
-      if (!validated.perWalletSol) {
-        return NextResponse.json({ error: 'perWalletSol required for per_wallet strategy' }, { status: 400 });
+      if (!validated.perWallet) {
+        return NextResponse.json(
+          { error: 'perWallet required for per_wallet strategy' },
+          { status: 400 },
+        );
       }
-      for (let i = 0; i < validated.walletPubkeys.length; i++) {
-        amountsPerWallet.push(validated.perWalletSol);
-      }
+      walletPubkeys.forEach((pk) => amountsPerWallet.set(pk, validated.perWallet!));
     } else if (validated.strategy === 'equal') {
       if (!validated.totalSol) {
-        return NextResponse.json({ error: 'totalSol required for equal strategy' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'totalSol required for equal strategy' },
+          { status: 400 },
+        );
       }
-      const perWallet = validated.totalSol / validated.walletPubkeys.length;
-      for (let i = 0; i < validated.walletPubkeys.length; i++) {
-        amountsPerWallet.push(perWallet);
+      const perWallet = validated.totalSol / walletPubkeys.length;
+      walletPubkeys.forEach((pk) => amountsPerWallet.set(pk, perWallet));
+    } else if (validated.strategy === 'target') {
+      if (!validated.targetSol) {
+        return NextResponse.json(
+          { error: 'targetSol required for target strategy' },
+          { status: 400 },
+        );
+      }
+
+      for (const pk of walletPubkeys) {
+        const pubkey = new PublicKey(pk);
+        const balance = await connection.getBalance(pubkey);
+        const balanceSol = balance / LAMPORTS_PER_SOL;
+        const needed = Math.max(0, validated.targetSol - balanceSol);
+        amountsPerWallet.set(pk, needed);
       }
     }
 
     if (validated.dryRun) {
-      const preview = validated.walletPubkeys.map((pubkey, i) => ({
-        wallet: pubkey,
-        amountSol: amountsPerWallet[i],
-        amountLamports: Math.floor(amountsPerWallet[i] * LAMPORTS_PER_SOL),
+      const preview = Array.from(amountsPerWallet.entries()).map(([wallet, amountSol]) => ({
+        wallet,
+        amountSol,
+        amountLamports: Math.floor(amountSol * LAMPORTS_PER_SOL),
       }));
 
       return NextResponse.json({
         success: true,
         mode: 'simulation',
         preview,
-        totalSol: amountsPerWallet.reduce((sum, amt) => sum + amt, 0),
+        totalSol: Array.from(amountsPerWallet.values()).reduce((sum, amt) => sum + amt, 0),
       });
     }
 
     const results = [];
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const BATCH_SIZE = 10;
 
-    for (let i = 0; i < validated.walletPubkeys.length; i++) {
+    const walletsToFund = Array.from(amountsPerWallet.entries()).filter(([, amt]) => amt > 0);
+
+    for (let batchStart = 0; batchStart < walletsToFund.length; batchStart += BATCH_SIZE) {
+      const batch = walletsToFund.slice(batchStart, batchStart + BATCH_SIZE);
+
       try {
-        const toPubkey = new PublicKey(validated.walletPubkeys[i]);
-        const lamports = Math.floor(amountsPerWallet[i] * LAMPORTS_PER_SOL);
+        const instructions = [
+          ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports: validated.priorityFeeMicrolamports,
+          }),
+        ];
 
-        const computeBudgetIx = ComputeBudgetProgram.setComputeUnitPrice({
-          microLamports: validated.priorityFeeMicroLamports,
-        });
-
-        const transferIx = SystemProgram.transfer({
-          fromPubkey: payer.publicKey,
-          toPubkey,
-          lamports,
-        });
+        for (const [pk, amountSol] of batch) {
+          instructions.push(
+            SystemProgram.transfer({
+              fromPubkey: payer.publicKey,
+              toPubkey: new PublicKey(pk),
+              lamports: Math.floor(amountSol * LAMPORTS_PER_SOL),
+            }),
+          );
+        }
 
         const message = TransactionMessage.compile({
           payerKey: payer.publicKey,
-          instructions: [computeBudgetIx, transferIx],
+          instructions,
           recentBlockhash: blockhash,
         });
 
         const tx = new VersionedTransaction(message);
         tx.sign([payer]);
 
+        const batchIdx = Math.floor(batchStart / BATCH_SIZE);
         const signature = await connection.sendTransaction(tx, {
           skipPreflight: false,
           maxRetries: 3,
@@ -117,27 +185,33 @@ export const POST = withSessionAndLimit(async (request) => {
 
         await connection.confirmTransaction(signature, 'confirmed');
 
-        results.push({
-          wallet: validated.walletPubkeys[i],
-          success: true,
-          signature,
-          amountSol: amountsPerWallet[i],
-        });
+        for (const [pk, amountSol] of batch) {
+          results.push({
+            wallet: pk,
+            success: true,
+            signature,
+            amountSol,
+            memo: `fund:${Date.now()}:${batchIdx}`,
+          });
+        }
 
-        logger.info('Wallet funded', {
-          to: validated.walletPubkeys[i],
-          amount: amountsPerWallet[i],
+        console.log(`[fund] Batch ${batchIdx} completed`, {
           signature,
+          wallets: batch.length,
         });
       } catch (error) {
-        results.push({
-          wallet: validated.walletPubkeys[i],
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
+        for (const [pk] of batch) {
+          results.push({
+            wallet: pk,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      if (batchStart + BATCH_SIZE < walletsToFund.length) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
 
     const successCount = results.filter((r) => r.success).length;
@@ -154,12 +228,15 @@ export const POST = withSessionAndLimit(async (request) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 },
+      );
     }
-    logger.error('Wallet funding failed', { error });
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fund wallets' },
-      { status: 500 }
+      { status: 500 },
     );
   }
-});
+}

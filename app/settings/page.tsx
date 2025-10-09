@@ -11,7 +11,7 @@ async function update(formData: FormData) {
   const concurrency = Number(formData.get('concurrency') || 4);
   const jitterMin = Number(formData.get('jitterMin') || 50);
   const jitterMax = Number(formData.get('jitterMax') || 150);
-  const mode = String(formData.get('mode') || 'JITO_BUNDLE') as any;
+  const mode = String(formData.get('mode') || 'RPC') as any;
   const dryRun = String(formData.get('dryRun') || '') === 'on';
   const cluster = String(formData.get('cluster') || 'mainnet-beta') as any;
   setUiSettings({
@@ -51,7 +51,7 @@ export default async function SettingsPage() {
                 defaultValue={ui.mode}
                 className="input w-full px-2 py-1 bg-zinc-900"
               >
-                <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+                <option value="RPC">RPC</option>
                 <option value="RPC_FANOUT">RPC_FANOUT</option>
               </select>
             </div>

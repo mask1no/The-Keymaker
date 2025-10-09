@@ -47,7 +47,7 @@ const activeRuns = new Map<number, NodeJS.Timeout>();
 export async function startVolumeRun(
   profileId: number,
   walletKeypairs: Keypair[],
-  connection: Connection
+  connection: Connection,
 ): Promise<number> {
   const db = await getDb();
 
@@ -63,7 +63,7 @@ export async function startVolumeRun(
   // Create run record
   const result = await db.run(
     'INSERT INTO volume_runs (profile_id, status, started_at, actions_executed, total_spent, stats_json) VALUES (?, ?, ?, ?, ?, ?)',
-    [profileId, 'running', Date.now(), 0, 0, JSON.stringify({ buys: 0, sells: 0, errors: 0 })]
+    [profileId, 'running', Date.now(), 0, 0, JSON.stringify({ buys: 0, sells: 0, errors: 0 })],
   );
 
   const runId = result.lastID;
@@ -127,7 +127,7 @@ async function scheduleNextAction(
   runId: number,
   profile: VolumeProfile,
   wallets: Keypair[],
-  connection: Connection
+  connection: Connection,
 ): Promise<void> {
   const db = await getDb();
 
@@ -179,7 +179,7 @@ async function executeVolumeAction(
   runId: number,
   profile: VolumeProfile,
   wallets: Keypair[],
-  connection: Connection
+  connection: Connection,
 ): Promise<void> {
   const db = await getDb();
   const run = await getVolumeRunStatus(runId);
@@ -206,7 +206,6 @@ async function executeVolumeAction(
         perWalletSolLamports: Math.floor(buySol * 1e9),
         slippageBps: profile.slippageBps,
         impactCapPct: profile.impactCapPct,
-        connection,
         dryRun: false,
       });
 
@@ -214,7 +213,7 @@ async function executeVolumeAction(
         stats.buys++;
         await db.run(
           'UPDATE volume_runs SET actions_executed = actions_executed + 1, total_spent = total_spent + ?, stats_json = ? WHERE id = ?',
-          [buySol, JSON.stringify(stats), runId]
+          [buySol, JSON.stringify(stats), runId],
         );
       } else {
         stats.errors++;
@@ -229,9 +228,8 @@ async function executeVolumeAction(
       const results = await multiWalletSell({
         mint: profile.mint,
         wallets: [wallet],
-        sellPctOrAmount: sellPct,
+        sellPctOrLamports: sellPct,
         slippageBps: profile.slippageBps,
-        connection,
         dryRun: false,
       });
 
@@ -239,7 +237,7 @@ async function executeVolumeAction(
         stats.sells++;
         await db.run(
           'UPDATE volume_runs SET actions_executed = actions_executed + 1, stats_json = ? WHERE id = ?',
-          [JSON.stringify(stats), runId]
+          [JSON.stringify(stats), runId],
         );
       } else {
         stats.errors++;
@@ -287,4 +285,3 @@ export async function resumeVolumeBots(connection: Connection): Promise<void> {
     await db.run('UPDATE volume_runs SET status = ? WHERE id = ?', ['stopped', run.id]);
   }
 }
-

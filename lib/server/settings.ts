@@ -24,7 +24,7 @@ export function getUiSettings(): UiSettings {
   try {
     const c = cookies().get(COOKIE_NAME)?.value || '';
     const raw = c ? (JSON.parse(c) as Partial<UiSettings>) : {};
-    const mode = (raw.mode === 'RPC_FANOUT' ? 'RPC_FANOUT' : 'JITO_BUNDLE') as ExecutionMode;
+    const mode = (raw.mode === 'RPC_FANOUT' ? 'RPC_FANOUT' : 'RPC') as ExecutionMode;
     const region = (
       ['ffm', 'ams', 'ny', 'tokyo'].includes(String(raw.region)) ? raw.region : 'ffm'
     ) as RegionKey;
@@ -53,7 +53,7 @@ export function getUiSettings(): UiSettings {
     };
   } catch {
     return {
-      mode: 'JITO_BUNDLE',
+      mode: 'RPC',
       region: 'ffm',
       priority: 'med',
       chunkSize: 5,

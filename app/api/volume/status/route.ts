@@ -27,8 +27,7 @@ export const GET = withSessionAndLimit(async (request) => {
       {
         error: error instanceof Error ? error.message : 'Failed to get status',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
-

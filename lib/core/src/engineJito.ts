@@ -70,13 +70,13 @@ export class JitoEngine implements Engine {
           }
         }
       }
-      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'JITO_BUNDLE', region });
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'RPC', region });
       observeLatency('engine_submit_ms', Date.now() - t0, {
-        mode: 'JITO_BUNDLE',
+        mode: 'RPC',
         region,
         simulated: '1',
       });
-      return { corr: plan.corr, mode: 'JITO_BUNDLE', statusHint: 'submitted', simulated: true };
+      return { corr: plan.corr, mode: 'RPC', statusHint: 'submitted', simulated: true };
     }
 
     // Submit serially (small parallelism could be added if needed)
@@ -99,8 +99,8 @@ export class JitoEngine implements Engine {
       });
     }
 
-    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
-    return { corr: plan.corr, mode: 'JITO_BUNDLE', bundleIds, statusHint: 'submitted' };
+    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'RPC', region });
+    return { corr: plan.corr, mode: 'RPC', bundleIds, statusHint: 'submitted' };
   }
 
   async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
@@ -110,7 +110,7 @@ export class JitoEngine implements Engine {
     const statuses = bundleIds.length ? await getBundleStatuses(region, bundleIds) : [];
     incCounter('engine_status_total');
     incCounter('engine_status_jito_total');
-    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'JITO_BUNDLE', region });
+    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'RPC', region });
     return statuses;
   }
 }

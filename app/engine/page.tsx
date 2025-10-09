@@ -30,7 +30,7 @@ async function getDepositAddress(): Promise<string | null> {
 
 async function submitTestBundle(formData: FormData) {
   'use server';
-  const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
+  const mode = (formData.get('mode') as ExecutionMode) || 'RPC';
   const region = (formData.get('region') as string) || 'ffm';
   const priority = (formData.get('priority') as string) || 'med';
   const tipLamports = Number(formData.get('tipLamports') || 5000);
@@ -69,7 +69,7 @@ async function submitTestBundle(formData: FormData) {
 
 async function toggleMode(formData: FormData) {
   'use server';
-  const mode = (formData.get('mode') as ExecutionMode) || 'JITO_BUNDLE';
+  const mode = (formData.get('mode') as ExecutionMode) || 'RPC';
   setUiSettings({ mode });
   revalidatePath('/engine');
   redirect('/engine?ok=mode');
@@ -225,8 +225,8 @@ export default async function Page({
         </div>
       </section>
       <div className="bento mb-4">
-        <form action={toggleMode} className={`card ${ui.mode === 'JITO_BUNDLE' ? 'active' : ''}`}>
-          <input type="hidden" name="mode" value="JITO_BUNDLE" />
+        <form action={toggleMode} className={`card ${ui.mode === 'RPC' ? 'active' : ''}`}>
+          <input type="hidden" name="mode" value="RPC" />
           <button type="submit" className="w-full text-left">
             <div className="label mb-1">Mode</div>
             <div className="text-lg font-semibold">Jito Bundle</div>
@@ -260,7 +260,7 @@ export default async function Page({
               defaultValue={ui.mode}
               className="bg-zinc-900 border border-zinc-800 rounded px-2 py-1"
             >
-              <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+              <option value="RPC">RPC</option>
               <option value="RPC_FANOUT">RPC_FANOUT</option>
             </select>
             <label className="text-sm">Dry Run</label>

@@ -51,4 +51,3 @@ main().catch((err) => {
   console.error('Error running check:', err);
   process.exit(1);
 });
-

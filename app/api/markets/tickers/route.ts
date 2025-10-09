@@ -26,7 +26,9 @@ const COINGECKO_IDS: Record<string, string> = {
   CAKE: 'pancakeswap-token',
 };
 
-async function fetchCoinGeckoPrice(id: string): Promise<{ price: number; change24h: number } | null> {
+async function fetchCoinGeckoPrice(
+  id: string,
+): Promise<{ price: number; change24h: number } | null> {
   try {
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`;
     const res = await fetch(url, { next: { revalidate: 5 } });
@@ -172,7 +174,7 @@ export const GET = withSessionAndLimit(async (request) => {
           headers: {
             'Cache-Control': 's-maxage=5, stale-while-revalidate=10',
           },
-        }
+        },
       );
     }
 
@@ -189,7 +191,7 @@ export const GET = withSessionAndLimit(async (request) => {
         headers: {
           'Cache-Control': 's-maxage=5, stale-while-revalidate=10',
         },
-      }
+      },
     );
   } catch (error) {
     console.error('Failed to fetch market tickers:', error);
@@ -201,11 +203,10 @@ export const GET = withSessionAndLimit(async (request) => {
           headers: {
             'Cache-Control': 's-maxage=5, stale-while-revalidate=10',
           },
-        }
+        },
       );
     }
 
     return NextResponse.json({ error: 'Failed to fetch market tickers' }, { status: 500 });
   }
 });
-

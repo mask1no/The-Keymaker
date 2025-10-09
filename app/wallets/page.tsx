@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/server/session';
+import { getSessionFromCookies } from '@/lib/server/session';
 import { addTrackedWallet, getTrackedWallets, removeTrackedWallet } from '@/lib/server/wallets';
 import { revalidatePath } from 'next/cache';
 
@@ -19,7 +19,7 @@ async function delWallet(formData: FormData) {
 }
 
 export default async function Page() {
-  const session = getSession();
+  const session = getSessionFromCookies();
   const wallets = getTrackedWallets();
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -38,7 +38,7 @@ export default async function Page() {
         <div className="space-y-4">
           <div className="card">
             <div className="label mb-1">Session</div>
-            <div className="text-sm">Logged in as: {session.userPubkey}</div>
+            <div className="text-sm">Logged in as: {session.sub}</div>
           </div>
           <div className="bento">
             <section className="card">
@@ -56,9 +56,7 @@ export default async function Page() {
                   Add
                 </button>
               </form>
-              <div className="text-xs p-muted mt-2">
-                Use these wallets in PnL & Market tiles.
-              </div>
+              <div className="text-xs p-muted mt-2">Use these wallets in PnL & Market tiles.</div>
             </section>
             <section className="card">
               <div className="label mb-2">Tracked wallets</div>
@@ -71,7 +69,10 @@ export default async function Page() {
                       <span className="font-mono break-all">{w}</span>
                       <form action={delWallet}>
                         <input type="hidden" name="wallet" value={w} />
-                        <button className="button px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 text-xs" type="submit">
+                        <button
+                          className="button px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 text-xs"
+                          type="submit"
+                        >
                           Remove
                         </button>
                       </form>
@@ -86,5 +87,3 @@ export default async function Page() {
     </div>
   );
 }
-
-

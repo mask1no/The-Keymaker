@@ -22,7 +22,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const Body = z.object({
-  mode: z.enum(['JITO_BUNDLE', 'RPC_FANOUT']).optional(),
+  mode: z.enum(['RPC', 'RPC_FANOUT']).optional(),
   region: z.enum(['ffm', 'ams', 'ny', 'tokyo']).optional(),
   tipLamports: z.number().int().nonnegative().optional(),
   priority: z.enum(['low', 'med', 'high', 'vhigh']).optional(),
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     const body = rawText ? JSON.parse(rawText) : {};
     const parsed = Body.parse(body);
     const ui = getUiSettings();
-    const mode: ExecutionMode = (parsed.mode || ui.mode || 'JITO_BUNDLE') as ExecutionMode;
+    const mode: ExecutionMode = (parsed.mode || ui.mode || 'RPC') as ExecutionMode;
     const region = (parsed.region || ui.region || 'ffm') as 'ffm' | 'ams' | 'ny' | 'tokyo';
     const tipLamports = parsed.tipLamports ?? ui.tipLamports;
     const priority = (parsed.priority || ui.priority || 'med') as 'low' | 'med' | 'high' | 'vhigh';

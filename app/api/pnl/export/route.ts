@@ -18,8 +18,7 @@ export const GET = withSessionAndLimit(async (request) => {
       {
         error: error instanceof Error ? error.message : 'Failed to export P&L',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
-

@@ -7,7 +7,10 @@ const RAYDIUM_PROGRAM_ID = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFS
 /**
  * Check if a pump.fun token has migrated to Raydium
  */
-export async function isMigrated(mint: string | PublicKey, connection: Connection): Promise<boolean> {
+export async function isMigrated(
+  mint: string | PublicKey,
+  connection: Connection,
+): Promise<boolean> {
   try {
     const mintPubkey = typeof mint === 'string' ? new PublicKey(mint) : mint;
 
@@ -44,7 +47,7 @@ export async function isMigrated(mint: string | PublicKey, connection: Connectio
  */
 export async function getPoolAddress(
   mint: string | PublicKey,
-  connection: Connection
+  connection: Connection,
 ): Promise<PublicKey | null> {
   try {
     const mintPubkey = typeof mint === 'string' ? new PublicKey(mint) : mint;
@@ -70,4 +73,3 @@ export async function getPoolAddress(
     return null;
   }
 }
-

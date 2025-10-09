@@ -22,7 +22,7 @@ async function main() {
   });
 
   const violations = [];
-  const forbiddenTerms = ['Bundler'];
+  const forbiddenTerms = ['Bundler', 'JITO_BUNDLE'];
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
@@ -45,10 +45,10 @@ async function main() {
   }
 
   if (violations.length > 0) {
-    console.error('Found forbidden terms (Bundler):\n');
+    console.error('Found forbidden terms (Bundler|JITO_BUNDLE):\n');
     violations.forEach((v) => console.error(`  ${v}`));
     console.error(`\nTotal: ${violations.length} violation(s)`);
-    console.error('\nUse "Keymaker" or "Bundle" instead of "Bundler" in active code.');
+    console.error('\nUse "Keymaker" or RPC-first terminology in active code.');
     process.exit(1);
   }
 
@@ -60,4 +60,3 @@ main().catch((err) => {
   console.error('Error running check:', err);
   process.exit(1);
 });
-

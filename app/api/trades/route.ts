@@ -62,7 +62,10 @@ export const POST = withSessionAndLimit(async (request) => {
     return NextResponse.json({ success: true, tradeId });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 },
+      );
     }
     console.error('Failed to save trade:', error);
     return NextResponse.json({ error: 'Failed to save trade' }, { status: 500 });

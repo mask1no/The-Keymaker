@@ -31,7 +31,7 @@ export default function RecentRunsPanel() {
             <span
               className={
                 r.status === 'landed'
-                  ? 'text-emerald-400'
+                  ? 'text-green-400'
                   : r.status === 'pending'
                     ? 'text-yellow-400'
                     : 'text-red-400'

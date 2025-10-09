@@ -24,7 +24,7 @@ export const POST = withSessionAndLimit(async (request) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,8 +32,7 @@ export const POST = withSessionAndLimit(async (request) => {
       {
         error: error instanceof Error ? error.message : 'Failed to stop volume bot',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
-

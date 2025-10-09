@@ -1,7 +1,7 @@
 import type { VersionedTransaction } from '@solana/web3.js';
 import type { RegionKey } from './types';
 
-export type ExecutionMode = 'JITO_BUNDLE' | 'RPC_FANOUT';
+export type ExecutionMode = 'RPC' | 'RPC_FANOUT';
 export type Priority = 'low' | 'med' | 'high' | 'vhigh';
 
 export interface ExecOptions {

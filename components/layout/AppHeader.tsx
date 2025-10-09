@@ -9,7 +9,7 @@ export default function AppHeader() {
       <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="text-xl md:text-2xl font-semibold tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 rounded-lg px-1"
+          className="text-xl md:text-2xl font-semibold tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-lg px-1"
         >
           The Keymaker
         </Link>

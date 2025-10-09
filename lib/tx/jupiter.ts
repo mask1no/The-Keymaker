@@ -1,18 +1,8 @@
 import 'server-only';
 import { Connection, Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
-import { logger } from '@/lib/logger';
 
 const JUPITER_API_URL = 'https://quote-api.jup.ag/v6';
-
-interface SwapParams {
-  owner: Keypair;
-  inMint: string;
-  outMint: string;
-  inAmountLamports: number;
-  slippageBps: number;
-  connection: Connection;
-  priorityFeeMicroLamports?: number;
-}
+const WSOL_MINT = 'So11111111111111111111111111111111111111112';
 
 interface QuoteResponse {
   inputMint: string;
@@ -26,132 +16,127 @@ interface QuoteResponse {
   routePlan: any[];
 }
 
-/**
- * Get quote and build swap transaction from Jupiter V6
- */
-export async function quoteAndBuildSwap(params: SwapParams): Promise<VersionedTransaction> {
-  const {
-    owner,
-    inMint,
-    outMint,
-    inAmountLamports,
-    slippageBps,
-    connection,
-    priorityFeeMicroLamports = 50_000,
-  } = params;
-
-  try {
-    // Get quote
-    const quoteResponse = await fetch(
-      `${JUPITER_API_URL}/quote?` +
-        new URLSearchParams({
-          inputMint: inMint,
-          outputMint: outMint,
-          amount: inAmountLamports.toString(),
-          slippageBps: slippageBps.toString(),
-          onlyDirectRoutes: 'false',
-          asLegacyTransaction: 'false',
-        })
-    );
-
-    if (!quoteResponse.ok) {
-      throw new Error(`Jupiter quote failed: ${quoteResponse.status} ${await quoteResponse.text()}`);
-    }
-
-    const quote: QuoteResponse = await quoteResponse.json();
-
-    logger.info('Got Jupiter quote', {
-      inMint,
-      outMint,
-      inAmount: quote.inAmount,
-      outAmount: quote.outAmount,
-      priceImpactPct: quote.priceImpactPct,
-    });
-
-    // Build swap transaction
-    const swapResponse = await fetch(`${JUPITER_API_URL}/swap`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        quoteResponse: quote,
-        userPublicKey: owner.publicKey.toBase58(),
-        wrapAndUnwrapSol: true,
-        dynamicComputeUnitLimit: true,
-        prioritizationFeeLamports: priorityFeeMicroLamports,
-      }),
-    });
-
-    if (!swapResponse.ok) {
-      throw new Error(`Jupiter swap build failed: ${swapResponse.status} ${await swapResponse.text()}`);
-    }
-
-    const { swapTransaction } = await swapResponse.json();
-
-    // Deserialize transaction
-    const txBuffer = Buffer.from(swapTransaction, 'base64');
-    const tx = VersionedTransaction.deserialize(txBuffer);
-
-    // Sign transaction
-    tx.sign([owner]);
-
-    // Simulate
-    const simulation = await connection.simulateTransaction(tx, {
-      replaceRecentBlockhash: true,
-      commitment: 'processed',
-    });
-
-    if (simulation.value.err) {
-      throw new Error(`Swap simulation failed: ${JSON.stringify(simulation.value.err)}`);
-    }
-
-    logger.info('Built Jupiter swap TX', {
-      owner: owner.publicKey.toBase58(),
-      inMint,
-      outMint,
-      expectedOut: quote.outAmount,
-    });
-
-    return tx;
-  } catch (error) {
-    logger.error('Failed to build Jupiter swap', { error, params });
-    throw error;
-  }
+interface BuildSwapParams {
+  wallet: Keypair;
+  inputMint: string;
+  outputMint: string;
+  amountLamports: number;
+  slippageBps: number;
+  priorityFeeMicrolamports?: number;
 }
 
-/**
- * Get a simple quote without building transaction
- */
-export async function getQuote(params: {
-  inMint: string;
-  outMint: string;
-  inAmountLamports: number;
+interface BuildSellParams {
+  wallet: Keypair;
+  inputMint: string;
+  outputMint: string;
+  amountTokens: number;
+  slippageBps: number;
+  priorityFeeMicrolamports?: number;
+}
+
+async function getQuote(params: {
+  inputMint: string;
+  outputMint: string;
+  amount: number;
   slippageBps: number;
 }): Promise<QuoteResponse> {
-  const { inMint, outMint, inAmountLamports, slippageBps } = params;
+  const { inputMint, outputMint, amount, slippageBps } = params;
 
-  const response = await fetch(
-    `${JUPITER_API_URL}/quote?` +
-      new URLSearchParams({
-        inputMint: inMint,
-        outputMint: outMint,
-        amount: inAmountLamports.toString(),
-        slippageBps: slippageBps.toString(),
-      })
-  );
+  const queryParams = new URLSearchParams({
+    inputMint,
+    outputMint,
+    amount: amount.toString(),
+    slippageBps: slippageBps.toString(),
+    onlyDirectRoutes: 'false',
+    asLegacyTransaction: 'false',
+  });
+
+  const response = await fetch(`${JUPITER_API_URL}/quote?${queryParams}`, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
 
   if (!response.ok) {
-    throw new Error(`Jupiter quote failed: ${response.status}`);
+    const errorText = await response.text();
+    throw new Error(`Jupiter quote failed: ${response.status} ${errorText}`);
   }
 
   return response.json();
 }
 
-/**
- * Calculate price impact from a quote
- */
+async function buildSwapFromQuote(
+  quote: QuoteResponse,
+  userPublicKey: string,
+  priorityFeeMicrolamports?: number,
+): Promise<VersionedTransaction> {
+  const body: any = {
+    quoteResponse: quote,
+    userPublicKey,
+    wrapAndUnwrapSol: true,
+    dynamicComputeUnitLimit: true,
+    computeUnitPriceMicroLamports: 'auto',
+  };
+
+  if (priorityFeeMicrolamports) {
+    body.prioritizationFeeLamports = priorityFeeMicrolamports;
+  }
+
+  const response = await fetch(`${JUPITER_API_URL}/swap`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Jupiter swap build failed: ${response.status} ${errorText}`);
+  }
+
+  const { swapTransaction } = await response.json();
+  const txBuffer = Buffer.from(swapTransaction, 'base64');
+  return VersionedTransaction.deserialize(txBuffer);
+}
+
+export async function buildSwapTx(params: BuildSwapParams): Promise<VersionedTransaction> {
+  const { wallet, inputMint, outputMint, amountLamports, slippageBps, priorityFeeMicrolamports } =
+    params;
+
+  const quote = await getQuote({
+    inputMint,
+    outputMint,
+    amount: amountLamports,
+    slippageBps,
+  });
+
+  const tx = await buildSwapFromQuote(quote, wallet.publicKey.toBase58(), priorityFeeMicrolamports);
+
+  tx.sign([wallet]);
+
+  return tx;
+}
+
+export async function buildSellTx(params: BuildSellParams): Promise<VersionedTransaction> {
+  const { wallet, inputMint, outputMint, amountTokens, slippageBps, priorityFeeMicrolamports } =
+    params;
+
+  const quote = await getQuote({
+    inputMint,
+    outputMint,
+    amount: amountTokens,
+    slippageBps,
+  });
+
+  const tx = await buildSwapFromQuote(quote, wallet.publicKey.toBase58(), priorityFeeMicrolamports);
+
+  tx.sign([wallet]);
+
+  return tx;
+}
+
 export function getPriceImpact(quote: QuoteResponse): number {
   return quote.priceImpactPct;
 }
-
