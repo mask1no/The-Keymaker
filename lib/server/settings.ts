@@ -1,79 +1,91 @@
-import 'server-only';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-
-type UiSettings = {
-  mode: 'RPC_FANOUT';
+export interface UiSettings {
+  mode: 'RPC' | 'RPC_FANOUT';
   region: 'ffm' | 'ams' | 'ny' | 'tokyo';
-  priority: 'low' | 'med' | 'high';
+  priority: 'low' | 'med' | 'high' | 'vhigh';
   tipLamports: number;
   chunkSize: number;
   concurrency: number;
   jitterMs: [number, number];
   dryRun: boolean;
   cluster: 'mainnet-beta' | 'devnet';
-  liveMode: boolean;
-  rpcHttp?: string;
-  wsUrl?: string;
-};
+}
 
-const DEFAULTS: UiSettings = {
-  mode: 'RPC_FANOUT',
+const defaultSettings: UiSettings = {
+  mode: 'RPC',
   region: 'ffm',
   priority: 'med',
-  tipLamports: Number(process.env.NEXT_PUBLIC_JITO_TIP_LAMPORTS || 5000),
+  tipLamports: 5000,
   chunkSize: 5,
   concurrency: 4,
   jitterMs: [50, 150],
-  dryRun: (process.env.DRY_RUN_DEFAULT || 'YES').toUpperCase() === 'YES',
+  dryRun: true,
   cluster: 'mainnet-beta',
-  liveMode: false,
-  rpcHttp: process.env.NEXT_PUBLIC_HELIUS_RPC || undefined,
-  wsUrl: process.env.HELIUS_WS_URL || process.env.NEXT_PUBLIC_HELIUS_WS || undefined,
 };
 
-// Persistent backing file
-const DATA_DIR = join(process.cwd(), 'data');
-const FILE = join(DATA_DIR, 'ui-settings.json');
-
-function ensureStorage() {
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-  if (!existsSync(FILE)) writeFileSync(FILE, JSON.stringify(DEFAULTS, null, 2));
-}
-
-function readFromDisk(): UiSettings {
-  ensureStorage();
-  try {
-    const raw = readFileSync(FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    // Provide defaults for any missing fields
-    return { ...DEFAULTS, ...parsed } as UiSettings;
-  } catch {
-    return { ...DEFAULTS };
-  }
-}
-
-function writeToDisk(s: UiSettings) {
-  ensureStorage();
-  writeFileSync(FILE, JSON.stringify(s, null, 2));
-}
-
-// Persist across dev HMR with disk as source of truth
-const GLOBAL_KEY = '__KM_UI_SETTINGS__';
-// @ts-expect-error attach to global for HMR
-globalThis[GLOBAL_KEY] = globalThis[GLOBAL_KEY] || readFromDisk();
-// @ts-expect-error read from global
-let uiSettings: UiSettings = globalThis[GLOBAL_KEY];
+let cachedSettings: UiSettings | null = null;
 
 export function getUiSettings(): UiSettings {
-  // In case file changed externally, prefer in-memory unless missing
-  return { ...uiSettings };
+  if (cachedSettings) {
+    return cachedSettings;
+  }
+
+  try {
+    // Try to load from environment variables first
+    const envSettings: Partial<UiSettings> = {};
+    
+    if (process.env.NEXT_PUBLIC_EXECUTION_MODE) {
+      envSettings.mode = process.env.NEXT_PUBLIC_EXECUTION_MODE as UiSettings['mode'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_REGION) {
+      envSettings.region = process.env.NEXT_PUBLIC_REGION as UiSettings['region'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_PRIORITY) {
+      envSettings.priority = process.env.NEXT_PUBLIC_PRIORITY as UiSettings['priority'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_TIP_LAMPORTS) {
+      envSettings.tipLamports = parseInt(process.env.NEXT_PUBLIC_TIP_LAMPORTS);
+    }
+    
+    if (process.env.NEXT_PUBLIC_CHUNK_SIZE) {
+      envSettings.chunkSize = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE);
+    }
+    
+    if (process.env.NEXT_PUBLIC_CONCURRENCY) {
+      envSettings.concurrency = parseInt(process.env.NEXT_PUBLIC_CONCURRENCY);
+    }
+    
+    if (process.env.NEXT_PUBLIC_JITTER_MIN && process.env.NEXT_PUBLIC_JITTER_MAX) {
+      envSettings.jitterMs = [
+        parseInt(process.env.NEXT_PUBLIC_JITTER_MIN),
+        parseInt(process.env.NEXT_PUBLIC_JITTER_MAX)
+      ];
+    }
+    
+    if (process.env.NEXT_PUBLIC_DRY_RUN) {
+      envSettings.dryRun = process.env.NEXT_PUBLIC_DRY_RUN === 'true';
+    }
+    
+    if (process.env.NEXT_PUBLIC_CLUSTER) {
+      envSettings.cluster = process.env.NEXT_PUBLIC_CLUSTER as UiSettings['cluster'];
+    }
+
+    cachedSettings = { ...defaultSettings, ...envSettings };
+  } catch (error) {
+    console.warn('Failed to load settings from environment, using defaults:', error);
+    cachedSettings = defaultSettings;
+  }
+
+  return cachedSettings;
 }
 
-export function setUiSettings(next: Partial<UiSettings>): UiSettings {
-  uiSettings = { ...uiSettings, ...next };
-  // @ts-expect-error keep global in sync
-  globalThis[GLOBAL_KEY] = uiSettings;
-  writeToDisk(uiSettings);
-  return getUiSettings();
+export function setUiSettings(settings: Partial<UiSettings>): void {
+  const currentSettings = getUiSettings();
+  cachedSettings = { ...currentSettings, ...settings };
+  
+  // In a real application, you might want to persist these settings
+  // For now, we'll just update the cache
+  console.log('Settings updated:', cachedSettings);
 }

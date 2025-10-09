@@ -1,24 +1,25 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Wallet, Coins, Library, LineChart, Settings, Swords } from 'lucide-react';
+import { Boxes, Wallet, Coins, Clock, LineChart, Settings, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NavStatus from './NavStatus';
 const NAV = [
-  { name: 'Home', href: '/home', icon: Home },
-  { name: 'Coin', href: '/coin', icon: Coins },
-  { name: 'Coin Library', href: '/coin-library', icon: Library },
-  { name: 'Keymaker', href: '/keymaker', icon: Swords },
-  { name: 'Volume', href: '/engine', icon: LineChart },
+  { name: 'Bundle', href: '/bundle', icon: Boxes },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
+  { name: 'Token Creator', href: '/creator', icon: Coins },
+  { name: 'Trade History', href: '/history', icon: Clock },
   { name: 'P&L', href: '/pnl', icon: LineChart },
   { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Guide', href: '/guide', icon: BookOpen },
 ];
 export default function SideNav() {
   const pathname = usePathname();
   return (
     <aside className="w-64 shrink-0 border-r border-zinc-800/70 bg-zinc-950/60 p-4">
+      {' '}
       <nav className="flex flex-col gap-1">
+        {' '}
         {NAV.map((x) => {
           const active = pathname === x.href;
           const Icon = x.icon as any;
@@ -33,14 +34,16 @@ export default function SideNav() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-card/50',
               )}
             >
-              <Icon className="h-4.5 w-4.5" /> <span>{x.name}</span>
+              {' '}
+              <Icon className="h-4.5 w-4.5" /> <span>{x.name}</span>{' '}
             </Link>
           );
-        })}
-      </nav>
+        })}{' '}
+      </nav>{' '}
       <div className="mt-6">
-        <NavStatus />
-      </div>
+        {' '}
+        <NavStatus />{' '}
+      </div>{' '}
     </aside>
   );
 }

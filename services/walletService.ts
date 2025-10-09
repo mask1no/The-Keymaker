@@ -1,19 +1,24 @@
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db/sqlite';
 import { encrypt, decrypt } from '@/lib/crypto';
 import { Keypair } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import bs58 from 'bs58';
 import * as Sentry from '@sentry/nextjs';
 import { logger } from '@/lib/logger';
+
 export type Wallet = {
   id?: number;
   name: string;
   publicKey: string;
-  privateKey: string; // encrypted group: string; color: string; isActive: boolean;
+  privateKey: string;
+  group: string;
+  color: string;
+  isActive: boolean;
 };
+
 export async function getWalletByPublicKey(publicKey: string): Promise<Wallet | null> {
   try {
-    const dbInstance = await db;
+    const dbInstance = await getDb();
     const row = await dbInstance.get('SELECT * FROM wallets WHERE address = ?', [publicKey]);
     return (row as Wallet) || null;
   } catch (error) {
@@ -35,7 +40,7 @@ export async function createWallet(password: string): Promise<Wallet> {
     color: '#FFFFFF',
     isActive: true,
   };
-  const dbInstance = await db;
+  const dbInstance = await getDb();
   await dbInstance.run(
     'INSERT INTO wallets (address, keypair, role, network, balance) VALUES (?, ?, ?, ?, ?)',
     [newWallet.publicKey, newWallet.privateKey, 'normal', 'mainnet', 0],
@@ -43,7 +48,7 @@ export async function createWallet(password: string): Promise<Wallet> {
   return newWallet;
 }
 export async function getWallets(password: string): Promise<Wallet[]> {
-  const dbInstance = await db;
+  const dbInstance = await getDb();
   const rows = (await dbInstance.all('SELECT * FROM wallets')) as any[];
   const decryptedWallets: Wallet[] = await Promise.all(
     rows.map(async (r) => {
@@ -82,7 +87,7 @@ export async function importWallet(privateKey: string, password: string): Promis
     color: '#FFFFFF',
     isActive: true,
   };
-  const dbInstance = await db;
+  const dbInstance = await getDb();
   await dbInstance.run(
     'INSERT OR REPLACE INTO wallets (address, keypair, role, network, balance) VALUES (?, ?, ?, ?, ?)',
     [newWallet.publicKey, newWallet.privateKey, 'normal', 'mainnet', 0],

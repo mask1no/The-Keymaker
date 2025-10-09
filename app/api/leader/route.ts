@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import { getNextLeaders } from '@/lib/server/leaderSchedule';
 export const dynamic = 'force-dynamic';
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const SERVER_RPC = process.env.RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(SERVER_RPC);

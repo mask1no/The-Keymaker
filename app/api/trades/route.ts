@@ -1,16 +1,30 @@
-import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import 'server-only';
 import { z } from 'zod';
+import { withSessionAndLimit } from '@/lib/server/withSessionAndLimit';
 import { recordTrade, listTrades } from '@/lib/db/sqlite';
-import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 
-export const runtime = 'nodejs';
+export const GET = withSessionAndLimit(async (request) => {
+  try {
+    const { searchParams } = new URL(request.url);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '500'), 500);
+    const offset = parseInt(searchParams.get('offset') || '0');
 
-const PostSchema = z.object({
+    const trades = await listTrades({ limit, offset });
+
+    return NextResponse.json({ trades });
+  } catch (error) {
+    console.error('Failed to fetch trades:', error);
+    return NextResponse.json({ error: 'Failed to fetch trades' }, { status: 500 });
+  }
+});
+
+const postSchema = z.object({
   ts: z.number().int().positive(),
   slot: z.number().int().nonnegative(),
-  sig: z.string(),
-  wallet: z.string(),
-  mint: z.string(),
+  sig: z.string().min(1),
+  wallet: z.string().min(1),
+  mint: z.string().min(1),
   side: z.enum(['buy', 'sell']),
   qtyTokens: z.string(),
   priceSolPerToken: z.number().nonnegative(),
@@ -19,63 +33,41 @@ const PostSchema = z.object({
   note: z.string().optional(),
 });
 
-export async function GET(req: NextRequest) {
-  return withSessionAndLimit(async (_req, _sid) => {
-    const url = new URL(req.url);
-    const limitParam = url.searchParams.get('limit');
-    const limit = limitParam ? Math.min(500, Math.max(1, parseInt(limitParam, 10))) : 500;
+export const POST = withSessionAndLimit(async (request) => {
+  try {
+    const body = await request.json();
+    const validated = postSchema.parse(body);
 
-    const trades = listTrades({ limit, offset: 0 });
-
-    return {
-      items: trades.map((t) => ({
-        id: t.id,
-        ts: t.ts,
-        slot: t.slot,
-        signature: t.signature,
-        wallet: t.wallet,
-        mint: t.mint,
-        side: t.side,
-        qtyTokens: String(t.qty),
-        priceSolPerToken: t.priceLamports / 1e9,
-        feesLamports: t.feeLamports,
-        priorityFeeLamports: t.priorityFeeLamports || 0,
-      })),
-    };
-  })(req);
-}
-
-export async function POST(req: NextRequest) {
-  return withSessionAndLimit(async (_req, _sid) => {
-    const body = await req.json();
-    const parsed = PostSchema.safeParse(body);
-
-    if (!parsed.success) {
-      throw new Error('bad_request');
+    const qty = parseInt(validated.qtyTokens, 10);
+    if (isNaN(qty) || qty < 0) {
+      return NextResponse.json({ error: 'Invalid qtyTokens' }, { status: 400 });
     }
 
-    const data = parsed.data;
-    const qtyTokensFloat = parseFloat(data.qtyTokens);
-    if (!Number.isFinite(qtyTokensFloat) || qtyTokensFloat < 0) {
-      throw new Error('invalid_qty');
-    }
+    const priceLamports = Math.round(validated.priceSolPerToken * 1e9);
 
-    recordTrade({
-      ts: data.ts,
-      side: data.side,
-      mint: data.mint,
-      qty: Math.floor(qtyTokensFloat),
-      priceLamports: Math.floor(data.priceSolPerToken * 1e9),
-      feeLamports: data.feesLamports,
-      priorityFeeLamports: data.priorityFeeLamports || 0,
-      slot: data.slot,
-      signature: data.sig,
-      bundleId: null,
-      wallet: data.wallet,
-      groupId: null,
-      mode: 'RPC',
+    const tradeId = await recordTrade({
+      ts: validated.ts,
+      slot: validated.slot,
+      sig: validated.sig,
+      wallet: validated.wallet,
+      mint: validated.mint,
+      side: validated.side,
+      qty,
+      priceLamports,
+      feeLamports: validated.feesLamports,
+      priorityFeeLamports: validated.priorityFeeLamports,
+      note: validated.note,
     });
 
-    return { ok: true };
-  })(req);
-}
+    return NextResponse.json({ success: true, tradeId });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 },
+      );
+    }
+    console.error('Failed to save trade:', error);
+    return NextResponse.json({ error: 'Failed to save trade' }, { status: 500 });
+  }
+});

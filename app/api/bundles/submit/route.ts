@@ -9,7 +9,8 @@ import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 import { readJsonSafe, getEnvInt } from '@/lib/server/request';
 import * as Sentry from '@sentry/nextjs';
 import { getNextLeaders } from '@/lib/server/leaderSchedule';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db/sqlite';
+const db = getDb();
 import { getPrisma } from '@/lib/server/prisma';
 import { ENABLE_SLOT_TARGETING } from '@/lib/featureFlags';
 

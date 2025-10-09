@@ -27,7 +27,9 @@ const Schema = z.object({
 
 export const GET = withSessionAndLimit(async () => {
   const db = getDb();
-  const rows = db.prepare('SELECT id, name, json, updatedAt FROM volume_profiles ORDER BY updatedAt DESC').all();
+  const rows = db
+    .prepare('SELECT id, name, json, updatedAt FROM volume_profiles ORDER BY updatedAt DESC')
+    .all();
   const items = (rows || []).map((r: any) => {
     const parsed = JSON.parse(r.json || '{}');
     return {
@@ -57,13 +59,9 @@ export const POST = withSessionAndLimit(async (req: NextRequest) => {
       id,
     );
   } else {
-    db.prepare('INSERT INTO volume_profiles (id, name, json, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)').run(
-      id,
-      name,
-      JSON.stringify(rest),
-      now,
-      now,
-    );
+    db.prepare(
+      'INSERT INTO volume_profiles (id, name, json, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)',
+    ).run(id, name, JSON.stringify(rest), now, now);
   }
   return { ok: true };
 });

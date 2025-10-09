@@ -70,8 +70,8 @@ config/challenge-signer.json
 data/
 data/*.db
 
-# Private keys and wallets
-wallets/
+# Private keys and wallets (data directory only, not API routes)
+/wallets/
 *.pem
 keypairs/**
 *.key

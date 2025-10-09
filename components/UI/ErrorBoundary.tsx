@@ -1,86 +1,150 @@
 'use client';
 
-import React, { Component, type ReactNode } from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './Card';
+import { Button } from './button';
 
-interface Props {
-  children: ReactNode;
-}
-
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error | null;
+  error?: Error;
+  errorInfo?: React.ErrorInfo;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>;
+}
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {
+      hasError: true,
+      error,
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console
-    console.error('Error caught by boundary:', error, errorInfo);
-    toast.error(`Error: ${error.message}`);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    this.setState({
+      error,
+      errorInfo,
+    });
+
+    // Log error to external service if needed
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'exception', {
+        description: error.message,
+        fatal: false,
+      });
+    }
   }
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
-
-  handleGoHome = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.href = '/';
+  resetError = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
   };
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error!} resetError={this.resetError} />;
+      }
+
       return (
-        <div className="min-h-screen bg-gradient-to-br from-green-900 to-black flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-black/40 backdrop-blur-xl border border-red-500/20 rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-              <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
-            </div>
-            <p className="text-gray-400 mb-4">
-              An unexpected error occurred. This could be due to:
-            </p>
-            <ul className="text-sm text-gray-500 space-y-1 mb-6">
-              <li>• Network connectivity issues</li>
-              <li>• Invalid configuration or missing API keys</li>
-              <li>• Rate limiting or service unavailable</li>
-              <li>• Incompatible browser or extensions</li>
-            </ul>
-            {this.state.error && (
-              <div className="bg-black/50 border border-red-500/20 rounded-lg p-4 mb-6">
-                <p className="text-xs font-mono text-red-400 break-all">
-                  {this.state.error.message}
-                </p>
+        <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+          <Card className="bg-zinc-900/50 border-zinc-800 max-w-md w-full">
+            <CardHeader>
+              <CardTitle className="text-red-400">Something went wrong</CardTitle>
+              <CardDescription className="text-zinc-400">
+                An unexpected error occurred in the application.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {this.state.error && (
+                <div className="p-3 bg-red-900/20 border border-red-800 rounded-lg">
+                  <p className="text-sm text-red-300 font-mono">
+                    {this.state.error.message}
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button onClick={this.resetError} className="flex-1">
+                  Try Again
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                >
+                  Reload Page
+                </Button>
               </div>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={this.handleGoHome}
-                className="flex-1 bg-black/50 hover:bg-black/70 border border-white/10 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                Go Home
-              </button>
-              <button
-                onClick={this.handleReset}
-                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Reload
-              </button>
-            </div>
-          </div>
+              
+              <details className="text-xs text-zinc-500">
+                <summary className="cursor-pointer hover:text-zinc-400">
+                  Technical Details
+                </summary>
+                <pre className="mt-2 p-2 bg-zinc-800 rounded text-xs overflow-auto">
+                  {this.state.error?.stack}
+                </pre>
+              </details>
+            </CardContent>
+          </Card>
         </div>
       );
     }
+
     return this.props.children;
   }
+}
+
+// Hook for error handling in functional components
+export function useErrorHandler() {
+  const [error, setError] = React.useState<Error | null>(null);
+
+  const handleError = React.useCallback((error: Error) => {
+    console.error('Error caught by useErrorHandler:', error);
+    setError(error);
+  }, []);
+
+  const resetError = React.useCallback(() => {
+    setError(null);
+  }, []);
+
+  React.useEffect(() => {
+    if (error) {
+      // Log to external service if needed
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'exception', {
+          description: error.message,
+          fatal: false,
+        });
+      }
+    }
+  }, [error]);
+
+  return { error, handleError, resetError };
+}
+
+// Higher-order component for error handling
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
+) {
+  const WrappedComponent = (props: P) => (
+    <ErrorBoundary fallback={fallback}>
+      <Component {...props} />
+    </ErrorBoundary>
+  );
+
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+
+  return WrappedComponent;
 }

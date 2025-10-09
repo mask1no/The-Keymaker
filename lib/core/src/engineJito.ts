@@ -52,7 +52,6 @@ export class JitoEngine implements Engine {
             const sim = await connection.simulateTransaction(tx, { sigVerify: false });
             logJsonLine(journal, {
               ev: 'simulate_jito',
-              group: opts.group || undefined,
               region,
               txCount: 1,
               corr: plan.corr,
@@ -62,7 +61,6 @@ export class JitoEngine implements Engine {
           } catch (e: any) {
             logJsonLine(journal, {
               ev: 'simulate_jito',
-              group: opts.group || undefined,
               region,
               txCount: 1,
               corr: plan.corr,
@@ -72,40 +70,26 @@ export class JitoEngine implements Engine {
           }
         }
       }
-      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'RPC_FANOUT', region });
+      observeLatency('engine_simulate_ms', Date.now() - simStart, { mode: 'RPC', region });
       observeLatency('engine_submit_ms', Date.now() - t0, {
-        mode: 'RPC_FANOUT',
+        mode: 'RPC',
         region,
         simulated: '1',
       });
-      return { corr: plan.corr, mode: 'RPC_FANOUT', statusHint: 'submitted', simulated: true };
+      return { corr: plan.corr, mode: 'RPC', statusHint: 'submitted', simulated: true };
     }
 
     // Submit serially (small parallelism could be added if needed)
-    // re-use parts
     for (const group of parts) {
       const encoded = group.map(txToBase64);
       const t1 = Date.now();
-      // Bundler disabled in current build scope
-      const bundle_id = 'disabled';
+      const { bundle_id } = await sendBundle(region, encoded);
       observeLatency('engine_submit_jito_ms', Date.now() - t1, { region });
       incCounter('engine_submit_total');
       incCounter('engine_submit_jito_total');
       bundleIds.push(bundle_id);
       logJsonLine(journal, {
         ev: 'submit_jito',
-        group: opts.group || undefined,
-        region,
-        bundleId: bundle_id,
-        tipLamports: effectiveTip,
-        txCount: encoded.length,
-        corr: plan.corr,
-        ms: Date.now() - t1,
-      });
-      // Compatibility event for UI summary table
-      logJsonLine(journal, {
-        ev: 'submit',
-        group: opts.group || undefined,
         region,
         bundleId: bundle_id,
         tipLamports: effectiveTip,
@@ -115,27 +99,18 @@ export class JitoEngine implements Engine {
       });
     }
 
-    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'RPC_FANOUT', region });
-    return { corr: plan.corr, mode: 'RPC_FANOUT', bundleIds, statusHint: 'submitted' };
+    observeLatency('engine_submit_ms', Date.now() - t0, { mode: 'RPC', region });
+    return { corr: plan.corr, mode: 'RPC', bundleIds, statusHint: 'submitted' };
   }
 
-  async pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
+  async pollStatus(_plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
     const region = (opts.region || 'ffm') as RegionKey;
     const bundleIds = opts.bundleIds || [];
     const t0 = Date.now();
     const statuses = bundleIds.length ? await getBundleStatuses(region, bundleIds) : [];
     incCounter('engine_status_total');
     incCounter('engine_status_jito_total');
-    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'RPC_FANOUT', region });
-    if (bundleIds.length) {
-      const journal = createDailyJournal('data');
-      logJsonLine(journal, {
-        ev: 'status',
-        region,
-        bundleIds,
-        statuses,
-      });
-    }
+    observeLatency('engine_status_ms', Date.now() - t0, { mode: 'RPC', region });
     return statuses;
   }
 }

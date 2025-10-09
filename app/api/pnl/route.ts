@@ -1,101 +1,112 @@
-import { NextResponse } from 'next/server';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { NextRequest, NextResponse } from 'next/server';
+import 'server-only';
 import { getSession } from '@/lib/server/session';
-// Avoid better-sqlite3 in build; compute from flat file only in this build
+import { getDb } from '@/lib/db/sqlite';
 
 export const dynamic = 'force-dynamic';
 
-const FILE = join(process.cwd(), 'data', 'trades.ndjson');
+export async function GET(request: NextRequest) {
+  const session = getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-type Trade = {
-  ts: number;
-  side: 'buy' | 'sell';
-  mint: string;
-  qty: number;
-  priceLamports?: number;
-  price?: number;
-  feeLamports?: number;
-  fee?: number;
-  groupId?: string;
-};
-
-async function fetchSpotLamports(mint: string): Promise<number | null> {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/market/${encodeURIComponent(mint)}`,
-      { cache: 'no-store' },
-    );
-    if (!res.ok) return null;
-    const j = await res.json();
-    // Prefer direct lamportsPerToken if provided by endpoint; else convert USD→lamports is not available here
-    if (typeof j?.lamportsPerToken === 'string') return Number(j.lamportsPerToken);
-    if (typeof j?.lamportsPerToken === 'number') return j.lamportsPerToken;
-    return null;
-  } catch {
-    return null;
-  }
-}
+    const url = new URL(request.url);
+    const wallet = url.searchParams.get('wallet') ?? undefined;
+    const limit = Number(url.searchParams.get('limit') ?? '100');
+    const offset = Number(url.searchParams.get('offset') ?? '0');
 
-export async function GET() {
-  const session = getSession();
-  const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const out = { buys: 0, sells: 0, fees: 0, realized: 0, unrealized: 0, net: 0, count: 0 } as any;
-  // DB path disabled in this build; fall back to flat-file P&L below
-  const openPositions: Record<string, { qty: number; costLamports: number }> = {};
-  if (existsSync(FILE)) {
-    const lines = readFileSync(FILE, 'utf8').trim().split('\n').filter(Boolean);
-    for (const line of lines) {
-      try {
-        const t = JSON.parse(line) as Trade;
-        out.count++;
-        const price =
-          typeof t.priceLamports === 'number'
-            ? t.priceLamports
-            : typeof t.price === 'number'
-              ? t.price
-              : 0;
-        const fee =
-          typeof t.feeLamports === 'number' ? t.feeLamports : typeof t.fee === 'number' ? t.fee : 0;
-        if (t.side === 'buy') {
-          out.buys += t.qty * price + fee;
-          out.fees += fee;
-          const p = openPositions[t.mint] || { qty: 0, costLamports: 0 };
-          p.qty += t.qty;
-          p.costLamports += t.qty * price;
-          openPositions[t.mint] = p;
-        } else {
-          out.sells += t.qty * price - fee;
-          out.fees += fee;
-          const p = openPositions[t.mint] || { qty: 0, costLamports: 0 };
-          const qtyOut = Math.min(p.qty, t.qty);
-          if (qtyOut > 0) {
-            const avg = p.qty > 0 ? p.costLamports / p.qty : 0;
-            p.qty -= qtyOut;
-            p.costLamports -= qtyOut * avg;
-            openPositions[t.mint] = p;
-          }
-        }
-      } catch {}
+    const db = getDb();
+    
+    let query = `
+      SELECT 
+        t.id,
+        t.mint,
+        t.side,
+        t.qty,
+        t.priceLamports,
+        t.feeLamports,
+        t.priorityFeeLamports,
+        t.sig,
+        t.ts,
+        t.created_at,
+        p.qty as position_qty,
+        p.cost_basis_lamports,
+        p.realized_pnl_lamports
+      FROM trades t
+      LEFT JOIN positions p ON t.wallet = p.wallet AND t.mint = p.mint
+      WHERE t.wallet = ?
+    `;
+    
+    const params: any[] = [session.sub];
+    
+    if (wallet) {
+      query += ' AND t.wallet = ?';
+      params.push(wallet);
     }
+    
+    query += ' ORDER BY t.ts DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    
+    const trades = db.all(query, params);
+    
+    // Calculate P&L for each trade
+    const pnlEntries = trades.map((trade: any) => {
+      const priceSol = trade.priceLamports / 1e9;
+      const qtySol = trade.qty / 1e9;
+      const feeSol = (trade.feeLamports || 0) / 1e9;
+      const priorityFeeSol = (trade.priorityFeeMicrolamports || 0) / 1e9;
+      
+      let pnlSol = 0;
+      if (trade.side === 'sell' && trade.realized_pnl_lamports) {
+        pnlSol = trade.realized_pnl_lamports / 1e9;
+      }
+      
+      return {
+        id: trade.id,
+        mint: trade.mint,
+        side: trade.side,
+        qty: qtySol,
+        priceSol,
+        feeSol,
+        priorityFeeSol,
+        pnlSol,
+        signature: trade.sig,
+        timestamp: new Date(trade.ts).toISOString(),
+        createdAt: trade.created_at,
+      };
+    });
+    
+    // Get total P&L
+    const totalPnLQuery = `
+      SELECT SUM(realized_pnl_lamports) as total_pnl
+      FROM positions 
+      WHERE wallet = ?
+    `;
+    const totalPnLResult = db.get(totalPnLQuery, [session.sub]) as { total_pnl: number } | undefined;
+    const totalPnL = (totalPnLResult?.total_pnl || 0) / 1e9;
+    
+    return NextResponse.json({
+      success: true,
+      pnlEntries,
+      totalPnL,
+      pagination: {
+        limit,
+        offset,
+        total: pnlEntries.length,
+      },
+    });
+
+  } catch (error) {
+    console.error('P&L fetch error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch P&L data',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
-  out.realized = out.sells - out.buys;
-  // Compute unrealized using spot for remaining qty
-  const mints = Object.keys(openPositions).filter((mint) => openPositions[mint].qty > 0);
-  const spotByMint: Record<string, number | null> = {};
-  for (const mint of mints) {
-    spotByMint[mint] = await fetchSpotLamports(mint);
-  }
-  let unreal = 0;
-  for (const mint of mints) {
-    const pos = openPositions[mint];
-    if (!pos || pos.qty <= 0) continue;
-    const avg = pos.costLamports / pos.qty;
-    const spot = typeof spotByMint[mint] === 'number' ? (spotByMint[mint] as number) : avg;
-    unreal += pos.qty * (spot - avg);
-  }
-  out.unrealized = unreal;
-  out.net = out.realized + out.unrealized;
-  return NextResponse.json({ ok: true, pnl: out });
 }

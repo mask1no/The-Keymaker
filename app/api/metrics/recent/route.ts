@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/db/sqlite';
 export const dynamic = 'force-dynamic';
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
-    const conn = await db;
-    const rows = await conn.all(
-      'SELECT id, executedAt as executed_at, status, outcomes FROM bundles ORDER BY id DESC LIMIT 10',
+    const conn = getDb();
+    const stmt = conn.prepare(
+      'SELECT id, executedAt as executed_at, status, outcomes FROM bundles ORDER BY id DESC LIMIT 10'
     );
+    const rows = stmt.all();
     const recent = rows.map((r: any) => ({
       id: r.id,
       executed_at: r.executed_at,
