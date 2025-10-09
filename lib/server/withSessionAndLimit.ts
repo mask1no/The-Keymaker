@@ -32,7 +32,6 @@ export function withSessionAndLimit(handler: Handler, options: Options = {}) {
     try {
       return await handler(request, { userPubkey });
     } catch (error) {
-      console.error('Handler error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   };

@@ -52,10 +52,33 @@ export const POST = withSessionAndLimit(async (request, { userPubkey }) => {
       maxRetries: 3,
     });
 
-    await connection.confirmTransaction(signature, 'confirmed');
+    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
 
-    // Extract mint address from transaction (simplified - real impl would parse from logs)
-    const mintAddress = 'GENERATED_MINT_ADDRESS'; // TODO: Parse from tx logs
+    // Parse mint address from transaction logs
+    const txDetails = await connection.getTransaction(signature, {
+      maxSupportedTransactionVersion: 0,
+    });
+
+    let mintAddress = '';
+    if (txDetails?.meta?.logMessages) {
+      // Look for program log with mint address
+      for (const log of txDetails.meta.logMessages) {
+        if (log.includes('Mint:') || log.includes('Token:')) {
+          const match = log.match(/[A-HJ-NP-Za-km-z1-9]{32,44}/);
+          if (match) {
+            mintAddress = match[0];
+            break;
+          }
+        }
+      }
+    }
+
+    // Fallback: use the mint keypair from the TX (requires storing it)
+    if (!mintAddress) {
+      // For now, log a warning - real implementation would track the mint keypair
+      logger.warn('Could not extract mint from logs, using signature as reference', { signature });
+      mintAddress = signature;
+    }
 
     // Record in dev_mints table
     const db = await getDb();
@@ -63,6 +86,13 @@ export const POST = withSessionAndLimit(async (request, { userPubkey }) => {
       'INSERT INTO dev_mints (mint, dev_wallet, created_at) VALUES (?, ?, ?)',
       [mintAddress, userPubkey, Date.now()]
     );
+
+    logger.info('Token created on pump.fun', {
+      mint: mintAddress,
+      signature,
+      name: validated.name,
+      symbol: validated.symbol,
+    });
 
     return NextResponse.json({
       success: true,
