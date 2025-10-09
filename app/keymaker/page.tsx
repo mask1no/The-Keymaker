@@ -115,8 +115,9 @@ export default function KeymakerPage() {
         return alert(`Sweep failed: ${data.error || 'Unknown error'}`);
       }
 
+      const totalSwept = data.results.reduce((sum: number, r: any) => sum + (r.swept || 0), 0);
       alert(
-        `Swept ${data.totalSwept.toFixed(4)} SOL from ${data.results.filter((r: any) => r.signature).length} wallets`,
+        `Swept ${totalSwept.toFixed(4)} SOL from ${data.results.filter((r: any) => r.signature).length} wallets`,
       );
     } catch (e: any) {
       alert(`Error: ${e.message}`);

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 import { z } from 'zod';
-import { getDb } from '@/lib/db';
+import { getDb } from '@/lib/db/sqlite';
 export const runtime = 'nodejs';
 
 const Schema = z.object({
@@ -26,19 +26,18 @@ const Schema = z.object({
 });
 
 export const GET = withSessionAndLimit(async () => {
-  const db = await getDb();
-  await db.exec(
-    'CREATE TABLE IF NOT EXISTS volume_profiles (id TEXT PRIMARY KEY, name TEXT, json TEXT, createdAt INTEGER, updatedAt INTEGER)',
-  );
-  const rows = await db.all(
-    'SELECT id,name,json,updatedAt FROM volume_profiles ORDER BY updatedAt DESC',
-  );
-  const items = (rows || []).map((r: any) => ({
-    id: r.id,
-    name: r.name,
-    ...JSON.parse(r.json || '{}'),
-    updatedAt: r.updatedAt,
-  }));
+  const db = getDb();
+  const rows = db.prepare('SELECT id, name, json, updatedAt FROM volume_profiles ORDER BY updatedAt DESC').all();
+  const items = (rows || []).map((r: any) => {
+    const parsed = JSON.parse(r.json || '{}');
+    return {
+      id: r.id,
+      name: r.name,
+      mint: parsed.mint,
+      mode: parsed.mode,
+      updatedAt: r.updatedAt,
+    };
+  });
   return { items };
 });
 
@@ -46,15 +45,25 @@ export const POST = withSessionAndLimit(async (req: NextRequest) => {
   const body = await req.json();
   const parsed = Schema.safeParse(body);
   if (!parsed.success) return { error: 'bad_request', details: parsed.error.flatten() };
-  const db = await getDb();
+  const db = getDb();
   const now = Date.now();
   const { id, name, ...rest } = parsed.data;
-  await db.exec(
-    'CREATE TABLE IF NOT EXISTS volume_profiles (id TEXT PRIMARY KEY, name TEXT, json TEXT, createdAt INTEGER, updatedAt INTEGER)',
-  );
-  await db.run(
-    `INSERT INTO volume_profiles (id,name,json,createdAt,updatedAt) VALUES (?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, json=excluded.json, updatedAt=excluded.updatedAt`,
-    [id, name, JSON.stringify(rest), now, now],
-  );
+  const existing = db.prepare('SELECT id FROM volume_profiles WHERE id = ?').get(id);
+  if (existing) {
+    db.prepare('UPDATE volume_profiles SET name = ?, json = ?, updatedAt = ? WHERE id = ?').run(
+      name,
+      JSON.stringify(rest),
+      now,
+      id,
+    );
+  } else {
+    db.prepare('INSERT INTO volume_profiles (id, name, json, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)').run(
+      id,
+      name,
+      JSON.stringify(rest),
+      now,
+      now,
+    );
+  }
   return { ok: true };
 });

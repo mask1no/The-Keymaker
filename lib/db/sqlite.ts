@@ -111,6 +111,29 @@ function init(d: any): void {
       error TEXT,
       createdAt INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS volume_profiles (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      json TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS volume_runs (
+      id TEXT PRIMARY KEY,
+      profileId TEXT NOT NULL,
+      status TEXT NOT NULL,
+      startedAt INTEGER NOT NULL,
+      stoppedAt INTEGER,
+      stats_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS mint_activity (
+      mint TEXT PRIMARY KEY,
+      last_action_ts INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS ui_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `);
 }
 
