@@ -14,7 +14,7 @@ const DashboardWrapper = () => {
           className="md:col-span-2 lg:col-span-3 bento-card"
         >
           <div className="rounded-xl border border-zinc-800 bg-black/40 p-4 text-sm text-zinc-400">
-            Dashboard features are being upgraded. Use the Bundler from the sidebar.
+            Dashboard features are being upgraded. Use the Bundle from the sidebar.
           </div>
         </motion.div>
         <motion.div whileHover={{ y: -5, scale: 1.02 }} className="lg:col-span-1 bento-card">

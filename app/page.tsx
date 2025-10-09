@@ -8,7 +8,7 @@ export default async function HomePage() {
         <h1 className="text-2xl font-semibold">The Keymaker</h1>{' '}
         <p className="text-sm text-zinc-400">
           {' '}
-          Welcome. Use the navigation to access Bundler, Settings, and more.{' '}
+          Welcome. Use the navigation to access Bundle, Settings, and more.{' '}
         </p>{' '}
       </div>{' '}
       <div className="bento">

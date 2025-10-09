@@ -4,9 +4,13 @@
   "description": "Production-ready Solana bundler for MEV and memecoin trading",
   "scripts": {
     "check:node": "node -e \"const [mj]=process.versions.node.split('.') ; if(+mj<18){console.error('Node>=18 required'); process.exit(1)} else console.log('Node OK')\"",
+    "check:ellipses": "node scripts/check_ellipses.cjs",
+    "check:colors": "node scripts/check_colors.cjs",
+    "check:forbidden": "node scripts/check_forbidden.cjs",
     "core:build": "tsc --project tsconfig.core.json --noEmit",
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "build:scripts": "tsc --project tsconfig.node.json",
     "build:standalone": "cross-env NEXT_STANDALONE=1 next build",
     "analyze": "cross-env ANALYZE=true next build",

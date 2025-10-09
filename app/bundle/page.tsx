@@ -63,7 +63,7 @@ export default async function Page() {
   }
   return (
     <div className="mx-auto max-w-7xl space-y-4">
-      <h1 className="h1">Bundler</h1>
+      <h1 className="h1">Bundle</h1>
       <div className="bento">
         <div className="card">
           <div className="label mb-1">Market</div>

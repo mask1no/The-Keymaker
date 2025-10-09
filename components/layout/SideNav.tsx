@@ -5,7 +5,7 @@ import { Boxes, Wallet, Coins, Clock, LineChart, Settings, BookOpen } from 'luci
 import { cn } from '@/lib/utils';
 import NavStatus from './NavStatus';
 const NAV = [
-  { name: 'Bundler', href: '/bundle', icon: Boxes },
+  { name: 'Bundle', href: '/bundle', icon: Boxes },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
   { name: 'Token Creator', href: '/creator', icon: Coins },
   { name: 'Trade History', href: '/history', icon: Clock },

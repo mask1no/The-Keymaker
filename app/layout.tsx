@@ -1,6 +1,12 @@
 import './globals.css';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Keymaker',
+  description: 'Local Solana cockpit for trading and wallet management',
+};
 
 function Header() {
   return (
@@ -14,7 +20,7 @@ function Header() {
             Engine
           </a>
           <a className="focusable" href="/bundle">
-            Bundler
+            Bundle
           </a>
           <a className="focusable" href="/settings">
             Settings
@@ -30,7 +36,7 @@ function Header() {
 
 function SideNav() {
   const items = [
-    { name: 'Bundler', href: '/bundle' },
+    { name: 'Bundle', href: '/bundle' },
     { name: 'Wallets', href: '/wallets' },
     { name: 'Settings', href: '/settings' },
     { name: 'Guide', href: '/guide' },
