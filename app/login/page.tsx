@@ -17,8 +17,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     try {
-      adapter.on('error', () => {});
-    } catch {}
+      adapter.on('error', () => {
+        // Handle wallet adapter errors silently
+      });
+    } catch {
+      // Ignore adapter initialization errors
+    }
   }, [adapter]);
 
   const onLogin = async () => {
@@ -33,7 +37,7 @@ export default function LoginPage() {
       const tsIso = new Date().toISOString();
       const message = `Keymaker-Login|pubkey=${pubkey}|ts=${tsIso}|nonce=${nonce}`;
       const encoded = new TextEncoder().encode(message);
-      // @ts-expect-error wallet adapter signMessage is available on Phantom
+      // wallet adapter signMessage is available on Phantom
       const sigBytes: Uint8Array = await adapter.signMessage(encoded);
       const signatureBase64 = Buffer.from(sigBytes).toString('base64');
       const messageBase64 = Buffer.from(encoded).toString('base64');

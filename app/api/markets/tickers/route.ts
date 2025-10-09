@@ -15,7 +15,7 @@ interface CacheEntry {
   fetchedAt: number;
 }
 
-const cache: CacheEntry | null = null;
+// const cache: CacheEntry | null = null;
 let cachedData: CacheEntry | null = null;
 const CACHE_TTL_MS = 5000;
 
@@ -163,7 +163,7 @@ async function fetchAllTickers(): Promise<TickerData[]> {
   return tickers;
 }
 
-export const GET = withSessionAndLimit(async (request) => {
+export const GET = withSessionAndLimit(async (_request) => {
   try {
     const now = Date.now();
 

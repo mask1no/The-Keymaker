@@ -1,12 +1,9 @@
 import 'server-only';
 import * as path from 'path';
 import * as fs from 'fs';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const BetterSqlite3 = require('better-sqlite3');
+import Database from 'better-sqlite3';
 
-type Database = ReturnType<typeof BetterSqlite3>;
-
-let dbInstance: Database | null = null;
+let dbInstance: ReturnType<typeof Database> | null = null;
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS trades (
@@ -123,8 +120,29 @@ CREATE TABLE IF NOT EXISTS dev_mints (
 CREATE INDEX IF NOT EXISTS idx_dev_mints_wallet ON dev_mints(dev_wallet);
 `;
 
-export function getDb(): Database {
-  if (dbInstance) return dbInstance;
+export function getDb(): ReturnType<typeof Database> & {
+  run: (sql: string, ...params: any[]) => any;
+  all: (sql: string, ...params: any[]) => any[];
+  get: (sql: string, ...params: any[]) => any;
+} {
+  if (dbInstance) {
+    // Add wrapper methods if not already added
+    if (!(dbInstance as any).run) {
+      (dbInstance as any).run = (sql: string, ...params: any[]) => {
+        const stmt = dbInstance!.prepare(sql);
+        return stmt.run(...params);
+      };
+      (dbInstance as any).all = (sql: string, ...params: any[]) => {
+        const stmt = dbInstance!.prepare(sql);
+        return stmt.all(...params);
+      };
+      (dbInstance as any).get = (sql: string, ...params: any[]) => {
+        const stmt = dbInstance!.prepare(sql);
+        return stmt.get(...params);
+      };
+    }
+    return dbInstance as any;
+  }
 
   try {
     const dataDir = path.join(process.cwd(), 'data');
@@ -142,7 +160,21 @@ export function getDb(): Database {
 
     dbInstance.exec(SCHEMA_SQL);
 
-    return dbInstance;
+    // Add wrapper methods
+    (dbInstance as any).run = (sql: string, ...params: any[]) => {
+      const stmt = dbInstance!.prepare(sql);
+      return stmt.run(...params);
+    };
+    (dbInstance as any).all = (sql: string, ...params: any[]) => {
+      const stmt = dbInstance!.prepare(sql);
+      return stmt.all(...params);
+    };
+    (dbInstance as any).get = (sql: string, ...params: any[]) => {
+      const stmt = dbInstance!.prepare(sql);
+      return stmt.get(...params);
+    };
+
+    return dbInstance as any;
   } catch (err) {
     console.error('[sqlite] Initialization error:', err);
     throw new Error('Failed to initialize database');

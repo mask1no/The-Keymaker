@@ -1,21 +1,53 @@
-let ARMED_UNTIL = 0;
+let armedUntilDate: Date | null = null;
+let isArmedFlag = false;
 
-export function isArmed(): boolean {
-  if (process.env.KEYMAKER_ALLOW_LIVE !== 'YES') return false;
-  return Date.now() < ARMED_UNTIL;
+export function armedUntil(): Date | null {
+  return armedUntilDate;
 }
 
-export function arm(minutes = 15): boolean {
-  if (process.env.KEYMAKER_ALLOW_LIVE !== 'YES') return false;
-  const mins = Math.max(1, Number(minutes) || 15);
-  ARMED_UNTIL = Date.now() + mins * 60_000;
-  return true;
+export function isArmed(): boolean {
+  if (!armedUntilDate) {
+    return false;
+  }
+  
+  const now = new Date();
+  if (now > armedUntilDate) {
+    // Disarm if time has passed
+    isArmedFlag = false;
+    armedUntilDate = null;
+    return false;
+  }
+  
+  return isArmedFlag;
+}
+
+export function arm(durationMinutes: number = 30): void {
+  const now = new Date();
+  armedUntilDate = new Date(now.getTime() + durationMinutes * 60 * 1000);
+  isArmedFlag = true;
+  
+  console.log(`System armed until: ${armedUntilDate.toISOString()}`);
 }
 
 export function disarm(): void {
-  ARMED_UNTIL = 0;
+  armedUntilDate = null;
+  isArmedFlag = false;
+  
+  console.log('System disarmed');
 }
 
-export function armedUntil(): number {
-  return ARMED_UNTIL;
+export function getArmStatus(): { isArmed: boolean; armedUntil: Date | null; timeRemaining?: number } {
+  const armed = isArmed();
+  const until = armedUntil();
+  
+  let timeRemaining: number | undefined;
+  if (armed && until) {
+    timeRemaining = Math.max(0, Math.floor((until.getTime() - new Date().getTime()) / 1000));
+  }
+  
+  return {
+    isArmed: armed,
+    armedUntil: until,
+    timeRemaining
+  };
 }

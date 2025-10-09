@@ -1,1 +1,192 @@
-'use client' import React from 'react' import { CardCardContentCardHeaderCardTitle } from '@/components/UI/Card' import { Label } from '@/components/UI/label' import { Input } from '@/components/UI/input' import { Button } from '@/components/UI/button' import { Slider } from '@/components/UI/slider' import { HelpCircleSavePackage } from 'lucide-react' import { TooltipTooltipContentTooltipProviderTooltipTrigger } from '@/components/UI/tooltip' import { useKeymakerStore } from '@/lib/store' import { BUNDLE_CONFIG } from '@/lib/constants/bundleConfig' import toast from 'react - hot-toast' export function B u ndleSettings() { const { tipAmountsetTipAmount } = u s eKeymakerStore() const [localConfigsetLocalConfig] = React.u s eState({ b, u, n, dleSize: BUNDLE_CONFIG.D, E, F, AULT_TX_LIMITtipAmount: tipAmount || BUNDLE_CONFIG.DEFAULT_JITO_TIP/1e9,//Convert from lamports to S, O, L, retries: BUNDLE_CONFIG.M, A, X_, RETRIEStimeout: BUNDLE_CONFIG.CONFIRMATION_TIMEOUT/1000,//Convert to seconds }) const handle Save = () => {//Validate bundle size if ( localConfig.bundleSize <BUNDLE_CONFIG.MIN_TX_LIMIT || localConfig.bundleSize> BUNDLE_CONFIG.MAX_TX_LIMIT ) { toast.error( `Bundle size must be between ${BUNDLE_CONFIG.MIN_TX_LIMIT} and ${BUNDLE_CONFIG.MAX_TX_LIMIT}`) return }//Save to s t oresetTipAmount(localConfig.tipAmount * 1e9)//Convert to lamports//N, o, t, e: Other config values should be saved to appropriate store fields//Save to e n vironment (for persistence) if (typeof window !== 'undefined') { const w = window as anyw.N E XT_PUBLIC_BUNDLE_TX_LIMIT = localConfig.bundleSize.t oS tring() } toast.s u ccess('Bundle settings saved') } return ( <Card className ="bg - black/40 backdrop - blur - xl border-aqua/20"> <CardHeader> <CardTitle className ="flex items - center gap-2"> <Package className ="w - 5 h-5"/> Bundle Configuration </CardTitle> <div className ="text - sm text - muted-foreground"> Configure bundle execution parameters </div> </CardHeader> <CardContent className ="space - y-4"> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Bundle Size </Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max-w-xs"> Maximum number of transactions per bundle. Higher values canbe more efficient but may have lower success rates. R, a, n, ge:{' '}, {BUNDLE_CONFIG.MIN_TX_LIMIT}-{BUNDLE_CONFIG.MAX_TX_LIMIT} </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <div className ="flex items - center gap-4"> <Sl idervalue ={[localConfig.bundleSize]} on Value Change ={(value) => s e tLocalConfig({ l, o, c, alConfigbundleSize: value,[0] }) } min ={BUNDLE_CONFIG.MIN_TX_LIMIT} max ={BUNDLE_CONFIG.MAX_TX_LIMIT} step ={1} className ="flex-1"/> <Input type ="number" value ={localConfig.bundleSize} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigbundleSize: p a rseInt(e.target.value) || 1 }) } className ="w-20" min ={BUNDLE_CONFIG.MIN_TX_LIMIT} max ={BUNDLE_CONFIG.MAX_TX_LIMIT}/> </div> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Jito Tip A m ount (SOL)</Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Tip amount for Jito block engine. Higher tips increasebundle priority. R, e, c, ommended: 0.00001 - 0.001 SOL </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <Input type ="number" value ={localConfig.tipAmount} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigtipAmount: p a rseFloat(e.target.value) || 0 }) } placeholder ="0.00001" step ="0.00001" min ="0" max ="0.1"/> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Max Retries </Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Number of times to retry bundle submission if it fails. Moreretries increase chances of success but take longer. </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <div className ="flex items - center gap-4"> <Sl idervalue ={[localConfig.retries]} on Value Change ={(value) => s e tLocalConfig({ l, o, c, alConfigretries: value,[0] }) } min ={1} max ={10} step ={1} className ="flex-1"/> <Input type ="number" value ={localConfig.retries} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigretries: p a rseInt(e.target.value) || 1 }) } className ="w-20" min ={1} max ={10}/> </div> </div> <div> <div className ="flex items - center gap - 2 mb-2"> <Label> Confirmation T i meout (seconds)</Label> <TooltipProv ider> <Tooltip> <TooltipTrigger> <HelpCircle className ="w - 4 h - 4 text - gray-400"/> </TooltipTrigger> <TooltipContent> <p className ="max - w-xs"> Maximum time to wait for bundle confirmation before timingout. D, e, f, ault: 30 seconds </p> </TooltipContent> </Tooltip> </TooltipProvider> </div> <Input type ="number" value ={localConfig.timeout} on Change ={(e) => s e tLocalConfig({ l, o, c, alConfigtimeout: p a rseInt(e.target.value) || 30 }) } placeholder ="30" min ="5" max ="120"/> </div> <Buttonon Click ={handleSave} className ="w - full bg - gradient - to - r from - blue - 500 to - purple - 500 h, o, v, er:from - blue - 600 h, o, v, er:to - purple-600"> <Save className ="w - 4 h - 4 mr-2"/> Save Bundle Settings </Button> </CardContent> </Card> ) } 
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/UI/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import { Switch } from '@/components/UI/switch';
+
+interface BundleSettingsProps {
+  onSettingsChange: (settings: any) => void;
+}
+
+export function BundleSettings({ onSettingsChange }: BundleSettingsProps) {
+  const [settings, setSettings] = useState({
+    mode: 'JITO_BUNDLE',
+    region: 'ffm',
+    priority: 'med',
+    tipLamports: 5000,
+    chunkSize: 5,
+    concurrency: 4,
+    jitterMs: [50, 150],
+    dryRun: true,
+    cluster: 'mainnet-beta',
+  });
+
+  const updateSetting = (key: string, value: any) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    onSettingsChange(newSettings);
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Bundle Settings</CardTitle>
+        <CardDescription>Configure your bundle execution parameters</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Execution Mode</Label>
+            <Select
+              value={settings.mode}
+              onValueChange={(value) => updateSetting('mode', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="JITO_BUNDLE">JITO Bundle</SelectItem>
+                <SelectItem value="RPC_FANOUT">RPC Fanout</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Region</Label>
+            <Select
+              value={settings.region}
+              onValueChange={(value) => updateSetting('region', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ffm">Frankfurt (ffm)</SelectItem>
+                <SelectItem value="ams">Amsterdam (ams)</SelectItem>
+                <SelectItem value="ny">New York (ny)</SelectItem>
+                <SelectItem value="tokyo">Tokyo (tokyo)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Priority</Label>
+            <Select
+              value={settings.priority}
+              onValueChange={(value) => updateSetting('priority', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="med">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="vhigh">Very High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label>Tip (Lamports)</Label>
+            <Input
+              type="number"
+              value={settings.tipLamports}
+              onChange={(e) => updateSetting('tipLamports', parseInt(e.target.value))}
+              placeholder="5000"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Chunk Size</Label>
+            <Input
+              type="number"
+              value={settings.chunkSize}
+              onChange={(e) => updateSetting('chunkSize', parseInt(e.target.value))}
+              placeholder="5"
+              min="1"
+              max="20"
+            />
+          </div>
+
+          <div>
+            <Label>Concurrency</Label>
+            <Input
+              type="number"
+              value={settings.concurrency}
+              onChange={(e) => updateSetting('concurrency', parseInt(e.target.value))}
+              placeholder="4"
+              min="1"
+              max="10"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Jitter Min (ms)</Label>
+            <Input
+              type="number"
+              value={settings.jitterMs[0]}
+              onChange={(e) => updateSetting('jitterMs', [parseInt(e.target.value), settings.jitterMs[1]])}
+              placeholder="50"
+            />
+          </div>
+
+          <div>
+            <Label>Jitter Max (ms)</Label>
+            <Input
+              type="number"
+              value={settings.jitterMs[1]}
+              onChange={(e) => updateSetting('jitterMs', [settings.jitterMs[0], parseInt(e.target.value)])}
+              placeholder="150"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Cluster</Label>
+            <Select
+              value={settings.cluster}
+              onValueChange={(value) => updateSetting('cluster', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mainnet-beta">Mainnet Beta</SelectItem>
+                <SelectItem value="devnet">Devnet</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={settings.dryRun}
+              onCheckedChange={(checked) => updateSetting('dryRun', checked)}
+            />
+            <Label>Dry Run Mode</Label>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t">
+          <Button
+            onClick={() => onSettingsChange(settings)}
+            className="w-full"
+          >
+            Apply Settings
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

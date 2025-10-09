@@ -1,40 +1,92 @@
-import type { VersionedTransaction } from '@solana/web3.js';
-import type { RegionKey } from './types';
+export type ExecutionMode = 'RPC' | 'RPC_FANOUT' | 'JITO';
 
-export type ExecutionMode = 'RPC' | 'RPC_FANOUT';
-export type Priority = 'low' | 'med' | 'high' | 'vhigh';
-
-export interface ExecOptions {
+export interface EngineConfig {
   mode: ExecutionMode;
-  region?: RegionKey; // Jito only
-  priority?: Priority; // both
-  tipLamports?: number; // Jito only (default floor * 1.1)
-  chunkSize?: number; // Jito: tx per bundle (default 5, clamp 1..20)
-  concurrency?: number; // RPC: parallel sends (default 4, clamp 1..16)
-  jitterMs?: [number, number]; // RPC: range (default [50, 150])
-  dryRun?: boolean; // simulate only (default false)
-  cluster?: 'mainnet-beta' | 'devnet'; // RPC only; default mainnet-beta
-
-  // For polling convenience; provided by API layer
-  bundleIds?: string[]; // Jito
-  sigs?: string[]; // RPC
+  rpcEndpoint?: string;
+  jitoEndpoint?: string;
+  priorityFee?: number;
+  maxRetries?: number;
+  timeout?: number;
 }
 
-export interface SubmitPlan {
-  txs: VersionedTransaction[]; // already built & signed server-side
-  corr: string; // sha256 over base64 serialized txs
+export interface TradeParams {
+  mint: string;
+  amount: number;
+  slippage: number;
+  walletAddress: string;
+  isBuy: boolean;
 }
 
-export interface EngineSubmitResult {
-  corr: string;
-  mode: ExecutionMode;
-  bundleIds?: string[]; // Jito
-  sigs?: string[]; // RPC
-  statusHint: 'submitted' | 'partial' | 'failed';
-  simulated?: boolean;
+export interface TradeResult {
+  success: boolean;
+  signature?: string;
+  error?: string;
+  amount?: number;
+  price?: number;
 }
 
-export interface Engine {
-  submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult>;
-  pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any>;
+export class TradingEngine {
+  private config: EngineConfig;
+  
+  constructor(config: EngineConfig) {
+    this.config = config;
+  }
+  
+  async executeTrade(params: TradeParams): Promise<TradeResult> {
+    try {
+      console.log(`Executing ${params.isBuy ? 'buy' : 'sell'} trade for ${params.mint}`);
+      
+      // Simulate trade execution
+      // In a real implementation, this would:
+      // 1. Build the transaction
+      // 2. Sign the transaction
+      // 3. Submit to RPC or Jito
+      // 4. Monitor for confirmation
+      
+      const success = Math.random() > 0.1; // 90% success rate for demo
+      
+      if (success) {
+        return {
+          success: true,
+          signature: `tx_${Math.random().toString(36).substr(2, 9)}`,
+          amount: params.amount,
+          price: Math.random() * 0.001 // Random price for demo
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Simulated trade failure'
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+  
+  async getBalance(walletAddress: string, mint?: string): Promise<number> {
+    try {
+      // Simulate balance fetch
+      return Math.random() * 1000; // Random balance for demo
+    } catch (error) {
+      console.error('Failed to get balance:', error);
+      return 0;
+    }
+  }
+  
+  async getPrice(mint: string): Promise<number> {
+    try {
+      // Simulate price fetch
+      return Math.random() * 0.001; // Random price for demo
+    } catch (error) {
+      console.error('Failed to get price:', error);
+      return 0;
+    }
+  }
+}
+
+export function createEngine(config: EngineConfig): TradingEngine {
+  return new TradingEngine(config);
 }

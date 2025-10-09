@@ -4,7 +4,7 @@ import { buildSwapTx, buildSellTx } from '@/lib/tx/jupiter';
 import { isMigrated } from '@/lib/pump/migration';
 import { acquireMintLock, releaseMintLock } from '@/lib/locks/mintLock';
 import { hashTransactionMessage } from '@/lib/util/jsonStableHash';
-import { getDb, recordTrade, checkTxDedupe, recordTxDedupe } from '@/lib/db/sqlite';
+import { recordTrade, checkTxDedupe, recordTxDedupe } from '@/lib/db/sqlite';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
@@ -42,7 +42,7 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
     wallets,
     perWalletSolLamports,
     slippageBps,
-    impactCapPct = 2,
+    // impactCapPct = 2,
     priorityFeeMicrolamports,
     dryRun = false,
   } = params;

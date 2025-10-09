@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { limit: rateLimit: rateLimitNum, windowMs } = getRateConfig('submit');
+  const { limit: rateLimitNum, windowMs } = getRateConfig('submit');
   const rateLimitResult = rateLimit(session.sub, rateLimitNum, windowMs);
 
   if (!rateLimitResult.allowed) {

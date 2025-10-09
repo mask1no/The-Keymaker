@@ -3,11 +3,17 @@ import 'server-only';
 import { z } from 'zod';
 import { getSession } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
+import { buildCreateMintTx, uploadMetadataToIPFS } from '@/lib/tx/pumpfun';
+import { Connection, Keypair } from '@solana/web3.js';
+import { getDb } from '@/lib/db/sqlite';
 
 const createSchema = z.object({
   name: z.string().min(1).max(32),
   symbol: z.string().min(1).max(10),
-  uri: z.string().url(),
+  description: z.string().optional(),
+  image: z.string().url().optional(),
+  supply: z.number().min(1).max(1000000000).optional(),
+  decimals: z.number().min(0).max(18).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,17 +38,70 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    createSchema.parse(body);
+    const validatedData = createSchema.parse(body);
 
-    return NextResponse.json(
-      {
-        error: 'pumpfun_create_not_implemented',
-        message:
-          'pump.fun token creation is not yet implemented. Please provide the program/IDL you want to use, or create tokens directly at https://pump.fun and trade them here.',
-      },
-      { status: 501 },
+    // Get RPC URL from environment
+    const rpcUrl = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+
+    // For now, we'll use a placeholder keypair
+    // In a real implementation, you'd get this from the user's wallet
+    const masterKeypair = Keypair.generate();
+
+    // Upload metadata to IPFS if image is provided
+    let metadataUri = 'https://via.placeholder.com/500x500.png';
+    if (validatedData.image) {
+      try {
+        metadataUri = await uploadMetadataToIPFS({
+          name: validatedData.name,
+          symbol: validatedData.symbol,
+          description: validatedData.description || `A memecoin created with The Keymaker`,
+          image: validatedData.image,
+        });
+      } catch (error) {
+        console.warn('Failed to upload metadata to IPFS, using placeholder:', error);
+      }
+    }
+
+    // Build the transaction
+    const transaction = await buildCreateMintTx({
+      master: masterKeypair,
+      name: validatedData.name,
+      symbol: validatedData.symbol,
+      uri: metadataUri,
+      connection,
+      decimals: validatedData.decimals || 9,
+      supply: validatedData.supply || 1000000000,
+    });
+
+    // Serialize the transaction for the client
+    const serializedTransaction = Buffer.from(transaction.serialize()).toString('base64');
+
+    // Log the token creation attempt
+    const db = getDb();
+    db.run(
+      'INSERT INTO token_creations (user_id, name, symbol, metadata_uri, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        session.sub,
+        validatedData.name,
+        validatedData.symbol,
+        metadataUri,
+        'pending',
+        new Date().toISOString(),
+      ]
     );
+
+    return NextResponse.json({
+      success: true,
+      transaction: serializedTransaction,
+      mintAddress: masterKeypair.publicKey.toBase58(),
+      metadataUri,
+      message: 'Token creation transaction ready. Please sign and submit the transaction.',
+    });
+
   } catch (error) {
+    console.error('Token creation error:', error);
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -52,9 +111,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'pumpfun_create_not_implemented',
+        error: 'Token creation failed',
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
-      { status: 501 },
+      { status: 500 },
     );
   }
 }

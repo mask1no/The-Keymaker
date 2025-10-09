@@ -1,89 +1,50 @@
-import { getSessionFromCookies } from '@/lib/server/session';
-import { addTrackedWallet, getTrackedWallets, removeTrackedWallet } from '@/lib/server/wallets';
-import { revalidatePath } from 'next/cache';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import WalletManager from '@/components/WalletManager/WalletManager';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
+import { Badge } from '@/components/UI/badge';
 
-async function addWallet(formData: FormData) {
-  'use server';
-  const w = String(formData.get('wallet') || '').trim();
-  if (w) addTrackedWallet(w);
-  revalidatePath('/wallets');
-}
-
-async function delWallet(formData: FormData) {
-  'use server';
-  const w = String(formData.get('wallet') || '').trim();
-  if (w) removeTrackedWallet(w);
-  revalidatePath('/wallets');
-}
-
-export default async function Page() {
-  const session = getSessionFromCookies();
-  const wallets = getTrackedWallets();
+export default function WalletsPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <h1 className="h1">Wallets</h1>
-      {!session ? (
-        <div className="card">
-          <div className="label mb-2">Authentication Required</div>
-          <p className="text-sm p-muted mb-3">
-            Login with your wallet to manage tracked wallets used in PnL and Market tiles.
-          </p>
-          <a href="/login" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700 inline-block">
-            Login with wallet
-          </a>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-100">Wallet Manager</h1>
+          <p className="text-zinc-400 mt-2">Organize your trading wallets into groups</p>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="card">
-            <div className="label mb-1">Session</div>
-            <div className="text-sm">Logged in as: {session.sub}</div>
+        <Badge variant="outline" className="border-green-500 text-green-400">
+          🔒 Encrypted Locally
+        </Badge>
+      </div>
+
+      {/* Info Card */}
+      <Card className="bg-zinc-900/50 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-zinc-100">How It Works</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Secure wallet management with local encryption
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="space-y-2">
+              <h3 className="font-medium text-zinc-200">📁 Wallet Groups</h3>
+              <p className="text-zinc-400">Create folders to organize your wallets by strategy or purpose</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-zinc-200">🔐 Local Encryption</h3>
+              <p className="text-zinc-400">All private keys are encrypted locally with your password</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-medium text-zinc-200">⚡ Quick Access</h3>
+              <p className="text-zinc-400">Set active wallets for instant trading operations</p>
+            </div>
           </div>
-          <div className="bento">
-            <section className="card">
-              <div className="label mb-2">Add wallet</div>
-              <form action={addWallet} className="flex gap-2">
-                <input
-                  type="text"
-                  name="wallet"
-                  placeholder="Base58 address"
-                  className="input px-3 py-1 bg-zinc-900 w-full"
-                  required
-                  minLength={32}
-                />
-                <button type="submit" className="button px-3 py-1 bg-zinc-800 hover:bg-zinc-700">
-                  Add
-                </button>
-              </form>
-              <div className="text-xs p-muted mt-2">Use these wallets in PnL & Market tiles.</div>
-            </section>
-            <section className="card">
-              <div className="label mb-2">Tracked wallets</div>
-              {wallets.length === 0 ? (
-                <div className="text-sm p-muted">No wallets yet</div>
-              ) : (
-                <ul className="text-sm space-y-2">
-                  {wallets.map((w) => (
-                    <li key={w} className="flex items-center justify-between gap-2">
-                      <span className="font-mono break-all">{w}</span>
-                      <form action={delWallet}>
-                        <input type="hidden" name="wallet" value={w} />
-                        <button
-                          className="button px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 text-xs"
-                          type="submit"
-                        >
-                          Remove
-                        </button>
-                      </form>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
+
+      {/* Wallet Manager Component */}
+      <WalletManager />
     </div>
   );
 }

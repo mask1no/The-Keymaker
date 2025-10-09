@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db/sqlite';
 export const dynamic = 'force-dynamic';
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const conn = getDb();
     const stmt = conn.prepare(

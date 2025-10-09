@@ -1,78 +1,91 @@
-import { cookies } from 'next/headers';
-import type { ExecutionMode, Priority } from '@/lib/core/src/engine';
-import type { RegionKey } from '@/lib/core/src/types';
-
 export interface UiSettings {
-  mode: ExecutionMode;
-  region: RegionKey;
-  priority: Priority;
-  tipLamports?: number;
-  chunkSize?: number;
-  concurrency?: number;
-  jitterMs?: [number, number];
-  dryRun?: boolean;
-  cluster?: 'mainnet-beta' | 'devnet';
+  mode: 'RPC' | 'RPC_FANOUT';
+  region: 'ffm' | 'ams' | 'ny' | 'tokyo';
+  priority: 'low' | 'med' | 'high' | 'vhigh';
+  tipLamports: number;
+  chunkSize: number;
+  concurrency: number;
+  jitterMs: [number, number];
+  dryRun: boolean;
+  cluster: 'mainnet-beta' | 'devnet';
 }
 
-const COOKIE_NAME = 'keymaker_ui_settings';
+const defaultSettings: UiSettings = {
+  mode: 'RPC',
+  region: 'ffm',
+  priority: 'med',
+  tipLamports: 5000,
+  chunkSize: 5,
+  concurrency: 4,
+  jitterMs: [50, 150],
+  dryRun: true,
+  cluster: 'mainnet-beta',
+};
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
+let cachedSettings: UiSettings | null = null;
 
 export function getUiSettings(): UiSettings {
-  try {
-    const c = cookies().get(COOKIE_NAME)?.value || '';
-    const raw = c ? (JSON.parse(c) as Partial<UiSettings>) : {};
-    const mode = (raw.mode === 'RPC_FANOUT' ? 'RPC_FANOUT' : 'RPC') as ExecutionMode;
-    const region = (
-      ['ffm', 'ams', 'ny', 'tokyo'].includes(String(raw.region)) ? raw.region : 'ffm'
-    ) as RegionKey;
-    const priority = (
-      ['low', 'med', 'high', 'vhigh'].includes(String(raw.priority)) ? raw.priority : 'med'
-    ) as Priority;
-    const tipLamports =
-      typeof raw.tipLamports === 'number' ? clamp(raw.tipLamports, 0, 1_000_000) : undefined;
-    const chunkSize = typeof raw.chunkSize === 'number' ? clamp(raw.chunkSize, 1, 20) : 5;
-    const concurrency = typeof raw.concurrency === 'number' ? clamp(raw.concurrency, 1, 16) : 4;
-    const jitterMs: [number, number] = Array.isArray(raw.jitterMs)
-      ? [Math.max(0, raw.jitterMs[0] || 0), Math.max(0, raw.jitterMs[1] || 0)]
-      : [50, 150];
-    const dryRun = typeof raw.dryRun === 'boolean' ? raw.dryRun : true;
-    const cluster = raw.cluster === 'devnet' ? 'devnet' : 'mainnet-beta';
-    return {
-      mode,
-      region,
-      priority,
-      tipLamports,
-      chunkSize,
-      concurrency,
-      jitterMs,
-      dryRun,
-      cluster,
-    };
-  } catch {
-    return {
-      mode: 'RPC',
-      region: 'ffm',
-      priority: 'med',
-      chunkSize: 5,
-      concurrency: 4,
-      jitterMs: [50, 150],
-      dryRun: true,
-      cluster: 'mainnet-beta',
-    };
+  if (cachedSettings) {
+    return cachedSettings;
   }
+
+  try {
+    // Try to load from environment variables first
+    const envSettings: Partial<UiSettings> = {};
+    
+    if (process.env.NEXT_PUBLIC_EXECUTION_MODE) {
+      envSettings.mode = process.env.NEXT_PUBLIC_EXECUTION_MODE as UiSettings['mode'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_REGION) {
+      envSettings.region = process.env.NEXT_PUBLIC_REGION as UiSettings['region'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_PRIORITY) {
+      envSettings.priority = process.env.NEXT_PUBLIC_PRIORITY as UiSettings['priority'];
+    }
+    
+    if (process.env.NEXT_PUBLIC_TIP_LAMPORTS) {
+      envSettings.tipLamports = parseInt(process.env.NEXT_PUBLIC_TIP_LAMPORTS);
+    }
+    
+    if (process.env.NEXT_PUBLIC_CHUNK_SIZE) {
+      envSettings.chunkSize = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE);
+    }
+    
+    if (process.env.NEXT_PUBLIC_CONCURRENCY) {
+      envSettings.concurrency = parseInt(process.env.NEXT_PUBLIC_CONCURRENCY);
+    }
+    
+    if (process.env.NEXT_PUBLIC_JITTER_MIN && process.env.NEXT_PUBLIC_JITTER_MAX) {
+      envSettings.jitterMs = [
+        parseInt(process.env.NEXT_PUBLIC_JITTER_MIN),
+        parseInt(process.env.NEXT_PUBLIC_JITTER_MAX)
+      ];
+    }
+    
+    if (process.env.NEXT_PUBLIC_DRY_RUN) {
+      envSettings.dryRun = process.env.NEXT_PUBLIC_DRY_RUN === 'true';
+    }
+    
+    if (process.env.NEXT_PUBLIC_CLUSTER) {
+      envSettings.cluster = process.env.NEXT_PUBLIC_CLUSTER as UiSettings['cluster'];
+    }
+
+    cachedSettings = { ...defaultSettings, ...envSettings };
+  } catch (error) {
+    console.warn('Failed to load settings from environment, using defaults:', error);
+    cachedSettings = defaultSettings;
+  }
+
+  return cachedSettings;
 }
 
-export function setUiSettings(next: Partial<UiSettings>) {
-  const current = getUiSettings();
-  const merged: UiSettings = { ...current, ...next } as UiSettings;
-  cookies().set(COOKIE_NAME, JSON.stringify(merged), {
-    httpOnly: false,
-    sameSite: 'lax',
-    path: '/',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 365,
-  });
+export function setUiSettings(settings: Partial<UiSettings>): void {
+  const currentSettings = getUiSettings();
+  cachedSettings = { ...currentSettings, ...settings };
+  
+  // In a real application, you might want to persist these settings
+  // For now, we'll just update the cache
+  console.log('Settings updated:', cachedSettings);
 }

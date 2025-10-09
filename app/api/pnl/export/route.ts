@@ -3,7 +3,7 @@ import 'server-only';
 import { withSessionAndLimit } from '@/lib/server/withSessionAndLimit';
 import { exportPnLToCSV } from '@/lib/pnl/tracker';
 
-export const GET = withSessionAndLimit(async (request) => {
+export const GET = withSessionAndLimit(async (_request) => {
   try {
     const csv = await exportPnLToCSV();
 

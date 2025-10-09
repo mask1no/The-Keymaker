@@ -4,18 +4,14 @@ import { z } from 'zod';
 import {
   Connection,
   Keypair,
-  PublicKey,
   TransactionMessage,
   VersionedTransaction,
   ComputeBudgetProgram,
-  SystemProgram,
 } from '@solana/web3.js';
 import {
   createCloseAccountInstruction,
   TOKEN_PROGRAM_ID,
-  createSyncNativeInstruction,
   NATIVE_MINT,
-  getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
 import { getSession } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';

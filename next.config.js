@@ -15,6 +15,11 @@ const SECURITY_HEADERS = [
 const nextConfig = {
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
+  compress: true,
+  swcMinify: true,
+  experimental: {
+    optimizePackageImports: ['@solana/web3.js', '@solana/spl-token'],
+  },
   eslint: {
     // Skip ESLint errors during builds so we can verify the bundler
     ignoreDuringBuilds: true,
@@ -27,9 +32,56 @@ const nextConfig = {
     return [
       {
         source: '/(.*)',
-        headers: SECURITY_HEADERS,
+        headers: [
+          ...SECURITY_HEADERS,
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
       },
     ];
+  },
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          solana: {
+            test: /[\\/]node_modules[\\/]@solana[\\/]/,
+            name: 'solana',
+            chunks: 'all',
+            priority: 10,
+          },
+        },
+      };
+    }
+
+    return config;
   },
 };
 

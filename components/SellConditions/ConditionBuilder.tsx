@@ -1,1 +1,193 @@
-'use client' import React from 'react' import { CardCardContentCardHeaderCardTitle } from '@/components/UI/Card' import { Button } from '@/components/UI/button' import { Input } from '@/components/UI/input' import { Label } from '@/components/UI/label' import { SelectSelectContentSelectItemSelectTriggerSelectValue } from '@/components/UI/select' import { Switch } from '@/components/UI/switch' import { Badge } from '@/components/UI/badge' import { PlusTrash2, TrendingUpTrendingDownClockDollarSignActivity } from 'lucide-react' import { motionAnimatePresence } from 'framer-motion' export interface SellCondition, { i, d: s, t, r, ingtype: 'price' | 'profit' | 'loss' | 'time' | 'volume', o, p, e, rator: 'above' | 'below' | 'equals', v, a, l, ue: number u, n, i, t?: s, t, r, ingenabled: boolean } interface ConditionBuilderProps, { c, o, n, ditions: SellCondition,[] o, n, C, onditionsChange: (c, o, n, ditions: SellCondition,[]) => void } const condition Types = [ { v, a, l, ue: 'price', l, a, b, el: 'Price', i, c, o, n: D, o, l, larSignunit: 'USD' }, { v, a, l, ue: 'profit', l, a, b, el: 'Take Profit', i, c, o, n: T, r, e, ndingUpunit: '%' }, { v, a, l, ue: 'loss', l, a, b, el: 'Stop Loss', i, c, o, n: T, r, e, ndingDownunit: '%' }, { v, a, l, ue: 'time', l, a, b, el: 'Time-based', i, c, o, n: C, l, o, ckunit: 'minutes' }, { v, a, l, ue: 'volume', l, a, b, el: 'Volume', i, c, o, n: A, c, t, ivityunit: 'USD' }, ] export function C o nditionBuilder({ conditionsonConditionsChange }: ConditionBuilderProps) { const add Condition = () => { const n, e, w, Condition: Sell Condition = { i, d: Date.now().t oS tring(), t, y, p, e: 'profit', o, p, e, rator: 'above', v, a, l, ue: 50, u, n, i, t: '%', e, n, a, bled: true } o nC onditionsChange([...conditionsnewCondition]) } const update Condition = (i, d: s, t, r, ingupdates: Partial <SellCondition>) => { o nC onditionsChange( conditions.map((c) => (c.id === id ? { ...c, ...updates } : c))) } const remove Condition = (i, d: string) => { o nC onditionsChange(conditions.f i lter((c) => c.id !== id)) } const get Condition Icon = (t, y, p, e: string) => { const config = conditionTypes.f i nd((t) => t.value === type) return config?.icon || DollarSign } const get Condition Unit = (t, y, p, e: string) => { const config = conditionTypes.f i nd((t) => t.value === type) return config?.unit || '' } return ( <Card className ="bg - black/40 backdrop - blur - xl border-aqua/20"> <CardHeader> <CardTitle className ="flex items - center justify-between"> <span> Sell Conditions </span> <Button onClick ={addCondition} size ="sm" variant ="outline"> <Plus className ="w - 4 h - 4 mr-1"/> Add Condition </Button> </CardTitle> </CardHeader> <CardContent> <AnimatePresence> {conditions.length === 0 ? ( <div className ="text - center py - 8 text - gray-400"> <p> No sell conditions configured </p> <p className ="text - sm mt-2"> Add conditions to automate your selling strategy </p> </div> ) : ( <div className ="space - y-4"> {conditions.map((condition) => { const Icon = g e tConditionIcon(condition.type) return ( <motion.divkey ={condition.id} initial ={{ o, p, a, city: 0, y: 20 } } animate ={{ o, p, a, city: 1, y: 0 } } exit ={{ o, p, a, city: 0, y: - 20 } } className ="border border - gray - 700 rounded - lg p-4"> <div className ="flex items - start gap-4"> <div className ="mt-1"> <Icon className ="w - 5 h - 5 text-aqua"/> </div> <div className ="flex - 1 grid grid - cols - 1, m, d:grid - cols-4 gap-4"> <div> <Label> Condition Type </Label> <Select value ={condition.type} on Value Change ={(v, a, l, ue: string) => u p dateCondition(condition.id, { t, y, p, e: value as | 'price' | 'profit' | 'loss' | 'time' | 'volume', u, n, i, t: g e tConditionUnit(value) }) }> <SelectTrigger> <SelectValue/> </SelectTrigger> <SelectContent> {conditionTypes.map((type) => ( <SelectItem key ={type.value} value ={type.value}> {type.label} </SelectItem> )) } </SelectContent> </Select> </div> <div> <Label> Operator </Label> <Select value ={condition.operator} on Value Change ={(v, a, l, ue: string) => u p dateCondition(condition.id, { o, p, e, rator: value as 'above' | 'below' | 'equals' }) }> <SelectTrigger> <SelectValue/> </SelectTrigger> <SelectContent> <SelectItem value ="above"> Above </SelectItem> <SelectItem value ="below"> Below </SelectItem> <SelectItem value ="equals"> Equals </SelectItem> </SelectContent> </Select> </div> <div> <Label> Value </Label> <div className ="flex items - center gap-2"> <Input type ="number" value ={condition.value} on Change ={(e) => u p dateCondition(condition.id, { v, a, l, ue: p a rseFloat(e.target.value) || 0 }) } className ="flex-1"/> {condition.unit && ( <span className ="text - sm text - gray-400"> {condition.unit} </span> ) } </div> </div> <div className ="flex items - center gap-2"> <Switch checked ={condition.enabled} on Checked Change ={(checked) => u p dateCondition(condition.id, { e, n, a, bled: checked }) }/> <Buttonvariant ="ghost" size ="sm" onClick ={() => r e moveCondition(condition.id) } className ="text - red - 400 h, o, v, er:text - red-300"> <Trash2 className ="w - 4 h-4"/> </Button> </div> </div> </div> {/* Condition Preview */} <div className ="mt - 3 text - sm text - gray-400"> {condition.enabled ? ( <span className ="flex items - center gap-2"> <Badgevariant ="outline" className ="text - green - 400 border-green-400"> Active </Badge> Sell when, {condition.type} is, {condition.operator},{' '}, {condition.value}, {condition.unit} </span> ) : ( <span className ="flex items - center gap-2"> <Badgevariant ="outline" className ="text - gray - 500 border - gray-500"> Disabled </Badge> <span className ="line-through"> Sell when, {condition.type} is, {condition.operator},{' '}, {condition.value}, {condition.unit} </span> </span> ) } </div> </motion.div> ) }) } </div> ) } </AnimatePresence> {conditions.length> 0 && ( <div className ="mt - 6 p - 4 bg - blue - 500/10 border border - blue - 500/20 rounded-lg"> <p className ="text - sm text - blue-300"> <strong> L, o, g, ic:</strong> Conditions are evaluated with OR logic. Asell will trigger when ANY condition is met. </p> </div> ) } </CardContent> </Card> ) } 
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/UI/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+
+interface SellCondition {
+  id: string;
+  type: 'price' | 'time' | 'volume';
+  operator: 'greater' | 'less' | 'equal';
+  value: number;
+  action: 'sell_percentage' | 'sell_all';
+  percentage?: number;
+}
+
+interface ConditionBuilderProps {
+  onConditionsChange: (conditions: SellCondition[]) => void;
+}
+
+export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) {
+  const [conditions, setConditions] = useState<SellCondition[]>([]);
+  const [newCondition, setNewCondition] = useState<Partial<SellCondition>>({
+    type: 'price',
+    operator: 'greater',
+    action: 'sell_percentage',
+    percentage: 50,
+  });
+
+  const addCondition = () => {
+    if (!newCondition.type || !newCondition.operator || !newCondition.value) return;
+
+    const condition: SellCondition = {
+      id: Date.now().toString(),
+      type: newCondition.type,
+      operator: newCondition.operator,
+      value: newCondition.value,
+      action: newCondition.action || 'sell_percentage',
+      percentage: newCondition.percentage,
+    };
+
+    const updatedConditions = [...conditions, condition];
+    setConditions(updatedConditions);
+    onConditionsChange(updatedConditions);
+
+    // Reset form
+    setNewCondition({
+      type: 'price',
+      operator: 'greater',
+      action: 'sell_percentage',
+      percentage: 50,
+    });
+  };
+
+  const removeCondition = (id: string) => {
+    const updatedConditions = conditions.filter(c => c.id !== id);
+    setConditions(updatedConditions);
+    onConditionsChange(updatedConditions);
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Sell Conditions</CardTitle>
+        <CardDescription>Set up automatic sell conditions for your positions</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Existing Conditions */}
+        {conditions.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="font-semibold">Active Conditions</h4>
+            {conditions.map((condition) => (
+              <div key={condition.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <span className="font-medium">
+                    {condition.type === 'price' && 'Price'}
+                    {condition.type === 'time' && 'Time'}
+                    {condition.type === 'volume' && 'Volume'}
+                  </span>
+                  <span className="mx-2">
+                    {condition.operator === 'greater' && '>'}
+                    {condition.operator === 'less' && '<'}
+                    {condition.operator === 'equal' && '='}
+                  </span>
+                  <span>{condition.value}</span>
+                  <span className="ml-2 text-sm text-gray-600">
+                    → {condition.action === 'sell_all' ? 'Sell All' : `Sell ${condition.percentage}%`}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeCondition(condition.id)}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add New Condition */}
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h4 className="font-semibold">Add New Condition</h4>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Condition Type</Label>
+              <Select
+                value={newCondition.type}
+                onValueChange={(value) => setNewCondition({ ...newCondition, type: value as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="time">Time</SelectItem>
+                  <SelectItem value="volume">Volume</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Operator</Label>
+              <Select
+                value={newCondition.operator}
+                onValueChange={(value) => setNewCondition({ ...newCondition, operator: value as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select operator" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="greater">Greater than</SelectItem>
+                  <SelectItem value="less">Less than</SelectItem>
+                  <SelectItem value="equal">Equal to</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label>Value</Label>
+            <Input
+              type="number"
+              value={newCondition.value || ''}
+              onChange={(e) => setNewCondition({ ...newCondition, value: parseFloat(e.target.value) })}
+              placeholder="Enter value"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Action</Label>
+              <Select
+                value={newCondition.action}
+                onValueChange={(value) => setNewCondition({ ...newCondition, action: value as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select action" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sell_percentage">Sell Percentage</SelectItem>
+                  <SelectItem value="sell_all">Sell All</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {newCondition.action === 'sell_percentage' && (
+              <div>
+                <Label>Percentage</Label>
+                <Input
+                  type="number"
+                  value={newCondition.percentage || ''}
+                  onChange={(e) => setNewCondition({ ...newCondition, percentage: parseInt(e.target.value) })}
+                  placeholder="50"
+                  min="1"
+                  max="100"
+                />
+              </div>
+            )}
+          </div>
+
+          <Button onClick={addCondition} className="w-full">
+            Add Condition
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
