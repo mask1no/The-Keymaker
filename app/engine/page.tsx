@@ -5,6 +5,7 @@ import { armedUntil, isArmed } from '@/lib/server/arming';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ExecutionMode } from '@/lib/core/src/engine';
+import { TradingPanel } from '@/components/Trading/TradingPanel';
 // SSR-only; avoid client imports
 
 export const dynamic = 'force-dynamic';

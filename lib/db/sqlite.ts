@@ -98,6 +98,50 @@ CREATE TABLE IF NOT EXISTS ui_settings (
   value TEXT,
   updated_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
+
+CREATE TABLE IF NOT EXISTS dev_mints (
+  mint TEXT PRIMARY KEY,
+  dev_wallet TEXT NOT NULL,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_dev_mints_wallet ON dev_mints(dev_wallet);
+
+CREATE TABLE IF NOT EXISTS volume_profiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  mint TEXT NOT NULL,
+  wallet_pubkeys TEXT NOT NULL,
+  buy_sell_bias REAL DEFAULT 2.0,
+  min_buy_sol REAL DEFAULT 0.01,
+  max_buy_sol REAL DEFAULT 0.1,
+  min_sell_pct REAL DEFAULT 10,
+  max_sell_pct REAL DEFAULT 50,
+  delay_sec_min INTEGER DEFAULT 30,
+  delay_sec_max INTEGER DEFAULT 120,
+  max_actions INTEGER DEFAULT 100,
+  max_spend_sol REAL DEFAULT 5.0,
+  time_stop_min INTEGER DEFAULT 60,
+  max_drawdown_pct REAL DEFAULT 20,
+  slippage_bps INTEGER DEFAULT 300,
+  impact_cap_pct REAL DEFAULT 5.0,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS volume_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  profile_id INTEGER NOT NULL,
+  status TEXT DEFAULT 'running' CHECK(status IN ('running', 'stopped', 'completed')),
+  started_at INTEGER NOT NULL,
+  stopped_at INTEGER,
+  actions_executed INTEGER DEFAULT 0,
+  total_spent REAL DEFAULT 0,
+  stats_json TEXT,
+  FOREIGN KEY (profile_id) REFERENCES volume_profiles(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_volume_runs_status ON volume_runs(status);
+CREATE INDEX IF NOT EXISTS idx_volume_runs_profile ON volume_runs(profile_id);
 `;
 
 export async function getDb(): Promise<any> {
