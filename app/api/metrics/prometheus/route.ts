@@ -20,7 +20,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Failed to generate Prometheus metrics:', error);
+    // Failed to generate Prometheus metrics
 
     return NextResponse.json({ error: 'Failed to generate metrics' }, { status: 500 });
   }

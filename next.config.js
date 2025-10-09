@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 /** @type {import('next').NextConfig} */
 const SECURITY_HEADERS = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -85,4 +87,21 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry configuration
+const sentryWebpackPluginOptions = {
+  // Additional config options for the Sentry webpack plugin. Keep in mind that
+  // the following options are set automatically, and overriding them is not
+  // recommended:
+  //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
+
+  org: '3d49c0f8b7f8',
+  project: 'javascript-nextjs',
+
+  // Only print logs for @sentry/webpack-plugin when `silent` option is `false`
+  silent: !process.env.CI,
+
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+};
+
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

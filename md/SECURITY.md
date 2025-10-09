@@ -3,6 +3,7 @@
 ## Security Checklist
 
 ### Authentication & Authorization
+
 - [x] Session-based authentication with HMAC signing
 - [x] Rate limiting on all API endpoints
 - [x] Input validation with Zod schemas
@@ -11,6 +12,7 @@
 - [x] Nonce-based login flow to prevent replay attacks
 
 ### Data Protection
+
 - [x] Wallet private keys encrypted at rest
 - [x] Database prepared statements (SQL injection prevention)
 - [x] Input sanitization and validation
@@ -18,6 +20,7 @@
 - [x] No sensitive data in client-side code
 
 ### Network Security
+
 - [x] HTTPS enforcement in production
 - [x] Secure headers (CSP, HSTS, etc.)
 - [x] API rate limiting
@@ -25,6 +28,7 @@
 - [x] IP-based rate limiting
 
 ### Application Security
+
 - [x] Error boundaries to prevent information leakage
 - [x] Structured error handling
 - [x] Input validation on all endpoints
@@ -34,6 +38,7 @@
 ## Security Vulnerabilities Assessment
 
 ### Critical Issues (Fixed)
+
 1. **Server/Client Component Boundary Violation**
    - **Issue**: Event handlers passed to client components from server components
    - **Fix**: Converted Header component to client component
@@ -50,6 +55,7 @@
    - **Impact**: Secure user sessions
 
 ### Medium Priority Issues (Addressed)
+
 1. **Rate Limiting Gaps**
    - **Issue**: Some endpoints lacked rate limiting
    - **Fix**: Implemented comprehensive rate limiting
@@ -66,6 +72,7 @@
    - **Impact**: Information leakage prevention
 
 ### Low Priority Issues (Monitored)
+
 1. **Dependency Vulnerabilities**
    - **Status**: Regular updates recommended
    - **Action**: Implement automated dependency scanning

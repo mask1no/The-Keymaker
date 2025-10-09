@@ -74,7 +74,7 @@ export default function CoinPage() {
       <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
         <h1 className="text-xl font-semibold">Coin</h1>
         <p className="text-sm text-muted-foreground">
-          Create (Pump.fun), dev buulti-wallet buith quick market lookup.
+          Create (Pump.fun), dev multi-wallet buy with quick market lookup.
         </p>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -95,7 +95,7 @@ export default function CoinPage() {
         <div className="mt-1 text-xs text-zinc-500">pump.fun does not accept custom mint keys.</div>
         <div className="mt-3 flex items-center gap-2">
           <button
-            className="px-3 py-2 rounded-xl bg-zinc-800 , r:bg-zinc-700 text-sm"
+            className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm"
             onClick={() => {
               navigator.clipboard.readText().then((txt) => {
                 try {
@@ -119,7 +119,7 @@ export default function CoinPage() {
             Paste from clipboard
           </button>
         </div>
-        <div className="mt-4 grid grid-cols-1 :grid-cols-[1fr,380px] gap-4">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-4">
           <CreateForm />
           <div className="space-y-4">
             <MarketPanel />

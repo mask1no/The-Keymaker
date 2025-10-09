@@ -31,6 +31,7 @@ cp env.example .env
 ```
 
 **Required Variables:**
+
 ```env
 # Core configuration
 KEYPAIR_JSON=/path/to/keymaker-payer.json
@@ -301,6 +302,7 @@ pm2 restart keymaker
 ## Support
 
 For deployment issues:
+
 1. Check application logs
 2. Verify environment configuration
 3. Test individual components

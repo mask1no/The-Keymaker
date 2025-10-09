@@ -29,11 +29,15 @@ export default function WalletsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="space-y-2">
               <h3 className="font-medium text-zinc-200">📁 Wallet Groups</h3>
-              <p className="text-zinc-400">Create folders to organize your wallets by strategy or purpose</p>
+              <p className="text-zinc-400">
+                Create folders to organize your wallets by strategy or purpose
+              </p>
             </div>
             <div className="space-y-2">
               <h3 className="font-medium text-zinc-200">🔐 Local Encryption</h3>
-              <p className="text-zinc-400">All private keys are encrypted locally with your password</p>
+              <p className="text-zinc-400">
+                All private keys are encrypted locally with your password
+              </p>
             </div>
             <div className="space-y-2">
               <h3 className="font-medium text-zinc-200">⚡ Quick Access</h3>

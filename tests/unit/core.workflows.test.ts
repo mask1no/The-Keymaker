@@ -36,7 +36,7 @@ describe('Core Workflows', () => {
         m,
         o,
         d,
-        e: 'JITO_BUNDLE',
+        e: 'BUNDLE',
         r,
         e,
         g,
@@ -60,7 +60,7 @@ describe('Core Workflows', () => {
       const result = getUiSettings();
 
       expect(result).toEqual(mockSettings);
-      expect(result.mode).toBe('JITO_BUNDLE');
+      expect(result.mode).toBe('BUNDLE');
       expect(result.dryRun).toBe(true);
     });
 
@@ -104,7 +104,7 @@ describe('Core Workflows', () => {
   });
 
   describe('Execution Mode Validation', () => {
-    const validModes = ['JITO_BUNDLE', 'RPC_FANOUT'];
+    const validModes = ['BUNDLE', 'RPC_FANOUT'];
     const validRegions = ['ffm', 'ams', 'ny', 'tokyo'];
     const validPriorities = ['low', 'med', 'high', 'vhigh'];
 

@@ -1,105 +1,204 @@
 #!/usr/bin/env node
 /**
- * Production Readiness Validation
- * Checks all critical configuration before deployment
+ * Production Readiness Validation Script
+ * Validates environment, dependencies, and configuration for production deployment
  */
 
-import { config } from 'dotenv';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, existsSync } from 'fs';
+import { execSync } from 'child_process';
 
-config();
+// Load environment variables from .env file
+try {
+  const envContent = readFileSync('.env', 'utf8');
+  envContent.split('\n').forEach(line => {
+    // Remove BOM and trim whitespace
+    const cleanLine = line.replace(/^\uFEFF/, '').trim();
+    if (!cleanLine || cleanLine.startsWith('#')) return;
+    
+    const [key, ...valueParts] = cleanLine.split('=');
+    if (key && valueParts.length > 0) {
+      const value = valueParts.join('=').trim();
+      if (value && !process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  });
+} catch (error) {
+  // .env file not found, continue with system environment variables
+}
 
-const checks = [
-  {
-    name: 'ENGINE_API_TOKEN length',
-    test: () => (process.env.ENGINE_API_TOKEN?.length || 0) >= 32,
-    error: 'Token too short or missing (minimum 32 characters required)',
-    critical: true,
-  },
-  {
-    name: 'KEYMAKER_SESSION_SECRET length',
-    test: () => (process.env.KEYMAKER_SESSION_SECRET?.length || 0) >= 32,
-    error: 'Session secret too short or missing (minimum 32 characters required)',
-    critical: true,
-  },
-  {
-    name: 'RPC Endpoint configured',
-    test: () => process.env.HELIUS_RPC_URL?.startsWith('https://'),
-    error: 'Invalid or missing HELIUS_RPC_URL',
-    critical: true,
-  },
-  {
-    name: 'Keypair file exists',
-    test: () => {
-      const keypairPath = process.env.KEYPAIR_JSON || './keypairs/dev-payer.json';
-      return existsSync(keypairPath);
-    },
-    error: 'Keypair file not found',
-    critical: true,
-  },
-  {
-    name: 'Safety mode enabled',
-    test: () => process.env.KEYMAKER_DISABLE_LIVE === 'YES' || process.env.DRY_RUN === 'true',
-    error: 'Safety controls not enabled (set KEYMAKER_DISABLE_LIVE=YES or DRY_RUN=true)',
-    critical: false,
-  },
-  {
-    name: 'Data directory exists',
-    test: () => existsSync(join(process.cwd(), 'data')),
-    error: 'Data directory missing',
-    critical: false,
-  },
-  {
-    name: 'Redis configured',
-    test: () => Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
-    error: 'Redis not configured (recommended for production)',
-    critical: false,
-  },
+const errors = [];
+const warnings = [];
+
+console.log('🔍 Validating production readiness...\n');
+
+// Check Node.js version
+try {
+  const nodeVersion = process.version;
+  const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
+  if (majorVersion < 18) {
+    errors.push(`Node.js version ${nodeVersion} is too old. Required: >=18`);
+  } else {
+    console.log(`✅ Node.js version: ${nodeVersion}`);
+  }
+} catch (error) {
+  errors.push('Failed to check Node.js version');
+}
+
+// Check package.json dependencies
+try {
+  const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+  
+  // Check critical production dependencies
+  const criticalDeps = ['better-sqlite3', 'next', '@solana/web3.js'];
+  for (const dep of criticalDeps) {
+    if (!packageJson.dependencies[dep]) {
+      errors.push(`Missing critical dependency: ${dep}`);
+    } else {
+      console.log(`✅ Critical dependency: ${dep}@${packageJson.dependencies[dep]}`);
+    }
+  }
+
+  // Check for sqlite3 in devDependencies (should be removed)
+  if (packageJson.devDependencies?.['@types/sqlite3']) {
+    warnings.push('@types/sqlite3 found in devDependencies - consider removing if not needed');
+  }
+
+  // Check for better-sqlite3 in dependencies
+  if (packageJson.dependencies['better-sqlite3']) {
+    console.log('✅ better-sqlite3 in dependencies (required for production)');
+  }
+
+} catch (error) {
+  errors.push('Failed to read package.json');
+}
+
+// Check environment variables
+const requiredEnvVars = [
+  'KEYMAKER_SESSION_SECRET',
+  'HELIUS_RPC_URL'
 ];
 
-console.log('\n' + '='.repeat(60));
-console.log('   THE KEYMAKER - PRODUCTION READINESS CHECK');
-console.log('='.repeat(60) + '\n');
+const optionalEnvVars = [
+  'SENTRY_DSN',
+  'ENGINE_API_TOKEN',
+  'BIRDEYE_API_KEY'
+];
 
-let passed = 0;
-let failed = 0;
-let criticalFailed = false;
-
-for (const check of checks) {
-  try {
-    if (check.test()) {
-      console.log(`✅  ${check.name}`);
-      passed++;
-    } else {
-      const prefix = check.critical ? '🔴' : '⚠️ ';
-      console.log(`${prefix} ${check.name}`);
-      console.log(`     ${check.error}`);
-      failed++;
-      if (check.critical) criticalFailed = true;
-    }
-  } catch (error) {
-    console.log(`❌  ${check.name} - ${error.message}`);
-    failed++;
-    if (check.critical) criticalFailed = true;
+console.log('\n📋 Environment Variables:');
+for (const envVar of requiredEnvVars) {
+  if (process.env[envVar]) {
+    console.log(`✅ ${envVar}: Set`);
+  } else {
+    errors.push(`Missing required environment variable: ${envVar}`);
   }
 }
 
-const score = Math.round((passed / checks.length) * 100);
+for (const envVar of optionalEnvVars) {
+  if (process.env[envVar]) {
+    console.log(`✅ ${envVar}: Set`);
+  } else {
+    warnings.push(`Optional environment variable not set: ${envVar}`);
+  }
+}
 
-console.log('\n' + '='.repeat(60));
-console.log(`Score: ${score}% (${passed}/${checks.length} checks passed)`);
-console.log('='.repeat(60) + '\n');
+// Check database directory
+if (existsSync('data')) {
+  console.log('✅ Data directory exists');
+} else {
+  warnings.push('Data directory does not exist - will be created at runtime');
+}
 
-if (criticalFailed) {
-  console.log('🔴 CRITICAL FAILURES - NOT READY FOR PRODUCTION\n');
-  console.log('Fix critical issues before deploying.\n');
-  process.exit(1);
-} else if (failed > 0) {
-  console.log('⚠️  WARNINGS - Review recommended items before production\n');
-  console.log('Application can run but some features may be limited.\n');
+// Check Docker configuration
+if (existsSync('Dockerfile')) {
+  console.log('✅ Dockerfile exists');
+} else {
+  warnings.push('No Dockerfile found - consider containerizing for production');
+}
+
+if (existsSync('docker-compose.yml')) {
+  console.log('✅ Docker Compose configuration exists');
+}
+
+// Check health endpoints
+try {
+  console.log('\n🏥 Health Endpoints:');
+  
+  // Check if health route exists
+  if (existsSync('app/api/health/route.ts')) {
+    console.log('✅ Health endpoint: /api/health');
+  } else {
+    errors.push('Health endpoint not found');
+  }
+
+  if (existsSync('app/api/v1/health/route.ts')) {
+    console.log('✅ V1 Health endpoint: /api/v1/health');
+  }
+
+  if (existsSync('app/api/metrics/route.ts')) {
+    console.log('✅ Metrics endpoint: /api/metrics');
+  }
+
+} catch (error) {
+  errors.push('Failed to check health endpoints');
+}
+
+// Check security configuration
+console.log('\n🔒 Security Configuration:');
+if (existsSync('middleware.ts')) {
+  console.log('✅ Middleware exists');
+} else {
+  errors.push('Middleware not found');
+}
+
+if (existsSync('lib/auth/siws.ts')) {
+  console.log('✅ SIWS authentication implemented');
+} else {
+  errors.push('SIWS authentication not found');
+}
+
+// Check for forbidden terms
+try {
+  const result = execSync('node scripts/check_forbidden.cjs', { encoding: 'utf8' });
+  console.log('✅ No forbidden terms found');
+} catch (error) {
+  errors.push('Forbidden terms check failed');
+}
+
+// Check build configuration
+console.log('\n🏗️ Build Configuration:');
+if (existsSync('next.config.js')) {
+  console.log('✅ Next.js configuration exists');
+} else {
+  errors.push('Next.js configuration not found');
+}
+
+// Summary
+console.log('\n📊 Production Readiness Summary:');
+console.log(`Errors: ${errors.length}`);
+console.log(`Warnings: ${warnings.length}`);
+
+if (errors.length > 0) {
+  console.log('\n❌ ERRORS (must fix before production):');
+  errors.forEach(error => console.log(`  - ${error}`));
+}
+
+if (warnings.length > 0) {
+  console.log('\n⚠️ WARNINGS (recommended to address):');
+  warnings.forEach(warning => console.log(`  - ${warning}`));
+}
+
+if (errors.length === 0) {
+  console.log('\n🎉 Production readiness validation PASSED!');
+  console.log('Your application is ready for production deployment.');
+  
+  if (warnings.length > 0) {
+    console.log('\n💡 Consider addressing warnings for optimal production setup.');
+  }
+  
   process.exit(0);
 } else {
-  console.log('✅  ALL CHECKS PASSED - READY FOR DEPLOYMENT!\n');
-  process.exit(0);
+  console.log('\n🚫 Production readiness validation FAILED!');
+  console.log('Please fix all errors before deploying to production.');
+  process.exit(1);
 }

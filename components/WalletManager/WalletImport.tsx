@@ -56,7 +56,7 @@ export function WalletImport({ onImport, isLoading = false }: WalletImportProps)
 
     try {
       const jsonData = JSON.parse(jsonInput);
-      
+
       // Handle different JSON formats
       let wallets: { name: string; privateKey: string }[] = [];
 
@@ -68,18 +68,20 @@ export function WalletImport({ onImport, isLoading = false }: WalletImportProps)
         }));
       } else if (jsonData.privateKey || jsonData.secretKey || jsonData.key) {
         // Single wallet object
-        wallets = [{
-          name: jsonData.name || 'Imported Wallet',
-          privateKey: jsonData.privateKey || jsonData.secretKey || jsonData.key,
-        }];
+        wallets = [
+          {
+            name: jsonData.name || 'Imported Wallet',
+            privateKey: jsonData.privateKey || jsonData.secretKey || jsonData.key,
+          },
+        ];
       } else {
         toast.error('Invalid JSON format');
         return;
       }
 
       // Filter out invalid entries
-      const validWallets = wallets.filter(wallet => 
-        wallet.privateKey && wallet.privateKey.length >= 32
+      const validWallets = wallets.filter(
+        (wallet) => wallet.privateKey && wallet.privateKey.length >= 32,
       );
 
       if (validWallets.length === 0) {
@@ -102,9 +104,7 @@ export function WalletImport({ onImport, isLoading = false }: WalletImportProps)
           <Upload className="w-5 h-5" />
           Import Wallets
         </CardTitle>
-        <CardDescription>
-          Import wallets using private keys or JSON data
-        </CardDescription>
+        <CardDescription>Import wallets using private keys or JSON data</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -141,9 +141,7 @@ export function WalletImport({ onImport, isLoading = false }: WalletImportProps)
                 rows={3}
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Enter the private key in base58 format
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Enter the private key in base58 format</p>
             </div>
 
             <Button

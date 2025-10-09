@@ -2,6 +2,19 @@ const leases = new Map<string, number>(); // mint -> leaseUntil
 import { getDb } from '@/lib/db';
 const now = () => Date.now();
 
+export async function acquireMintLock(
+  mint: string,
+  wallet: string,
+  minGapMs = 1500,
+  leaseMs = 4000,
+) {
+  return acquire(mint, minGapMs, leaseMs);
+}
+
+export async function releaseMintLock(mint: string) {
+  leases.delete(mint);
+}
+
 export async function acquire(mint: string, minGapMs = 1500, leaseMs = 4000) {
   const db = await getDb();
   const last =

@@ -88,7 +88,6 @@ function Inner() {
 }
 
 export default function SignInButton() {
-  const network = 'mainnet-beta';
   const { NEXT_PUBLIC_HELIUS_RPC } = loadClientEnv();
   const endpoint = useMemo(
     () => NEXT_PUBLIC_HELIUS_RPC || clusterApiUrl('mainnet-beta'),

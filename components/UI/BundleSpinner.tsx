@@ -14,7 +14,5 @@ export function BundleSpinner({ size = 'md', className = '' }: BundleSpinnerProp
     lg: 'w-8 h-8',
   };
 
-  return (
-    <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
-  );
+  return <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />;
 }

@@ -8,7 +8,8 @@ export async function GET(_request: Request) {
     const connection = new Connection(SERVER_RPC);
     const leaders = await getNextLeaders(connection, 16);
     return NextResponse.json(leaders);
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'leader schedule failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'leader schedule failed';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

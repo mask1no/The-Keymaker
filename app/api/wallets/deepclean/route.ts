@@ -10,11 +10,7 @@ import {
 } from '@solana/web3.js';
 import { getWalletGroup } from '@/lib/server/walletGroups';
 import { loadKeypairsForGroup } from '@/lib/server/keystoreLoader';
-import {
-  createCloseAccountInstruction,
-  NATIVE_MINT,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+import { createCloseAccountInstruction, NATIVE_MINT, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export const runtime = 'nodejs';
 
@@ -59,10 +55,9 @@ export const POST = withSessionAndLimit(async (req: NextRequest, sid: string) =>
     return { error: 'no_wallets' };
   }
 
-  const conn = new Connection(
-    process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com',
-    { commitment: 'processed' },
-  );
+  const conn = new Connection(process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com', {
+    commitment: 'processed',
+  });
 
   const cleanupPlan: Array<{
     wallet: string;
@@ -161,11 +156,7 @@ export const POST = withSessionAndLimit(async (req: NextRequest, sid: string) =>
 
       if (wsolAta) {
         instructions.push(
-          createCloseAccountInstruction(
-            new PublicKey(wsolAta),
-            kp.publicKey,
-            kp.publicKey,
-          ),
+          createCloseAccountInstruction(new PublicKey(wsolAta), kp.publicKey, kp.publicKey),
         );
       }
 
@@ -186,8 +177,9 @@ export const POST = withSessionAndLimit(async (req: NextRequest, sid: string) =>
       results.push({ wallet, signature: sig, closed: instructions.length });
 
       await sleep(10 + Math.random() * 30);
-    } catch (error: any) {
-      results.push({ wallet, error: error?.message || 'unknown' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'unknown';
+      results.push({ wallet, error: errorMessage });
     }
   }
 

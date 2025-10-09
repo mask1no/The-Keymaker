@@ -34,7 +34,7 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.mint) {
       toast.error('Mint address is required');
       return;
@@ -52,8 +52,8 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
 
     const walletPubkeys = formData.walletPubkeys
       .split(',')
-      .map(addr => addr.trim())
-      .filter(addr => addr.length > 0);
+      .map((addr) => addr.trim())
+      .filter((addr) => addr.length > 0);
 
     if (walletPubkeys.length === 0) {
       toast.error('At least one wallet address is required');
@@ -113,7 +113,9 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
                 id="perWalletSol"
                 type="number"
                 value={formData.perWalletSol}
-                onChange={(e) => setFormData({ ...formData, perWalletSol: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, perWalletSol: parseFloat(e.target.value) || 0 })
+                }
                 placeholder="0.1"
                 step="0.01"
                 min="0"
@@ -127,7 +129,9 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
                 id="slippageBps"
                 type="number"
                 value={formData.slippageBps}
-                onChange={(e) => setFormData({ ...formData, slippageBps: parseInt(e.target.value) || 300 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, slippageBps: parseInt(e.target.value) || 300 })
+                }
                 placeholder="300"
                 min="1"
                 max="10000"
@@ -145,16 +149,16 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
               id="impactCapPct"
               type="number"
               value={formData.impactCapPct}
-              onChange={(e) => setFormData({ ...formData, impactCapPct: parseFloat(e.target.value) || 5 })}
+              onChange={(e) =>
+                setFormData({ ...formData, impactCapPct: parseFloat(e.target.value) || 5 })
+              }
               placeholder="5"
               step="0.1"
               min="0"
               max="50"
               required
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Maximum price impact allowed (0-50%)
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Maximum price impact allowed (0-50%)</p>
           </div>
 
           <div>
@@ -181,12 +185,7 @@ export function TradingPanel({ onTrade, isLoading = false }: TradingPanelProps) 
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" variant="default" className="w-full" disabled={isLoading}>
               {isLoading ? 'Executing...' : 'Buy Tokens'}
             </Button>
             <Button

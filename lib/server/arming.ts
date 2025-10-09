@@ -9,7 +9,7 @@ export function isArmed(): boolean {
   if (!armedUntilDate) {
     return false;
   }
-  
+
   const now = new Date();
   if (now > armedUntilDate) {
     // Disarm if time has passed
@@ -17,37 +17,41 @@ export function isArmed(): boolean {
     armedUntilDate = null;
     return false;
   }
-  
+
   return isArmedFlag;
 }
 
-export function arm(durationMinutes: number = 30): void {
+export function arm(durationMinutes = 30): void {
   const now = new Date();
   armedUntilDate = new Date(now.getTime() + durationMinutes * 60 * 1000);
   isArmedFlag = true;
-  
+
   console.log(`System armed until: ${armedUntilDate.toISOString()}`);
 }
 
 export function disarm(): void {
   armedUntilDate = null;
   isArmedFlag = false;
-  
+
   console.log('System disarmed');
 }
 
-export function getArmStatus(): { isArmed: boolean; armedUntil: Date | null; timeRemaining?: number } {
+export function getArmStatus(): {
+  isArmed: boolean;
+  armedUntil: Date | null;
+  timeRemaining?: number;
+} {
   const armed = isArmed();
   const until = armedUntil();
-  
+
   let timeRemaining: number | undefined;
   if (armed && until) {
     timeRemaining = Math.max(0, Math.floor((until.getTime() - new Date().getTime()) / 1000));
   }
-  
+
   return {
     isArmed: armed,
     armedUntil: until,
-    timeRemaining
+    timeRemaining,
   };
 }

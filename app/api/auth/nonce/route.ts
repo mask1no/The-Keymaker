@@ -16,10 +16,10 @@ const NonceRequestSchema = z.object({
  */
 export async function POST(request: Request) {
   try {
-    const rl = await rateLimit(
+    const rl = rateLimit(
       (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon',
     );
-    if (!rl) {
+    if (!rl.allowed) {
       return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     }
     const body = await request.json();

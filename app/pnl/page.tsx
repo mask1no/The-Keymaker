@@ -54,7 +54,7 @@ export default function PnLPage() {
         timestamp: new Date('2024-01-15'),
         wallet: 'Wallet Group 1',
         profit: 0,
-        loss: 0
+        loss: 0,
       },
       {
         id: '2',
@@ -66,7 +66,7 @@ export default function PnLPage() {
         timestamp: new Date('2024-01-16'),
         wallet: 'Wallet Group 1',
         profit: 0.5,
-        loss: 0
+        loss: 0,
       },
       {
         id: '3',
@@ -78,8 +78,8 @@ export default function PnLPage() {
         timestamp: new Date('2024-01-17'),
         wallet: 'Wallet Group 2',
         profit: 0,
-        loss: 0
-      }
+        loss: 0,
+      },
     ];
 
     const mockSummaries: TokenSummary[] = [
@@ -92,7 +92,7 @@ export default function PnLPage() {
         avgBuyPrice: 0.000001,
         currentPrice: 0.0000015,
         unrealizedPnL: 0.25,
-        realizedPnL: 0.5
+        realizedPnL: 0.5,
       },
       {
         symbol: 'MOON',
@@ -103,17 +103,19 @@ export default function PnLPage() {
         avgBuyPrice: 0.000005,
         currentPrice: 0.000004,
         unrealizedPnL: -0.5,
-        realizedPnL: 0
-      }
+        realizedPnL: 0,
+      },
     ];
 
     setEntries(mockEntries);
     setSummaries(mockSummaries);
   }, []);
 
-  const filteredEntries = entries.filter(entry => {
-    const walletMatch = !filterWallet || entry.wallet.toLowerCase().includes(filterWallet.toLowerCase());
-    const tokenMatch = !filterToken || entry.token.toLowerCase().includes(filterToken.toLowerCase());
+  const filteredEntries = entries.filter((entry) => {
+    const walletMatch =
+      !filterWallet || entry.wallet.toLowerCase().includes(filterWallet.toLowerCase());
+    const tokenMatch =
+      !filterToken || entry.token.toLowerCase().includes(filterToken.toLowerCase());
     return walletMatch && tokenMatch;
   });
 
@@ -142,9 +144,7 @@ export default function PnLPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-zinc-100">
-              {totalPnL.toFixed(4)} SOL
-            </div>
+            <div className="text-2xl font-bold text-zinc-100">{totalPnL.toFixed(4)} SOL</div>
             <div className="text-sm text-zinc-400">Total P&L</div>
           </CardContent>
         </Card>
@@ -158,7 +158,9 @@ export default function PnLPage() {
         </Card>
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-4">
-            <div className={`text-2xl font-bold ${totalUnrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div
+              className={`text-2xl font-bold ${totalUnrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}
+            >
               {totalUnrealizedPnL.toFixed(4)} SOL
             </div>
             <div className="text-sm text-zinc-400">Unrealized P&L</div>
@@ -167,7 +169,7 @@ export default function PnLPage() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-400">
-              {summaries.filter(s => s.currentHolding > 0).length}
+              {summaries.filter((s) => s.currentHolding > 0).length}
             </div>
             <div className="text-sm text-zinc-400">Active Positions</div>
           </CardContent>
@@ -176,9 +178,15 @@ export default function PnLPage() {
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-zinc-800">
-          <TabsTrigger value="overview" className="text-zinc-300">Overview</TabsTrigger>
-          <TabsTrigger value="tokens" className="text-zinc-300">Token Summary</TabsTrigger>
-          <TabsTrigger value="transactions" className="text-zinc-300">Transactions</TabsTrigger>
+          <TabsTrigger value="overview" className="text-zinc-300">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="tokens" className="text-zinc-300">
+            Token Summary
+          </TabsTrigger>
+          <TabsTrigger value="transactions" className="text-zinc-300">
+            Transactions
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-6">
@@ -192,24 +200,33 @@ export default function PnLPage() {
               <CardContent>
                 <div className="space-y-3">
                   {summaries
-                    .filter(s => s.realizedPnL > 0)
+                    .filter((s) => s.realizedPnL > 0)
                     .sort((a, b) => b.realizedPnL - a.realizedPnL)
                     .slice(0, 5)
-                    .map(token => (
-                      <div key={token.symbol} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                    .map((token) => (
+                      <div
+                        key={token.symbol}
+                        className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg"
+                      >
                         <div>
                           <div className="font-medium text-zinc-100">{token.symbol}</div>
                           <div className="text-sm text-zinc-400">{token.name}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-green-400 font-medium">+{token.realizedPnL.toFixed(4)} SOL</div>
+                          <div className="text-green-400 font-medium">
+                            +{token.realizedPnL.toFixed(4)} SOL
+                          </div>
                           <div className="text-xs text-zinc-500">
-                            {((token.realizedPnL / (token.avgBuyPrice * token.totalSold)) * 100).toFixed(1)}%
+                            {(
+                              (token.realizedPnL / (token.avgBuyPrice * token.totalSold)) *
+                              100
+                            ).toFixed(1)}
+                            %
                           </div>
                         </div>
                       </div>
                     ))}
-                  {summaries.filter(s => s.realizedPnL > 0).length === 0 && (
+                  {summaries.filter((s) => s.realizedPnL > 0).length === 0 && (
                     <div className="text-center py-4 text-zinc-400">
                       <p>No profitable trades yet</p>
                     </div>
@@ -227,9 +244,12 @@ export default function PnLPage() {
               <CardContent>
                 <div className="space-y-3">
                   {summaries
-                    .filter(s => s.currentHolding > 0)
-                    .map(token => (
-                      <div key={token.symbol} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                    .filter((s) => s.currentHolding > 0)
+                    .map((token) => (
+                      <div
+                        key={token.symbol}
+                        className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg"
+                      >
                         <div>
                           <div className="font-medium text-zinc-100">{token.symbol}</div>
                           <div className="text-sm text-zinc-400">
@@ -237,8 +257,11 @@ export default function PnLPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className={`font-medium ${token.unrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {token.unrealizedPnL >= 0 ? '+' : ''}{token.unrealizedPnL.toFixed(4)} SOL
+                          <div
+                            className={`font-medium ${token.unrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                          >
+                            {token.unrealizedPnL >= 0 ? '+' : ''}
+                            {token.unrealizedPnL.toFixed(4)} SOL
                           </div>
                           <div className="text-xs text-zinc-500">
                             {token.currentPrice.toFixed(8)} SOL
@@ -246,7 +269,7 @@ export default function PnLPage() {
                         </div>
                       </div>
                     ))}
-                  {summaries.filter(s => s.currentHolding > 0).length === 0 && (
+                  {summaries.filter((s) => s.currentHolding > 0).length === 0 && (
                     <div className="text-center py-4 text-zinc-400">
                       <p>No active positions</p>
                     </div>
@@ -261,11 +284,13 @@ export default function PnLPage() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
               <CardTitle className="text-zinc-100">Token Performance</CardTitle>
-              <CardDescription className="text-zinc-400">Detailed breakdown by token</CardDescription>
+              <CardDescription className="text-zinc-400">
+                Detailed breakdown by token
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {summaries.map(token => (
+                {summaries.map((token) => (
                   <div key={token.symbol} className="p-4 bg-zinc-800/50 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div>
@@ -273,7 +298,9 @@ export default function PnLPage() {
                         <p className="text-sm text-zinc-400">{token.name}</p>
                       </div>
                       <div className="text-right">
-                        <div className={`text-lg font-bold ${token.realizedPnL + token.unrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <div
+                          className={`text-lg font-bold ${token.realizedPnL + token.unrealizedPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                        >
                           {(token.realizedPnL + token.unrealizedPnL).toFixed(4)} SOL
                         </div>
                         <div className="text-xs text-zinc-500">Total P&L</div>
@@ -309,12 +336,16 @@ export default function PnLPage() {
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
               <CardTitle className="text-zinc-100">Transaction History</CardTitle>
-              <CardDescription className="text-zinc-400">Filter and search your trades</CardDescription>
+              <CardDescription className="text-zinc-400">
+                Filter and search your trades
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="walletFilter" className="text-zinc-300">Filter by Wallet</Label>
+                  <Label htmlFor="walletFilter" className="text-zinc-300">
+                    Filter by Wallet
+                  </Label>
                   <Input
                     id="walletFilter"
                     placeholder="Search wallets..."
@@ -324,7 +355,9 @@ export default function PnLPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="tokenFilter" className="text-zinc-300">Filter by Token</Label>
+                  <Label htmlFor="tokenFilter" className="text-zinc-300">
+                    Filter by Token
+                  </Label>
                   <Input
                     id="tokenFilter"
                     placeholder="Search tokens..."
@@ -334,7 +367,9 @@ export default function PnLPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dateRange" className="text-zinc-300">Date Range</Label>
+                  <Label htmlFor="dateRange" className="text-zinc-300">
+                    Date Range
+                  </Label>
                   <select
                     id="dateRange"
                     value={dateRange}
@@ -362,12 +397,17 @@ export default function PnLPage() {
                     <p className="text-sm">Start trading to see your transaction history</p>
                   </div>
                 ) : (
-                  filteredEntries.map(entry => (
-                    <div key={entry.id} className="flex items-center justify-between p-4 border-b border-zinc-800 last:border-b-0">
+                  filteredEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center justify-between p-4 border-b border-zinc-800 last:border-b-0"
+                    >
                       <div className="flex items-center gap-4">
-                        <Badge 
+                        <Badge
                           variant={entry.action === 'buy' ? 'default' : 'outline'}
-                          className={entry.action === 'buy' ? 'bg-green-600' : 'border-red-500 text-red-400'}
+                          className={
+                            entry.action === 'buy' ? 'bg-green-600' : 'border-red-500 text-red-400'
+                          }
                         >
                           {entry.action.toUpperCase()}
                         </Badge>
@@ -389,7 +429,9 @@ export default function PnLPage() {
                           {(entry.amount * entry.price).toFixed(4)} SOL
                         </div>
                         {entry.profit && entry.profit > 0 && (
-                          <div className="text-sm text-green-400">+{entry.profit.toFixed(4)} SOL</div>
+                          <div className="text-sm text-green-400">
+                            +{entry.profit.toFixed(4)} SOL
+                          </div>
                         )}
                         {entry.loss && entry.loss > 0 && (
                           <div className="text-sm text-red-400">-{entry.loss.toFixed(4)} SOL</div>

@@ -10,7 +10,7 @@ import {
   enforcePriorityFeeCeiling,
   enforceConcurrencyCeiling,
 } from '@/lib/server/productionGuards';
-import { getSession } from '@/lib/server/session';
+import { getSessionFromCookies } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
 import { logEngineJsonl } from '@/lib/productionLogger';
 import { translateError } from '@/lib/server/errorDictionary';
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
     // Require authenticated session and derive namespace/ownership
-    const session = getSession();
-    const user = session?.userPubkey || '';
+    const session = getSessionFromCookies();
+    const user = session?.sub || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
     const params = RpcBuySchema.parse(body);

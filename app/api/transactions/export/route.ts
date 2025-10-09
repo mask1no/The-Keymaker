@@ -32,35 +32,35 @@ export async function GET(request: NextRequest) {
     });
 
     const db = getDb();
-    
+
     let sql = 'SELECT * FROM transactions WHERE user_id = ?';
-    const params: any[] = [session.sub];
-    
+    const params: (string | number)[] = [session.sub];
+
     if (query.wallet) {
       sql += ' AND (from_wallet = ? OR to_wallet = ?)';
       params.push(query.wallet, query.wallet);
     }
-    
+
     if (query.token) {
       sql += ' AND token_mint = ?';
       params.push(query.token);
     }
-    
+
     if (query.action) {
       sql += ' AND action = ?';
       params.push(query.action);
     }
-    
+
     if (query.startDate) {
       sql += ' AND created_at >= ?';
       params.push(query.startDate);
     }
-    
+
     if (query.endDate) {
       sql += ' AND created_at <= ?';
       params.push(query.endDate);
     }
-    
+
     sql += ' ORDER BY created_at DESC';
 
     const transactions = db.all(sql, ...params);
@@ -83,19 +83,23 @@ export async function GET(request: NextRequest) {
 
       const csvRows = [
         headers.join(','),
-        ...transactions.map(tx => [
-          tx.created_at,
-          tx.action,
-          tx.from_wallet || '',
-          tx.to_wallet || '',
-          tx.token_symbol || '',
-          tx.token_mint || '',
-          tx.amount || '',
-          tx.price || '',
-          tx.sol_amount || '',
-          tx.transaction_hash || '',
-          tx.volume_task_id || '',
-        ].map(field => `"${field}"`).join(','))
+        ...transactions.map((tx) =>
+          [
+            tx.created_at,
+            tx.action,
+            tx.from_wallet || '',
+            tx.to_wallet || '',
+            tx.token_symbol || '',
+            tx.token_mint || '',
+            tx.amount || '',
+            tx.price || '',
+            tx.sol_amount || '',
+            tx.transaction_hash || '',
+            tx.volume_task_id || '',
+          ]
+            .map((field) => `"${field}"`)
+            .join(','),
+        ),
       ];
 
       const csvContent = csvRows.join('\n');
@@ -115,10 +119,9 @@ export async function GET(request: NextRequest) {
         total: transactions.length,
       });
     }
-
   } catch (error) {
-    console.error('Error exporting transactions:', error);
-    
+    // Error exporting transactions
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },

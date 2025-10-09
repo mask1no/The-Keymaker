@@ -14,7 +14,7 @@ export const GET = withSessionAndLimit(async (request) => {
 
     return NextResponse.json({ trades });
   } catch (error) {
-    console.error('Failed to fetch trades:', error);
+    // Failed to fetch trades
     return NextResponse.json({ error: 'Failed to fetch trades' }, { status: 500 });
   }
 });
@@ -67,7 +67,7 @@ export const POST = withSessionAndLimit(async (request) => {
         { status: 400 },
       );
     }
-    console.error('Failed to save trade:', error);
+    // Failed to save trade
     return NextResponse.json({ error: 'Failed to save trade' }, { status: 500 });
   }
 });

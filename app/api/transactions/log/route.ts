@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const validatedData = logTransactionSchema.parse(body);
 
     const db = getDb();
-    
+
     const result = db.run(
       `INSERT INTO transactions (
         user_id, action, from_wallet, to_wallet, token_mint, token_symbol,
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         validatedData.volumeTaskId || null,
         JSON.stringify(validatedData.metadata || {}),
         new Date().toISOString(),
-      ]
+      ],
     );
 
     return NextResponse.json({
@@ -59,10 +59,9 @@ export async function POST(request: NextRequest) {
       transactionId: result.lastInsertRowid,
       message: 'Transaction logged successfully',
     });
-
   } catch (error) {
-    console.error('Error logging transaction:', error);
-    
+    // Error logging transaction
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },

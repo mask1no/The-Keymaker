@@ -5,7 +5,8 @@ export async function GET(_request: Request) {
   try {
     Sentry.captureMessage('Sentry verification ping', { level: 'info' });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || 'failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'failed';
+    return NextResponse.json({ ok: false, error: errorMessage }, { status: 500 });
   }
 }

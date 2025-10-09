@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { Button } from '@/components/UI/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
 
@@ -35,11 +36,14 @@ export class GlobalErrorBoundary extends React.Component<ErrorBoundaryProps, Err
       errorInfo,
     });
 
-    // Log error to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to error tracking service (Sentry, etc.)
-      console.error('Production error:', { error: error.message, stack: error.stack });
-    }
+    // Send error to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+    });
   }
 
   resetError = () => {
@@ -65,9 +69,7 @@ export class GlobalErrorBoundary extends React.Component<ErrorBoundaryProps, Err
             <CardContent className="space-y-4">
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <div className="p-3 bg-zinc-800 rounded-lg">
-                  <p className="text-sm text-red-300 font-mono">
-                    {this.state.error.message}
-                  </p>
+                  <p className="text-sm text-red-300 font-mono">{this.state.error.message}</p>
                   {this.state.error.stack && (
                     <details className="mt-2">
                       <summary className="text-xs text-zinc-400 cursor-pointer">
@@ -81,14 +83,10 @@ export class GlobalErrorBoundary extends React.Component<ErrorBoundaryProps, Err
                 </div>
               )}
               <div className="flex gap-2">
-                <Button 
-                  onClick={this.resetError}
-                  variant="outline"
-                  className="flex-1"
-                >
+                <Button onClick={this.resetError} variant="outline" className="flex-1">
                   Try Again
                 </Button>
-                <Button 
+                <Button
                   onClick={() => window.location.reload()}
                   className="flex-1 bg-zinc-800 hover:bg-zinc-700"
                 >
@@ -109,11 +107,14 @@ export class GlobalErrorBoundary extends React.Component<ErrorBoundaryProps, Err
 export function useErrorHandler() {
   return (error: Error, errorInfo?: React.ErrorInfo) => {
     console.error('Error caught by useErrorHandler:', error, errorInfo);
-    
-    // In production, send to error tracking service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to error tracking service
-      console.error('Production error:', { error: error.message, stack: error.stack });
-    }
+
+    // Send error to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo?.componentStack,
+        },
+      },
+    });
   };
 }

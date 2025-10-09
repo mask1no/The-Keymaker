@@ -61,13 +61,7 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
     throw new Error('bonding_curve_not_supported');
   }
 
-  console.log('[multiWalletBuy]', {
-    mint,
-    wallets: wallets.length,
-    perWalletSol: perWalletSolLamports / LAMPORTS_PER_SOL,
-    migrated,
-    dryRun,
-  });
+  // Multi-wallet buy started
 
   for (const wallet of wallets) {
     try {
@@ -143,15 +137,9 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
         signature,
       });
 
-      console.log('[buy] Success', {
-        wallet: wallet.publicKey.toBase58(),
-        signature,
-      });
+      // Buy transaction successful
     } catch (error) {
-      console.error('[buy] Failed', {
-        wallet: wallet.publicKey.toBase58(),
-        error,
-      });
+      // Buy transaction failed
 
       results.push({
         wallet: wallet.publicKey.toBase58(),
@@ -186,12 +174,7 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
     'confirmed',
   );
 
-  console.log('[multiWalletSell]', {
-    mint,
-    wallets: wallets.length,
-    sellPctOrLamports,
-    dryRun,
-  });
+  // Multi-wallet sell started
 
   for (const wallet of wallets) {
     try {
@@ -307,16 +290,9 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         tokensOut: sellAmount,
       });
 
-      console.log('[sell] Success', {
-        wallet: wallet.publicKey.toBase58(),
-        signature,
-        tokensSold: sellAmount,
-      });
+      // Sell transaction successful
     } catch (error) {
-      console.error('[sell] Failed', {
-        wallet: wallet.publicKey.toBase58(),
-        error,
-      });
+      // Sell transaction failed
 
       results.push({
         wallet: wallet.publicKey.toBase58(),
@@ -327,6 +303,147 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
       releaseMintLock(mint);
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+
+  return results;
+}
+
+interface MultiWalletSellAllParams {
+  wallets: Keypair[];
+  slippageBps: number;
+  priorityFeeMicrolamports?: number;
+  dryRun?: boolean;
+}
+
+export async function multiWalletSellAll(params: MultiWalletSellAllParams): Promise<TradeResult[]> {
+  const { wallets, slippageBps, priorityFeeMicrolamports, dryRun = false } = params;
+
+  const results: TradeResult[] = [];
+  const connection = new Connection(
+    process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+    'confirmed',
+  );
+
+  // Multi-wallet sell all started
+
+  for (const wallet of wallets) {
+    try {
+      // Get all token accounts for this wallet
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
+        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+      });
+
+      if (tokenAccounts.value.length === 0) {
+        results.push({
+          wallet: wallet.publicKey.toBase58(),
+          success: true,
+          tokensOut: 0,
+        });
+        continue;
+      }
+
+      let totalTokensSold = 0;
+      const sellResults: string[] = [];
+
+      for (const tokenAccount of tokenAccounts.value) {
+        const mint = tokenAccount.account.data.parsed.info.mint;
+        const balance = tokenAccount.account.data.parsed.info.tokenAmount.amount;
+        const balanceNum = Number(balance);
+
+        if (balanceNum === 0) continue;
+
+        try {
+          await acquireMintLock(mint, wallet.publicKey.toBase58());
+
+          const tx = await buildSellTx({
+            wallet,
+            inputMint: mint,
+            outputMint: SOL_MINT,
+            amountTokens: balanceNum,
+            slippageBps,
+            priorityFeeMicrolamports,
+          });
+
+          const simulation = await connection.simulateTransaction(tx, {
+            replaceRecentBlockhash: true,
+            commitment: 'processed',
+          });
+
+          if (simulation.value.err) {
+            console.warn(`[sellAll] Simulation failed for ${mint}:`, simulation.value.err);
+            continue;
+          }
+
+          if (dryRun) {
+            totalTokensSold += balanceNum;
+            continue;
+          }
+
+          const msgHash = hashTransactionMessage(tx.message.serialize());
+          const existingSig = checkTxDedupe(msgHash);
+
+          if (existingSig) {
+            sellResults.push(existingSig);
+            totalTokensSold += balanceNum;
+            continue;
+          }
+
+          const signature = await connection.sendTransaction(tx, {
+            skipPreflight: false,
+            maxRetries: 3,
+          });
+
+          await connection.confirmTransaction(signature, 'confirmed');
+
+          recordTxDedupe(msgHash, signature);
+
+          recordTrade({
+            ts: Date.now(),
+            wallet: wallet.publicKey.toBase58(),
+            mint,
+            side: 'sell',
+            qty: balanceNum,
+            priceLamports: 0,
+            feeLamports: 5000,
+            priorityFeeLamports: priorityFeeMicrolamports ?? 0,
+            sig: signature,
+          });
+
+          sellResults.push(signature);
+          totalTokensSold += balanceNum;
+
+          // Sell all transaction successful
+        } catch (error) {
+          // Sell all transaction failed for mint
+        } finally {
+          releaseMintLock(mint);
+        }
+
+        // Small delay between token sales
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      results.push({
+        wallet: wallet.publicKey.toBase58(),
+        success: true,
+        signature: sellResults.join(','),
+        tokensOut: totalTokensSold,
+      });
+    } catch (error) {
+      console.error('[sellAll] Failed', {
+        wallet: wallet.publicKey.toBase58(),
+        error,
+      });
+
+      results.push({
+        wallet: wallet.publicKey.toBase58(),
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+
+    // Delay between wallets
     await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 

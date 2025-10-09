@@ -11,7 +11,7 @@
   "actualMultiplier": "17.4x larger than claimed",
   "honestAssessment": {
     "ssrCore": ["app/engine", "app/bundle", "app/settings", "app/wallets"],
-    "jitoModes": ["JITO_BUNDLE", "RPC_FANOUT"],
+    "bundleModes": ["BUNDLE", "RPC_FANOUT"],
     "security": {
       "csp": "implemented",
       "rateLimit": "partial",

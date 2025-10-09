@@ -1,9 +1,8 @@
 import { Engine, ExecutionMode, ExecOptions, SubmitPlan } from './engine';
-import { JitoEngine } from './engineJito';
 import { RpcEngine } from './engineRpc';
 
 const engines: Record<ExecutionMode, Engine> = {
-  RPC: new JitoEngine(),
+  RPC: new RpcEngine(),
   RPC_FANOUT: new RpcEngine(),
 };
 

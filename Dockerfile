@@ -3,8 +3,8 @@ FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Install dependencies for native modules (sqlite3, better-sqlite3)
+RUN apk add --no-cache libc6-compat python3 make g++ sqlite-dev
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -32,6 +32,9 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Install runtime dependencies for sqlite
+RUN apk add --no-cache sqlite
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -48,6 +51,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Create data directory for SQLite database
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown nextjs:nodejs /app/logs
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
 USER nextjs
 

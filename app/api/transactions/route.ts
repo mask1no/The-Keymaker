@@ -34,41 +34,41 @@ export async function GET(request: NextRequest) {
     });
 
     const db = getDb();
-    
+
     let sql = 'SELECT * FROM transactions WHERE user_id = ?';
-    const params: any[] = [session.sub];
-    
+    const params: (string | number)[] = [session.sub];
+
     if (query.wallet) {
       sql += ' AND (from_wallet = ? OR to_wallet = ?)';
       params.push(query.wallet, query.wallet);
     }
-    
+
     if (query.token) {
       sql += ' AND token_mint = ?';
       params.push(query.token);
     }
-    
+
     if (query.action) {
       sql += ' AND action = ?';
       params.push(query.action);
     }
-    
+
     if (query.startDate) {
       sql += ' AND created_at >= ?';
       params.push(query.startDate);
     }
-    
+
     if (query.endDate) {
       sql += ' AND created_at <= ?';
       params.push(query.endDate);
     }
-    
+
     sql += ' ORDER BY created_at DESC';
-    
+
     if (query.limit) {
       sql += ' LIMIT ?';
       params.push(parseInt(query.limit));
-      
+
       if (query.offset) {
         sql += ' OFFSET ?';
         params.push(parseInt(query.offset));
@@ -76,36 +76,36 @@ export async function GET(request: NextRequest) {
     }
 
     const transactions = db.all(sql, ...params);
-    
+
     // Get total count for pagination
     let countSql = 'SELECT COUNT(*) as total FROM transactions WHERE user_id = ?';
-    const countParams: any[] = [session.sub];
-    
+    const countParams: (string | number)[] = [session.sub];
+
     if (query.wallet) {
       countSql += ' AND (from_wallet = ? OR to_wallet = ?)';
       countParams.push(query.wallet, query.wallet);
     }
-    
+
     if (query.token) {
       countSql += ' AND token_mint = ?';
       countParams.push(query.token);
     }
-    
+
     if (query.action) {
       countSql += ' AND action = ?';
       countParams.push(query.action);
     }
-    
+
     if (query.startDate) {
       countSql += ' AND created_at >= ?';
       countParams.push(query.startDate);
     }
-    
+
     if (query.endDate) {
       countSql += ' AND created_at <= ?';
       countParams.push(query.endDate);
     }
-    
+
     const countResult = db.get(countSql, ...countParams);
     const total = countResult?.total || 0;
 
@@ -116,10 +116,9 @@ export async function GET(request: NextRequest) {
       limit: query.limit ? parseInt(query.limit) : undefined,
       offset: query.offset ? parseInt(query.offset) : undefined,
     });
-
   } catch (error) {
-    console.error('Error fetching transactions:', error);
-    
+    // Error fetching transactions
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },

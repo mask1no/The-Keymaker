@@ -19,9 +19,9 @@ export function createDailyJournal(dir: string): string {
   return file;
 }
 
-function sanitize(obj: any): any {
+function sanitize(obj: unknown): unknown {
   if (obj == null || typeof obj !== 'object') return obj;
-  const out: any = Array.isArray(obj) ? [] : {};
+  const out: Record<string, unknown> = Array.isArray(obj) ? [] : {};
   const keyRe = /(key|secret|token|pass|authorization|cookie|set-cookie)/i;
   for (const [k, v] of Object.entries(obj)) {
     if (keyRe.test(k)) {
@@ -33,7 +33,7 @@ function sanitize(obj: any): any {
       s = s.replace(/[A-Za-z0-9_-]{48,}/g, '[redacted]');
       out[k] = s;
     } else if (typeof v === 'object') {
-      out[k] = sanitize(v as any);
+      out[k] = sanitize(v);
     } else {
       out[k] = v;
     }

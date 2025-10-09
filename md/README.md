@@ -12,6 +12,7 @@
 ## ✨ Current Status: Production Ready ✅
 
 **All 15 core features completed and tested:**
+
 - ✅ Multi-wallet trading engine (Jupiter V6)
 - ✅ Jito/RPC mode toggle with MEV optimization
 - ✅ Secure authentication (HMAC-signed sessions)
@@ -39,24 +40,28 @@
 ## 🎯 Core Features
 
 ### Trading Engine
+
 - **Multi-Wallet Trading**: Execute buy/sell orders across multiple wallets simultaneously
 - **Jupiter V6 Integration**: Advanced routing and slippage protection
 - **Jito/RPC Modes**: Toggle between MEV-protected bundles and direct RPC execution
 - **Volume Bot**: Automated market making and volume generation
 
 ### Wallet Management
+
 - **Secure Storage**: AES-256-GCM encryption for private keys
 - **Wallet Groups**: Organize wallets into trading groups
 - **Balance Tracking**: Real-time SOL and SPL token balance monitoring
 - **Import/Export**: Support for various wallet formats
 
 ### Analytics & P&L
+
 - **Real-time P&L**: Track profits and losses across all trades
 - **Trade History**: Complete transaction history with filtering
 - **Performance Metrics**: Success rates, average execution times
 - **Export Capabilities**: CSV export for external analysis
 
 ### Token Creation
+
 - **Pump.fun Integration**: Create memecoins directly from the platform
 - **Metadata Management**: IPFS integration for token metadata
 - **Template Library**: Pre-built token templates for quick deployment
@@ -64,6 +69,7 @@
 ## 🔧 Development & Deployment
 
 ### Development
+
 ```bash
 npm install          # Install dependencies
 npm run dev         # Start development server
@@ -73,6 +79,7 @@ npm run typecheck  # TypeScript validation
 ```
 
 ### Production Deployment
+
 ```bash
 # Docker deployment
 docker build -t keymaker .
@@ -84,7 +91,9 @@ docker run -p 3000:3000 --env-file .env keymaker
 ```
 
 ### Environment Configuration
+
 See `env.example` for required environment variables:
+
 - `HELIUS_RPC_URL`: Your Helius RPC endpoint
 - `KEYMAKER_SESSION_SECRET`: Secure session secret
 - `ENGINE_API_TOKEN`: API authentication token
@@ -101,6 +110,7 @@ See `env.example` for required environment variables:
 ## 📊 Monitoring & Health Checks
 
 ### Health Endpoints
+
 ```bash
 # System health
 curl http://localhost:3000/api/health
@@ -113,6 +123,7 @@ curl http://localhost:3000/api/test-db
 ```
 
 ### Trading Engine Status
+
 ```bash
 # Engine status
 curl http://localhost:3000/api/engine/status
@@ -139,12 +150,14 @@ curl http://localhost:3000/api/test-trading
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or pnpm package manager
 - Phantom wallet for authentication
 - Helius RPC endpoint (get one at helius.xyz)
 
 ### Installation Steps
+
 1. Clone the repository: `git clone https://github.com/mask1no/The-Keymaker.git`
 2. Install dependencies: `npm install`
 3. Copy environment file: `cp env.example .env`
@@ -154,6 +167,7 @@ curl http://localhost:3000/api/test-trading
 7. Open http://localhost:3000 and sign in with Phantom
 
 ### Production Deployment
+
 1. Build the application: `npm run build`
 2. Use Docker: `docker build -t keymaker . && docker run -p 3000:3000 keymaker`
 3. Or use deployment scripts: `./scripts/deploy.sh` (Linux/macOS) or `.\scripts\deploy.ps1` (Windows)

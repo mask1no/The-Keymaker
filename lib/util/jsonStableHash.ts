@@ -12,3 +12,7 @@ export function stableStringify(x: any): string {
 export function sha256Hex(s: string) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
+
+export function hashTransactionMessage(message: Uint8Array): string {
+  return crypto.createHash('sha256').update(message).digest('hex');
+}

@@ -43,7 +43,7 @@ export function createSessionCookie(sub: string, uaHash?: string, origin?: strin
   return `v1.${b64}.${sig}`;
 }
 
-function verifySessionValue(value: string | null | undefined): SessionPayload | null {
+export function verifySessionValue(value: string | null | undefined): SessionPayload | null {
   if (!value) return null;
   try {
     const [v, b64, sig] = value.split('.');
@@ -97,8 +97,8 @@ export function getSessionFromCookies(): { sub: string } | null {
 const nonceStore = new Map<string, number>();
 const NONCE_TTL_MS = 5 * 60 * 1000;
 
-export function generateNonce(): string {
-  const randomBytes = require('crypto').randomBytes;
+export async function generateNonce(): Promise<string> {
+  const { randomBytes } = await import('crypto');
   const nonce = randomBytes(8).toString('hex');
   nonceStore.set(nonce, Date.now() + NONCE_TTL_MS);
   return nonce;

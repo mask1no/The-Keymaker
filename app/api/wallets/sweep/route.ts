@@ -57,10 +57,9 @@ export const POST = withSessionAndLimit(async (req: NextRequest, sid: string) =>
     return { error: 'no_wallets' };
   }
 
-  const conn = new Connection(
-    process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com',
-    { commitment: 'processed' },
-  );
+  const conn = new Connection(process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com', {
+    commitment: 'processed',
+  });
 
   const bufferLamports = Math.floor(data.bufferSol * LAMPORTS_PER_SOL);
   const minThresholdLamports = Math.floor(data.minThresholdSol * LAMPORTS_PER_SOL);
@@ -144,8 +143,9 @@ export const POST = withSessionAndLimit(async (req: NextRequest, sid: string) =>
       results.push({ wallet, signature: sig, swept: toSweep / LAMPORTS_PER_SOL });
 
       await sleep(10 + Math.random() * 30);
-    } catch (error: any) {
-      results.push({ wallet, error: error?.message || 'unknown' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'unknown';
+      results.push({ wallet, error: errorMessage });
     }
   }
 

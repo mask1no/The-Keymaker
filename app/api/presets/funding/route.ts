@@ -19,7 +19,13 @@ export async function GET() {
     if (!s) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const db = await getDb();
     const rows = await db.all('SELECT * FROM funding_presets ORDER BY updated_at DESC');
-    const presets = (rows || []).map((r: any) => ({
+    interface FundingPreset {
+      id: string;
+      name: string;
+      [key: string]: unknown;
+    }
+    
+    const presets = (rows || []).map((r: FundingPreset) => ({
       id: r.id,
       name: r.name,
       strategy: r.strategy,

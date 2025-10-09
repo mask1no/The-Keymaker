@@ -38,18 +38,25 @@ export async function GET(request: Request) {
     const mint = url.searchParams.get('mint') || undefined;
     const dir = join(process.cwd(), 'data', user);
     const file = join(dir, 'sell-conditions.json');
-    let items: any[] = [];
+    interface SellConditionItem {
+      groupId?: string;
+      mint?: string;
+      [key: string]: unknown;
+    }
+    
+    let items: SellConditionItem[] = [];
     try {
       const raw = await fsp.readFile(file, 'utf8');
       items = JSON.parse(raw);
       if (!Array.isArray(items)) items = [];
     } catch {}
     const filtered = items.filter(
-      (e: any) => (!groupId || e.groupId === groupId) && (!mint || e.mint === mint),
+      (e: SellConditionItem) => (!groupId || e.groupId === groupId) && (!mint || e.mint === mint),
     );
     return NextResponse.json({ ok: true, items: filtered });
-  } catch (e: any) {
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -144,7 +151,7 @@ export async function POST(request: Request) {
       id: c.id,
       type: c.type,
       enabled: c.enabled,
-      params: c.params as any,
+      params: c.params as Record<string, unknown>,
     }));
     const triggered = evaluateSellConditions({ conditions: enabledConds, priceInfo });
 
@@ -152,8 +159,8 @@ export async function POST(request: Request) {
     const scheduled: Array<{ id: string; afterMs: number; percent: number }> = [];
     for (const c of enabledConds) {
       if (c.enabled && c.type === 'time_limit') {
-        const afterMs = Number((c.params as any)?.delayMs || 0);
-        const percent = Number((c.params as any)?.sellPercent || 0);
+        const afterMs = Number((c.params as Record<string, unknown>)?.delayMs || 0);
+        const percent = Number((c.params as Record<string, unknown>)?.sellPercent || 0);
         if (afterMs > 0 && percent > 0) {
           scheduled.push({ id: c.id, afterMs, percent });
           // Schedule RPC sell with percent after delay
@@ -172,7 +179,7 @@ export async function POST(request: Request) {
     // Immediate triggers (percent_target / stop_loss)
     const executed: Array<{ id: string; percent: number }> = [];
     for (const c of triggered) {
-      const percent = Number((c.params as any)?.sellPercent || 0);
+      const percent = Number((c.params as Record<string, unknown>)?.sellPercent || 0);
       if (percent > 0) {
         await triggerSell(group.id, params.mint, percent, params);
         executed.push({ id: c.id, percent });
@@ -265,7 +272,7 @@ async function persistConditions(input: {
     try {
       const raw = await fsp.readFile(file, 'utf8');
       existing = JSON.parse(raw);
-      if (!Array.isArray(existing)) existing = [] as any;
+      if (!Array.isArray(existing)) existing = [];
     } catch {}
     const filtered = existing.filter(
       (e) => !(e.groupId === input.groupId && e.mint === input.mint),
@@ -296,8 +303,9 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'invalid' }, { status: 400 });
     await persistConditions({ user, groupId, mint, conditions });
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -316,13 +324,14 @@ export async function DELETE(request: Request) {
     try {
       const raw = await fsp.readFile(file, 'utf8');
       items = JSON.parse(raw);
-      if (!Array.isArray(items)) items = [] as any;
+      if (!Array.isArray(items)) items = [];
     } catch {}
     const filtered = items.filter((e) => !(e.groupId === groupId && e.mint === mint));
     await fsp.mkdir(dir, { recursive: true });
     await fsp.writeFile(file, JSON.stringify(filtered, null, 2));
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

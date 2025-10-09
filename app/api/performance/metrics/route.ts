@@ -22,16 +22,15 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString(),
       },
     });
-
   } catch (error) {
-    console.error('Performance metrics error:', error);
+    // Performance metrics error
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch performance metrics',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -21,16 +21,16 @@ export async function POST(request: Request) {
     // For now, return a simulated response since pump.fun integration is complex
     const body = await request.json();
     const { name, symbol, dryRun } = Body.parse(body);
-    
+
     if (dryRun) {
-      return NextResponse.json({ 
-        ok: true, 
-        simulated: true, 
+      return NextResponse.json({
+        ok: true,
+        simulated: true,
         mint: null,
-        logs: [`Simulated creation of ${name} (${symbol})`] 
+        logs: [`Simulated creation of ${name} (${symbol})`],
       });
     }
-    
+
     return NextResponse.json(
       { error: 'not_supported', reason: 'pump.fun integration requires additional setup' },
       { status: 501 },

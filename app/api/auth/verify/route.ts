@@ -25,7 +25,7 @@ const VerifyRequestSchema = z.object({
 export async function POST(request: Request) {
   try {
     const fwd = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim();
-    const key = `authv:${fwd || 'anon'}`;
+    const _key = `authv:${fwd || 'anon'}`;
     const body = await request.json();
     const { pubkey, signature, message, nonce } = VerifyRequestSchema.parse(body);
 
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       autoSetMasterWallet(pubkey);
     } catch (error) {
       // Non-fatal - continue even if master wallet setting fails
-      console.warn('Failed to auto-set master wallet:', error);
+      // Failed to auto-set master wallet
     }
 
     return NextResponse.json({

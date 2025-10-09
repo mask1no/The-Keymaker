@@ -74,7 +74,9 @@ export function TokenForm({ onSubmit, isLoading = false }: TokenFormProps) {
               id="decimals"
               type="number"
               value={formData.decimals}
-              onChange={(e) => setFormData({ ...formData, decimals: parseInt(e.target.value) || 9 })}
+              onChange={(e) =>
+                setFormData({ ...formData, decimals: parseInt(e.target.value) || 9 })
+              }
               placeholder="9"
               min="0"
               max="18"

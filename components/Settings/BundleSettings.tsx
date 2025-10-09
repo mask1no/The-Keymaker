@@ -5,7 +5,13 @@ import { Button } from '@/components/UI/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
 import { Input } from '@/components/UI/input';
 import { Label } from '@/components/UI/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select';
 import { Switch } from '@/components/UI/switch';
 
 interface BundleSettingsProps {
@@ -41,10 +47,7 @@ export function BundleSettings({ onSettingsChange }: BundleSettingsProps) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>Execution Mode</Label>
-            <Select
-              value={settings.mode}
-              onValueChange={(value) => updateSetting('mode', value)}
-            >
+            <Select value={settings.mode} onValueChange={(value) => updateSetting('mode', value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -136,7 +139,9 @@ export function BundleSettings({ onSettingsChange }: BundleSettingsProps) {
             <Input
               type="number"
               value={settings.jitterMs[0]}
-              onChange={(e) => updateSetting('jitterMs', [parseInt(e.target.value), settings.jitterMs[1]])}
+              onChange={(e) =>
+                updateSetting('jitterMs', [parseInt(e.target.value), settings.jitterMs[1]])
+              }
               placeholder="50"
             />
           </div>
@@ -146,7 +151,9 @@ export function BundleSettings({ onSettingsChange }: BundleSettingsProps) {
             <Input
               type="number"
               value={settings.jitterMs[1]}
-              onChange={(e) => updateSetting('jitterMs', [settings.jitterMs[0], parseInt(e.target.value)])}
+              onChange={(e) =>
+                updateSetting('jitterMs', [settings.jitterMs[0], parseInt(e.target.value)])
+              }
               placeholder="150"
             />
           </div>
@@ -179,10 +186,7 @@ export function BundleSettings({ onSettingsChange }: BundleSettingsProps) {
         </div>
 
         <div className="pt-4 border-t">
-          <Button
-            onClick={() => onSettingsChange(settings)}
-            className="w-full"
-          >
+          <Button onClick={() => onSettingsChange(settings)} className="w-full">
             Apply Settings
           </Button>
         </div>

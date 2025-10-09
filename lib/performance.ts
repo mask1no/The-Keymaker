@@ -18,43 +18,43 @@ class PerformanceMonitor {
 
   recordMetric(metric: PerformanceMetrics) {
     this.metrics.push(metric);
-    
+
     // Keep only recent metrics
     if (this.metrics.length > this.maxMetrics) {
       this.metrics = this.metrics.slice(-this.maxMetrics);
     }
   }
 
-  getMetrics(limit: number = 100): PerformanceMetrics[] {
+  getMetrics(limit = 100): PerformanceMetrics[] {
     return this.metrics.slice(-limit);
   }
 
   getAverageResponseTime(endpoint?: string): number {
-    const relevantMetrics = endpoint 
-      ? this.metrics.filter(m => m.endpoint === endpoint)
+    const relevantMetrics = endpoint
+      ? this.metrics.filter((m) => m.endpoint === endpoint)
       : this.metrics;
-    
+
     if (relevantMetrics.length === 0) return 0;
-    
+
     const totalDuration = relevantMetrics.reduce((sum, m) => sum + m.duration, 0);
     return totalDuration / relevantMetrics.length;
   }
 
   getErrorRate(endpoint?: string): number {
-    const relevantMetrics = endpoint 
-      ? this.metrics.filter(m => m.endpoint === endpoint)
+    const relevantMetrics = endpoint
+      ? this.metrics.filter((m) => m.endpoint === endpoint)
       : this.metrics;
-    
+
     if (relevantMetrics.length === 0) return 0;
-    
-    const errorCount = relevantMetrics.filter(m => m.statusCode >= 400).length;
+
+    const errorCount = relevantMetrics.filter((m) => m.statusCode >= 400).length;
     return errorCount / relevantMetrics.length;
   }
 
-  getSlowestEndpoints(limit: number = 10): Array<{ endpoint: string; avgDuration: number }> {
+  getSlowestEndpoints(limit = 10): Array<{ endpoint: string; avgDuration: number }> {
     const endpointStats = new Map<string, { totalDuration: number; count: number }>();
-    
-    this.metrics.forEach(metric => {
+
+    this.metrics.forEach((metric) => {
       const existing = endpointStats.get(metric.endpoint) || { totalDuration: 0, count: 0 };
       existing.totalDuration += metric.duration;
       existing.count += 1;
@@ -64,7 +64,7 @@ class PerformanceMonitor {
     return Array.from(endpointStats.entries())
       .map(([endpoint, stats]) => ({
         endpoint,
-        avgDuration: stats.totalDuration / stats.count
+        avgDuration: stats.totalDuration / stats.count,
       }))
       .sort((a, b) => b.avgDuration - a.avgDuration)
       .slice(0, limit);
@@ -81,12 +81,12 @@ export class QueryOptimizer {
   async executeWithCache<T>(
     queryKey: string,
     queryFn: () => Promise<T>,
-    ttl: number = this.defaultTTL
+    ttl: number = this.defaultTTL,
   ): Promise<T> {
     const cached = this.queryCache.get(queryKey);
     const now = Date.now();
 
-    if (cached && (now - cached.timestamp) < cached.ttl) {
+    if (cached && now - cached.timestamp < cached.ttl) {
       return cached.result;
     }
 
@@ -94,7 +94,7 @@ export class QueryOptimizer {
     this.queryCache.set(queryKey, {
       result,
       timestamp: now,
-      ttl
+      ttl,
     });
 
     return result;
@@ -115,7 +115,7 @@ export class QueryOptimizer {
   getCacheStats() {
     return {
       size: this.queryCache.size,
-      keys: Array.from(this.queryCache.keys())
+      keys: Array.from(this.queryCache.keys()),
     };
   }
 }
@@ -133,11 +133,11 @@ export function getMemoryUsage(): NodeJS.MemoryUsage {
   return process.memoryUsage();
 }
 
-export function isMemoryPressureHigh(): boolean {
+export async function isMemoryPressureHigh(): Promise<boolean> {
   const usage = getMemoryUsage();
-  const totalMemory = require('os').totalmem();
+  const totalMemory = (await import('os')).totalmem();
   const memoryUsagePercent = (usage.heapUsed / totalMemory) * 100;
-  
+
   return memoryUsagePercent > 80; // Alert if using more than 80% of system memory
 }
 
@@ -149,10 +149,10 @@ export function shouldCompressResponse(contentType: string, size: number): boole
     'text/html',
     'text/css',
     'text/plain',
-    'text/xml'
+    'text/xml',
   ];
 
-  return compressibleTypes.some(type => contentType.includes(type)) && size > 1024;
+  return compressibleTypes.some((type) => contentType.includes(type)) && size > 1024;
 }
 
 // Connection pooling for database
@@ -197,7 +197,7 @@ export const connectionPool = new ConnectionPool();
 // Performance middleware for API routes
 export function withPerformanceMonitoring<T extends any[], R>(
   handler: (...args: T) => Promise<R>,
-  endpoint: string
+  endpoint: string,
 ) {
   return async (...args: T): Promise<R> => {
     const startTime = process.hrtime.bigint();
@@ -206,7 +206,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
 
     try {
       const result = await handler(...args);
-      
+
       const endTime = process.hrtime.bigint();
       const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
       const endMemory = getMemoryUsage();
@@ -219,7 +219,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
         duration,
         statusCode: 200,
         memoryUsage: endMemory,
-        cpuUsage: endCpu
+        cpuUsage: endCpu,
       });
 
       return result;
@@ -236,7 +236,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
         duration,
         statusCode: 500,
         memoryUsage: endMemory,
-        cpuUsage: endCpu
+        cpuUsage: endCpu,
       });
 
       throw error;
@@ -248,7 +248,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
 export class CacheManager {
   private caches = new Map<string, Map<string, { value: any; expiry: number }>>();
 
-  set(namespace: string, key: string, value: any, ttlMs: number = 60000) {
+  set(namespace: string, key: string, value: any, ttlMs = 60000) {
     if (!this.caches.has(namespace)) {
       this.caches.set(namespace, new Map());
     }
@@ -256,7 +256,7 @@ export class CacheManager {
     const cache = this.caches.get(namespace)!;
     cache.set(key, {
       value,
-      expiry: Date.now() + ttlMs
+      expiry: Date.now() + ttlMs,
     });
   }
 
@@ -298,6 +298,9 @@ export class CacheManager {
 export const cacheManager = new CacheManager();
 
 // Cleanup expired cache entries every 5 minutes
-setInterval(() => {
-  cacheManager.cleanup();
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    cacheManager.cleanup();
+  },
+  5 * 60 * 1000,
+);

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import 'server-only';
-import { getSession } from '@/lib/server/session';
+import { getSessionFromCookies } from '@/lib/server/session';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
 
 // POST - Fetch multiple wallet balances
 export async function POST(request: NextRequest) {
-  const session = getSession(request);
+  const session = getSessionFromCookies();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { wallets, tokens = [] } = body;
 
     if (!wallets || !Array.isArray(wallets) || wallets.length === 0) {
-      return NextResponse.json(
-        { error: 'Wallets array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Wallets array is required' }, { status: 400 });
     }
 
     // Get RPC URL from environment
@@ -35,7 +32,20 @@ export async function POST(request: NextRequest) {
           const solBalance = await connection.getBalance(walletPubkey);
           const solBalanceSOL = solBalance / 1e9;
 
-          const result: any = {
+          interface BalanceResult {
+            wallet: string;
+            sol: {
+              balance: number;
+              balanceLamports: number;
+            };
+            tokens: Array<{
+              mint: string;
+              balance: number;
+              decimals: number;
+            }>;
+          }
+          
+          const result: BalanceResult = {
             wallet: walletAddress,
             sol: {
               balance: solBalanceSOL,
@@ -50,8 +60,11 @@ export async function POST(request: NextRequest) {
               tokens.map(async (tokenMint: string) => {
                 try {
                   const tokenMintPubkey = new PublicKey(tokenMint);
-                  const tokenAccount = await getAssociatedTokenAddress(tokenMintPubkey, walletPubkey);
-                  
+                  const tokenAccount = await getAssociatedTokenAddress(
+                    tokenMintPubkey,
+                    walletPubkey,
+                  );
+
                   try {
                     const tokenAccountInfo = await getAccount(connection, tokenAccount);
                     result.tokens[tokenMint] = {
@@ -66,14 +79,14 @@ export async function POST(request: NextRequest) {
                     };
                   }
                 } catch (error) {
-                  console.warn(`Invalid token mint: ${tokenMint}`);
+                  // Invalid token mint
                   result.tokens[tokenMint] = {
                     balance: 0,
                     decimals: 0,
                     error: 'Invalid token mint',
                   };
                 }
-              })
+              }),
             );
           }
 
@@ -84,16 +97,15 @@ export async function POST(request: NextRequest) {
             error: error instanceof Error ? error.message : 'Unknown error',
           };
         }
-      })
+      }),
     );
 
     return NextResponse.json({
       success: true,
       data: results,
     });
-
   } catch (error) {
-    console.error('Error fetching wallet balances:', error);
+    // Error fetching wallet balances
     return NextResponse.json(
       {
         error: 'Failed to fetch wallet balances',

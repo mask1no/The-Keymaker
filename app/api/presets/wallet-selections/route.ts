@@ -26,7 +26,13 @@ export async function GET(request: Request) {
           [groupId],
         )
       : await db.all('SELECT * FROM wallet_selection_presets ORDER BY updated_at DESC');
-    const presets = (rows || []).map((r: any) => ({
+    interface WalletSelectionPreset {
+      id: string;
+      group_id: string;
+      [key: string]: unknown;
+    }
+    
+    const presets = (rows || []).map((r: WalletSelectionPreset) => ({
       id: r.id,
       groupId: r.group_id,
       name: r.name,

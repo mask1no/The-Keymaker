@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     const tokenMint = searchParams.get('token');
 
     if (!walletAddress) {
-      return NextResponse.json(
-        { error: 'Wallet address is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Wallet address is required' }, { status: 400 });
     }
 
     // Get RPC URL from environment
@@ -33,7 +30,15 @@ export async function GET(request: NextRequest) {
     const solBalance = await connection.getBalance(walletPubkey);
     const solBalanceSOL = solBalance / 1e9; // Convert lamports to SOL
 
-    const result: any = {
+    interface BalanceResult {
+      wallet: string;
+      sol: {
+        balance: number;
+        balanceLamports: number;
+      };
+    }
+    
+    const result: BalanceResult = {
       wallet: walletAddress,
       sol: {
         balance: solBalanceSOL,
@@ -46,7 +51,7 @@ export async function GET(request: NextRequest) {
       try {
         const tokenMintPubkey = new PublicKey(tokenMint);
         const tokenAccount = await getAssociatedTokenAddress(tokenMintPubkey, walletPubkey);
-        
+
         try {
           const tokenAccountInfo = await getAccount(connection, tokenAccount);
           result.token = {
@@ -63,10 +68,7 @@ export async function GET(request: NextRequest) {
           };
         }
       } catch (error) {
-        return NextResponse.json(
-          { error: 'Invalid token mint address' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid token mint address' }, { status: 400 });
       }
     }
 
@@ -74,9 +76,8 @@ export async function GET(request: NextRequest) {
       success: true,
       data: result,
     });
-
   } catch (error) {
-    console.error('Error fetching wallet balance:', error);
+    // Error fetching wallet balance
     return NextResponse.json(
       {
         error: 'Failed to fetch wallet balance',

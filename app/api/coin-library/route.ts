@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import 'server-only';
 import { z } from 'zod';
-import { getSession } from '@/lib/server/session';
+import { getSessionFromCookies } from '@/lib/server/session';
 import { getDb } from '@/lib/db/sqlite';
 
 const templateSchema = z.object({
@@ -34,27 +34,27 @@ export async function GET(request: NextRequest) {
     });
 
     const db = getDb();
-    
+
     let sql = 'SELECT * FROM coin_templates WHERE 1=1';
-    const params: any[] = [];
-    
+    const params: string[] = [];
+
     if (query.search) {
       sql += ' AND (name LIKE ? OR symbol LIKE ? OR description LIKE ?)';
       const searchTerm = `%${query.search}%`;
       params.push(searchTerm, searchTerm, searchTerm);
     }
-    
+
     if (query.category) {
       sql += ' AND category = ?';
       params.push(query.category);
     }
-    
+
     sql += ' ORDER BY created_at DESC';
-    
+
     if (query.limit) {
       sql += ' LIMIT ?';
       params.push(parseInt(query.limit));
-      
+
       if (query.offset) {
         sql += ' OFFSET ?';
         params.push(parseInt(query.offset));
@@ -62,16 +62,15 @@ export async function GET(request: NextRequest) {
     }
 
     const templates = db.all(sql, ...params);
-    
+
     return NextResponse.json({
       success: true,
       templates,
       total: templates.length,
     });
-
   } catch (error) {
-    console.error('Error fetching coin templates:', error);
-    
+    // Error fetching coin templates
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -91,7 +90,7 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new coin template
 export async function POST(request: NextRequest) {
-  const session = getSession(request);
+  const session = getSessionFromCookies();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -101,17 +100,17 @@ export async function POST(request: NextRequest) {
     const validatedData = templateSchema.parse(body);
 
     const db = getDb();
-    
+
     // Check if template already exists
-    const existing = db.get(
-      'SELECT id FROM coin_templates WHERE name = ? AND symbol = ?',
-      [validatedData.name, validatedData.symbol]
-    );
-    
+    const existing = db.get('SELECT id FROM coin_templates WHERE name = ? AND symbol = ?', [
+      validatedData.name,
+      validatedData.symbol,
+    ]);
+
     if (existing) {
       return NextResponse.json(
         { error: 'Template already exists with this name and symbol' },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -133,7 +132,7 @@ export async function POST(request: NextRequest) {
         validatedData.decimals || 9,
         new Date().toISOString(),
         new Date().toISOString(),
-      ]
+      ],
     );
 
     return NextResponse.json({
@@ -141,10 +140,9 @@ export async function POST(request: NextRequest) {
       templateId: result.lastInsertRowid,
       message: 'Template created successfully',
     });
-
   } catch (error) {
-    console.error('Error creating coin template:', error);
-    
+    // Error creating coin template
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },

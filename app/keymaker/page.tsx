@@ -209,7 +209,7 @@ export default function KeymakerPage() {
               onChange={(e) => setTurbo(e.target.checked)}
             />
             <label htmlFor="turbo" className="text-xs text-zinc-400">
-              Turbo (Jito)
+              Turbo Mode
             </label>
           </div>
           <div className="ml-auto flex items-center gap-2">

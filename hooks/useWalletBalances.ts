@@ -90,9 +90,9 @@ export function useWalletBalances({
   // Helper function to get balance for a specific wallet
   const getWalletBalance = useCallback(
     (walletAddress: string) => {
-      return balances.find(balance => balance.wallet === walletAddress);
+      return balances.find((balance) => balance.wallet === walletAddress);
     },
-    [balances]
+    [balances],
   );
 
   // Helper function to get total SOL balance across all wallets
@@ -111,7 +111,7 @@ export function useWalletBalances({
         return total + balance.tokens[tokenMint].balance;
       }, 0);
     },
-    [balances]
+    [balances],
   );
 
   return {

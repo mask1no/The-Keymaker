@@ -7,12 +7,7 @@ import { Engine, SubmitPlan, ExecOptions, EngineSubmitResult } from './engine';
 
 export class MockEngine implements Engine {
   async submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult> {
-    console.log('[MockEngine] Simulating transaction submission', {
-      mode: opts.mode,
-      txCount: plan.txs.length,
-      dryRun: opts.dryRun,
-      priority: opts.priority,
-    });
+    // MockEngine: Simulating transaction submission
 
     // Simulate processing delay (realistic timing)
     await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
@@ -38,18 +33,13 @@ _${Math.random().toString(36).slice(2, 11)}`;
       simulated: true,
     };
 
-    console.log('[MockEngine] Submission result:', {
-      statusHint: result.statusHint,
-      txCount: txids.length,
-      bundleId,
-      simulated: result.simulated,
-    });
+    // MockEngine: Submission result
 
     return result;
   }
 
-  async pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<any> {
-    console.log('[MockEngine] Polling status (mock)');
+  async pollStatus(_plan: SubmitPlan | null, _opts: ExecOptions): Promise<unknown> {
+    // MockEngine: Polling status (mock)
 
     // Simulate status check delay
     await new Promise((resolve) => setTimeout(resolve, 200));

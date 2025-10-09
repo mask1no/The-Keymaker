@@ -8,8 +8,11 @@ export interface AppError extends Error {
 export class ValidationError extends Error implements AppError {
   statusCode = 400;
   code = 'VALIDATION_ERROR';
-  
-  constructor(message: string, public details?: any) {
+
+  constructor(
+    message: string,
+    public details?: any,
+  ) {
     super(message);
     this.name = 'ValidationError';
   }
@@ -18,8 +21,8 @@ export class ValidationError extends Error implements AppError {
 export class AuthenticationError extends Error implements AppError {
   statusCode = 401;
   code = 'AUTHENTICATION_ERROR';
-  
-  constructor(message: string = 'Authentication required') {
+
+  constructor(message = 'Authentication required') {
     super(message);
     this.name = 'AuthenticationError';
   }
@@ -28,8 +31,8 @@ export class AuthenticationError extends Error implements AppError {
 export class AuthorizationError extends Error implements AppError {
   statusCode = 403;
   code = 'AUTHORIZATION_ERROR';
-  
-  constructor(message: string = 'Insufficient permissions') {
+
+  constructor(message = 'Insufficient permissions') {
     super(message);
     this.name = 'AuthorizationError';
   }
@@ -38,8 +41,8 @@ export class AuthorizationError extends Error implements AppError {
 export class NotFoundError extends Error implements AppError {
   statusCode = 404;
   code = 'NOT_FOUND';
-  
-  constructor(message: string = 'Resource not found') {
+
+  constructor(message = 'Resource not found') {
     super(message);
     this.name = 'NotFoundError';
   }
@@ -48,8 +51,8 @@ export class NotFoundError extends Error implements AppError {
 export class RateLimitError extends Error implements AppError {
   statusCode = 429;
   code = 'RATE_LIMIT_EXCEEDED';
-  
-  constructor(message: string = 'Rate limit exceeded') {
+
+  constructor(message = 'Rate limit exceeded') {
     super(message);
     this.name = 'RateLimitError';
   }
@@ -58,8 +61,8 @@ export class RateLimitError extends Error implements AppError {
 export class InternalServerError extends Error implements AppError {
   statusCode = 500;
   code = 'INTERNAL_SERVER_ERROR';
-  
-  constructor(message: string = 'Internal server error') {
+
+  constructor(message = 'Internal server error') {
     super(message);
     this.name = 'InternalServerError';
   }
@@ -77,7 +80,7 @@ export function handleApiError(error: unknown): NextResponse {
         code: error.code,
         details: error.details,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -88,7 +91,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: error.message,
         code: error.code,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -99,7 +102,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: error.message,
         code: error.code,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -110,7 +113,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: error.message,
         code: error.code,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -121,7 +124,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: error.message,
         code: error.code,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -132,7 +135,7 @@ export function handleApiError(error: unknown): NextResponse {
         error: error.message,
         code: error.code,
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -145,7 +148,7 @@ export function handleApiError(error: unknown): NextResponse {
         code: 'VALIDATION_ERROR',
         details: (error as any).issues,
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -159,14 +162,14 @@ export function handleApiError(error: unknown): NextResponse {
       error: message,
       code: 'UNKNOWN_ERROR',
     },
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 
 export function createErrorResponse(
   message: string,
-  statusCode: number = 500,
-  code?: string
+  statusCode = 500,
+  code?: string,
 ): NextResponse {
   return NextResponse.json(
     {
@@ -174,13 +177,13 @@ export function createErrorResponse(
       error: message,
       code: code || 'CUSTOM_ERROR',
     },
-    { status: statusCode }
+    { status: statusCode },
   );
 }
 
 // Async wrapper for API routes to catch errors
 export function withErrorHandler<T extends any[], R>(
-  handler: (...args: T) => Promise<NextResponse>
+  handler: (...args: T) => Promise<NextResponse>,
 ) {
   return async (...args: T): Promise<NextResponse> => {
     try {

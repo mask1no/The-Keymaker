@@ -169,8 +169,8 @@ export async function executeRpcFanout(opts: RpcFanoutOptions): Promise<EngineRe
                 skipPreflight: false,
                 maxRetries: 3,
               });
-            } catch (err: any) {
-              const msg = String(err?.message || err);
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : String(err);
               const retryable =
                 /BlockhashNotFound|AccountInUse|WouldExceedMaxAccountCostLimit/i.test(msg);
               if (retryable) {
@@ -248,7 +248,7 @@ ms`,
             });
           } else {
             // Extract quote metadata if present
-            const meta = (vtx as any).__km_meta as
+            const meta = (vtx as { __km_meta?: unknown }).__km_meta as
               | {
                   kind?: 'buy' | 'sell';
                   inputMint?: string;
@@ -304,11 +304,12 @@ ms`,
           }
 
           markExecutionCompleted({ runId, wallet: walletPubkey, intentHash });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           outcomes.push({
             wallet: walletPubkey,
             status: 'ERROR',
-            error: error?.message || String(error),
+            error: errorMessage,
           });
 
           logJsonLine(journal, {

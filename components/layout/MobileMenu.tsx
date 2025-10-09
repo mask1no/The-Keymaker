@@ -34,10 +34,7 @@ export default function MobileMenu() {
                 <X className="h-6 w-6" />
               </button>
               <nav className="flex flex-col gap-2">
-                <a
-                  href="/home"
-                  className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors"
-                >
+                <a href="/" className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
                   Home
                 </a>
                 <a
@@ -51,6 +48,12 @@ export default function MobileMenu() {
                   className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors"
                 >
                   Coin Library
+                </a>
+                <a
+                  href="/keymaker"
+                  className="px-4 py-3 rounded-lg hover:bg-zinc-800/50 transition-colors"
+                >
+                  Keymaker
                 </a>
                 <a
                   href="/wallets"

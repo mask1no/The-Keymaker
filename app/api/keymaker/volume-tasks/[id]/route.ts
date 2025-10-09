@@ -17,10 +17,7 @@ const updateTaskSchema = z.object({
 });
 
 // GET - Fetch specific volume task
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const session = getSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -29,32 +26,25 @@ export async function GET(
   try {
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
-      return NextResponse.json(
-        { error: 'Invalid task ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 });
     }
 
     const db = getDb();
-    const task = db.get(
-      'SELECT * FROM volume_tasks WHERE id = ? AND user_id = ?',
-      [taskId, session.sub]
-    );
+    const task = db.get('SELECT * FROM volume_tasks WHERE id = ? AND user_id = ?', [
+      taskId,
+      session.sub,
+    ]);
 
     if (!task) {
-      return NextResponse.json(
-        { error: 'Task not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       task,
     });
-
   } catch (error) {
-    console.error('Error fetching volume task:', error);
+    // Error fetching volume task
     return NextResponse.json(
       {
         error: 'Failed to fetch volume task',
@@ -66,10 +56,7 @@ export async function GET(
 }
 
 // PUT - Update volume task
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const session = getSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -78,55 +65,46 @@ export async function PUT(
   try {
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
-      return NextResponse.json(
-        { error: 'Invalid task ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 });
     }
 
     const body = await request.json();
     const validatedData = updateTaskSchema.parse(body);
 
     const db = getDb();
-    
+
     // Check if task exists and user owns it
-    const existing = db.get(
-      'SELECT id FROM volume_tasks WHERE id = ? AND user_id = ?',
-      [taskId, session.sub]
-    );
-    
+    const existing = db.get('SELECT id FROM volume_tasks WHERE id = ? AND user_id = ?', [
+      taskId,
+      session.sub,
+    ]);
+
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Task not found or access denied' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Task not found or access denied' }, { status: 404 });
     }
 
     // Build update query dynamically
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
-    
+    const updateValues: unknown[] = [];
+
     Object.entries(validatedData).forEach(([key, value]) => {
       if (value !== undefined) {
         updateFields.push(`${key} = ?`);
         updateValues.push(value);
       }
     });
-    
+
     if (updateFields.length === 0) {
-      return NextResponse.json(
-        { error: 'No fields to update' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
     }
-    
+
     updateFields.push('updated_at = ?');
     updateValues.push(new Date().toISOString());
     updateValues.push(taskId);
 
     const result = db.run(
       `UPDATE volume_tasks SET ${updateFields.join(', ')} WHERE id = ?`,
-      ...updateValues
+      ...updateValues,
     );
 
     return NextResponse.json({
@@ -134,10 +112,9 @@ export async function PUT(
       message: 'Volume task updated successfully',
       changes: result.changes,
     });
-
   } catch (error) {
-    console.error('Error updating volume task:', error);
-    
+    // Error updating volume task
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
@@ -156,10 +133,7 @@ export async function PUT(
 }
 
 // DELETE - Delete volume task
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const session = getSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -168,40 +142,30 @@ export async function DELETE(
   try {
     const taskId = parseInt(params.id);
     if (isNaN(taskId)) {
-      return NextResponse.json(
-        { error: 'Invalid task ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 });
     }
 
     const db = getDb();
-    
+
     // Check if task exists and user owns it
-    const existing = db.get(
-      'SELECT id FROM volume_tasks WHERE id = ? AND user_id = ?',
-      [taskId, session.sub]
-    );
-    
+    const existing = db.get('SELECT id FROM volume_tasks WHERE id = ? AND user_id = ?', [
+      taskId,
+      session.sub,
+    ]);
+
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Task not found or access denied' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Task not found or access denied' }, { status: 404 });
     }
 
-    const result = db.run(
-      'DELETE FROM volume_tasks WHERE id = ?',
-      [taskId]
-    );
+    const result = db.run('DELETE FROM volume_tasks WHERE id = ?', [taskId]);
 
     return NextResponse.json({
       success: true,
       message: 'Volume task deleted successfully',
       changes: result.changes,
     });
-
   } catch (error) {
-    console.error('Error deleting volume task:', error);
+    // Error deleting volume task
     return NextResponse.json(
       {
         error: 'Failed to delete volume task',

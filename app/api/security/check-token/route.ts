@@ -17,11 +17,15 @@ export async function GET(request: Request) {
     const safetyScore = calculateSafetyScore(securityInfo);
     return NextResponse.json({ safetyScore, details: securityInfo });
   } catch (error) {
-    console.error('Failed to get token security info:', error);
+    // Failed to get token security info
     return NextResponse.json({ error: 'Failed to fetch token security info' }, { status: 500 });
   }
 }
-function calculateSafetyScore(securityInfo: any): number {
+interface SecurityInfo {
+  [key: string]: unknown;
+}
+
+function calculateSafetyScore(securityInfo: SecurityInfo | null): number {
   if (!securityInfo) return 0;
   let score = 100;
   if (securityInfo.is_open_source === '0') score -= 20;

@@ -85,13 +85,16 @@ export default function BuyPanel({
     setMsg('');
     try {
       // Get CSRF token from cookies
-      const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf='))?.split('=')[1];
-      
+      const csrfToken = document.cookie
+        .split(';')
+        .find((c) => c.trim().startsWith('csrf='))
+        ?.split('=')[1];
+
       const res = await fetch('/api/engine/bundle/buy', {
         method: 'POST',
-        headers: { 
+        headers: {
           'content-type': 'application/json',
-          ...(csrfToken && { 'x-csrf-token': csrfToken })
+          ...(csrfToken && { 'x-csrf-token': csrfToken }),
         },
         body: JSON.stringify({
           groupId,

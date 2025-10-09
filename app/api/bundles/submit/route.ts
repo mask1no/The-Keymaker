@@ -10,8 +10,8 @@ import { readJsonSafe, getEnvInt } from '@/lib/server/request';
 import * as Sentry from '@sentry/nextjs';
 import { getNextLeaders } from '@/lib/server/leaderSchedule';
 import { getDb } from '@/lib/db/sqlite';
-const db = getDb();
-import { getPrisma } from '@/lib/server/prisma';
+const _db = getDb();
+import { getPrisma as _getPrisma } from '@/lib/server/prisma';
 import { ENABLE_SLOT_TARGETING } from '@/lib/featureFlags';
 
 export const dynamic = 'force-dynamic';
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     });
 
     let transactions: VersionedTransaction[];
-    const subtle = (globalThis as any).crypto?.subtle || nodeWebcrypto?.subtle;
+    const subtle = (globalThis as { crypto?: { subtle?: unknown } }).crypto?.subtle || nodeWebcrypto?.subtle;
     if (!subtle) throw new Error('WebCrypto not available');
     const originalHash = await subtle.digest(
       'SHA-256',
@@ -90,8 +90,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to deserialize transactions' }, { status: 400 });
     }
 
-    const lastTx = transactions[transactions.length - 1];
-    // if (!isTestMode() && !validateTipAccount(lastTx)) {
+    const _lastTx = transactions[transactions.length - 1];
+    // if (!isTestMode() && !validateTipAccount(_lastTx)) {
     //   return NextResponse.json(
     //     { error: 'Last transaction must contain a valid JITO tip transfer' },
     //     { status: 400 },
@@ -226,11 +226,12 @@ export async function POST(request: Request) {
       });
     }
     return NextResponse.json({ error: 'bundler_disabled' }, { status: 501 });
-  } catch (error: any) {
-    console.error('Bundle submission error:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'unknown error';
+    // Bundle submission error
     Sentry.captureException(error);
     return NextResponse.json(
-      { error: error.message || 'Bundle submission failed' },
+      { error: errorMessage },
       { status: 500 },
     );
   }

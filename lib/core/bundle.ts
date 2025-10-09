@@ -44,7 +44,7 @@ export interface BundleStatus {
 async function jrpc<T>(
   region: RegionKey,
   method: string,
-  params: any,
+  params: unknown,
   timeoutMs = 10000,
 ): Promise<T> {
   const res = await fetch(getJitoApiUrl(region), {

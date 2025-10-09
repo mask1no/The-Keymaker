@@ -3,11 +3,16 @@ import { withSessionAndLimit } from '@/lib/api/withSessionAndLimit';
 
 export const runtime = 'nodejs';
 
-const cache = new Map<string, { ts: number; items: any[] }>();
+interface ActivityItem {
+  ts: number;
+  [key: string]: unknown;
+}
+
+const cache = new Map<string, { ts: number; items: ActivityItem[] }>();
 const TTL = 5000;
 const backoffMap = new Map<string, { nextAttemptTs: number; delayMs: number }>();
 
-async function fetchWithBackoff(url: string, headers?: Record<string, string>): Promise<any> {
+async function fetchWithBackoff(url: string, headers?: Record<string, string>): Promise<unknown> {
   const backoff = backoffMap.get(url);
   const now = Date.now();
 
@@ -119,6 +124,6 @@ export const GET = withSessionAndLimit(async (req: NextRequest) => {
     stale = true;
   }
 
-  const filtered = items.filter((x: any) => !sinceTs || x.ts > sinceTs).slice(0, limit);
+  const filtered = items.filter((x: ActivityItem) => !sinceTs || x.ts > sinceTs).slice(0, limit);
   return { items: filtered, stale };
 });

@@ -134,6 +134,63 @@ function init(d: any): void {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS wallets (
+      address TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      keypair TEXT NOT NULL,
+      user_pubkey TEXT NOT NULL,
+      group_id TEXT,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_wallets_user ON wallets(user_pubkey);
+    CREATE INDEX IF NOT EXISTS idx_wallets_group ON wallets(group_id);
+    CREATE TABLE IF NOT EXISTS wallet_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      user_pubkey TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_wallet_groups_user ON wallet_groups(user_pubkey);
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      user_pubkey TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_pubkey);
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE TABLE IF NOT EXISTS coin_templates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      description TEXT,
+      image TEXT,
+      category TEXT,
+      tags TEXT,
+      supply INTEGER,
+      decimals INTEGER,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_coin_templates_user ON coin_templates(user_id);
+    CREATE TABLE IF NOT EXISTS volume_tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      mint TEXT NOT NULL,
+      wallet_group TEXT NOT NULL,
+      buy_amount REAL NOT NULL,
+      sell_amount REAL NOT NULL,
+      buy_sell_ratio REAL NOT NULL,
+      delay_min INTEGER NOT NULL,
+      delay_max INTEGER NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_volume_tasks_user ON volume_tasks(user_id);
   `);
 }
 
@@ -234,4 +291,28 @@ export function aggregatePnL(currentPricesLamports: Record<string, number>): PnL
     unrealizedLamports: unrealized,
     netLamports: realized + unrealized,
   };
+}
+
+export function checkTxDedupe(msgHash: string): string | null {
+  try {
+    const d = getDb();
+    const stmt = d.prepare('SELECT signature FROM tx_dedupe WHERE msgHash = ?');
+    const result = stmt.get(msgHash);
+    return result?.signature || null;
+  } catch {
+    return null;
+  }
+}
+
+export function recordTxDedupe(msgHash: string, signature: string): void {
+  try {
+    const d = getDb();
+    const stmt = d.prepare(`
+      INSERT OR REPLACE INTO tx_dedupe (msgHash, firstSeenAt, status, signature)
+      VALUES (?, ?, ?, ?)
+    `);
+    stmt.run(msgHash, Date.now(), 'sent', signature);
+  } catch {
+    // swallow
+  }
 }

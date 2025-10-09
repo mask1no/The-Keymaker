@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     await ensureTable();
     // Accept JSON body and compute stable hash over it
     const raw = await req.text();
-    let parsed: any;
+    let parsed: unknown;
     try {
       parsed = raw ? JSON.parse(raw) : {};
     } catch {

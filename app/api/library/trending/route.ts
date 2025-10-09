@@ -14,7 +14,7 @@ type DsToken = {
   } | null;
 };
 
-const CACHE = new Map<string, { at: number; data: any }>();
+const CACHE = new Map<string, { at: number; data: unknown }>();
 
 function sanitizeUrl(u?: string): string | undefined {
   if (!u) return undefined;

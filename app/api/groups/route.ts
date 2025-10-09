@@ -1,97 +1,68 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import {
-  loadWalletGroups,
-  createWalletGroup,
-  updateWalletGroup,
-  deleteWalletGroup,
-} from '@/lib/server/walletGroups';
-import { WALLET_GROUP_CONSTRAINTS } from '@/lib/types/walletGroups';
+import { NextRequest, NextResponse } from 'next/server';
+import 'server-only';
 import { getSession } from '@/lib/server/session';
+import { getDb } from '@/lib/db/sqlite';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+// GET - List wallet groups
+export async function GET(request: NextRequest) {
+  const session = getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-const CreateSchema = z.object({ name: z.string().min(1).max(64) });
-const UpdateSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1).max(64),
-  devWallet: z.string().optional().nullable(),
-  sniperWallets: z.array(z.string()).optional(),
-});
-
-export async function GET() {
-  const session = getSession();
-  const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  // Filter groups by owner
-  const all = loadWalletGroups();
-  const mine = all.filter((g) => g.masterWallet === user);
-  return NextResponse.json({ groups: mine }, { status: 200 });
-}
-
-export async function POST(req: Request) {
-  const session = getSession();
-  const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const body = await req.json().catch(() => ({}));
-  const parsed = CreateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
-  const g = createWalletGroup(user, { name: parsed.data.name });
-  return NextResponse.json(g, { status: 201 });
-}
-
-export async function PUT(req: Request) {
-  const session = getSession();
-  const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const body = await req.json().catch(() => ({}));
-  const parsed = UpdateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   try {
-    // Ensure ownership
-    const all = loadWalletGroups();
-    const target = all.find((x) => x.id === parsed.data.id);
-    if (!target || target.masterWallet !== user) {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-    }
-    // Enforce sniper count limit
-    const snipers = parsed.data.sniperWallets || [];
-    if (snipers.length > WALLET_GROUP_CONSTRAINTS.maxSnipers) {
-      return NextResponse.json({ error: 'too_many_snipers' }, { status: 400 });
-    }
-    const g = updateWalletGroup({
-      id: parsed.data.id,
-      name: parsed.data.name,
-      devWallet: parsed.data.devWallet || null,
-      sniperWallets: snipers,
+    const db = await getDb();
+
+    const groups = await db.all(
+      'SELECT id, name FROM wallet_groups WHERE user_pubkey = ? ORDER BY created_at DESC',
+      [session.userPubkey],
+    );
+
+    return NextResponse.json({
+      success: true,
+      groups: groups.map((g) => ({
+        id: g.id,
+        name: g.name,
+      })),
     });
-    // Enforce overall wallet cap
-    const total =
-      (g.masterWallet ? 1 : 0) +
-      (g.devWallet ? 1 : 0) +
-      g.sniperWallets.length +
-      g.executionWallets.length;
-    if (total > WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup) {
-      return NextResponse.json({ error: 'too_many_wallets' }, { status: 400 });
-    }
-    return NextResponse.json(g, { status: 200 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'update_failed' }, { status: 400 });
+  } catch (error) {
+    // Error listing groups
+    return NextResponse.json({ error: 'Failed to list groups' }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
-  const session = getSession();
-  const user = session?.userPubkey || '';
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const id = new URL(req.url).searchParams.get('id') || '';
-  if (!id) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
-  const all = loadWalletGroups();
-  const target = all.find((x) => x.id === id);
-  if (!target || target.masterWallet !== user) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+// POST - Create wallet group
+export async function POST(request: NextRequest) {
+  const session = getSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  deleteWalletGroup(id);
-  return NextResponse.json({ ok: true }, { status: 200 });
+
+  try {
+    const body = await request.json();
+    const { name } = body;
+
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json({ error: 'Group name is required' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const id = `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    await db.run(
+      'INSERT INTO wallet_groups (id, name, user_pubkey, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      [id, name.trim(), session.userPubkey, Date.now(), Date.now()],
+    );
+
+    return NextResponse.json({
+      success: true,
+      group: {
+        id,
+        name: name.trim(),
+      },
+    });
+  } catch (error) {
+    // Error creating group
+    return NextResponse.json({ error: 'Failed to create group' }, { status: 500 });
+  }
 }

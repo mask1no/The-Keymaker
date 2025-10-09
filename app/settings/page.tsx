@@ -9,6 +9,7 @@ import { Switch } from '@/components/UI/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/Tabs';
 import { Badge } from '@/components/UI/badge';
 import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
 
 interface Settings {
   // RPC & Network
@@ -17,13 +18,13 @@ interface Settings {
   jitoRegion: string;
   jitoPriority: string;
   tipLamports: number;
-  
+
   // Trading
   slippageTolerance: number;
   maxGasPrice: number;
   chunkSize: number;
   concurrency: number;
-  
+
   // Hotkeys
   hotkeys: {
     devSell: string;
@@ -31,12 +32,12 @@ interface Settings {
     emergencyStop: string;
     toggleJito: string;
   };
-  
+
   // UI
   theme: string;
   notifications: boolean;
   soundEffects: boolean;
-  
+
   // Advanced
   dryRun: boolean;
   cluster: string;
@@ -89,10 +90,10 @@ export default function SettingsPage() {
     try {
       // Save to localStorage
       localStorage.setItem('keymaker-settings', JSON.stringify(settings));
-      
+
       // TODO: Save to backend API
       // await saveSettings(settings);
-      
+
       toast.success('Settings saved successfully!');
     } catch (error) {
       toast.error('Failed to save settings');
@@ -139,10 +140,18 @@ export default function SettingsPage() {
           <p className="text-zinc-400 mt-2">Configure your trading environment and preferences</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleReset} variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+          <Button
+            onClick={handleReset}
+            variant="outline"
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
             Reset
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
         </div>
@@ -150,11 +159,21 @@ export default function SettingsPage() {
 
       <Tabs defaultValue="network" className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-zinc-800">
-          <TabsTrigger value="network" className="text-zinc-300">Network</TabsTrigger>
-          <TabsTrigger value="trading" className="text-zinc-300">Trading</TabsTrigger>
-          <TabsTrigger value="hotkeys" className="text-zinc-300">Hotkeys</TabsTrigger>
-          <TabsTrigger value="ui" className="text-zinc-300">Interface</TabsTrigger>
-          <TabsTrigger value="advanced" className="text-zinc-300">Advanced</TabsTrigger>
+          <TabsTrigger value="network" className="text-zinc-300">
+            Network
+          </TabsTrigger>
+          <TabsTrigger value="trading" className="text-zinc-300">
+            Trading
+          </TabsTrigger>
+          <TabsTrigger value="hotkeys" className="text-zinc-300">
+            Hotkeys
+          </TabsTrigger>
+          <TabsTrigger value="ui" className="text-zinc-300">
+            Interface
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="text-zinc-300">
+            Advanced
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="network" className="space-y-4 mt-6">
@@ -169,7 +188,9 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="rpcUrl" className="text-zinc-300">RPC URL</Label>
+                  <Label htmlFor="rpcUrl" className="text-zinc-300">
+                    RPC URL
+                  </Label>
                   <Input
                     id="rpcUrl"
                     value={settings.rpcUrl}
@@ -179,7 +200,9 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="cluster" className="text-zinc-300">Cluster</Label>
+                  <Label htmlFor="cluster" className="text-zinc-300">
+                    Cluster
+                  </Label>
                   <select
                     id="cluster"
                     value={settings.cluster}
@@ -225,14 +248,18 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={settings.jitoEnabled}
-                    onCheckedChange={(checked) => setSettings({ ...settings, jitoEnabled: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, jitoEnabled: checked })
+                    }
                   />
                 </div>
-                
+
                 {settings.jitoEnabled && (
                   <>
                     <div>
-                      <Label htmlFor="jitoRegion" className="text-zinc-300">Jito Region</Label>
+                      <Label htmlFor="jitoRegion" className="text-zinc-300">
+                        Jito Region
+                      </Label>
                       <select
                         id="jitoRegion"
                         value={settings.jitoRegion}
@@ -246,7 +273,9 @@ export default function SettingsPage() {
                       </select>
                     </div>
                     <div>
-                      <Label htmlFor="jitoPriority" className="text-zinc-300">Priority Level</Label>
+                      <Label htmlFor="jitoPriority" className="text-zinc-300">
+                        Priority Level
+                      </Label>
                       <select
                         id="jitoPriority"
                         value={settings.jitoPriority}
@@ -260,12 +289,16 @@ export default function SettingsPage() {
                       </select>
                     </div>
                     <div>
-                      <Label htmlFor="tipLamports" className="text-zinc-300">Tip Amount (Lamports)</Label>
+                      <Label htmlFor="tipLamports" className="text-zinc-300">
+                        Tip Amount (Lamports)
+                      </Label>
                       <Input
                         id="tipLamports"
                         type="number"
                         value={settings.tipLamports}
-                        onChange={(e) => setSettings({ ...settings, tipLamports: parseInt(e.target.value) || 0 })}
+                        onChange={(e) =>
+                          setSettings({ ...settings, tipLamports: parseInt(e.target.value) || 0 })
+                        }
                         className="bg-zinc-800 border-zinc-700 text-zinc-100"
                       />
                     </div>
@@ -288,44 +321,63 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="slippageTolerance" className="text-zinc-300">Slippage Tolerance (%)</Label>
+                  <Label htmlFor="slippageTolerance" className="text-zinc-300">
+                    Slippage Tolerance (%)
+                  </Label>
                   <Input
                     id="slippageTolerance"
                     type="number"
                     step="0.1"
                     value={settings.slippageTolerance}
-                    onChange={(e) => setSettings({ ...settings, slippageTolerance: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        slippageTolerance: parseFloat(e.target.value) || 0,
+                      })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxGasPrice" className="text-zinc-300">Max Gas Price (SOL)</Label>
+                  <Label htmlFor="maxGasPrice" className="text-zinc-300">
+                    Max Gas Price (SOL)
+                  </Label>
                   <Input
                     id="maxGasPrice"
                     type="number"
                     step="0.001"
                     value={settings.maxGasPrice}
-                    onChange={(e) => setSettings({ ...settings, maxGasPrice: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, maxGasPrice: parseFloat(e.target.value) || 0 })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="chunkSize" className="text-zinc-300">Chunk Size (Jito)</Label>
+                  <Label htmlFor="chunkSize" className="text-zinc-300">
+                    Chunk Size (Jito)
+                  </Label>
                   <Input
                     id="chunkSize"
                     type="number"
                     value={settings.chunkSize}
-                    onChange={(e) => setSettings({ ...settings, chunkSize: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, chunkSize: parseInt(e.target.value) || 0 })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="concurrency" className="text-zinc-300">Concurrency (RPC)</Label>
+                  <Label htmlFor="concurrency" className="text-zinc-300">
+                    Concurrency (RPC)
+                  </Label>
                   <Input
                     id="concurrency"
                     type="number"
                     value={settings.concurrency}
-                    onChange={(e) => setSettings({ ...settings, concurrency: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, concurrency: parseInt(e.target.value) || 0 })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
@@ -342,28 +394,37 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="jitterMin" className="text-zinc-300">Min Jitter (ms)</Label>
+                  <Label htmlFor="jitterMin" className="text-zinc-300">
+                    Min Jitter (ms)
+                  </Label>
                   <Input
                     id="jitterMin"
                     type="number"
                     value={settings.jitterMin}
-                    onChange={(e) => setSettings({ ...settings, jitterMin: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, jitterMin: parseInt(e.target.value) || 0 })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="jitterMax" className="text-zinc-300">Max Jitter (ms)</Label>
+                  <Label htmlFor="jitterMax" className="text-zinc-300">
+                    Max Jitter (ms)
+                  </Label>
                   <Input
                     id="jitterMax"
                     type="number"
                     value={settings.jitterMax}
-                    onChange={(e) => setSettings({ ...settings, jitterMax: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, jitterMax: parseInt(e.target.value) || 0 })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div className="p-3 bg-zinc-800/50 rounded-lg">
                   <p className="text-sm text-zinc-400">
-                    Jitter adds random delays between transactions to avoid detection and reduce MEV risk.
+                    Jitter adds random delays between transactions to avoid detection and reduce MEV
+                    risk.
                   </p>
                 </div>
               </CardContent>
@@ -382,57 +443,74 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="devSell" className="text-zinc-300">Dev Sell</Label>
+                  <Label htmlFor="devSell" className="text-zinc-300">
+                    Dev Sell
+                  </Label>
                   <Input
                     id="devSell"
                     value={settings.hotkeys.devSell}
-                    onChange={(e) => setSettings({ 
-                      ...settings, 
-                      hotkeys: { ...settings.hotkeys, devSell: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        hotkeys: { ...settings.hotkeys, devSell: e.target.value },
+                      })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="sellAll" className="text-zinc-300">Sell All</Label>
+                  <Label htmlFor="sellAll" className="text-zinc-300">
+                    Sell All
+                  </Label>
                   <Input
                     id="sellAll"
                     value={settings.hotkeys.sellAll}
-                    onChange={(e) => setSettings({ 
-                      ...settings, 
-                      hotkeys: { ...settings.hotkeys, sellAll: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        hotkeys: { ...settings.hotkeys, sellAll: e.target.value },
+                      })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emergencyStop" className="text-zinc-300">Emergency Stop</Label>
+                  <Label htmlFor="emergencyStop" className="text-zinc-300">
+                    Emergency Stop
+                  </Label>
                   <Input
                     id="emergencyStop"
                     value={settings.hotkeys.emergencyStop}
-                    onChange={(e) => setSettings({ 
-                      ...settings, 
-                      hotkeys: { ...settings.hotkeys, emergencyStop: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        hotkeys: { ...settings.hotkeys, emergencyStop: e.target.value },
+                      })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="toggleJito" className="text-zinc-300">Toggle Jito</Label>
+                  <Label htmlFor="toggleJito" className="text-zinc-300">
+                    Toggle Jito
+                  </Label>
                   <Input
                     id="toggleJito"
                     value={settings.hotkeys.toggleJito}
-                    onChange={(e) => setSettings({ 
-                      ...settings, 
-                      hotkeys: { ...settings.hotkeys, toggleJito: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        hotkeys: { ...settings.hotkeys, toggleJito: e.target.value },
+                      })
+                    }
                     className="bg-zinc-800 border-zinc-700 text-zinc-100"
                   />
                 </div>
               </div>
               <div className="p-3 bg-zinc-800/50 rounded-lg">
                 <p className="text-sm text-zinc-400">
-                  Hotkeys are global and work even when the app is not focused. Use Ctrl, Alt, or Shift modifiers.
+                  Hotkeys are global and work even when the app is not focused. Use Ctrl, Alt, or
+                  Shift modifiers.
                 </p>
               </div>
             </CardContent>
@@ -451,7 +529,9 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="theme" className="text-zinc-300">Theme</Label>
+                  <Label htmlFor="theme" className="text-zinc-300">
+                    Theme
+                  </Label>
                   <select
                     id="theme"
                     value={settings.theme}
@@ -470,7 +550,9 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={settings.notifications}
-                    onCheckedChange={(checked) => setSettings({ ...settings, notifications: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, notifications: checked })
+                    }
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -480,7 +562,9 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     checked={settings.soundEffects}
-                    onCheckedChange={(checked) => setSettings({ ...settings, soundEffects: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, soundEffects: checked })
+                    }
                   />
                 </div>
               </CardContent>
@@ -504,7 +588,14 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-300">Dry Run</span>
-                    <Badge variant="outline" className={settings.dryRun ? "border-yellow-500 text-yellow-400" : "border-green-500 text-green-400"}>
+                    <Badge
+                      variant="outline"
+                      className={
+                        settings.dryRun
+                          ? 'border-yellow-500 text-yellow-400'
+                          : 'border-green-500 text-green-400'
+                      }
+                    >
                       {settings.dryRun ? 'ON' : 'OFF'}
                     </Badge>
                   </div>
@@ -536,32 +627,46 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="p-4 bg-yellow-900/20 border border-yellow-800 rounded-lg">
-                <h3 className="font-medium text-yellow-400 mb-2">⚠️ Advanced Mode</h3>
+                <h3 className="font-medium text-yellow-400 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Advanced Mode
+                </h3>
                 <p className="text-sm text-yellow-300">
-                  These settings are for advanced users only. Incorrect configuration may cause trading failures.
+                  These settings are for advanced users only. Incorrect configuration may cause
+                  trading failures.
                 </p>
               </div>
-              
+
               <div className="mt-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="chunkSize" className="text-zinc-300">Chunk Size</Label>
+                    <Label htmlFor="chunkSize" className="text-zinc-300">
+                      Chunk Size
+                    </Label>
                     <Input
                       id="chunkSize"
                       type="number"
                       value={settings.chunkSize}
-                      onChange={(e) => setSettings({ ...settings, chunkSize: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setSettings({ ...settings, chunkSize: parseInt(e.target.value) || 0 })
+                      }
                       className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
-                    <p className="text-xs text-zinc-500 mt-1">Number of transactions per Jito bundle</p>
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Number of transactions per Jito bundle
+                    </p>
                   </div>
                   <div>
-                    <Label htmlFor="concurrency" className="text-zinc-300">Concurrency</Label>
+                    <Label htmlFor="concurrency" className="text-zinc-300">
+                      Concurrency
+                    </Label>
                     <Input
                       id="concurrency"
                       type="number"
                       value={settings.concurrency}
-                      onChange={(e) => setSettings({ ...settings, concurrency: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setSettings({ ...settings, concurrency: parseInt(e.target.value) || 0 })
+                      }
                       className="bg-zinc-800 border-zinc-700 text-zinc-100"
                     />
                     <p className="text-xs text-zinc-500 mt-1">Number of concurrent RPC requests</p>

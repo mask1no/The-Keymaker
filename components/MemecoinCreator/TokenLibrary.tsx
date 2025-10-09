@@ -49,7 +49,9 @@ export default function TokenLibrary({ onPick }: TokenLibraryProps) {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Token Templates</CardTitle>
-        <CardDescription>Choose from pre-configured token templates or create your own</CardDescription>
+        <CardDescription>
+          Choose from pre-configured token templates or create your own
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -73,9 +75,7 @@ export default function TokenLibrary({ onPick }: TokenLibraryProps) {
                     <Badge variant="secondary">{template.symbol}</Badge>
                   </div>
                   <p className="text-sm text-gray-600">{template.description}</p>
-                  <div className="text-xs text-gray-500">
-                    Decimals: {template.decimals}
-                  </div>
+                  <div className="text-xs text-gray-500">Decimals: {template.decimals}</div>
                 </div>
               </CardContent>
             </Card>

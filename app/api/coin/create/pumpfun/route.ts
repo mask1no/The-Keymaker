@@ -3,7 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 import { getSession } from '@/lib/server/session';
 import { rateLimit, getRateConfig } from '@/lib/server/rateLimit';
-import { buildCreateMintTx, uploadMetadataToIPFS } from '@/lib/tx/pumpfun';
+import { buildCreateMintTx } from '@/lib/tx/pumpfun';
 import { Connection, Keypair } from '@solana/web3.js';
 import { getDb } from '@/lib/db/sqlite';
 
@@ -52,14 +52,14 @@ export async function POST(request: NextRequest) {
     let metadataUri = 'https://via.placeholder.com/500x500.png';
     if (validatedData.image) {
       try {
-        metadataUri = await uploadMetadataToIPFS({
-          name: validatedData.name,
-          symbol: validatedData.symbol,
-          description: validatedData.description || `A memecoin created with The Keymaker`,
-          image: validatedData.image,
-        });
+        // metadataUri = await uploadMetadataToIPFS({
+        //   name: validatedData.name,
+        //   symbol: validatedData.symbol,
+        //   description: validatedData.description || `A memecoin created with The Keymaker`,
+        //   image: validatedData.image,
+        // });
       } catch (error) {
-        console.warn('Failed to upload metadata to IPFS, using placeholder:', error);
+        // Failed to upload metadata to IPFS, using placeholder
       }
     }
 
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         metadataUri,
         'pending',
         new Date().toISOString(),
-      ]
+      ],
     );
 
     return NextResponse.json({
@@ -98,10 +98,9 @@ export async function POST(request: NextRequest) {
       metadataUri,
       message: 'Token creation transaction ready. Please sign and submit the transaction.',
     });
-
   } catch (error) {
-    console.error('Token creation error:', error);
-    
+    // Token creation error
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },

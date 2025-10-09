@@ -29,10 +29,10 @@ async function fetchDexscreener(mint: string) {
       symbol: p?.baseToken?.symbol as string | undefined,
       website: (p?.info?.websites?.[0]?.url as string | undefined) || undefined,
       twitter:
-        (p?.info?.socials?.find((x: any) => x?.type === 'twitter')?.url as string | undefined) ||
+        (p?.info?.socials?.find((x: { type: string; url: string }) => x?.type === 'twitter')?.url as string | undefined) ||
         undefined,
       telegram:
-        (p?.info?.socials?.find((x: any) => x?.type === 'telegram')?.url as string | undefined) ||
+        (p?.info?.socials?.find((x: { type: string; url: string }) => x?.type === 'telegram')?.url as string | undefined) ||
         undefined,
       image: (p?.info?.imageUrl as string | undefined) || undefined,
     };
@@ -79,10 +79,10 @@ async function fetchMetaplexOnchain(mint: string) {
       'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpc, 'confirmed');
     const mintPk = new PublicKey(mint);
-    const pdas = await (mpl as any).Metadata.pda(mintPk);
+    const pdas = await (mpl as { Metadata: { pda: (mint: PublicKey) => Promise<PublicKey> } }).Metadata.pda(mintPk);
     const acc = await connection.getAccountInfo(pdas, 'confirmed');
     if (!acc) return null;
-    const meta = (mpl as any).Metadata.fromAccountInfo(acc)[0];
+    const meta = (mpl as { Metadata: { fromAccountInfo: (acc: any) => any[] } }).Metadata.fromAccountInfo(acc)[0];
     const uri = meta?.data?.uri?.trim();
     if (!uri) return null;
     const res = await fetch(uri, { next: { revalidate: 300 } });

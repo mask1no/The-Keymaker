@@ -150,9 +150,7 @@ function ToastItem({ toast }: { toast: Toast }) {
         {getIcon()}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-zinc-100">{toast.title}</p>
-          {toast.description && (
-            <p className="text-sm text-zinc-400 mt-1">{toast.description}</p>
-          )}
+          {toast.description && <p className="text-sm text-zinc-400 mt-1">{toast.description}</p>}
         </div>
         <button
           onClick={() => removeToast(toast.id)}
@@ -172,11 +170,9 @@ export function useToastHelpers() {
   return {
     success: (title: string, description?: string) =>
       addToast({ type: 'success', title, description }),
-    error: (title: string, description?: string) =>
-      addToast({ type: 'error', title, description }),
+    error: (title: string, description?: string) => addToast({ type: 'error', title, description }),
     warning: (title: string, description?: string) =>
       addToast({ type: 'warning', title, description }),
-    info: (title: string, description?: string) =>
-      addToast({ type: 'info', title, description }),
+    info: (title: string, description?: string) => addToast({ type: 'info', title, description }),
   };
 }

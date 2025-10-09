@@ -1,17 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Boxes, Wallet, Coins, Clock, LineChart, Settings, BookOpen } from 'lucide-react';
+import { Home, Coins, Library, Key, Wallet, TrendingUp, Settings } from 'lucide-react';
 
 const NAV = [
-  { name: 'Bundle', href: '/bundle', icon: Boxes },
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Coin', href: '/coin', icon: Coins },
+  { name: 'Coin Library', href: '/coin-library', icon: Library },
+  { name: 'Keymaker', href: '/keymaker', icon: Key },
   { name: 'Wallets', href: '/wallets', icon: Wallet },
-  { name: 'Token Creator', href: '/creator', icon: Coins },
-  { name: 'Trade History', href: '/history', icon: Clock },
-  { name: 'P&L', href: '/pnl', icon: LineChart },
+  { name: 'P&L', href: '/pnl', icon: TrendingUp },
   { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Guide', href: '/guide', icon: BookOpen },
-  { name: 'Engine', href: '/engine', icon: Boxes },
 ];
 
 export default function AppSideNav() {

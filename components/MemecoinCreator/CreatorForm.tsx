@@ -2,16 +2,42 @@
 
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/UI/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/UI/Form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/UI/Form';
 import { Input } from '@/components/UI/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select';
 import { Textarea } from '@/components/UI/Textarea';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/UI/Card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/UI/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/Tabs';
 import { useState } from 'react';
 import { Switch } from '@/components/UI/switch';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/UI/Accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/UI/Accordion';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import TokenLibrary from './TokenLibrary';
 
@@ -137,7 +163,9 @@ export function CreatorForm() {
       <Card className="w-full max-w-2xl mx-auto rounded-2xl border border bg-card">
         <CardHeader>
           <CardTitle>Create SPL Token</CardTitle>
-          <CardDescription>Fill in the details below to create and launch your new token.</CardDescription>
+          <CardDescription>
+            Fill in the details below to create and launch your new token.
+          </CardDescription>
         </CardHeader>
 
         <Form {...form}>
@@ -228,7 +256,9 @@ export function CreatorForm() {
                               <SelectItem value="raydium">Raydium</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>The platform where you intend to launch your token.</FormDescription>
+                          <FormDescription>
+                            The platform where you intend to launch your token.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -242,7 +272,9 @@ export function CreatorForm() {
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
                               <FormLabel>Enable Freeze Authority</FormLabel>
-                              <FormDescription>Allows you to freeze token accounts, preventing transfers.</FormDescription>
+                              <FormDescription>
+                                Allows you to freeze token accounts, preventing transfers.
+                              </FormDescription>
                             </div>
                             <FormControl>
                               <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -325,7 +357,9 @@ export function CreatorForm() {
                               onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                             />
                           </FormControl>
-                          <FormDescription>Upload an image for your token (PNG, JPG, GIF, max 5MB).</FormDescription>
+                          <FormDescription>
+                            Upload an image for your token (PNG, JPG, GIF, max 5MB).
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -339,7 +373,9 @@ export function CreatorForm() {
                   <AccordionTrigger>
                     <div className="space-y-0.5">
                       <FormLabel>Create Liquidity Pool</FormLabel>
-                      <FormDescription>Automatically create a Raydium liquidity pool for this token.</FormDescription>
+                      <FormDescription>
+                        Automatically create a Raydium liquidity pool for this token.
+                      </FormDescription>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>

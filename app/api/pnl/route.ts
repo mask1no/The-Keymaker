@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const offset = Number(url.searchParams.get('offset') ?? '0');
 
     const db = getDb();
-    
+
     let query = `
       SELECT 
         t.id,
@@ -38,31 +38,41 @@ export async function GET(request: NextRequest) {
       LEFT JOIN positions p ON t.wallet = p.wallet AND t.mint = p.mint
       WHERE t.wallet = ?
     `;
-    
-    const params: any[] = [session.sub];
-    
+
+    const params: (string | number)[] = [session.sub];
+
     if (wallet) {
       query += ' AND t.wallet = ?';
       params.push(wallet);
     }
-    
+
     query += ' ORDER BY t.ts DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
-    
+
     const trades = db.all(query, params);
-    
+
     // Calculate P&L for each trade
-    const pnlEntries = trades.map((trade: any) => {
+    interface Trade {
+      priceLamports: number;
+      qty: number;
+      feeLamports?: number;
+      priorityFeeMicrolamports?: number;
+      side: 'buy' | 'sell';
+      ts: number;
+      mint: string;
+    }
+    
+    const pnlEntries = trades.map((trade: Trade) => {
       const priceSol = trade.priceLamports / 1e9;
       const qtySol = trade.qty / 1e9;
       const feeSol = (trade.feeLamports || 0) / 1e9;
       const priorityFeeSol = (trade.priorityFeeMicrolamports || 0) / 1e9;
-      
+
       let pnlSol = 0;
       if (trade.side === 'sell' && trade.realized_pnl_lamports) {
         pnlSol = trade.realized_pnl_lamports / 1e9;
       }
-      
+
       return {
         id: trade.id,
         mint: trade.mint,
@@ -77,16 +87,18 @@ export async function GET(request: NextRequest) {
         createdAt: trade.created_at,
       };
     });
-    
+
     // Get total P&L
     const totalPnLQuery = `
       SELECT SUM(realized_pnl_lamports) as total_pnl
       FROM positions 
       WHERE wallet = ?
     `;
-    const totalPnLResult = db.get(totalPnLQuery, [session.sub]) as { total_pnl: number } | undefined;
+    const totalPnLResult = db.get(totalPnLQuery, [session.sub]) as
+      | { total_pnl: number }
+      | undefined;
     const totalPnL = (totalPnLResult?.total_pnl || 0) / 1e9;
-    
+
     return NextResponse.json({
       success: true,
       pnlEntries,
@@ -97,16 +109,15 @@ export async function GET(request: NextRequest) {
         total: pnlEntries.length,
       },
     });
-
   } catch (error) {
-    console.error('P&L fetch error:', error);
+    // P&L fetch error
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch P&L data',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

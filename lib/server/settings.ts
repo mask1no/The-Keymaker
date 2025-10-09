@@ -32,42 +32,42 @@ export function getUiSettings(): UiSettings {
   try {
     // Try to load from environment variables first
     const envSettings: Partial<UiSettings> = {};
-    
+
     if (process.env.NEXT_PUBLIC_EXECUTION_MODE) {
       envSettings.mode = process.env.NEXT_PUBLIC_EXECUTION_MODE as UiSettings['mode'];
     }
-    
+
     if (process.env.NEXT_PUBLIC_REGION) {
       envSettings.region = process.env.NEXT_PUBLIC_REGION as UiSettings['region'];
     }
-    
+
     if (process.env.NEXT_PUBLIC_PRIORITY) {
       envSettings.priority = process.env.NEXT_PUBLIC_PRIORITY as UiSettings['priority'];
     }
-    
+
     if (process.env.NEXT_PUBLIC_TIP_LAMPORTS) {
       envSettings.tipLamports = parseInt(process.env.NEXT_PUBLIC_TIP_LAMPORTS);
     }
-    
+
     if (process.env.NEXT_PUBLIC_CHUNK_SIZE) {
       envSettings.chunkSize = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE);
     }
-    
+
     if (process.env.NEXT_PUBLIC_CONCURRENCY) {
       envSettings.concurrency = parseInt(process.env.NEXT_PUBLIC_CONCURRENCY);
     }
-    
+
     if (process.env.NEXT_PUBLIC_JITTER_MIN && process.env.NEXT_PUBLIC_JITTER_MAX) {
       envSettings.jitterMs = [
         parseInt(process.env.NEXT_PUBLIC_JITTER_MIN),
-        parseInt(process.env.NEXT_PUBLIC_JITTER_MAX)
+        parseInt(process.env.NEXT_PUBLIC_JITTER_MAX),
       ];
     }
-    
+
     if (process.env.NEXT_PUBLIC_DRY_RUN) {
       envSettings.dryRun = process.env.NEXT_PUBLIC_DRY_RUN === 'true';
     }
-    
+
     if (process.env.NEXT_PUBLIC_CLUSTER) {
       envSettings.cluster = process.env.NEXT_PUBLIC_CLUSTER as UiSettings['cluster'];
     }
@@ -84,7 +84,7 @@ export function getUiSettings(): UiSettings {
 export function setUiSettings(settings: Partial<UiSettings>): void {
   const currentSettings = getUiSettings();
   cachedSettings = { ...currentSettings, ...settings };
-  
+
   // In a real application, you might want to persist these settings
   // For now, we'll just update the cache
   console.log('Settings updated:', cachedSettings);

@@ -141,7 +141,7 @@ export async function buildJupiterSwapTx(params: {
     });
     // Attach minimal metadata for downstream journaling
     try {
-      (versionedTx as any).__km_meta = {
+      (versionedTx as { __km_meta?: unknown }).__km_meta = {
         kind: 'buy',
         inputMint: params.inputMint,
         outputMint: params.outputMint,
@@ -222,7 +222,7 @@ export async function buildJupiterSellTx(params: {
       priorityFeeMicrolamports: params.priorityFeeMicrolamports,
     });
     try {
-      (versionedTx as any).__km_meta = {
+      (versionedTx as { __km_meta?: unknown }).__km_meta = {
         kind: 'sell',
         inputMint: params.inputMint,
         outputMint: params.outputMint,

@@ -6,6 +6,7 @@ import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import Link from 'next/link';
 import { useWalletBalances } from '@/hooks/useWalletBalances';
+import { Coins, Library, Wallet, Key, TrendingUp, Settings, CheckCircle } from 'lucide-react';
 
 export default function HomePage() {
   const [walletCount, setWalletCount] = useState(0);
@@ -19,7 +20,11 @@ export default function HomePage() {
     '11111111111111111111111111111113', // Token Program
   ];
 
-  const { balances, isLoading: balancesLoading, getTotalSolBalance } = useWalletBalances({
+  const {
+    balances,
+    isLoading: balancesLoading,
+    getTotalSolBalance,
+  } = useWalletBalances({
     wallets: mockWallets,
     refreshInterval: 30000, // 30 seconds
     enabled: true,
@@ -58,12 +63,15 @@ export default function HomePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-      <div>
+        <div>
           <h1 className="text-3xl font-bold text-zinc-100">The Keymaker</h1>
-          <p className="text-zinc-400 mt-2">Solana Mainnet Multi-Wallet Sniper with Jito Integration</p>
+          <p className="text-zinc-400 mt-2">
+            Solana Mainnet Multi-Wallet Sniper with Jito Integration
+          </p>
         </div>
         <Badge variant="outline" className="border-green-500 text-green-400">
-          🟢 System Online
+          <CheckCircle className="h-3 w-3 mr-1" />
+          System Online
         </Badge>
       </div>
 
@@ -105,7 +113,8 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              🪙 Create Memecoin
+              <Coins className="h-5 w-5" />
+              Create Memecoin
             </CardTitle>
             <CardDescription className="text-zinc-400">
               Deploy your token on pump.fun
@@ -126,11 +135,10 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              📚 Coin Library
+              <Library className="h-5 w-5" />
+              Coin Library
             </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Browse pre-made templates
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Browse pre-made templates</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -147,7 +155,8 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              👛 Wallet Manager
+              <Wallet className="h-5 w-5" />
+              Wallet Manager
             </CardTitle>
             <CardDescription className="text-zinc-400">
               Organize your trading wallets
@@ -168,11 +177,10 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              🔑 Keymaker
+              <Key className="h-5 w-5" />
+              Keymaker
             </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Automated market making
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Automated market making</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -189,11 +197,10 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              📊 P&L Tracker
+              <TrendingUp className="h-5 w-5" />
+              P&L Tracker
             </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Monitor your profits
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Monitor your profits</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -210,11 +217,10 @@ export default function HomePage() {
         <Card className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
           <CardHeader>
             <CardTitle className="text-zinc-100 flex items-center gap-2">
-              ⚙️ Settings
+              <Settings className="h-5 w-5" />
+              Settings
             </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Configure your setup
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Configure your setup</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">

@@ -30,7 +30,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error,
       errorInfo,
@@ -68,29 +68,25 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <CardContent className="space-y-4">
               {this.state.error && (
                 <div className="p-3 bg-red-900/20 border border-red-800 rounded-lg">
-                  <p className="text-sm text-red-300 font-mono">
-                    {this.state.error.message}
-                  </p>
+                  <p className="text-sm text-red-300 font-mono">{this.state.error.message}</p>
                 </div>
               )}
-              
+
               <div className="flex gap-2">
                 <Button onClick={this.resetError} className="flex-1">
                   Try Again
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => window.location.reload()}
                   className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                 >
                   Reload Page
                 </Button>
               </div>
-              
+
               <details className="text-xs text-zinc-500">
-                <summary className="cursor-pointer hover:text-zinc-400">
-                  Technical Details
-                </summary>
+                <summary className="cursor-pointer hover:text-zinc-400">Technical Details</summary>
                 <pre className="mt-2 p-2 bg-zinc-800 rounded text-xs overflow-auto">
                   {this.state.error?.stack}
                 </pre>
@@ -136,7 +132,7 @@ export function useErrorHandler() {
 // Higher-order component for error handling
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={fallback}>

@@ -10,12 +10,12 @@ export const dynamic = 'force-dynamic';
 
 const BodySchema = z.object({
   groupId: z.string().uuid(),
-  action: z.enum(['create','import']),
+  action: z.enum(['create', 'import']),
   secretKey: z.string().optional(),
 });
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(()=> ({}));
+  const body = await req.json().catch(() => ({}));
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: 'bad_request' }, { status: 400 });
 
@@ -23,7 +23,8 @@ export async function POST(req: Request) {
   if (!g) return NextResponse.json({ error: 'group_not_found' }, { status: 404 });
 
   const count = g.executionWallets.length + (g.devWallet ? 1 : 0) + g.sniperWallets.length;
-  if (count >= WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup) return NextResponse.json({ error: 'too_many_wallets' }, { status: 400 });
+  if (count >= WALLET_GROUP_CONSTRAINTS.maxWalletsPerGroup)
+    return NextResponse.json({ error: 'too_many_wallets' }, { status: 400 });
 
   let kp: Keypair;
   if (parsed.data.action === 'create') {
@@ -37,6 +38,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, pubkey: kp.publicKey.toBase58() }, { status: 201 });
 }
-
-
-

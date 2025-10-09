@@ -3,6 +3,7 @@
 ## Pre-Deployment Checklist
 
 ### Environment Configuration
+
 - [ ] `.env` file created with production values
 - [ ] `KEYMAKER_SESSION_SECRET` set to secure random value
 - [ ] `HELIUS_RPC_URL` configured with API key
@@ -11,6 +12,7 @@
 - [ ] Database path configured (`DB_PATH` if custom)
 
 ### Security Configuration
+
 - [ ] Session secret is cryptographically secure (64+ characters)
 - [ ] Engine API token is random and secure
 - [ ] RPC endpoints use API keys
@@ -19,12 +21,14 @@
 - [ ] Rate limiting enabled
 
 ### Database Setup
+
 - [ ] SQLite database initialized
 - [ ] Database file permissions set correctly (600)
 - [ ] Backup strategy implemented
 - [ ] Database path is writable
 
 ### Dependencies
+
 - [ ] All dependencies installed (`npm install`)
 - [ ] No security vulnerabilities (`npm audit`)
 - [ ] Production build successful (`npm run build`)
@@ -33,6 +37,7 @@
 ## Deployment Checklist
 
 ### Docker Deployment
+
 - [ ] Docker image built successfully
 - [ ] Container starts without errors
 - [ ] Health check endpoint responding
@@ -40,6 +45,7 @@
 - [ ] Container restart policy set
 
 ### Nginx Configuration (if used)
+
 - [ ] SSL certificates installed
 - [ ] Reverse proxy configured
 - [ ] Rate limiting configured
@@ -47,6 +53,7 @@
 - [ ] Static file caching enabled
 
 ### Monitoring Setup
+
 - [ ] Health check endpoint working
 - [ ] Log monitoring configured
 - [ ] Error tracking enabled (Sentry)
@@ -56,6 +63,7 @@
 ## Post-Deployment Checklist
 
 ### Functionality Testing
+
 - [ ] Login page loads correctly
 - [ ] Authentication flow works
 - [ ] Wallet management functions
@@ -65,6 +73,7 @@
 - [ ] API endpoints respond correctly
 
 ### Performance Testing
+
 - [ ] Page load times acceptable (< 3 seconds)
 - [ ] API response times good (< 1 second)
 - [ ] Memory usage stable
@@ -72,6 +81,7 @@
 - [ ] Database queries optimized
 
 ### Security Testing
+
 - [ ] HTTPS enforced (if applicable)
 - [ ] Rate limiting working
 - [ ] Authentication required for protected routes
@@ -79,6 +89,7 @@
 - [ ] Error messages don't leak information
 
 ### Backup Verification
+
 - [ ] Database backup created
 - [ ] Backup restoration tested
 - [ ] Configuration files backed up
@@ -87,6 +98,7 @@
 ## Production Monitoring
 
 ### Daily Checks
+
 - [ ] Application responding
 - [ ] Error rates normal
 - [ ] Performance metrics good
@@ -94,6 +106,7 @@
 - [ ] Memory usage stable
 
 ### Weekly Checks
+
 - [ ] Security updates applied
 - [ ] Dependencies updated
 - [ ] Logs reviewed
@@ -101,6 +114,7 @@
 - [ ] Backup integrity verified
 
 ### Monthly Checks
+
 - [ ] Security audit performed
 - [ ] Performance optimization review
 - [ ] Capacity planning assessment
@@ -112,24 +126,28 @@
 ### Common Issues
 
 #### Application Won't Start
+
 1. Check environment variables
 2. Verify database permissions
 3. Check port availability
 4. Review application logs
 
 #### Database Errors
+
 1. Check database file permissions
 2. Verify disk space
 3. Check database integrity
 4. Review SQLite logs
 
 #### Performance Issues
+
 1. Check memory usage
 2. Review CPU utilization
 3. Analyze database queries
 4. Check network latency
 
 #### Security Issues
+
 1. Review authentication logs
 2. Check rate limiting
 3. Verify SSL configuration
@@ -138,18 +156,21 @@
 ## Emergency Procedures
 
 ### Application Down
+
 1. Check container status
 2. Review application logs
 3. Restart container if needed
 4. Escalate if unresolved
 
 ### Database Corruption
+
 1. Stop application
 2. Restore from backup
 3. Verify data integrity
 4. Restart application
 
 ### Security Breach
+
 1. Isolate affected systems
 2. Preserve evidence
 3. Notify security team
@@ -158,11 +179,13 @@
 ## Contact Information
 
 ### Development Team
+
 - Lead Developer: [Name] - [Email]
 - DevOps Engineer: [Name] - [Email]
 - Security Team: [Name] - [Email]
 
 ### External Services
+
 - Helius RPC: [Support Contact]
 - Sentry: [Support Contact]
 - Hosting Provider: [Support Contact]

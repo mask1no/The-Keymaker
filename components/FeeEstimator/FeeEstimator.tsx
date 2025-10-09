@@ -24,7 +24,12 @@ interface FeeEstimatorProps {
   className?: string;
 }
 
-export function FeeEstimator({ transactionCount, tipAmount = 10_000, onEstimateComplete, className = '' }: FeeEstimatorProps) {
+export function FeeEstimator({
+  transactionCount,
+  tipAmount = 10_000,
+  onEstimateComplete,
+  className = '',
+}: FeeEstimatorProps) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [estimate, setEstimate] = useState<FeeEstimate | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +56,7 @@ export function FeeEstimator({ transactionCount, tipAmount = 10_000, onEstimateC
           fromPubkey: PublicKey.default,
           toPubkey: PublicKey.default,
           lamports: 1,
-        })
+        }),
       );
 
       const { blockhash } = await connection.getLatestBlockhash('confirmed');
@@ -89,7 +94,9 @@ export function FeeEstimator({ transactionCount, tipAmount = 10_000, onEstimateC
   if (transactionCount <= 0) return null;
 
   return (
-    <div className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}>
+    <div
+      className={`bg-black/40 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
+    >
       <div className="flex items-center gap-2 mb-3">
         <Calculator className="w-4 h-4 opacity-80" />
         <h4 className="text-sm font-semibold">Fee Estimate</h4>
@@ -102,19 +109,27 @@ export function FeeEstimator({ transactionCount, tipAmount = 10_000, onEstimateC
         <div className="space-y-2 text-sm">
           <div className="grid grid-cols-2 gap-2">
             <div className="text-gray-400">Transaction fees:</div>
-            <div className="text-right">{(estimate.transactionFee / LAMPORTS_PER_SOL).toFixed(6)} SOL</div>
+            <div className="text-right">
+              {(estimate.transactionFee / LAMPORTS_PER_SOL).toFixed(6)} SOL
+            </div>
             <div className="text-gray-400">Jito tips:</div>
             <div className="text-right">{(estimate.jitoTip / LAMPORTS_PER_SOL).toFixed(6)} SOL</div>
             <div className="border-t border-gray-700 pt-2 font-semibold">Total cost:</div>
-            <div className="border-t border-gray-700 pt-2 text-right font-semibold">{estimate.costInSol.toFixed(6)} SOL</div>
+            <div className="border-t border-gray-700 pt-2 text-right font-semibold">
+              {estimate.costInSol.toFixed(6)} SOL
+            </div>
           </div>
           <div className="mt-3 p-2 bg-gray-800/50 rounded text-xs">
             <div className="flex items-start gap-1">
               <Info className="w-3 h-3 text-gray-400 mt-0.5" />
               <div className="text-gray-400">
                 <div>Per transaction:</div>
-                <div>• Fee: {((estimate.perTransaction.fee / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL</div>
-                <div>• Tip: {((estimate.perTransaction.tip / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL</div>
+                <div>
+                  • Fee: {((estimate.perTransaction.fee / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL
+                </div>
+                <div>
+                  • Tip: {((estimate.perTransaction.tip / LAMPORTS_PER_SOL) * 1000).toFixed(3)} mSOL
+                </div>
               </div>
             </div>
           </div>

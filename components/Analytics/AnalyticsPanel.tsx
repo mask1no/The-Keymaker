@@ -18,11 +18,13 @@ const LiveIndicator = () => (
 
 export default function AnalyticsPanel() {
   const { tokenLaunchData } = useKeymakerStore();
-  
+
   const { data: analyticsData, error } = useSWR(
-    tokenLaunchData?.mintAddress ? `/api/analytics?tokenAddress=${tokenLaunchData.mintAddress}` : null,
+    tokenLaunchData?.mintAddress
+      ? `/api/analytics?tokenAddress=${tokenLaunchData.mintAddress}`
+      : null,
     fetcher,
-    { refreshInterval: 5000 } // Refresh every 5 seconds
+    { refreshInterval: 5000 }, // Refresh every 5 seconds
   );
 
   const isLoading = !analyticsData && !error;
@@ -31,9 +33,7 @@ export default function AnalyticsPanel() {
     <Card>
       <CardHeader>
         <CardTitle>Live Analytics</CardTitle>
-        <CardDescription>
-          Real-time price and market cap for your launched token.
-        </CardDescription>
+        <CardDescription>Real-time price and market cap for your launched token.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-4">
         {isLoading ? (
@@ -55,13 +55,29 @@ export default function AnalyticsPanel() {
               <LiveIndicator />
             </div>
             <div className="col-span-2">
-              <LineChart width={400} height={200} data={[{ time: 'now', price: analyticsData?.price || 0 }]}>
+              <LineChart
+                width={400}
+                height={200}
+                data={[{ time: 'now', price: analyticsData?.price || 0 }]}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                 <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                  }}
+                />
                 <Legend />
-                <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Live Price" />
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Live Price"
+                />
               </LineChart>
             </div>
           </>

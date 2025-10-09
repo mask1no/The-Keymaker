@@ -50,4 +50,15 @@ export function CardFooter({
 }) {
   return <div className={`px-4 pb-4 ${className}`}>{children}</div>;
 }
+
+export function CardDescription({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <p className={`text-sm text-zinc-400 ${className}`}>{children}</p>;
+}
+
 export default Card;

@@ -2,9 +2,33 @@
 import { useEffect, useState } from 'react';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { PublicKey } from '@solana/web3.js';
+import bs58 from 'bs58';
 
-async function getNonce(): Promise<string> {
-  const res = await fetch('/api/auth/nonce', { cache: 'no-store' });
+// TypeScript declaration for Phantom wallet
+declare global {
+  interface Window {
+    solana?: {
+      isPhantom?: boolean;
+      connect: () => Promise<{ publicKey: PublicKey }>;
+      signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
+    };
+  }
+}
+
+// Helper function to get CSRF token
+function _getCsrfToken(): string | null {
+  const cookies = document.cookie.split(';');
+  const csrfCookie = cookies.find((cookie) => cookie.trim().startsWith('csrf='));
+  return csrfCookie ? csrfCookie.split('=')[1] : null;
+}
+
+async function getNonce(pubkey: string): Promise<string> {
+  const res = await fetch('/api/auth/nonce', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pubkey }),
+    cache: 'no-store',
+  });
   const j = await res.json();
   if (!res.ok) throw new Error(j?.error || 'failed');
   return j.nonce as string;
@@ -29,29 +53,48 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      if (!adapter.connected) await adapter.connect();
-      const pk = adapter.publicKey as PublicKey | null;
-      if (!pk) throw new Error('No public key');
-      const pubkey = pk.toBase58();
-      const nonce = await getNonce();
+      // Check if Phantom is available
+      if (!window.solana || !window.solana.isPhantom) {
+        throw new Error('Phantom wallet not detected. Please install Phantom wallet.');
+      }
+
+      // Connect to Phantom
+      const response = await window.solana.connect();
+      const pubkey = response.publicKey.toString();
+
+      // Get nonce
+      const nonce = await getNonce(pubkey);
+
+      // Create message
       const tsIso = new Date().toISOString();
       const message = `Keymaker-Login|pubkey=${pubkey}|ts=${tsIso}|nonce=${nonce}`;
+
+      // Sign message
       const encoded = new TextEncoder().encode(message);
-      // wallet adapter signMessage is available on Phantom
-      const sigBytes: Uint8Array = await adapter.signMessage(encoded);
-      const signatureBase64 = Buffer.from(sigBytes).toString('base64');
-      const messageBase64 = Buffer.from(encoded).toString('base64');
+      const signature = await window.solana.signMessage(encoded);
+      const signatureBase58 = bs58.encode(signature.signature);
+
+      // Verify signature
       const res = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pubkey, tsIso, nonce, messageBase64, signatureBase64 }),
+        body: JSON.stringify({
+          pubkey,
+          signature: signatureBase58,
+          message,
+          nonce,
+        }),
       });
+
       const j = await res.json();
+
       if (!res.ok) throw new Error(j?.error || 'failed');
+
       // Session cookie set httpOnly by server; redirect
-      window.location.href = '/engine';
-    } catch (e: any) {
-      setError(e?.message || 'Login failed');
+      window.location.href = '/';
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Login failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -70,7 +113,7 @@ export default function LoginPage() {
           onClick={onLogin}
           disabled={loading}
         >
-          {loading ? 'Signing…' : 'Sign-in with Phantom'}
+          {loading ? 'Signing...' : 'Sign-in'}
         </button>
         {error && <div className="text-red-400 text-sm mt-3">{error}</div>}
       </div>

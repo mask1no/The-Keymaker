@@ -127,30 +127,17 @@ s)`
               DRY RUN MODE
             </div>
           )}
-          {requireArming ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => callArm(15)}
-                disabled={busy}
-                className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
-              >
-                Arm 15m
-              </button>
-              <button
-                onClick={() => callDisarm()}
-                disabled={busy}
-                className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900"
-              >
-                Disarm
-              </button>
-            </div>
-          ) : null}
           {pubkey ? (
-            <form action="/api/auth/logout" method="post">
-              <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">
-                Logout
-              </button>
-            </form>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-400">
+                {pubkey.slice(0, 4)}...{pubkey.slice(-4)}
+              </span>
+              <form action="/api/auth/logout" method="post">
+                <button className="px-3 py-1 rounded-lg border border-zinc-800 text-xs hover:bg-zinc-900">
+                  Logout
+                </button>
+              </form>
+            </div>
           ) : (
             <a
               href="/login"

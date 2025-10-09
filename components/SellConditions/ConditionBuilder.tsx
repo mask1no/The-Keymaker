@@ -5,7 +5,13 @@ import { Button } from '@/components/UI/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
 import { Input } from '@/components/UI/input';
 import { Label } from '@/components/UI/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/UI/select';
 
 interface SellCondition {
   id: string;
@@ -55,7 +61,7 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
   };
 
   const removeCondition = (id: string) => {
-    const updatedConditions = conditions.filter(c => c.id !== id);
+    const updatedConditions = conditions.filter((c) => c.id !== id);
     setConditions(updatedConditions);
     onConditionsChange(updatedConditions);
   };
@@ -72,7 +78,10 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
           <div className="space-y-2">
             <h4 className="font-semibold">Active Conditions</h4>
             {conditions.map((condition) => (
-              <div key={condition.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={condition.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex-1">
                   <span className="font-medium">
                     {condition.type === 'price' && 'Price'}
@@ -86,14 +95,11 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
                   </span>
                   <span>{condition.value}</span>
                   <span className="ml-2 text-sm text-gray-600">
-                    → {condition.action === 'sell_all' ? 'Sell All' : `Sell ${condition.percentage}%`}
+                    →{' '}
+                    {condition.action === 'sell_all' ? 'Sell All' : `Sell ${condition.percentage}%`}
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeCondition(condition.id)}
-                >
+                <Button variant="outline" size="sm" onClick={() => removeCondition(condition.id)}>
                   Remove
                 </Button>
               </div>
@@ -104,7 +110,7 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
         {/* Add New Condition */}
         <div className="space-y-4 p-4 border rounded-lg">
           <h4 className="font-semibold">Add New Condition</h4>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Condition Type</Label>
@@ -127,7 +133,9 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
               <Label>Operator</Label>
               <Select
                 value={newCondition.operator}
-                onValueChange={(value) => setNewCondition({ ...newCondition, operator: value as any })}
+                onValueChange={(value) =>
+                  setNewCondition({ ...newCondition, operator: value as any })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select operator" />
@@ -146,7 +154,9 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
             <Input
               type="number"
               value={newCondition.value || ''}
-              onChange={(e) => setNewCondition({ ...newCondition, value: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                setNewCondition({ ...newCondition, value: parseFloat(e.target.value) })
+              }
               placeholder="Enter value"
             />
           </div>
@@ -156,7 +166,9 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
               <Label>Action</Label>
               <Select
                 value={newCondition.action}
-                onValueChange={(value) => setNewCondition({ ...newCondition, action: value as any })}
+                onValueChange={(value) =>
+                  setNewCondition({ ...newCondition, action: value as any })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select action" />
@@ -174,7 +186,9 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
                 <Input
                   type="number"
                   value={newCondition.percentage || ''}
-                  onChange={(e) => setNewCondition({ ...newCondition, percentage: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setNewCondition({ ...newCondition, percentage: parseInt(e.target.value) })
+                  }
                   placeholder="50"
                   min="1"
                   max="100"
@@ -191,3 +205,5 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
     </Card>
   );
 }
+
+export default ConditionBuilder;

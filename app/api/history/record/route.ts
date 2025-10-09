@@ -19,7 +19,8 @@ export async function POST(request: Request) {
       schema,
     });
     return NextResponse.json({ ok: true, received: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Failed to record bundle' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'Failed to record bundle';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

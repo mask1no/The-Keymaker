@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/Card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
+import { CheckCircle } from 'lucide-react';
 
 export default function EnginePage() {
   return (
@@ -11,10 +12,13 @@ export default function EnginePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-100">Trading Engine</h1>
-          <p className="text-zinc-400 mt-2">Advanced trading engine with RPC and Jito integration</p>
+          <p className="text-zinc-400 mt-2">
+            Advanced trading engine with RPC and Jito integration
+          </p>
         </div>
         <Badge variant="outline" className="border-green-500 text-green-400">
-          🟢 Engine Ready
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Engine Ready
         </Badge>
       </div>
 
@@ -22,9 +26,7 @@ export default function EnginePage() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-zinc-100">RPC Trading</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Standard RPC-based trading
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Standard RPC-based trading</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -39,9 +41,7 @@ export default function EnginePage() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-zinc-100">Jito Bundles</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Fast transaction execution
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Fast transaction execution</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -56,9 +56,7 @@ export default function EnginePage() {
         <Card className="bg-zinc-900/50 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-zinc-100">Volume Bot</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Automated volume generation
-            </CardDescription>
+            <CardDescription className="text-zinc-400">Automated volume generation</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-zinc-300 mb-4">
@@ -83,11 +81,11 @@ export default function EnginePage() {
             <div className="text-center">
               <div className="text-2xl font-bold text-green-400">RPC</div>
               <div className="text-sm text-zinc-400">Active</div>
-              </div>
+            </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-400">Jito</div>
               <div className="text-sm text-zinc-400">Ready</div>
-              </div>
+            </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-400">Volume</div>
               <div className="text-sm text-zinc-400">0 Tasks</div>
