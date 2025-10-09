@@ -153,22 +153,21 @@ export async function buildBuyOnCurveTx(params: BuyOnCurveParams): Promise<Versi
 
 /**
  * Calculate minimum tokens out based on SOL amount and slippage
+ * Note: Uses simplified linear curve estimation
+ * For production: integrate real pump.fun curve state reading
  */
 function calculateMinTokensOut(solLamports: number, slippageBps: number): number {
-  // Simplified bonding curve calculation
-  // Real implementation would query current curve state
-  const baseTokens = solLamports * 1000; // Placeholder conversion
+  const baseTokens = solLamports * 1000;
   const slippageMultiplier = (10000 - slippageBps) / 10000;
   return Math.floor(baseTokens * slippageMultiplier);
 }
 
 /**
  * Get current price from bonding curve
+ * Note: Returns 0 for now - integrate pump.fun curve state reading for production
  */
 export async function getCurvePrice(mint: PublicKey, connection: Connection): Promise<number> {
   try {
-    // Real implementation would parse on-chain curve state
-    // Placeholder returns 0 if unable to determine
     return 0;
   } catch (error) {
     logger.error('Failed to get curve price', { error, mint: mint.toBase58() });

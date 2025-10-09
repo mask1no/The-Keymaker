@@ -276,10 +276,15 @@ export async function resumeVolumeBots(connection: Connection): Promise<void> {
 
     if (!profile) continue;
 
-    // TODO: Load wallet keypairs for this profile
-    const wallets: Keypair[] = [];
+    // Note: Wallet keypairs cannot be loaded without password
+    // Volume bots will resume when manually restarted with password via API
+    logger.warn('Volume run requires manual restart with password', {
+      runId: run.id,
+      profileId: run.profile_id,
+    });
 
-    scheduleNextAction(run.id, profile as VolumeProfile, wallets, connection);
+    // Mark as stopped since we can't decrypt wallets without password
+    await db.run('UPDATE volume_runs SET status = ? WHERE id = ?', ['stopped', run.id]);
   }
 }
 
