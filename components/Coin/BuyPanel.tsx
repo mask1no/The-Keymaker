@@ -79,14 +79,20 @@ export default function BuyPanel({
     setBusy(null);
   }
 
-  async function jitoBuy() {
+  async function bundleBuy() {
     if (!canBuy) return;
     setBusy('jito');
     setMsg('');
     try {
-      const res = await fetch('/api/engine/jito/buy', {
+      // Get CSRF token from cookies
+      const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf='))?.split('=')[1];
+      
+      const res = await fetch('/api/engine/bundle/buy', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 
+          'content-type': 'application/json',
+          ...(csrfToken && { 'x-csrf-token': csrfToken })
+        },
         body: JSON.stringify({
           groupId,
           mint,
@@ -99,10 +105,10 @@ export default function BuyPanel({
         }),
       });
       const j = await res.json();
-      if (!res.ok || j?.error) throw new Error(j?.error || 'Jito buy failed');
-      setMsg(dryRun ? 'Jito bundle simulated.' : 'Jito bundle submitted.');
+      if (!res.ok || j?.error) throw new Error(j?.error || 'Bundle buy failed');
+      setMsg(dryRun ? 'Bundle simulated.' : 'Bundle submitted.');
     } catch (e: any) {
-      setMsg(e?.message || 'Jito buy failed');
+      setMsg(e?.message || 'Bundle buy failed');
     }
     setBusy(null);
   }
@@ -214,15 +220,15 @@ export default function BuyPanel({
             <div className="flex items-end">
               <button
                 disabled={!canBuy || busy === 'jito'}
-                onClick={jitoBuy}
+                onClick={bundleBuy}
                 className="button bg-green-700 hover:bg-green-600 px-3 py-2 w-full disabled:opacity-60"
               >
-                {busy === 'jito' ? 'Bundling' : 'Turbo Buy'}
+                {busy === 'jito' ? 'Bundling' : 'Bundle Buy'}
               </button>
             </div>
           </div>
           <div className="mt-2 text-[11px] text-zinc-500">
-            Submits a bundle to the Jito block engine. Faster/atomic; requires a tip.
+            Submits a bundle to the block engine. Faster/atomic; requires a tip.
           </div>
         </div>
       </div>
