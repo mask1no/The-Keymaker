@@ -9,6 +9,31 @@ export interface EngineConfig {
   timeout?: number;
 }
 
+export interface ExecOptions {
+  dryRun?: boolean;
+  priority?: number;
+  mode?: ExecutionMode;
+}
+
+export interface SubmitPlan {
+  txs: unknown[];
+  mode: ExecutionMode;
+}
+
+export interface EngineSubmitResult {
+  success: boolean;
+  txids?: string[];
+  error?: string;
+  bundleId?: string;
+  simulated?: boolean;
+  statusHint?: string;
+}
+
+export interface Engine {
+  submit(plan: SubmitPlan, opts: ExecOptions): Promise<EngineSubmitResult>;
+  pollStatus(plan: SubmitPlan | null, opts: ExecOptions): Promise<unknown>;
+}
+
 export interface TradeParams {
   mint: string;
   amount: number;

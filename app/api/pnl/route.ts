@@ -5,6 +5,29 @@ import { getDb } from '@/lib/db/sqlite';
 
 export const dynamic = 'force-dynamic';
 
+interface Trade {
+  id: number;
+  mint: string;
+  side: 'buy' | 'sell';
+  qty: number;
+  priceLamports: number;
+  feeLamports: number;
+  priorityFeeLamports: number;
+  signature: string | null;
+  ts: number;
+  wallet: string | null;
+}
+
+interface PnLResult {
+  realized: number;
+  unrealized: number;
+  net: number;
+  buys: number;
+  sells: number;
+  fees: number;
+  count: number;
+}
+
 export async function GET(request: NextRequest) {
   const session = getSession(request);
   if (!session) {
@@ -19,98 +42,109 @@ export async function GET(request: NextRequest) {
 
     const db = getDb();
 
+    // Get trades for the user
     let query = `
       SELECT 
-        t.id,
-        t.mint,
-        t.side,
-        t.qty,
-        t.priceLamports,
-        t.feeLamports,
-        t.priorityFeeLamports,
-        t.sig,
-        t.ts,
-        t.created_at,
-        p.qty as position_qty,
-        p.cost_basis_lamports,
-        p.realized_pnl_lamports
-      FROM trades t
-      LEFT JOIN positions p ON t.wallet = p.wallet AND t.mint = p.mint
-      WHERE t.wallet = ?
+        id,
+        mint,
+        side,
+        qty,
+        priceLamports,
+        feeLamports,
+        priorityFeeLamports,
+        signature,
+        ts,
+        wallet
+      FROM trades
+      WHERE wallet = ?
     `;
 
-    const params: (string | number)[] = [session.sub];
+    const params: (string | number)[] = [session.userPubkey];
 
     if (wallet) {
-      query += ' AND t.wallet = ?';
+      query += ' AND wallet = ?';
       params.push(wallet);
     }
 
-    query += ' ORDER BY t.ts DESC LIMIT ? OFFSET ?';
+    query += ' ORDER BY ts DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
-    const trades = db.all(query, params);
+    const trades = db.prepare(query).all(...params) as Trade[];
 
-    // Calculate P&L for each trade
-    interface Trade {
-      priceLamports: number;
-      qty: number;
-      feeLamports?: number;
-      priorityFeeMicrolamports?: number;
-      side: 'buy' | 'sell';
-      ts: number;
-      mint: string;
+    // Calculate P&L from trades only
+    const pnlResult: PnLResult = {
+      realized: 0,
+      unrealized: 0,
+      net: 0,
+      buys: 0,
+      sells: 0,
+      fees: 0,
+      count: trades.length,
+    };
+
+    const mintPositions = new Map<string, { qty: number; costBasis: number }>();
+
+    for (const trade of trades) {
+      const qtySol = trade.qty / 1e9;
+      const priceSol = trade.priceLamports / 1e9;
+      const feeSol = (trade.feeLamports + trade.priorityFeeLamports) / 1e9;
+      
+      pnlResult.fees += feeSol;
+
+      if (trade.side === 'buy') {
+        pnlResult.buys += qtySol * priceSol;
+        
+        const current = mintPositions.get(trade.mint) || { qty: 0, costBasis: 0 };
+        const totalCost = current.qty * current.costBasis + qtySol * priceSol;
+        const totalQty = current.qty + qtySol;
+        
+        mintPositions.set(trade.mint, {
+          qty: totalQty,
+          costBasis: totalQty > 0 ? totalCost / totalQty : 0,
+        });
+      } else {
+        pnlResult.sells += qtySol * priceSol;
+        
+        const current = mintPositions.get(trade.mint);
+        if (current) {
+          const avgCost = current.costBasis;
+          const realizedPnL = qtySol * (priceSol - avgCost);
+          pnlResult.realized += realizedPnL;
+          
+          mintPositions.set(trade.mint, {
+            qty: Math.max(0, current.qty - qtySol),
+            costBasis: current.costBasis,
+          });
+        }
+      }
     }
 
-    const pnlEntries = trades.map((trade: Trade) => {
-      const priceSol = trade.priceLamports / 1e9;
-      const qtySol = trade.qty / 1e9;
-      const feeSol = (trade.feeLamports || 0) / 1e9;
-      const priorityFeeSol = (trade.priorityFeeMicrolamports || 0) / 1e9;
+    // Calculate unrealized P&L (would need current market prices)
+    // For now, set to 0 - this would be enhanced with market data
+    pnlResult.unrealized = 0;
 
-      let pnlSol = 0;
-      if (trade.side === 'sell' && trade.realized_pnl_lamports) {
-        pnlSol = trade.realized_pnl_lamports / 1e9;
-      }
-
-      return {
-        id: trade.id,
-        mint: trade.mint,
-        side: trade.side,
-        qty: qtySol,
-        priceSol,
-        feeSol,
-        priorityFeeSol,
-        pnlSol,
-        signature: trade.sig,
-        timestamp: new Date(trade.ts).toISOString(),
-        createdAt: trade.created_at,
-      };
-    });
-
-    // Get total P&L
-    const totalPnLQuery = `
-      SELECT SUM(realized_pnl_lamports) as total_pnl
-      FROM positions 
-      WHERE wallet = ?
-    `;
-    const totalPnLResult = db.get(totalPnLQuery, [session.sub]) as
-      | { total_pnl: number }
-      | undefined;
-    const totalPnL = (totalPnLResult?.total_pnl || 0) / 1e9;
+    pnlResult.net = pnlResult.realized + pnlResult.unrealized - pnlResult.fees;
 
     return NextResponse.json({
       success: true,
-      pnlEntries,
-      totalPnL,
+      ...pnlResult,
+      trades: trades.map(trade => ({
+        id: trade.id,
+        mint: trade.mint,
+        side: trade.side,
+        qty: trade.qty / 1e9,
+        priceSol: trade.priceLamports / 1e9,
+        feeSol: (trade.feeLamports + trade.priorityFeeLamports) / 1e9,
+        signature: trade.signature,
+        timestamp: new Date(trade.ts).toISOString(),
+      })),
       pagination: {
         limit,
         offset,
-        total: pnlEntries.length,
+        total: trades.length,
       },
     });
   } catch (error) {
-    // P&L fetch error
     return NextResponse.json(
       {
         success: false,

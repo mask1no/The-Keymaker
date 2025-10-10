@@ -59,11 +59,11 @@ export function verifySessionValue(value: string | null | undefined): SessionPay
   }
 }
 
-export function getSession(req: NextRequest): { sub: string } | null {
+export function getSession(req: NextRequest): { sub: string; userPubkey: string } | null {
   const value = req.cookies.get(SESSION_COOKIE)?.value;
   const payload = verifySessionValue(value);
   if (!payload) return null;
-  return { sub: payload.sub };
+  return { sub: payload.sub, userPubkey: payload.sub };
 }
 
 export function setSessionCookie(sub: string, uaHash?: string, origin?: string): void {
@@ -87,11 +87,11 @@ export function clearSessionCookie(): void {
   });
 }
 
-export function getSessionFromCookies(): { sub: string } | null {
+export function getSessionFromCookies(): { sub: string; userPubkey: string } | null {
   const value = cookies().get(SESSION_COOKIE)?.value;
   const payload = verifySessionValue(value);
   if (!payload) return null;
-  return { sub: payload.sub };
+  return { sub: payload.sub, userPubkey: payload.sub };
 }
 
 const nonceStore = new Map<string, number>();

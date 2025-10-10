@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'live_disabled' }, { status: 503 });
     }
     // Require authenticated session and ownership of the group
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();

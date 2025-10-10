@@ -55,7 +55,7 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
     'confirmed',
   );
 
-  const migrated = await isMigrated(mintPubkey, connection);
+  const migrated = await isMigrated(mintPubkey.toString(), connection);
 
   if (!migrated) {
     throw new Error('bonding_curve_not_supported');
@@ -128,7 +128,7 @@ export async function multiWalletBuy(params: MultiWalletBuyParams): Promise<Trad
         priceLamports: perWalletSolLamports,
         feeLamports: 5000,
         priorityFeeLamports: priorityFeeMicrolamports ?? 0,
-        sig: signature,
+        txid: signature,
       });
 
       results.push({
@@ -280,7 +280,7 @@ export async function multiWalletSell(params: MultiWalletSellParams): Promise<Tr
         priceLamports: 0,
         feeLamports: 5000,
         priorityFeeLamports: priorityFeeMicrolamports ?? 0,
-        sig: signature,
+        txid: signature,
       });
 
       results.push({
@@ -407,7 +407,7 @@ export async function multiWalletSellAll(params: MultiWalletSellAllParams): Prom
             priceLamports: 0,
             feeLamports: 5000,
             priorityFeeLamports: priorityFeeMicrolamports ?? 0,
-            sig: signature,
+            txid: signature,
           });
 
           sellResults.push(signature);

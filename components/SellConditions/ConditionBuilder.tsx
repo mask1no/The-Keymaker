@@ -99,7 +99,7 @@ export function ConditionBuilder({ onConditionsChange }: ConditionBuilderProps) 
                     {condition.action === 'sell_all' ? 'Sell All' : `Sell ${condition.percentage}%`}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => removeCondition(condition.id)}>
+                <Button variant="outline" onClick={() => removeCondition(condition.id)}>
                   Remove
                 </Button>
               </div>

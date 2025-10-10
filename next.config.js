@@ -10,7 +10,8 @@ const SECURITY_HEADERS = [
     key: 'Content-Security-Policy',
     value:
       "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
-      "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self';",
+      "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; " +
+      "connect-src 'self' https://api.helius.xyz wss://*.helius-rpc.com https://block-engine.jito.wtf https://api.dexscreener.com https://public-api.birdeye.so https://o*.ingest.sentry.io;",
   },
 ];
 

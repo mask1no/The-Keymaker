@@ -63,11 +63,11 @@ export default function SentryExamplePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button onClick={triggerTestError} variant="destructive" className="w-full">
+              <Button onClick={triggerTestError} variant="outline" className="w-full">
                 Trigger Test Error ({errorCount})
               </Button>
 
-              <Button onClick={triggerAsyncError} variant="destructive" className="w-full">
+              <Button onClick={triggerAsyncError} variant="outline" className="w-full">
                 Trigger Async Error
               </Button>
 
@@ -77,7 +77,7 @@ export default function SentryExamplePage() {
 
               <Button
                 onClick={triggerUnhandledPromiseRejection}
-                variant="destructive"
+                variant="outline"
                 className="w-full"
               >
                 Unhandled Promise Rejection

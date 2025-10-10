@@ -11,9 +11,9 @@ import { decrypt } from '@/lib/crypto';
 const sellSchema = z.object({
   mint: z.string().min(32).max(44),
   walletPubkeys: z.array(z.string().min(32).max(44)).min(1).max(20),
-  sellPctOrAmount: z.union([z.number().positive(), z.literal('all')]),
+  sellPctOrLamports: z.union([z.number().positive(), z.literal('all')]),
   slippageBps: z.number().int().min(0).max(10000).default(300),
-  priorityFeeMicroLamports: z.number().int().nonnegative().default(50_000),
+  priorityFeeMicrolamports: z.number().int().nonnegative().default(50_000),
   password: z.string().min(1),
   dryRun: z.boolean().default(false),
 });
@@ -60,9 +60,9 @@ export const POST = withSessionAndLimit(async (request) => {
     const results = await multiWalletSell({
       mint: validated.mint,
       wallets: walletKeypairs,
-      sellPctOrAmount: validated.sellPctOrAmount,
+      sellPctOrLamports: validated.sellPctOrLamports,
       slippageBps: validated.slippageBps,
-      priorityFeeMicroLamports: validated.priorityFeeMicroLamports,
+      priorityFeeMicrolamports: validated.priorityFeeMicrolamports,
       connection,
       dryRun: validated.dryRun,
     });

@@ -14,7 +14,7 @@ const buySchema = z.object({
   perWalletSol: z.number().positive().max(10),
   slippageBps: z.number().int().min(0).max(10000).default(300),
   impactCapPct: z.number().positive().max(50).default(5),
-  priorityFeeMicroLamports: z.number().int().nonnegative().default(50_000),
+  priorityFeeMicrolamports: z.number().int().nonnegative().default(50_000),
   password: z.string().min(1),
   dryRun: z.boolean().default(false),
 });
@@ -64,7 +64,7 @@ export const POST = withSessionAndLimit(async (request) => {
       perWalletSolLamports: Math.floor(validated.perWalletSol * 1e9),
       slippageBps: validated.slippageBps,
       impactCapPct: validated.impactCapPct,
-      priorityFeeMicroLamports: validated.priorityFeeMicroLamports,
+      priorityFeeMicrolamports: validated.priorityFeeMicrolamports,
       connection,
       dryRun: validated.dryRun,
     });

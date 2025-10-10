@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const cfg = getRateConfig('submit');
     const rl = await rateLimit(`coin:pumpfun_buy:${fwd || 'anon'}`, cfg.limit, cfg.windowMs);
     if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();

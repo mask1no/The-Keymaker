@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic';
 // CRUD for durable storage
 export async function GET(request: Request) {
   try {
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const url = new URL(request.url);
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     if (!rl.allowed) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
 
     // Session
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
@@ -290,7 +290,7 @@ async function persistConditions(input: {
 
 export async function PUT(request: Request) {
   try {
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const body = await request.json();
@@ -311,7 +311,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const session = getSession();
+    const session = getSession(request);
     const user = session?.userPubkey || '';
     if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     const url = new URL(request.url);
