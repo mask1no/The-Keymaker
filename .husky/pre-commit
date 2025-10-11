@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm -s check:ellipses || exit 1
+pnpm -s check:forbidden || exit 1
+pnpm -s check:colors || exit 1
+pnpm -s lint --fix || true
+pnpm -s format || true

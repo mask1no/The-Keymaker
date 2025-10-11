@@ -1,0 +1,351 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@solana/wallet-adapter-react-ui/styles.css';
+
+:root {
+  --k-bg: #0b0b0c;
+  --k-surface: #111113;
+  --k-border: #222326;
+  --k-text: #e7e7ea;
+  --k-muted: #9a9aa3;
+  --k-success: #22c55e;
+  --k-warn: #f59e0b;
+  --k-danger: #ef4444;
+  --k-accent: #8b5cf6;
+  --radius: 1.25rem;
+
+  /* Theme tokens (HSL) */
+  --background: 222 47% 4%; /* zinc-950 */
+  --foreground: 210 20% 98%; /* zinc-50 */
+
+  --card: 222 47% 6%;
+  --card-foreground: 210 20% 98%;
+
+  --popover: 222 47% 6%;
+  --popover-foreground: 210 20% 98%;
+
+  /* White-primary theme */
+  --primary: 0 0% 95%; /* #F3F4F6 */
+  --primary-hover: 0 0% 100%; /* #FFFFFF */
+  --primary-active: 220 9% 90%; /* #E5E7EB */
+  --primary-foreground: 240 27% 5%; /* #0B0B0F */
+  --ring: 0 0% 100% / 0.28; /* rgba(255,255,255,.28) */
+  --success: 142 72% 45%; /* #22C55E */
+  --warn: 36 95% 56%; /* #F59E0B */
+  --error: 0 84% 63%; /* #EF4444 */
+
+  --secondary: 240 5% 20%;
+  --secondary-foreground: 210 20% 98%;
+
+  --muted: 240 5% 12%;
+  --muted-foreground: 215 16% 75%;
+
+  --accent: 240 5% 16%;
+  --accent-foreground: 210 20% 98%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 20% 98%;
+
+  --border: 240 5% 26%;
+  --input: 240 5% 26%;
+}
+
+html,
+body {
+  background: var(--k-bg);
+  color: var(--k-text);
+}
+
+a {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+
+a:hover {
+  opacity: 0.9;
+}
+
+/* Responsive bento grid */
+.bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .bento {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .bento {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+/* Card styling */
+.card {
+  background: hsl(var(--card));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.06s,
+    box-shadow 0.15s;
+}
+.card:hover {
+  border-color: rgba(100, 149, 237, 0.35);
+  box-shadow: 0 0 0 1px rgba(100, 149, 237, 0.25) inset;
+}
+.card.active {
+  background: color-mix(in hsl, hsl(var(--card)) 80%, hsl(var(--primary)) 20%);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+
+/* Subtle motion for bento cards */
+.card {
+  will-change: transform;
+}
+.card:active {
+  transform: translateY(1px);
+}
+
+/* Badges and labels */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: hsla(217, 91%, 60%, 0.15);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  font-size: 12px;
+}
+.label {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Typography scale */
+.h1 {
+  font-size: clamp(1.5rem, 1.1rem + 1vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.h2 {
+  font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.5rem);
+  font-weight: 600;
+}
+.h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.p-muted {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Utilities */
+.border-k {
+  border-color: var(--k-border);
+}
+.text-muted {
+  color: var(--k-muted);
+}
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  width: 100%;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+
+/* Controls consistency */
+.input,
+.select,
+.button {
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+  min-height: 44px; /* Touch target size for mobile accessibility */
+  padding: 0.5rem 1rem;
+}
+.input:focus,
+.select:focus,
+.button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.button:hover {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tables / lists */
+.table {
+  width: 100%;
+  font-size: 0.9rem;
+  border-collapse: collapse;
+}
+.table thead th {
+  text-align: left;
+  padding: 8px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+.table tbody td {
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.table.compact tbody td {
+  padding: 6px;
+}
+.table.zebra tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Focus & a11y */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+  border-radius: 10px;
+}
+
+/* Skip to content accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:not(.focus\:not-sr-only:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Improved focus indicators for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Dark coding theme tokens (hex), used by SSR-only pages */
+:root {
+  --bg: #0b0e13;
+  --surface: #121826;
+  --surface-hi: #1b2436;
+  --border: #233048;
+  --text: #e6edf3;
+  --muted: #9fb0c0;
+  --accent: #6aa9ff;
+  --accent-2: #64d3a5;
+  --code-blue: #7aa2f7;
+  --code-pink: #f7768e;
+  --code-purple: #bb9af7;
+  --code-cyan: #7dcfff;
+  --code-orange: #e0af68;
+}
+
+/* Utilities for SSR UI */
+.pressable {
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.06s;
+}
+.pressable:active {
+  transform: translateY(1px);
+}
+.focusable {
+  outline: none;
+}
+.focusable:focus-visible {
+  box-shadow: 0 0 0 2px rgba(106, 169, 255, 0.35);
+  border-radius: 10px;
+}
+
+/* Code-style headings */
+.k {
+  color: var(--code-blue);
+}
+.s {
+  color: var(--code-pink);
+}
+.fn {
+  color: var(--code-purple);
+}
+.n {
+  color: var(--code-cyan);
+}
+.err {
+  color: var(--code-orange);
+}
+
+/* Alternate card/bento in dark theme */
+.card {
+  background: color-mix(in srgb, var(--surface) 96%, black 4%);
+}
+.card.active {
+  background: var(--surface-hi);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(106, 169, 255, 0.25) inset;
+}
+.badge {
+  background: rgba(106, 169, 255, 0.12);
+  color: var(--text);
+}

@@ -1,0 +1,21 @@
+# Prettier ignore file
+node_modules/
+.next/
+dist/
+coverage/
+
+# Exclude legacy or archived code with malformed syntax
+archive/
+archive/**
+
+# Exclude large script/service trees from formatting
+scripts/**
+services/**
+
+# Tests and tools
+tests/**
+tools/**
+
+# Local/generated artifacts
+keypairs/**
+data/**

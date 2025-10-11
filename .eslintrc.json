@@ -1,0 +1,28 @@
+{
+  "env": { "browser": true, "node": true, "jest": true },
+  "extends": ["next", "eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "ignoreRestSiblings": true }
+    ],
+    "@typescript-eslint/ban-ts-comment": ["warn", { "ts-ignore": "allow-with-description" }],
+    "@typescript-eslint/no-empty-function": "warn",
+    "no-empty": ["warn", { "allowEmptyCatch": true }],
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@next/next/no-img-element": "off"
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
+      "env": { "jest": true },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    }
+  ]
+}

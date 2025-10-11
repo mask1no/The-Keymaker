@@ -1,0 +1,18 @@
+'use client';
+
+import { Loader2 } from 'lucide-react';
+
+interface BundleSpinnerProps {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+export function BundleSpinner({ size = 'md', className = '' }: BundleSpinnerProps) {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+  };
+
+  return <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />;
+}
