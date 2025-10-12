@@ -3,8 +3,8 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "npm --prefix apps/web run build && npm --prefix apps/daemon run build",
-    "dev": "concurrently -k -n WEB,DAEMON -c cyan,magenta \"npm --prefix apps/web run dev\" \"npm --prefix apps/daemon run dev\"",
+    "build": "npm -w apps/web run build && npm -w apps/daemon run build",
+    "dev": "concurrently -k -n WEB,DAEMON -c cyan,magenta \"npm -w apps/web run dev\" \"npm -w apps/daemon run dev\"",
     "lint": "eslint ."
   },
   "devDependencies": {
