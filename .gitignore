@@ -1,4 +1,34 @@
-﻿node_modules/
+﻿# dependencies
+node_modules/
+
+# env
+.env
+.env.*
+!.env.example
+
+# build outputs
+.next/
+dist/
+coverage/
+
+# logs
+*.log
+logs/
+
+# DB/keystore (local only)
+apps/daemon/keymaker.sqlite*
+apps/daemon/keystore.json
+
+# misc
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# editor/system
+.vscode/
+AppData/
+
+node_modules/
 .next/
 .turbo/
 dist/

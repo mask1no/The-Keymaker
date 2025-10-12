@@ -1,26 +1,26 @@
-# The Keymaker (Minimal)
+# The Keymaker — Monorepo (Web + Daemon)
 
-Quick start
+Architecture
 
-- API: `docker compose up -d` → http://localhost:3001
-- UI: `pnpm dev` → http://localhost:3000
+- apps/web: Next.js 14 App Router UI (port 3000)
+- apps/daemon: Node/TS WebSocket daemon (port 8787)
+- packages/types: shared TypeScript types
+- packages/logger: minimal structured logger
 
-Environment
+Setup
 
-- Create `.env.local` from `.env.example` and set:
-  - `HELIUS_RPC_URL`
-  - `NEXT_PUBLIC_API_BASE=http://localhost:3001`
-  - optional: `JITO_RELAY_URL`, `JITO_TIP_LAMPORTS_DEFAULT`
+1) `npm install`
+2) Copy `.env.example` to `.env` and set `RPC_URL` (and others)
+3) `npm run dev` then open http://localhost:3000
 
-Core flows (Fastify API)
+Concepts
 
-- Wallets: POST `/api/wallets/create|import|list`
-- Funding: POST `/api/funding/execute`
-- Engine: POST `/api/engine/bundle` (mode RPC/JITO)
-- Sells: POST `/api/sell/all|percent|at-time`
-- P&L: GET `/api/history`, `/api/pnl?format=csv|json`
+- Master Wallet: The connected wallet in the UI is recorded client-side and acknowledged by daemon via message meta. No private keys in web.
+- Daemon: Owns keystore, RPC/Jito, transactions, bundles, logging.
 
-Security
+Acceptance (first pass)
 
-- Local keystore with AES-256-GCM via passphrase (server). No secrets logged.
-- CORS locked to `http://localhost:3000`.
+- Web boots, wallet connect works (Phantom/Solflare/Backpack)
+- Daemon WS on 8787, HEALTH messages every 5s
+- Market Maker page can send TASK_CREATE and receive TASK_ACCEPTED
+- SQLite file created at `DB_FILE`, tables present
