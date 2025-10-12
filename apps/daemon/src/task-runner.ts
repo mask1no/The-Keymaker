@@ -1,7 +1,10 @@
 import { v4 as uuid } from "uuid";
+import { EventEmitter } from "events";
 import { db, tasks, task_events } from "./db";
 import { eq } from "drizzle-orm";
 import { buildSnipeTxs, buildMMPlan, submitBundle, confirmSigs } from "./solana";
+
+export const taskEvents = new EventEmitter();
 
 export async function handleTaskCreate(msg: any) {
   const id = uuid();
@@ -40,8 +43,9 @@ async function buildOrMM(id: string) {
 }
 
 async function step(id: string, state: string, info?: any) {
-  await db.update(tasks).set({ state, updated_at: Date.now() }).where(tasks.id.eq(id));
+  await db.update(tasks).set({ state, updated_at: Date.now() }).where(eq(tasks.id, id));
   await db.insert(task_events).values({ task_id: id, state, info: JSON.stringify(info ?? {}), at: Date.now() });
+  taskEvents.emit("event", { id, state, info });
 }
 
 

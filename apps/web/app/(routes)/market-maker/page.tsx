@@ -1,13 +1,27 @@
 "use client";
 import { useDaemonWS } from "../../../lib/ws";
 import { useApp } from "../../../lib/store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MarketMaker() {
   const { send } = useDaemonWS();
   const { masterWallet } = useApp();
   const [ca, setCa] = useState("");
   const [mode, setMode] = useState<"SNIPE" | "MM">("SNIPE");
+  const [log, setLog] = useState<Array<{ ts: number; state: string; info?: any }>>([]);
+
+  useEffect(() => {
+    const ws: WebSocket | undefined = (window as any).__daemon_ws__;
+    if (!ws) return;
+    const onMsg = (e: MessageEvent) => {
+      try {
+        const m = JSON.parse(e.data);
+        if (m.kind === "TASK_EVENT") setLog((l)=>[...l, { ts: Date.now(), state: m.state, info: m.info }]);
+      } catch {}
+    };
+    ws.addEventListener("message", onMsg);
+    return () => ws.removeEventListener("message", onMsg);
+  }, []);
 
   function startTask() {
     send({
@@ -37,6 +51,16 @@ export default function MarketMaker() {
           <button style={{ padding: "8px 16px", borderRadius: 12, background: "#059669" }} onClick={startTask}>
             Start Task
           </button>
+        </div>
+      </div>
+      <div style={{ padding: 16, borderRadius: 16, background: "#18181b", border: "1px solid #27272a" }}>
+        <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Task Log</h3>
+        <div style={{ display: "grid", gap: 6 }}>
+          {log.map((r, i) => (
+            <div key={i} style={{ fontSize: 12, color: r.state === "FAIL" ? "#ef4444" : "#a1a1aa" }}>
+              {new Date(r.ts).toLocaleTimeString()} — {r.state} {r.info ? JSON.stringify(r.info) : ""}
+            </div>
+          ))}
         </div>
       </div>
     </div>

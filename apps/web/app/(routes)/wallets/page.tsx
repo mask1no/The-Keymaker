@@ -2,50 +2,38 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useApp } from "../../../lib/store";
-import bs58 from "bs58";
+import { useDaemonWS } from "../../../lib/ws";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Wallets() {
-  const { publicKey, signMessage } = useWallet();
-  const { masterWallet, setMasterWallet } = useApp();
+  const { publicKey } = useWallet();
+  const { masterWallet, folders, walletsByFolder, setFolders, setFolderWallets } = useApp();
+  const { send, onMessage } = useDaemonWS();
+  const [folderId, setFolderId] = useState("");
+  const [folderName, setFolderName] = useState("");
+  const [importSecret, setImportSecret] = useState("");
+  const [fundAmount, setFundAmount] = useState("0.01");
 
-  async function setMaster() {
-    if (!publicKey) return;
-    const ws: WebSocket | undefined = (window as any).__daemon_ws__;
-    if (!ws) return;
-    const pk = publicKey.toBase58();
-    // Start auth challenge
-    ws.send(JSON.stringify({ kind: "AUTH_START", pubkey: pk }));
-    const challenge = await new Promise<{ nonce: string }>((resolve, reject) => {
-      const onMsg = (ev: MessageEvent) => {
-        try {
-          const m = JSON.parse(ev.data);
-          if (m.kind === "AUTH_CHALLENGE") { ws.removeEventListener("message", onMsg); resolve({ nonce: m.nonce }); }
-          else if (m.kind === "ERROR") { ws.removeEventListener("message", onMsg); reject(new Error(m.error)); }
-        } catch {}
-      };
-      ws.addEventListener("message", onMsg);
-      setTimeout(() => { ws.removeEventListener("message", onMsg); reject(new Error("auth timeout")); }, 10000);
+  useEffect(() => {
+    const off = onMessage((m) => {
+      if (m.kind === "FOLDERS") setFolders(m.folders);
+      if (m.kind === "WALLETS") setFolderWallets(m.folderId, m.wallets);
     });
-    const msgBytes = new TextEncoder().encode(`Keymaker auth:${challenge.nonce}`);
-    // signMessage may be undefined on some wallets; skip if unavailable
-    const direct = (await (window as any).solana?.signMessage?.(msgBytes, "utf8"))?.signature;
-    const sigBuf = direct || (await signMessage?.(msgBytes));
-    if (!sigBuf) return;
-    const sigB58 = bs58.encode(sigBuf);
-    ws.send(JSON.stringify({ kind: "AUTH_RESP", pubkey: pk, nonce: challenge.nonce, signature: sigB58 }));
-    // Wait for OK
-    await new Promise<void>((resolve, reject) => {
-      const onMsg = (ev: MessageEvent) => {
-        try {
-          const m = JSON.parse(ev.data);
-          if (m.kind === "AUTH_OK") { ws.removeEventListener("message", onMsg); resolve(); }
-          else if (m.kind === "ERROR") { ws.removeEventListener("message", onMsg); reject(new Error(m.error)); }
-        } catch {}
-      };
-      ws.addEventListener("message", onMsg);
-      setTimeout(() => { ws.removeEventListener("message", onMsg); reject(new Error("auth timeout")); }, 10000);
-    });
-    setMasterWallet(pk);
+    send({ kind: "FOLDER_LIST" });
+    return off;
+  }, [onMessage, send, setFolders, setFolderWallets]);
+
+  function createFolder() {
+    if (!folderId || !folderName) return;
+    send({ kind: "FOLDER_CREATE", payload: { id: folderId, name: folderName } });
+    setFolderId(""); setFolderName("");
+  }
+  function createWallet(fid: string) { send({ kind: "WALLET_CREATE", payload: { folderId: fid } }); }
+  function importWallet(fid: string) { if (!importSecret) return; send({ kind: "WALLET_IMPORT", payload: { folderId: fid, secretBase58: importSecret } }); setImportSecret(""); }
+  function fundFolder(fid: string) {
+    if (!masterWallet) { alert("Authenticate master wallet first"); return; }
+    const totalSol = parseFloat(fundAmount || "0");
+    send({ kind: "FUND_WALLETS", payload: { folderId: fid, totalSol, masterPubkey: masterWallet } });
   }
 
   return (
@@ -58,18 +46,45 @@ export default function Wallets() {
           </div>
           <WalletMultiButton />
         </div>
-        <div style={{ marginTop: 16 }}>
-          <button
-            style={{ padding: "8px 16px", borderRadius: 12, background: "#059669" }}
-            disabled={!publicKey}
-            onClick={() => { setMaster().catch(console.error); }}
-          >
-            Set as Master
-          </button>
-          <p style={{ marginTop: 8, fontSize: 12 }}>Current: {masterWallet ?? "None"}</p>
+        <div style={{ marginTop: 8, fontSize: 12 }}>Current: {masterWallet ?? "None"}</div>
+      </div>
+
+      <div style={{ padding: 16, borderRadius: 16, background: "#18181b", border: "1px solid #27272a" }}>
+        <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Create Folder</h3>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input placeholder="id" value={folderId} onChange={(e)=>setFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          <input placeholder="name" value={folderName} onChange={(e)=>setFolderName(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          <button style={{ padding: "8px 12px", borderRadius: 12, background: "#059669" }} onClick={createFolder}>Create</button>
         </div>
       </div>
-      {/* TODO: Folder manager UI (create/import wallets, up to 20 per folder) */}
+
+      <div style={{ display: "grid", gap: 12 }}>
+        {folders.map((f)=>{
+          const ws = walletsByFolder[f.id] || [];
+          return (
+            <div key={f.id} style={{ padding: 16, borderRadius: 16, background: "#18181b", border: "1px solid #27272a" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{f.name}</div>
+                  <div style={{ fontSize: 12, color: "#a1a1aa" }}>{f.id} — {f.count} wallets</div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button style={{ padding: "8px 12px", borderRadius: 12, background: "#3b82f6" }} onClick={()=>createWallet(f.id)}>Create Wallet</button>
+                  <input placeholder="import secret b58" value={importSecret} onChange={(e)=>setImportSecret(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+                  <button style={{ padding: "8px 12px", borderRadius: 12, background: "#7c3aed" }} onClick={()=>importWallet(f.id)}>Import</button>
+                  <input placeholder="total SOL" value={fundAmount} onChange={(e)=>setFundAmount(e.target.value)} style={{ width: 90, padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+                  <button style={{ padding: "8px 12px", borderRadius: 12, background: "#059669" }} onClick={()=>fundFolder(f.id)}>Fund</button>
+                </div>
+              </div>
+              <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
+                {ws.map(w => (
+                  <div key={w.id} style={{ fontSize: 12, color: "#a1a1aa" }}>{w.pubkey} ({w.role})</div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
