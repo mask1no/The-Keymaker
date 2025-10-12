@@ -6,6 +6,7 @@ services:
     container_name: keymaker-api
     environment:
       - NODE_ENV=production
+      - PORT=3001
       - HELIUS_RPC_URL=${HELIUS_RPC_URL}
       - JITO_RELAY_URL=${JITO_RELAY_URL}
       - JITO_TIP_LAMPORTS_DEFAULT=${JITO_TIP_LAMPORTS_DEFAULT}

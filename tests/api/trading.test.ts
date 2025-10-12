@@ -59,7 +59,7 @@ describe('Trading API', () => {
 
   describe('POST /api/engine/rpc/buy', () => {
     it('should execute buy trade successfully', async () => {
-      const request = new NextRequest('http://localhost:3000/api/engine/rpc/buy', {
+      const request = new NextRequest('http://localhost:3001/api/engine/rpc/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ describe('Trading API', () => {
       const { getSession } = require('@/lib/server/session');
       getSession.mockReturnValue(null);
 
-      const request = new NextRequest('http://localhost:3000/api/engine/rpc/buy', {
+      const request = new NextRequest('http://localhost:3001/api/engine/rpc/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ describe('Trading API', () => {
     });
 
     it('should reject invalid input', async () => {
-      const request = new NextRequest('http://localhost:3000/api/engine/rpc/buy', {
+      const request = new NextRequest('http://localhost:3001/api/engine/rpc/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ describe('Trading API', () => {
       const { rateLimit } = require('@/lib/server/rateLimit');
       rateLimit.mockReturnValue({ allowed: false });
 
-      const request = new NextRequest('http://localhost:3000/api/engine/rpc/buy', {
+      const request = new NextRequest('http://localhost:3001/api/engine/rpc/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ describe('Trading API', () => {
       const { multiWalletBuy } = require('@/lib/engine/trade');
       multiWalletBuy.mockRejectedValue(new Error('Trading failed'));
 
-      const request = new NextRequest('http://localhost:3000/api/engine/rpc/buy', {
+      const request = new NextRequest('http://localhost:3001/api/engine/rpc/buy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

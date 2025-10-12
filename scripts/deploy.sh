@@ -73,7 +73,7 @@ check_health() {
     sleep 10
     
     for i in {1..30}; do
-        if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
+        if curl -f http://localhost:3001/api/health > /dev/null 2>&1; then
             log "✅ Application is healthy"
             return 0
         fi
@@ -94,9 +94,9 @@ cleanup_images() {
 # Function to show deployment status
 show_status() {
     log "📊 Deployment Status:"
-    echo "Application Status: Running on http://localhost:3000"
-    echo "Application URL: http://localhost:3000"
-    echo "Health Check: http://localhost:3000/api/health"
+    echo "Application Status: Running on http://localhost:3001"
+    echo "Application URL: http://localhost:3001"
+    echo "Health Check: http://localhost:3001/api/health"
     echo "Logs: Check console output or use 'npm run logs' if available"
 }
 

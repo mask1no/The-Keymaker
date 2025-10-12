@@ -12,12 +12,11 @@ import { listTrades, aggregatePnL } from '../lib/db/sqlite';
 import { getTipFloor } from '../lib/server/jitoService';
 import { getMint } from '@solana/spl-token';
 
-const PORT = 3001;
+const PORT = Number(process.env.PORT || 3001);
 
 async function buildServer() {
-  // Validate env early
+  // Validate env early (server-only)
   requireEnv('HELIUS_RPC_URL');
-  env.public; // ensure NEXT_PUBLIC_API_BASE is valid if present
 
   const app = Fastify({ logger: true });
 
@@ -28,6 +27,11 @@ async function buildServer() {
       else cb(new Error('CORS not allowed'), false);
     },
     credentials: true,
+  });
+
+  app.setErrorHandler((err, _req, reply) => {
+    app.log.error({ err }, 'API error');
+    reply.code(500).send({ ok: false, error: err?.message || 'internal_error' });
   });
 
   app.get('/api/health', async () => {

@@ -40,7 +40,7 @@ describe('Authentication API', () => {
 
   describe('GET /api/auth/nonce', () => {
     it('should return a nonce', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/nonce');
+      const request = new NextRequest('http://localhost:3001/api/auth/nonce');
       const response = await getNonce(request);
       const data = await response.json();
 
@@ -53,7 +53,7 @@ describe('Authentication API', () => {
       const { rateLimit } = require('@/lib/server/rateLimit');
       rateLimit.mockReturnValue({ allowed: false });
 
-      const request = new NextRequest('http://localhost:3000/api/auth/nonce');
+      const request = new NextRequest('http://localhost:3001/api/auth/nonce');
       const response = await getNonce(request);
 
       expect(response.status).toBe(429);
@@ -62,7 +62,7 @@ describe('Authentication API', () => {
 
   describe('POST /api/auth/verify', () => {
     it('should verify valid signature', async () => {
-      const request = new NextRequest('http://localhost:3000/api/auth/verify', {
+      const request = new NextRequest('http://localhost:3001/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ describe('Authentication API', () => {
       const { nacl } = require('tweetnacl');
       nacl.sign.detached.verify.mockReturnValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/auth/verify', {
+      const request = new NextRequest('http://localhost:3001/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ describe('Authentication API', () => {
       const { validateAndConsumeNonce } = require('@/lib/server/session');
       validateAndConsumeNonce.mockReturnValue(false);
 
-      const request = new NextRequest('http://localhost:3000/api/auth/verify', {
+      const request = new NextRequest('http://localhost:3001/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ describe('Authentication API', () => {
     it('should reject payload too large', async () => {
       const largePayload = 'x'.repeat(10000);
       
-      const request = new NextRequest('http://localhost:3000/api/auth/verify', {
+      const request = new NextRequest('http://localhost:3001/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

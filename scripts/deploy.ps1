@@ -29,7 +29,7 @@ function Write-Log {
 # Function to check if container is running
 function Test-ApplicationRunning {
     try {
-        $Response = Invoke-WebRequest -Uri "http://localhost:3000/api/health" -TimeoutSec 2 -ErrorAction Stop
+        $Response = Invoke-WebRequest -Uri "http://localhost:3001/api/health" -TimeoutSec 2 -ErrorAction Stop
         return $Response.StatusCode -eq 200
     } catch {
         return $false
@@ -91,7 +91,7 @@ function Test-Health {
     
     for ($i = 1; $i -le 30; $i++) {
         try {
-            $Response = Invoke-WebRequest -Uri "http://localhost:3000/api/health" -TimeoutSec 5 -ErrorAction Stop
+            $Response = Invoke-WebRequest -Uri "http://localhost:3001/api/health" -TimeoutSec 5 -ErrorAction Stop
             if ($Response.StatusCode -eq 200) {
                 Write-Log "✅ Application is healthy"
                 return $true
@@ -116,9 +116,9 @@ function Remove-OldImages {
 # Function to show deployment status
 function Show-Status {
     Write-Log "📊 Deployment Status:"
-    Write-Host "Application Status: Running on http://localhost:3000"
-    Write-Host "Application URL: http://localhost:3000"
-    Write-Host "Health Check: http://localhost:3000/api/health"
+    Write-Host "Application Status: Running on http://localhost:3001"
+    Write-Host "Application URL: http://localhost:3001"
+    Write-Host "Health Check: http://localhost:3001/api/health"
     Write-Host "Logs: Check console output"
 }
 

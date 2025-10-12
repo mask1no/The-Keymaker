@@ -17,7 +17,7 @@ interface TransactionLogData {
 export async function logTransaction(data: TransactionLogData) {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/transactions/log`,
+      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/transactions/log`,
       {
         method: 'POST',
         headers: {

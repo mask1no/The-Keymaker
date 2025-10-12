@@ -44,7 +44,7 @@
     "smoke": "tsx scripts/smoke.ts",
     "migrate:keys": "tsx scripts/migrate-plaintext-keys.ts",
     "de-stub": "tsx scripts/de-stub.ts",
-    "smoke:local": "cross-env SMOKE_BASE_URL=http://localhost:3000 pnpm smoke",
+    "smoke:local": "cross-env SMOKE_BASE_URL=http://localhost:3001 pnpm smoke",
     "smoke:live": "cross-env SMOKE_BASE_URL=$SMOKE_BASE_URL pnpm smoke",
     "postinstall": "node scripts/postinstall-safe.js",
     "browsers:install": "cross-env PLAYWRIGHT_DOWNLOAD=1 pnpm dlx playwright install --with-deps || true",
