@@ -68,11 +68,7 @@ export default function CreateForm() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/wallets/list`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({}),
-        });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/groups`, { cache: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (!abort) {

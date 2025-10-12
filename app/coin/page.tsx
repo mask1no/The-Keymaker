@@ -7,6 +7,7 @@ import BuyPanel from '@/components/Coin/BuyPanel';
 import PositionsTable from '@/components/Wallet/PositionsTable';
 import CreateForm from '@/components/Coin/CreateForm';
 import ConditionBuilder from '@/components/SellConditions/ConditionBuilder';
+import SellPanel from '@/components/Coin/SellPanel';
 
 export default function CoinPage() {
   const draft = useDraftStore((s) => s.draft);
@@ -53,11 +54,7 @@ export default function CoinPage() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/wallets/list`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({}),
-        });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/groups`, { cache: 'no-store' });
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
@@ -153,6 +150,9 @@ export default function CoinPage() {
             </h2>
           </div>
           <BuyPanel mint={mint} groupId={groupId} onGroupIdChange={setGroupId} />
+          <div className="mt-4">
+            <SellPanel mint={mint} groupId={groupId} />
+          </div>
         </div>
       ) : null}
       {groupId && mint ? (

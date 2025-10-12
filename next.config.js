@@ -11,7 +11,7 @@ const SECURITY_HEADERS = [
     value:
       "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; " +
       "img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'; " +
-      "connect-src 'self' https://api.helius.xyz wss://*.helius-rpc.com https://block-engine.jito.wtf https://api.dexscreener.com https://public-api.birdeye.so https://o*.ingest.sentry.io https://api.mainnet-beta.solana.com;",
+      "connect-src 'self' http://localhost:3001 https://api.helius.xyz wss://*.helius-rpc.com https://block-engine.jito.wtf https://api.dexscreener.com https://public-api.birdeye.so https://o*.ingest.sentry.io https://api.mainnet-beta.solana.com;",
   },
 ];
 

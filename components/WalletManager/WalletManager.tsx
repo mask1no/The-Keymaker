@@ -8,7 +8,7 @@ import { Label } from '@/components/UI/label';
 import { Badge } from '@/components/UI/badge';
 import { Plus, Wallet, Settings, Trash2 } from 'lucide-react';
 import * as bs58 from 'bs58';
-import { apiFetch } from '@/lib/apiClient';
+import { api } from '@/lib/utils/api';
 
 interface Wallet {
   address: string;
@@ -35,20 +35,12 @@ export default function WalletManager() {
 
   const loadData = async () => {
     try {
-      const [groupsRes, walletsRes] = await Promise.all([
-        fetch('/api/groups'),
-        fetch('/api/wallets'),
+      const [groupsData, walletsData] = await Promise.all([
+        api.groups.list(),
+        api.wallets.index(),
       ]);
-
-      if (groupsRes.ok) {
-        const groupsData = await groupsRes.json();
-        setGroups(groupsData.groups || []);
-      }
-
-      if (walletsRes.ok) {
-        const walletsData = await walletsRes.json();
-        setWallets(walletsData.wallets || []);
-      }
+      setGroups(groupsData.groups || []);
+      setWallets(walletsData.wallets || []);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -60,15 +52,9 @@ export default function WalletManager() {
     if (!newGroupName.trim()) return;
 
     try {
-      const res = await apiFetch('/api/groups', {
-        method: 'POST',
-        body: JSON.stringify({ name: newGroupName.trim() }),
-      });
-
-      if (res.ok) {
-        setNewGroupName('');
-        loadData();
-      }
+      await api.groups.create({ name: newGroupName.trim() });
+      setNewGroupName('');
+      loadData();
     } catch (error) {
       console.error('Failed to create group:', error);
     }
@@ -81,19 +67,9 @@ export default function WalletManager() {
       // Generate a mock keypair for demo purposes
       const mockKeypair = 'mock_encrypted_keypair_data';
 
-      const res = await fetch('/api/wallets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newWalletName.trim(),
-          encryptedKeypair: mockKeypair,
-        }),
-      });
-
-      if (res.ok) {
-        setNewWalletName('');
-        loadData();
-      }
+      await api.groups.createWallet({ groupId: selectedGroup, action: 'create' });
+      setNewWalletName('');
+      loadData();
     } catch (error) {
       console.error('Failed to create wallet:', error);
     }
@@ -105,10 +81,7 @@ export default function WalletManager() {
       try {
         bs58.decode(secret); // Validate
         // Call import API with secret
-        await apiFetch('/api/groups/import-wallet', {
-          method: 'POST',
-          body: JSON.stringify({ groupId: 'your-group', secret }),
-        });
+        await api.groups.importWallet({ groupId: selectedGroup || groups[0]?.id || '', secret });
       } catch {
         alert(`Invalid key: ${secret}`);
       }

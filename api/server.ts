@@ -30,7 +30,6 @@ async function buildServer() {
     credentials: true,
   });
 
-  app.get('/api/health', async () => ({ ok: true }));
   app.get('/api/health', async () => {
     try {
       const conn = getConnection();
@@ -283,10 +282,7 @@ async function buildServer() {
     }
   });
 
-  // Engine bundle endpoint (JITO/RPC selection is deferred to implementation)
-  app.post('/api/engine/bundle', async (_req, rep) => {
-    rep.code(501).send({ error: 'not_implemented' });
-  });
+  // (duplicate /api/engine/bundle removed)
 
   // Sells
   app.post('/api/sell/all', async (req, rep) => {
@@ -429,6 +425,166 @@ async function buildServer() {
       return { csv };
     }
     return agg;
+  });
+
+  // Wallet groups (minimal): backed by file-based groups for now
+  app.get('/api/groups', async (_req, _rep) => {
+    try {
+      const { loadWalletGroups } = await import('../lib/server/walletGroups');
+      const groups = loadWalletGroups().map((g) => ({ id: g.id, name: g.name }));
+      return { groups };
+    } catch (e: any) {
+      return { groups: [], error: e?.message };
+    }
+  });
+  app.post('/api/groups', async (req, rep) => {
+    try {
+      const body = (req.body || {}) as { name?: string; masterWallet?: string };
+      const name = (body.name || '').trim();
+      if (!name) return rep.code(400).send({ error: 'name_required' });
+      let master = (body.masterWallet || '').trim();
+      if (!master) {
+        // Try to infer master from first keystore entry
+        try {
+          const { listWallets } = await import('../lib/keys/keystore');
+          const wallets = listWallets();
+          master = wallets[0]?.pubkey || '';
+        } catch {}
+      }
+      if (!master) return rep.code(400).send({ error: 'master_wallet_required' });
+      const { createWalletGroup } = await import('../lib/server/walletGroups');
+      const g = createWalletGroup(master, { name });
+      return { ok: true, group: { id: g.id, name: g.name } };
+    } catch (e: any) {
+      return rep.code(500).send({ error: e?.message || 'group_create_failed' });
+    }
+  });
+  app.post('/api/groups/import-wallet', async (req, rep) => {
+    try {
+      const body = (req.body || {}) as { groupId?: string; secret?: string };
+      const groupId = (body.groupId || '').trim();
+      const secret = (body.secret || '').trim();
+      if (!groupId || !secret) return rep.code(400).send({ error: 'bad_request' });
+      const { getWalletGroup, addWalletToGroup } = await import('../lib/server/walletGroups');
+      const group = getWalletGroup(groupId);
+      if (!group) return rep.code(404).send({ error: 'group_not_found' });
+      const { parseSecretKey } = await import('../lib/server/keystoreLoader');
+      const { saveKeypair: saveEncryptedKeypair } = await import('../lib/server/keystore');
+      const { Keypair } = await import('@solana/web3.js');
+      const sk = parseSecretKey(secret);
+      const kp = Keypair.fromSecretKey(sk);
+      saveEncryptedKeypair(group.masterWallet, group.name, kp);
+      addWalletToGroup(groupId, kp.publicKey.toBase58());
+      return { ok: true, pubkey: kp.publicKey.toBase58() };
+    } catch (e: any) {
+      return rep.code(500).send({ error: e?.message || 'import_failed' });
+    }
+  });
+
+  // Sweep endpoint (minimal) - move SOL from execution wallets back to master
+  app.post('/api/wallets/sweep', async (req, rep) => {
+    try {
+      const body = (req.body || {}) as {
+        groupId: string;
+        bufferSol?: number;
+        minThresholdSol?: number;
+      };
+      const group = getWalletGroup(body.groupId);
+      if (!group || !group.masterWallet) return rep.code(404).send({ error: 'group_not_found' });
+      const wallets = group.executionWallets || [];
+      if (!wallets.length) return rep.code(400).send({ error: 'no_wallets' });
+      const conn = getConnection();
+      const bufferLamports = Math.floor(Math.max(0, body.bufferSol || 0.01) * 1e9);
+      const minThresholdLamports = Math.floor(Math.max(0, body.minThresholdSol || 0.005) * 1e9);
+      const sweepPlan: Array<{ wallet: string; balance: number; toSweep: number }> = [];
+      for (const w of wallets) {
+        try {
+          const bal = await conn.getBalance(new PublicKey(w));
+          const toSweep = Math.max(0, bal - bufferLamports - 5000);
+          if (toSweep >= minThresholdLamports) sweepPlan.push({ wallet: w, balance: bal, toSweep });
+        } catch {}
+      }
+      const kps = await loadKeypairsForGroup(group.name, [group.masterWallet], group.masterWallet);
+      const master = kps[0];
+      if (!master) return rep.code(500).send({ error: 'master_keypair_not_found' });
+      const blockhash = await conn.getLatestBlockhash('finalized');
+      const results: Array<{ wallet: string; signature?: string; swept?: number; error?: string }> = [];
+      for (const { wallet, toSweep } of sweepPlan) {
+        try {
+          const { loadKeypair } = await import('../lib/server/keystore');
+          const kp = loadKeypair(group.masterWallet, group.name, wallet);
+          const ix = SystemProgram.transfer({
+            fromPubkey: kp.publicKey,
+            toPubkey: new PublicKey(master.publicKey),
+            lamports: toSweep,
+          });
+          const msg = new TransactionMessage({
+            payerKey: kp.publicKey,
+            recentBlockhash: blockhash.blockhash,
+            instructions: [ix],
+          }).compileToV0Message();
+          const tx = new VersionedTransaction(msg);
+          tx.sign([kp]);
+          const sig = await conn.sendTransaction(tx, { skipPreflight: false });
+          results.push({ wallet, signature: sig, swept: toSweep / 1e9 });
+          await new Promise((r) => setTimeout(r, 10 + Math.random() * 30));
+        } catch (e: any) {
+          results.push({ wallet, error: e?.message || 'send_failed' });
+        }
+      }
+      return { ok: true, count: results.length, results };
+    } catch (e: any) {
+      return rep.code(500).send({ error: e?.message || 'sweep_failed' });
+    }
+  });
+
+  // Wallets index (by groups)
+  app.get('/api/wallets', async (_req, _rep) => {
+    try {
+      const { loadWalletGroups } = await import('../lib/server/walletGroups');
+      const groups = loadWalletGroups();
+      const wallets: Array<{ address: string; name: string; groupId: string }> = [];
+      for (const g of groups) {
+        const all = ([] as string[])
+          .concat(g.executionWallets || [])
+          .concat(g.sniperWallets || [])
+          .concat(g.devWallet ? [g.devWallet] : [])
+          .filter(Boolean);
+        for (const addr of all) {
+          wallets.push({ address: addr, name: addr, groupId: g.id });
+        }
+      }
+      return { wallets };
+    } catch (e: any) {
+      return { wallets: [], error: e?.message };
+    }
+  });
+
+  // Create wallet in a group
+  app.post('/api/groups/create-wallet', async (req, rep) => {
+    try {
+      const body = (req.body || {}) as { groupId?: string; action?: 'create' | 'import'; secretKey?: string };
+      const groupId = (body.groupId || '').trim();
+      if (!groupId) return rep.code(400).send({ error: 'group_required' });
+      const { getWalletGroup, addWalletToGroup } = await import('../lib/server/walletGroups');
+      const group = getWalletGroup(groupId);
+      if (!group) return rep.code(404).send({ error: 'group_not_found' });
+      const { Keypair } = await import('@solana/web3.js');
+      let kp: Keypair;
+      if ((body.action || 'create') === 'import') {
+        const { parseSecretKey } = await import('../lib/server/keystoreLoader');
+        const sk = parseSecretKey(body.secretKey || '');
+        kp = Keypair.fromSecretKey(sk);
+      } else {
+        kp = Keypair.generate();
+      }
+      const { saveKeypair: saveEncryptedKeypair } = await import('../lib/server/keystore');
+      saveEncryptedKeypair(group.masterWallet, group.name, kp);
+      addWalletToGroup(groupId, kp.publicKey.toBase58());
+      return { ok: true, pubkey: kp.publicKey.toBase58() };
+    } catch (e: any) {
+      return rep.code(500).send({ error: e?.message || 'create_wallet_failed' });
+    }
   });
 
   // Market data (minimal): supply from mint, price from Jupiter price API

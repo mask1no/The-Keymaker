@@ -22,5 +22,5 @@ Core flows (Fastify API)
 
 Security
 
-- Local keystore with AES-GCM via passphrase (server). No secrets logged.
+- Local keystore with AES-256-GCM via passphrase (server). No secrets logged.
 - CORS locked to `http://localhost:3000`.

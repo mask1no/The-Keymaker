@@ -24,10 +24,10 @@ export default function KeymakerPage() {
   const [turbo, setTurbo] = useState(false);
   const [tab, setTab] = useState<'manual' | 'volume'>('manual');
 
-  const { data: groups } = useSWR('/api/groups', fetcher);
+  const { data: groups } = useSWR(`${process.env.NEXT_PUBLIC_API_BASE}/api/groups`, fetcher);
   const group = groups?.groups?.[0];
   const { data: feed } = useSWR(
-    () => (group?.mint ? `/api/mint/activity?mint=${group.mint}&limit=50` : null),
+    () => (group?.mint ? `${process.env.NEXT_PUBLIC_API_BASE}/api/mint/activity?mint=${group.mint}&limit=50` : null),
     fetcher,
   );
 
@@ -42,37 +42,13 @@ export default function KeymakerPage() {
     if (!totalSol) return;
 
     try {
-      const dryRunRes = await fetch('/api/wallets/fund', {
+      const liveRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/funding/execute`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           groupId: group.id,
           strategy: 'equal',
-          totalSol: parseFloat(totalSol),
-          dryRun: true,
-        }),
-      });
-      const dryRunData = await dryRunRes.json();
-
-      if (!dryRunRes.ok) {
-        return alert(`Preview failed: ${dryRunData.error || 'Unknown error'}`);
-      }
-
-      const confirm = window.confirm(
-        `Fund ${dryRunData.walletsCount} wallets with ${dryRunData.totalNeeded.toFixed(4)} SOL total?\n\n` +
-          `Available: ${dryRunData.availableSol.toFixed(4)} SOL`,
-      );
-
-      if (!confirm) return;
-
-      const liveRes = await fetch('/api/wallets/fund', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          groupId: group.id,
-          strategy: 'equal',
-          totalSol: parseFloat(totalSol),
-          dryRun: false,
+          totalLamports: Math.floor(parseFloat(totalSol) * 1e9),
         }),
       });
       const liveData = await liveRes.json();
@@ -100,7 +76,7 @@ export default function KeymakerPage() {
     if (!confirm) return;
 
     try {
-      const res = await fetch('/api/wallets/sweep', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/wallets/sweep`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({

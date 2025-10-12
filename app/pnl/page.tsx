@@ -40,6 +40,7 @@ export default function PnLPage() {
   const [filterWallet, setFilterWallet] = useState('');
   const [filterToken, setFilterToken] = useState('');
   const [dateRange, setDateRange] = useState('7d');
+  const [exportBusy, setExportBusy] = useState<'csv' | 'json' | null>(null);
 
   // Load P&L data from API
   useEffect(() => {
@@ -48,8 +49,32 @@ export default function PnLPage() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/pnl`);
         if (response.ok) {
           const data = await response.json();
-          setEntries(data.entries || []);
-          setSummaries(data.summaries || []);
+          // Fallback minimal mapping if server returns aggregates only
+          if (Array.isArray(data?.entries) || Array.isArray(data?.summaries)) {
+            setEntries(data.entries || []);
+            setSummaries(data.summaries || []);
+          } else {
+            // Map aggregates to a minimal single-summary row
+            const buys = Number(data?.buysLamports || 0) / 1e9;
+            const sells = Number(data?.sellsLamports || 0) / 1e9;
+            const fees = Number(data?.feesLamports || 0) / 1e9;
+            const realized = Number(data?.realizedLamports || 0) / 1e9;
+            const unrealized = Number(data?.unrealizedLamports || 0) / 1e9;
+            setEntries([]);
+            setSummaries([
+              {
+                symbol: 'ALL',
+                name: 'Portfolio',
+                totalBought: buys,
+                totalSold: sells,
+                currentHolding: Math.max(0, buys - sells),
+                avgBuyPrice: 0,
+                currentPrice: 0,
+                unrealizedPnL: unrealized - fees,
+                realizedPnL: realized - fees,
+              },
+            ]);
+          }
         } else {
           // API not available yet, use empty arrays
           setEntries([]);
@@ -63,6 +88,28 @@ export default function PnLPage() {
     };
     loadPnL();
   }, []);
+
+  async function handleExport(format: 'csv' | 'json') {
+    try {
+      setExportBusy(format);
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/api/pnl${format === 'csv' ? '?format=csv' : ''}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Export failed');
+      const data = await res.json();
+      const content = format === 'csv' ? String(data.csv || '') : JSON.stringify(data, null, 2);
+      const blob = new Blob([content], { type: format === 'csv' ? 'text/csv' : 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `pnl.${format}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to export P&L');
+    } finally {
+      setExportBusy(null);
+    }
+  }
 
   const filteredEntries = entries.filter((entry) => {
     const walletMatch =
@@ -83,13 +130,28 @@ export default function PnLPage() {
           <h1 className="text-3xl font-bold text-zinc-100">P&L Tracker</h1>
           <p className="text-zinc-400 mt-2">Monitor your trading performance and profits</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Badge variant="outline" className="border-blue-500 text-blue-400">
             {summaries.length} Tokens
           </Badge>
           <Badge variant="outline" className="border-green-500 text-green-400">
             {filteredEntries.length} Trades
           </Badge>
+          <Button
+            variant="outline"
+            onClick={() => handleExport('csv')}
+            disabled={exportBusy !== null}
+            className="ml-2"
+          >
+            {exportBusy === 'csv' ? 'Exporting…' : 'Export CSV'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleExport('json')}
+            disabled={exportBusy !== null}
+          >
+            {exportBusy === 'json' ? 'Exporting…' : 'Export JSON'}
+          </Button>
         </div>
       </div>
 

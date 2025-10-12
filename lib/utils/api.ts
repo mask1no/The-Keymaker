@@ -17,11 +17,23 @@ export const api = {
   health: {
     get: () => request('/api/health'),
   },
+  groups: {
+    list: () => request('/api/groups'),
+    create: (body: { name: string; masterWallet?: string }) =>
+      request('/api/groups', { method: 'POST', body: JSON.stringify(body) }),
+    importWallet: (body: { groupId: string; secret: string }) =>
+      request('/api/groups/import-wallet', { method: 'POST', body: JSON.stringify(body) }),
+    createWallet: (body: { groupId: string; action?: 'create' | 'import'; secretKey?: string }) =>
+      request('/api/groups/create-wallet', { method: 'POST', body: JSON.stringify(body) }),
+  },
   wallets: {
     create: (body: any) => request('/api/wallets/create', { method: 'POST', body: JSON.stringify(body) }),
     import: (body: any) => request('/api/wallets/import', { method: 'POST', body: JSON.stringify(body) }),
     list: (body?: any) =>
       request('/api/wallets/list', body ? { method: 'POST', body: JSON.stringify(body) } : undefined),
+    sweep: (body: { groupId: string; bufferSol?: number; minThresholdSol?: number }) =>
+      request('/api/wallets/sweep', { method: 'POST', body: JSON.stringify(body) }),
+    index: () => request('/api/wallets'),
   },
   funding: {
     execute: (body: any) => request('/api/funding/execute', { method: 'POST', body: JSON.stringify(body) }),

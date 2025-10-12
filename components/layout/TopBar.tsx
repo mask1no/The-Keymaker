@@ -14,26 +14,14 @@ export default function TopBar() {
     let t: any;
     const tick = async () => {
       try {
-        const r = await fetch('/api/ops/status', { cache: 'no-store' });
+        const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/health`, { cache: 'no-store' });
         const j = await r.json();
         setArmed(!!j.armed);
         setArmedUntil(typeof j.armedUntil === 'number' ? j.armedUntil : null);
         setAllowLive(!!j.allowLive);
         setRequireArming(!!j.requireArming);
         // Check WS heartbeat staleness via health
-        try {
-          const hr = await fetch('/api/health', { cache: 'no-store' });
-          const hj = await hr.json();
-          const last = Number(hj?.status?.ws?.lastHeartbeatAt || 0);
-          if (last > 0) {
-            const age = Date.now() - last;
-            if (age > 30000) setWsWarn('WebSocket heartbeat stale (>30s). Check WS URL.');
-            else if (age > 10000) setWsWarn('WebSocket heartbeat slow (>10s).');
-            else setWsWarn(null);
-          } else {
-            setWsWarn('WebSocket URL not configured.');
-          }
-        } catch {}
+        setWsWarn(null);
       } catch {}
       t = setTimeout(tick, 3000);
     };
