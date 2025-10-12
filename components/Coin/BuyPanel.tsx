@@ -58,21 +58,22 @@ export default function BuyPanel({
     setBusy('rpc');
     setMsg('');
     try {
-      const res = await fetch('/api/engine/rpc/buy', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/engine/bundle`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
+          actions: ['BUY'],
           groupId,
           mint,
-          amountSol,
+          amountLamports: Math.floor(amountSol * 1e9),
           slippageBps,
+          mode: 'RPC',
           priorityFeeMicrolamports: priorityFee || 0,
-          dryRun,
         }),
       });
       const j = await res.json();
       if (!res.ok || j?.error) throw new Error(j?.error || 'RPC buy failed');
-      setMsg(dryRun ? 'RPC buy simulated successfully.' : 'RPC buy submitted.');
+      setMsg('RPC buy submitted.');
     } catch (e: any) {
       setMsg(e?.message || 'RPC buy failed');
     }
@@ -90,26 +91,26 @@ export default function BuyPanel({
         .find((c) => c.trim().startsWith('csrf='))
         ?.split('=')[1];
 
-      const res = await fetch('/api/engine/bundle/buy', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/engine/bundle`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
           ...(csrfToken && { 'x-csrf-token': csrfToken }),
         },
         body: JSON.stringify({
+          actions: ['BUY'],
           groupId,
           mint,
-          amountSol,
+          amountLamports: Math.floor(amountSol * 1e9),
           slippageBps,
+          mode: 'JITO',
           tipLamports: tipLamports || undefined,
           region,
-          dryRun,
-          chunkSize: 5,
         }),
       });
       const j = await res.json();
       if (!res.ok || j?.error) throw new Error(j?.error || 'Bundle buy failed');
-      setMsg(dryRun ? 'Bundle simulated.' : 'Bundle submitted.');
+      setMsg('Bundle submitted.');
     } catch (e: any) {
       setMsg(e?.message || 'Bundle buy failed');
     }

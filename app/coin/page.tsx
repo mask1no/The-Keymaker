@@ -53,11 +53,15 @@ export default function CoinPage() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/wallets/list`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({}),
+        });
         if (!res.ok) return;
         const j = await res.json();
         if (abort) return;
-        const gs: Array<{ id: string; name: string }> = (j.groups || []).map((g: any) => ({
+        const gs: Array<{ id: string; name: string }> = (j.groups || j || []).map((g: any) => ({
           id: g.id,
           name: g.name,
         }));

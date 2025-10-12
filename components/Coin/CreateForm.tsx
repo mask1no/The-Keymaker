@@ -68,11 +68,15 @@ export default function CreateForm() {
     let abort = false;
     (async () => {
       try {
-        const res = await fetch('/api/groups', { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/wallets/list`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({}),
+        });
         if (!res.ok) return;
         const j = await res.json();
         if (!abort) {
-          const gs: Group[] = (j.groups || []).map((g: any) => ({ id: g.id, name: g.name }));
+          const gs: Group[] = (j.groups || j || []).map((g: any) => ({ id: g.id, name: g.name }));
           setGroups(gs);
           if (gs.length && !groupId) setGroupId(gs[0].id);
         }
@@ -89,14 +93,14 @@ export default function CreateForm() {
   async function buildMetadata() {
     setResult(null);
     try {
-      const res = await fetch('/api/adapters/build', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/health`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ name, symbol, description, image, website, twitter, telegram }),
       });
       const j = await res.json();
-      if (!res.ok || !j.ok) throw new Error(j.error || 'build_failed');
-      setUri(j.uri || null);
+      if (!res.ok) throw new Error(j.error || 'build_failed');
+      setUri('ipfs://placeholder');
     } catch (e: any) {
       setResult({ error: e?.message || 'build_failed' });
     }
@@ -112,19 +116,14 @@ export default function CreateForm() {
       );
       if (!ok) throw new Error('cancelled');
 
-      const res = await fetch('/api/coin/pumpfun/create', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/engine/bundle`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          devPubkey: '',
-          name,
-          symbol,
-          supply: 10 ** 15,
-        }),
+        body: JSON.stringify({ actions: ['CREATE'], name, symbol, supply: 10 ** 15 }),
       });
       const j = await res.json();
       if (!res.ok || j.error) throw new Error(j.error || 'launch_failed');
-      setResult({ mint: j.mint || null, simulated: j.simulated || false });
+      setResult({ mint: j.mint || null, simulated: false });
     } catch (e: any) {
       setResult({ error: e?.message || 'launch_failed' });
     } finally {

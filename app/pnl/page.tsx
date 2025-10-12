@@ -45,7 +45,7 @@ export default function PnLPage() {
   useEffect(() => {
     const loadPnL = async () => {
       try {
-        const response = await fetch('/api/pnl');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/pnl`);
         if (response.ok) {
           const data = await response.json();
           setEntries(data.entries || []);

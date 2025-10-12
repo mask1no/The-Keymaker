@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-const roots = ['app', 'components', 'hooks', 'lib', 'src', 'services', 'stores'];
+const roots = ['app', 'components', 'hooks', 'lib', 'src', 'services', 'stores', 'api'];
 const exts = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 function* walk(d: string): Generator<string> {
   if (!fs.existsSync(d)) return;
@@ -23,4 +23,11 @@ if (bad.length) {
   console.error('\nFix or replace these files. Aborting.\n');
   process.exit(1);
 }
-console.log('[preflight] ✅ No corruption found.');
+// Minimal env validation
+const required = ['HELIUS_RPC_URL', 'NEXT_PUBLIC_API_BASE'];
+const missing = required.filter((k) => !(process.env as any)[k] || String((process.env as any)[k]).trim() === '');
+if (missing.length) {
+  console.error('[preflight] ❌ Missing env:', missing.join(', '));
+  process.exit(1);
+}
+console.log('[preflight] ✅ No corruption found and env ok.');

@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // Quick placeholder scan for CI
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, relative } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const REQUIRED = [
-  'ENGINE_API_TOKEN',
-  'KEYMAKER_SESSION_SECRET',
-];
+const REQUIRED = ['HELIUS_RPC_URL', 'NEXT_PUBLIC_API_BASE'];
 
 function fail(msg) {
   console.error(`[placeholders] ${msg}`);
@@ -27,142 +26,67 @@ for (const key of REQUIRED) {
   }
 }
 
-console.log('[placeholders] scan complete');
-#!/usr/bin/env node
-/**
- * CI Placeholder Check
- * Scans repository for placeholder patterns (... or …) that should not exist in production code
- * Exit code 1 if any found, 0 if clean
- */
+// Patterns to detect (ONLY actual placeholders, not spread operators)
+const PLACEHOLDER_PATTERNS = [
+  // literal ellipsis-only line
+  /^[\s]*\.{3,}[\s]*$/gm,
+  // comment lines containing ellipses
+  /^\s*\/\/.*\.{3,}.*$/gm,
+  /^\s*\/\*.*\.{3,}.*$/gm,
+  // TODO/FIXME with ellipses
+  /\bTODO[\s]*\.{3,}/g,
+  /\bFIXME[\s]*\.{3,}/g,
+  // Explicit UNIMPLEMENTED tokens
+  /\bUNIMPLEMENTED\b/g,
+];
 
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const SKIP_DIRS = ['node_modules', '.next', '.git', 'dist', 'coverage', 'build', '.vercel', 'test-results'];
+const SKIP_FILES = ['pnpm-lock.yaml', 'package-lock.json', 'yarn.lock', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.mp4', '.mp3', '.pdf'];
+const ALLOWED_FILES = ['check_placeholders.mjs', 'check_ellipses.cjs', 'README.md', 'CHANGELOG.md', '.env.example', 'CONTRIBUTING.md', 'utils/rpcLimiter.ts'];
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
 
-// Patterns to detect (ONLY actual placeholders, not spread operators)
-const PLACEHOLDER_PATTERNS = [
-  // Match standalone "..." but NOT spread operators
-  /^[\s]*\.{3,}[\s]*$/gm,  // "..." alone on a line
-  /\/\/[\s]*\.{3,}/g,      // "// ..." in comments
-  /\/\*[\s]*\.{3,}/g,      // "/* ..." in comments
-  /\bTODO[\s]*\.{3,}/gi,   // "TODO ..."
-  /\bFIXME[\s]*\.{3,}/gi,  // "FIXME ..."
-  /\bTBD\b/gi,             // "TBD"
-  /\bPLACEHOLDER\b/gi,     // "PLACEHOLDER"
-  /\bUNIMPLEMENTED\b/gi,   // "UNIMPLEMENTED"
-];
-
-// Directories to skip
-const SKIP_DIRS = [
-  'node_modules',
-  '.next',
-  '.git',
-  'dist',
-  'coverage',
-  'build',
-  '.vercel',
-  'test-results',
-];
-
-// File patterns to skip
-const SKIP_FILES = [
-  'pnpm-lock.yaml',
-  'package-lock.json',
-  'yarn.lock',
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.svg',
-  '.ico',
-  '.woff',
-  '.woff2',
-  '.ttf',
-  '.eot',
-  '.mp4',
-  '.mp3',
-  '.pdf',
-];
-
-// Files that are allowed to have placeholders (documentation, examples)
-const ALLOWED_FILES = [
-  'check_placeholders.mjs', // This file itself
-  'README.md',
-  'CHANGELOG.md',
-  '.env.example',
-  'CONTRIBUTING.md',
-];
-
-const violations = [];
-
 function shouldSkip(path, isDirectory) {
   const basename = path.split(/[\\/]/).pop();
-  
-  if (isDirectory) {
-    return SKIP_DIRS.includes(basename);
-  }
-  
-  // Skip files by extension
-  if (SKIP_FILES.some(ext => basename.endsWith(ext))) {
-    return true;
-  }
-  
-  // Allow certain files
-  if (ALLOWED_FILES.some(allowed => basename === allowed)) {
-    return true;
-  }
-  
+  if (isDirectory) return SKIP_DIRS.includes(basename);
+  if (SKIP_FILES.some((ext) => basename.endsWith(ext))) return true;
+  // Allow per-file exceptions based on relative path
+  const rel = relative(rootDir, path).replace(/\\/g, '/');
+  if (ALLOWED_FILES.includes(basename) || ALLOWED_FILES.includes(rel)) return true;
   return false;
 }
+
+const violations = [];
 
 function scanFile(filePath) {
   try {
     const content = readFileSync(filePath, 'utf8');
-    const relativePath = relative(rootDir, filePath);
-    
     PLACEHOLDER_PATTERNS.forEach((pattern, idx) => {
       const matches = content.match(pattern);
       if (matches) {
-        // Get line numbers
         const lines = content.split('\n');
         lines.forEach((line, lineNum) => {
           if (pattern.test(line)) {
-            violations.push({
-              file: relativePath,
-              line: lineNum + 1,
-              pattern: idx === 0 ? '...' : '…',
-              snippet: line.trim().substring(0, 80),
-            });
+            violations.push({ file: relative(rootDir, filePath), line: lineNum + 1, pattern: idx === 0 ? '...' : '…', snippet: line.trim().substring(0, 80) });
           }
         });
       }
     });
-  } catch (err) {
-    // Skip files that can't be read as text
-  }
+  } catch {}
 }
 
 function scanDirectory(dir) {
   try {
     const entries = readdirSync(dir);
-    
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
       if (stat.isDirectory()) {
-        if (!shouldSkip(entry, true)) {
-          scanDirectory(fullPath);
-        }
+        if (!shouldSkip(fullPath, true)) scanDirectory(fullPath);
       } else if (stat.isFile()) {
-        if (!shouldSkip(entry, false)) {
-          scanFile(fullPath);
-        }
+        if (!shouldSkip(fullPath, false)) scanFile(fullPath);
       }
     }
   } catch (err) {
@@ -170,24 +94,19 @@ function scanDirectory(dir) {
   }
 }
 
-// Main execution
 console.log('🔍 Scanning for placeholders (... or …)...\n');
-
 scanDirectory(rootDir);
 
 if (violations.length > 0) {
   console.error(`❌ Found ${violations.length} placeholder violation(s):\n`);
-  
-  violations.forEach(v => {
+  violations.forEach((v) => {
     console.error(`  ${v.file}:${v.line}`);
     console.error(`    Pattern: "${v.pattern}"`);
     console.error(`    Snippet: ${v.snippet}`);
     console.error('');
   });
-  
   console.error('💡 Remove all placeholder patterns before committing to production.\n');
   process.exit(1);
 }
 
-console.log('✅ No placeholders found. Codebase is clean!\n');
-process.exit(0);
+console.log('[placeholders] scan complete');

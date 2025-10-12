@@ -29,7 +29,7 @@ export default function MarketPanel() {
     setError(null);
     setMarket(null);
     try {
-      const res = await fetch(`/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/market/${encodeURIComponent(mint)}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(await res.text());
       const j = await res.json();
       setMarket(j as Market);
