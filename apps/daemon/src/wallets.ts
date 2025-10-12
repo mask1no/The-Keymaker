@@ -2,6 +2,7 @@ import sodium from "libsodium-wrappers";
 import { randomUUID } from "crypto";
 import bs58 from "bs58";
 import { db, wallets, folders } from "./db";
+import { eq } from "drizzle-orm";
 
 function requirePassword(): string {
   const pass = process.env.KEYSTORE_PASSWORD;
@@ -53,7 +54,7 @@ export async function createFolder(name: string) {
 }
 
 export async function importWallet(folderId: string, secret: Uint8Array, pubkeyBase58: string) {
-  const rows = (await db.select().from(wallets).where(wallets.folder_id.eq(folderId))) as any[];
+  const rows = (await db.select().from(wallets).where(eq(wallets.folder_id, folderId))) as any[];
   if (rows.length >= 20) throw new Error("folder wallet cap reached");
   const id = randomUUID();
   const enc = await encryptSecret(secret);
@@ -62,7 +63,7 @@ export async function importWallet(folderId: string, secret: Uint8Array, pubkeyB
 }
 
 export async function listWallets(folderId: string) {
-  const rows = (await db.select().from(wallets).where(wallets.folder_id.eq(folderId))) as any[];
+  const rows = (await db.select().from(wallets).where(eq(wallets.folder_id, folderId))) as any[];
   return rows.map(r => ({ id: r.id, pubkey: r.pubkey }));
 }
 

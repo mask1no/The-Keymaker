@@ -22,12 +22,14 @@ setInterval(async () => {
 
 type PendingAuth = { pubkey: string; nonce: Uint8Array };
 const authPending = new WeakMap<any, PendingAuth>();
+const authed = new WeakSet<any>();
 
 wss.on("connection", (ws) => {
   ws.on("message", async (data) => {
     try {
       const msg = JSON.parse(data.toString());
       if (msg.kind === "TASK_CREATE") {
+        if (!authed.has(ws)) throw new Error("not authenticated");
         const id = await handleTaskCreate(msg);
         ws.send(JSON.stringify({ kind: "TASK_ACCEPTED", id }));
       } else if (msg.kind === "AUTH_START" && msg.pubkey) {
@@ -37,14 +39,18 @@ wss.on("connection", (ws) => {
       } else if (msg.kind === "AUTH_RESP" && msg.pubkey && msg.signature && msg.nonce) {
         const pending = authPending.get(ws);
         if (!pending || pending.pubkey !== msg.pubkey) throw new Error("no auth pending for pubkey");
+        const expectedNonceB58 = bs58.encode(pending.nonce);
+        if (expectedNonceB58 !== msg.nonce) throw new Error("nonce mismatch");
         const message = Buffer.from(`Keymaker auth:${msg.nonce}`);
         const sig = bs58.decode(msg.signature);
         const pk = bs58.decode(msg.pubkey);
         const ok = nacl.sign.detached.verify(message, sig, pk);
         if (!ok) throw new Error("signature verify failed");
         authPending.delete(ws);
+        authed.add(ws);
         ws.send(JSON.stringify({ kind: "AUTH_OK", masterWallet: msg.pubkey, signedNonce: msg.signature }));
       } else if (msg.kind === "PUMPFUN_CREATE") {
+        if (!authed.has(ws)) throw new Error("not authenticated");
         ws.send(JSON.stringify({ kind: "ERROR", error: "pump.fun client not implemented yet" }));
       }
     } catch (e) {

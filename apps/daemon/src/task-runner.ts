@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { db, tasks, task_events } from "./db";
+import { eq } from "drizzle-orm";
 import { buildSnipeTxs, buildMMPlan, submitBundle, confirmSigs } from "./solana";
 
 export async function handleTaskCreate(msg: any) {
@@ -33,7 +34,7 @@ async function runTask(id: string) {
 }
 
 async function buildOrMM(id: string) {
-  const r = await db.select().from(tasks).where(tasks.id.eq(id));
+  const r = await db.select().from(tasks).where(eq(tasks.id, id));
   const kind = (r as any)[0].kind;
   return kind === "SNIPE" ? buildSnipeTxs(id) : buildMMPlan(id);
 }
