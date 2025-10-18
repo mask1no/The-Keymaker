@@ -1,12 +1,13 @@
 import sodium from "libsodium-wrappers";
-import { randomUUID } from "crypto";
+import { randomUUID, scryptSync, randomBytes } from "crypto";
 import bs58 from "bs58";
 import fs from "fs";
 import path from "path";
-import { db, wallets, folders } from "./db";
+import { db, wallets, folders, tasks } from "./db";
 import { eq } from "drizzle-orm";
 import { Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { getConn } from "./solana";
+import { logger } from "@keymaker/logger";
 
 function requirePassword(): string {
   const pass = process.env.KEYSTORE_PASSWORD;
@@ -14,53 +15,22 @@ function requirePassword(): string {
   return pass;
 }
 
-export async function encryptSecret(secret: Uint8Array): Promise<string> {
-  await sodium.ready;
-  const pass = requirePassword();
-  const salt = sodium.randombytes_buf(16);
-  const key = sodium.crypto_pwhash(
-    32,
-    pass,
-    salt,
-    sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_ALG_DEFAULT
-  );
-  const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
-  const box = sodium.crypto_secretbox_easy(secret, nonce, key);
-  return bs58.encode(Buffer.concat([Buffer.from(salt), Buffer.from(nonce), Buffer.from(box)]));
-}
-
-export async function decryptSecret(enc: string): Promise<Uint8Array> {
-  await sodium.ready;
-  const pass = requirePassword();
-  const buf = Buffer.from(bs58.decode(enc));
-  const salt = buf.subarray(0, 16);
-  const nonce = buf.subarray(16, 16 + sodium.crypto_secretbox_NONCEBYTES);
-  const box = buf.subarray(16 + sodium.crypto_secretbox_NONCEBYTES);
-  const key = sodium.crypto_pwhash(
-    32,
-    pass,
-    salt,
-    sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_ALG_DEFAULT
-  );
-  const opened = sodium.crypto_secretbox_open_easy(box, nonce, key);
-  if (!opened) throw new Error("keystore decrypt failed");
-  return opened;
-}
+// Legacy helpers retained for compatibility (unused now)
+export async function encryptSecret(_secret: Uint8Array): Promise<string> { return "keystore"; }
+export async function decryptSecret(_enc: string): Promise<Uint8Array> { throw new Error("KEYSTORE_LOCKED"); }
 
 // --- Keystore (scrypt + secretbox) ---
 type Keystore = {
   version: 1;
   kdf: "scrypt";
   salt: string; // base64
+  nonce: string; // base64
   data: string; // base64(ciphertext)
 };
 
-let keystoreCache: { wallets: Record<string, { secret: string; createdAt: number; folderId: string; role: string }> } | null = null;
+let keystoreCache: { wallets: Record<string, { secretBase58: string; createdAt: number; folderId: string; role: string }> } | null = null;
 let keystoreSalt: Uint8Array | null = null;
+let keystoreNonce: Uint8Array | null = null;
 let keystorePath = process.env.KEYSTORE_FILE || path.resolve("./apps/daemon/keystore.json");
 
 export async function initKeystore(password: string) {
@@ -68,13 +38,18 @@ export async function initKeystore(password: string) {
   if (!password) throw new Error("KEYSTORE_PASSWORD not set");
   if (!fs.existsSync(path.dirname(keystorePath))) fs.mkdirSync(path.dirname(keystorePath), { recursive: true });
   if (!fs.existsSync(keystorePath)) {
-    keystoreSalt = sodium.randombytes_buf(16);
-    const key = await scryptKey(password, keystoreSalt);
-    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+    keystoreSalt = randomBytes(16);
+    keystoreNonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+    const key = scryptSync(password, keystoreSalt, 32, { N: 1 << 15, r: 8, p: 1, maxmem: 256 * 1024 * 1024 });
     const plaintext = Buffer.from(JSON.stringify({ wallets: {} }));
-    const box = sodium.crypto_secretbox_easy(plaintext, nonce, key);
-    const data = Buffer.concat([Buffer.from(nonce), Buffer.from(box)]).toString("base64");
-    const ks: Keystore = { version: 1, kdf: "scrypt", salt: Buffer.from(keystoreSalt).toString("base64"), data };
+    const box = sodium.crypto_secretbox_easy(plaintext, keystoreNonce, key);
+    const ks: Keystore = {
+      version: 1,
+      kdf: "scrypt",
+      salt: Buffer.from(keystoreSalt).toString("base64"),
+      nonce: Buffer.from(keystoreNonce).toString("base64"),
+      data: Buffer.from(box).toString("base64")
+    };
     fs.writeFileSync(keystorePath, JSON.stringify(ks, null, 2));
     keystoreCache = { wallets: {} };
     return;
@@ -82,26 +57,16 @@ export async function initKeystore(password: string) {
   const raw: Keystore = JSON.parse(fs.readFileSync(keystorePath, "utf8"));
   if (raw.kdf !== "scrypt" || raw.version !== 1) throw new Error("unsupported keystore format");
   keystoreSalt = Buffer.from(raw.salt, "base64");
-  const key = await scryptKey(password, keystoreSalt);
-  const data = Buffer.from(raw.data, "base64");
-  const nonce = data.subarray(0, sodium.crypto_secretbox_NONCEBYTES);
-  const box = data.subarray(sodium.crypto_secretbox_NONCEBYTES);
-  const opened = sodium.crypto_secretbox_open_easy(box, nonce, key);
+  keystoreNonce = Buffer.from(raw.nonce, "base64");
+  const key = scryptSync(password, keystoreSalt, 32, { N: 1 << 15, r: 8, p: 1, maxmem: 256 * 1024 * 1024 });
+  const box = Buffer.from(raw.data, "base64");
+  const opened = sodium.crypto_secretbox_open_easy(box, keystoreNonce, key);
   if (!opened) throw new Error("KEYSTORE_LOCKED");
   keystoreCache = JSON.parse(Buffer.from(opened).toString("utf8"));
 }
 
-async function scryptKey(password: string, salt: Uint8Array) {
-  await sodium.ready;
-  return sodium.crypto_pwhash(
-    32,
-    password,
-    salt,
-    1 << 15, // N
-    8 << 10, // memlimit approx
-    sodium.crypto_pwhash_ALG_DEFAULT
-  );
-}
+// Deprecated (replaced by node:scryptSync) kept for reference
+async function scryptKey(_password: string, _salt: Uint8Array) { return Buffer.alloc(32, 0); }
 
 function requireKeystore() {
   if (!keystoreCache || !keystoreSalt) throw new Error("KEYSTORE_LOCKED");
@@ -109,19 +74,11 @@ function requireKeystore() {
 
 function persistKeystore(password: string) {
   if (!keystoreCache || !keystoreSalt) throw new Error("KEYSTORE_LOCKED");
-  const key = sodium.crypto_pwhash(
-    32,
-    password,
-    keystoreSalt,
-    1 << 15,
-    8 << 10,
-    sodium.crypto_pwhash_ALG_DEFAULT
-  );
+  const key = scryptSync(password, keystoreSalt, 32, { N: 1 << 15, r: 8, p: 1, maxmem: 256 * 1024 * 1024 });
   const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
   const plaintext = Buffer.from(JSON.stringify(keystoreCache));
   const box = sodium.crypto_secretbox_easy(plaintext, nonce, key);
-  const data = Buffer.concat([Buffer.from(nonce), Buffer.from(box)]).toString("base64");
-  const ks: Keystore = { version: 1, kdf: "scrypt", salt: Buffer.from(keystoreSalt).toString("base64"), data };
+  const ks: Keystore = { version: 1, kdf: "scrypt", salt: Buffer.from(keystoreSalt).toString("base64"), nonce: Buffer.from(nonce).toString("base64"), data: Buffer.from(box).toString("base64") };
   fs.writeFileSync(keystorePath, JSON.stringify(ks, null, 2));
 }
 
@@ -140,16 +97,21 @@ export async function listFolders(): Promise<Array<{ id: string; name: string; c
   return out;
 }
 
+export async function renameFolder(id: string, name: string) {
+  const rows = (await db.select().from(folders).where(eq(folders.id, id))) as any[];
+  if (!rows.length) throw new Error("FOLDER_NOT_FOUND");
+  await db.update(folders).set({ name }).where(eq(folders.id, id));
+}
+
 export async function importWallet(folderId: string, secret: Uint8Array, pubkeyBase58: string) {
   const rows = (await db.select().from(wallets).where(eq(wallets.folder_id, folderId))) as any[];
-  if (rows.length >= 20) throw new Error("folder wallet cap reached");
+  if (rows.length >= 20) throw new Error("WALLET_LIMIT_REACHED");
   const id = randomUUID();
-  const enc = await encryptSecret(secret);
-  await db.insert(wallets).values({ id, folder_id: folderId, pubkey: pubkeyBase58, enc_privkey: enc, created_at: Date.now() });
+  await db.insert(wallets).values({ id, folder_id: folderId, pubkey: pubkeyBase58, enc_privkey: "keystore", created_at: Date.now() });
   // write to keystore
   requireKeystore();
   if (!keystoreCache) throw new Error("KEYSTORE_LOCKED");
-  keystoreCache.wallets[pubkeyBase58] = { secret: bs58.encode(secret), createdAt: Date.now(), folderId, role: "sniper" };
+  keystoreCache.wallets[pubkeyBase58] = { secretBase58: bs58.encode(secret), createdAt: Date.now(), folderId, role: "sniper" };
   persistKeystore(process.env.KEYSTORE_PASSWORD!);
   return { id, pubkey: pubkeyBase58 };
 }
@@ -173,7 +135,12 @@ export function randomizedFundingSplits(totalSol: number, n: number, minPerWalle
   const weights = draws.map((d) => d / sum);
   const amounts = weights.map((w) => Math.max(minPerWallet, w * totalSol));
   const scale = totalSol / amounts.reduce((a, b) => a + b, 0);
-  return amounts.map((a) => a * scale);
+  const scaled = amounts.map((a) => a * scale);
+  // clamp to floor precision 1e-9 SOL, fix drift on the first entry
+  const floored = scaled.map((x) => Math.floor(x * 1e9) / 1e9);
+  let drift = totalSol - floored.reduce((a,b)=>a+b, 0);
+  if (n > 0) floored[0] = Math.max(minPerWallet, floored[0] + drift);
+  return floored;
 }
 
 export async function createWalletInFolder(folderId: string): Promise<{ id: string; pubkey: string }> {
@@ -184,17 +151,20 @@ export async function createWalletInFolder(folderId: string): Promise<{ id: stri
   const kp = Keypair.generate();
   const pubkeyBase58 = kp.publicKey.toBase58();
   const id = randomUUID();
-  const enc = await encryptSecret(kp.secretKey);
-  await db.insert(wallets).values({ id, folder_id: folderId, pubkey: pubkeyBase58, enc_privkey: enc, created_at: Date.now() });
-  keystoreCache.wallets[pubkeyBase58] = { secret: bs58.encode(kp.secretKey), createdAt: Date.now(), folderId, role: "sniper" };
+  await db.insert(wallets).values({ id, folder_id: folderId, pubkey: pubkeyBase58, enc_privkey: "keystore", created_at: Date.now() });
+  keystoreCache.wallets[pubkeyBase58] = { secretBase58: bs58.encode(kp.secretKey), createdAt: Date.now(), folderId, role: "sniper" };
   persistKeystore(process.env.KEYSTORE_PASSWORD!);
   return { id, pubkey: pubkeyBase58 };
 }
 
 export async function importWalletToFolder(folderId: string, secretBase58: string): Promise<{ id: string; pubkey: string }> {
-  const secret = bs58.decode(secretBase58);
-  const kp = Keypair.fromSecretKey(Uint8Array.from(secret));
-  return importWallet(folderId, kp.secretKey, kp.publicKey.toBase58());
+  try {
+    const secret = bs58.decode(secretBase58);
+    const kp = Keypair.fromSecretKey(Uint8Array.from(secret));
+    return importWallet(folderId, kp.secretKey, kp.publicKey.toBase58());
+  } catch {
+    throw new Error("INVALID_SECRET");
+  }
 }
 
 export async function fundFolderFromMaster(params: { folderId: string; totalSol: number; masterPubkey: string }): Promise<string[]> {
@@ -219,4 +189,132 @@ export async function fundFolderFromMaster(params: { folderId: string; totalSol:
   return sigs;
 }
 
+
+export async function readSecretFromKeystore(pubkey: string): Promise<string | null> {
+  if (!keystoreCache) throw new Error("KEYSTORE_LOCKED");
+  const entry = keystoreCache.wallets[pubkey];
+  return entry?.secretBase58 ?? null;
+}
+
+
+// --- Folder delete preview & sweep ---
+const DUST_LAMPORTS = 5000;
+const EST_FEE_LAMPORTS = 5000;
+
+async function getWalletBalanceLamports(pubkey: string): Promise<number> {
+  const conn = getConn();
+  try {
+    return await conn.getBalance(new PublicKey(pubkey), "confirmed");
+  } catch {
+    throw new Error("RPC_UNAVAILABLE");
+  }
+}
+
+async function getTokenPortfolio(pubkey: string): Promise<Array<{ mint: string; amount: string }>> {
+  const conn = getConn();
+  try {
+    const owner = new PublicKey(pubkey);
+    const r = await conn.getParsedTokenAccountsByOwner(owner, { programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA") });
+    const out: Array<{ mint: string; amount: string }> = [];
+    for (const it of r.value) {
+      const info: any = it.account.data.parsed.info;
+      const ui = info.tokenAmount?.uiAmountString ?? "0";
+      out.push({ mint: info.mint, amount: ui });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+export async function getFolderDeletePreview(id: string): Promise<{ id: string; wallets: Array<{ pubkey: string; solLamports: number; tokens: Array<{ mint: string; amount: string }> }>; estFeesLamports: number }> {
+  const f = (await db.select().from(folders).where(eq(folders.id, id))) as any[];
+  if (!f.length) throw new Error("FOLDER_NOT_FOUND");
+  const ws = (await db.select().from(wallets).where(eq(wallets.folder_id, id))) as any[];
+  const out: Array<{ pubkey: string; solLamports: number; tokens: Array<{ mint: string; amount: string }> }> = [];
+  for (const w of ws) {
+    const pubkey = w.pubkey as string;
+    const [lamports, tokens] = await Promise.all([
+      getWalletBalanceLamports(pubkey),
+      getTokenPortfolio(pubkey)
+    ]);
+    out.push({ pubkey, solLamports: lamports, tokens });
+  }
+  const estFeesLamports = ws.length * EST_FEE_LAMPORTS;
+  return { id, wallets: out, estFeesLamports };
+}
+
+const folderSweepLock = new Set<string>();
+const sweepProgress = new Map<string, { signatures: string[] }>();
+
+function keypairFromKeystoreOrThrow(pubkey: string): Keypair {
+  if (!keystoreCache) throw new Error("KEYSTORE_LOCKED");
+  const entry = keystoreCache.wallets[pubkey];
+  if (!entry) throw new Error("PAYER_NOT_AVAILABLE");
+  return Keypair.fromSecretKey(bs58.decode(entry.secretBase58));
+}
+
+export async function sweepAndDeleteFolder(params: { id: string; masterPubkey: string; onProgress?: (ev: { kind: "SWEEP_PROGRESS"; id: string; step: "SENT"|"VERIFY"|"DONE"; info?: { pubkey?: string; sig?: string } }) => void }): Promise<{ signatures: string[] }> {
+  const { id, masterPubkey, onProgress } = params;
+  if (folderSweepLock.has(id)) {
+    // idempotent: return current state
+    const cur = sweepProgress.get(id) || { signatures: [] };
+    return cur;
+  }
+  const f = (await db.select().from(folders).where(eq(folders.id, id))) as any[];
+  if (!f.length) throw new Error("FOLDER_NOT_FOUND");
+  // Busy check: active tasks on this folder
+  const active = await db.execute(`SELECT COUNT(1) as c FROM tasks WHERE folder_id = ? AND state NOT IN ('DONE','FAIL','ABORT')`, [id]) as any[];
+  const c = Number((active as any)[0]?.c || 0);
+  if (c > 0) throw new Error("FOLDER_BUSY");
+
+  folderSweepLock.add(id);
+  try {
+    const wsInFolder = (await db.select().from(wallets).where(eq(wallets.folder_id, id))) as any[];
+    const conn = getConn();
+    const master = new PublicKey(masterPubkey);
+    const signatures: string[] = [];
+    for (const w of wsInFolder) {
+      const fromPubkey = new PublicKey(w.pubkey as string);
+      let bal = 0;
+      try { bal = await conn.getBalance(fromPubkey, "confirmed"); } catch { throw new Error("RPC_UNAVAILABLE"); }
+      const sendable = bal - EST_FEE_LAMPORTS;
+      if (sendable <= DUST_LAMPORTS) continue;
+      const tx = new Transaction().add(SystemProgram.transfer({ fromPubkey, toPubkey: master, lamports: sendable }));
+      const payer = keypairFromKeystoreOrThrow(w.pubkey as string);
+      try {
+        const sig = await conn.sendTransaction(tx, [payer], { skipPreflight: true, maxRetries: 3 });
+        signatures.push(sig);
+        onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "SENT", info: { pubkey: w.pubkey as string, sig } });
+        logger.info("sweep-sent", { folderId: id, pubkey: w.pubkey as string, sig });
+      } catch (e) {
+        logger.error("sweep-send-fail", { folderId: id, pubkey: w.pubkey as string, err: (e as Error).message });
+        throw new Error("SWEEP_FAILED");
+      }
+    }
+
+    // Verify balances are low
+    for (const w of wsInFolder) {
+      const fromPubkey = new PublicKey(w.pubkey as string);
+      const bal = await conn.getBalance(fromPubkey, "confirmed");
+      if (bal > DUST_LAMPORTS) {
+        onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "VERIFY" });
+        throw new Error("SWEEP_FAILED");
+      }
+    }
+
+    // Delete from DB and keystore
+    for (const w of wsInFolder) {
+      await db.execute(`DELETE FROM wallets WHERE id = ?`, [w.id]);
+      if (keystoreCache) delete keystoreCache.wallets[w.pubkey as string];
+    }
+    await db.execute(`DELETE FROM folders WHERE id = ?`, [id]);
+    persistKeystore(requirePassword());
+    sweepProgress.set(id, { signatures });
+    onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "DONE" });
+    return { signatures };
+  } finally {
+    folderSweepLock.delete(id);
+  }
+}
 

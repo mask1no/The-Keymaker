@@ -42,12 +42,19 @@ export type ClientMsg =
   | { kind: "AUTH_CHALLENGE" }
   | { kind: "AUTH_PROVE"; payload: { pubkey: string; signature: string; nonce: string } }
   | { kind: "FOLDER_CREATE"; payload: { id: string; name: string } }
+  | { kind: "FOLDER_RENAME"; payload: { id: string; name: string } }
   | { kind: "FOLDER_LIST" }
+  | { kind: "FOLDER_DELETE_PREVIEW"; payload: { id: string } }
+  | { kind: "FOLDER_DELETE"; payload: { id: string; masterPubkey: string } }
   | { kind: "WALLET_CREATE"; payload: { folderId: string } }
   | { kind: "WALLET_IMPORT"; payload: { folderId: string; secretBase58: string } }
   | { kind: "FOLDER_WALLETS"; payload: { folderId: string } }
   | { kind: "FUND_WALLETS"; payload: { folderId: string; totalSol: number; masterPubkey: string } }
-  | { kind: "TASK_CREATE"; payload: { mode: TaskKind; ca: string; params: any }; meta?: { masterWallet?: string } };
+  | { kind: "TASK_CREATE"; payload: { mode: TaskKind; ca: string; params: any }; meta?: { masterWallet?: string } }
+  | { kind: "KILL_SWITCH"; payload: { enabled: boolean } }
+  // NEW coin ops
+  | { kind: "COIN_CREATE_SPL"; payload: { name: string; symbol: string; decimals: 6|9; metadataUri: string; payerFolderId: string; payerWalletPubkey?: string } }
+  | { kind: "COIN_PUBLISH_PUMPFUN"; payload: { mint: string; payerFolderId: string; payerWalletPubkey?: string } };
 
 // Outgoing daemon -> web
 export type ServerMsg =
@@ -60,6 +67,13 @@ export type ServerMsg =
   | { kind: "FUND_RESULT"; folderId: string; signatures: string[] }
   | { kind: "TASK_ACCEPTED"; id: string }
   | { kind: "TASK_EVENT"; id: string; state: string; info?: any }
-  | { kind: "HEALTH"; rpcOk: boolean; jitoOk: boolean; pingMs: number };
+  | { kind: "HEALTH"; rpcOk: boolean; jitoOk: boolean; pingMs: number }
+  // NEW coin ops
+  | { kind: "COIN_CREATED"; mint: string; sig: string }
+  | { kind: "COIN_PUBLISHED"; mint: string; sig: string }
+  // Folder delete preview/sweep
+  | { kind: "FOLDER_DELETE_PLAN"; id: string; wallets: Array<{ pubkey: string; solLamports: number; tokens: Array<{ mint: string; amount: string }> }>; estFeesLamports: number }
+  | { kind: "SWEEP_PROGRESS"; id: string; step: "SENT"|"VERIFY"|"DONE"; info?: { pubkey?: string; sig?: string } }
+  | { kind: "SWEEP_DONE"; id: string; signatures: string[] };
 
 

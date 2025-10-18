@@ -1,27 +1,72 @@
-name: CI
+name: CI Smoke
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
 
 jobs:
-  build-and-check:
+  smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: true
-      - name: Typecheck, preflight, and smoke
+          node-version: 20
+      - name: Install deps
+        run: npm i
+      - name: Build
+        run: npm run build
+      - name: Start daemon
+        env:
+          RPC_URL: https://api.mainnet-beta.solana.com
+          DB_FILE: ./apps/daemon/keymaker.sqlite
+          KEYSTORE_FILE: ./apps/daemon/keystore.json
+          KEYSTORE_PASSWORD: change_me_dev_only
+          MASTER_SECRET_BASE58: ${{ secrets.MASTER_SECRET_BASE58 }}
         run: |
-          pnpm ci:check
+          nohup node apps/daemon/dist/index.js > daemon.out 2> daemon.err &
+          echo $! > daemon.pid
+          sleep 5
+      - name: Fund via WS
+        env:
+          MASTER_SECRET_BASE58: ${{ secrets.MASTER_SECRET_BASE58 }}
+        run: |
+          node -e '
+            const WebSocket = require("ws");
+            const bs58 = require("bs58");
+            const { Keypair } = require("@solana/web3.js");
+            (async ()=>{
+              const ws = new WebSocket("ws://localhost:8787");
+              let nonce="";
+              const master = Keypair.fromSecretKey(bs58.decode(process.env.MASTER_SECRET_BASE58));
+              await new Promise((resolve, reject) => {
+                ws.on("message", async (data)=>{
+                  const m = JSON.parse(data.toString());
+                  if (m.kind === "AUTH_NONCE") {
+                    nonce = m.nonce;
+                    const msg = Buffer.from(`Keymaker auth:${nonce}`);
+                    const nacl = require("tweetnacl");
+                    const sig = nacl.sign.detached(msg, master.secretKey);
+                    ws.send(JSON.stringify({ kind: "AUTH_PROVE", payload: { pubkey: master.publicKey.toBase58(), signature: bs58.encode(sig), nonce } }));
+                    ws.send(JSON.stringify({ kind: "FOLDER_CREATE", payload: { id: "ci", name: "CI" } }));
+                    ws.send(JSON.stringify({ kind: "WALLET_CREATE", payload: { folderId: "ci" } }));
+                    setTimeout(()=> ws.send(JSON.stringify({ kind: "FUND_WALLETS", payload: { folderId: "ci", totalSol: 0.0005, masterPubkey: master.publicKey.toBase58() } })), 1000);
+                  }
+                  if (m.kind === "FUND_RESULT") {
+                    if (!m.signatures || !m.signatures.length) return reject(new Error("no signatures"));
+                    console.log("FUND_RESULT", m.signatures[0]);
+                    resolve();
+                    ws.close();
+                  }
+                });
+                ws.on("open", () => ws.send(JSON.stringify({ kind: "AUTH_CHALLENGE" })));
+                ws.on("error", reject);
+              });
+            })().catch((e)=>{ console.error(e); process.exit(1); });
+          '
+      - name: Stop daemon
+        if: always()
+        run: |
+          if [ -f daemon.pid ]; then kill $(cat daemon.pid) || true; fi

@@ -4,21 +4,30 @@ import { WebSocketServer } from "ws";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 import { ensureDb } from "./db";
+import { db, fills } from "./db";
 import { initSolana } from "./solana";
 import { checkHealth } from "./health";
 import { handleTaskCreate, taskEvents } from "./task-runner";
-import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster } from "./wallets";
+import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder } from "./wallets";
+import { logger } from "@keymaker/logger";
+import type { ClientMsg, ServerMsg } from "@keymaker/types";
+import { createSplTokenWithMetadata } from "./coin";
+import { publishWithPumpFun } from "./pumpfun";
+import { setRunEnabled, getRunEnabled } from "./state";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
 const PORT = 8787;
 const server = createServer();
 const wss = new WebSocketServer({ server });
 
-ensureDb();
-initSolana();
-// init keystore
-const ksPassword = process.env.KEYSTORE_PASSWORD || "";
-if (!ksPassword) throw new Error("KEYSTORE_PASSWORD not set");
-await initKeystore(ksPassword);
+async function bootstrap() {
+  ensureDb();
+  initSolana();
+  const ksPassword = process.env.KEYSTORE_PASSWORD || "";
+  if (!ksPassword) throw new Error("KEYSTORE_PASSWORD not set");
+  await initKeystore(ksPassword);
+}
+void bootstrap();
 
 setInterval(async () => {
   const h = await checkHealth();
@@ -48,9 +57,9 @@ wss.on("connection", (ws) => {
 
 function send(ws: any, m: any) { ws.send(JSON.stringify(m)); }
 function ack(ws: any, ref: string) { send(ws, { kind: "ACK", ref }); }
-function fail(ws: any, ref: string, error: string) { send(ws, { kind: "ERR", error, ref }); }
+function fail(ws: any, ref: string, error: string) { logger.error("ws-error", { ref, error }); send(ws, { kind: "ERR", error, ref }); }
 
-async function handleMessage(ws: any, msg: any) {
+async function handleMessage(ws: any, msg: ClientMsg) {
   const s = sessions.get(ws)!;
   switch (msg.kind) {
     case "AUTH_CHALLENGE": {
@@ -62,12 +71,12 @@ async function handleMessage(ws: any, msg: any) {
     }
     case "AUTH_PROVE": {
       const { pubkey, signature, nonce } = msg.payload;
-      if (!s.nonce || s.nonce !== nonce) return fail(ws, "AUTH_PROVE", "nonce mismatch");
+      if (!s.nonce || s.nonce !== nonce) return fail(ws, "AUTH_PROVE", "AUTH_BAD_NONCE");
       const message = Buffer.from(`Keymaker auth:${nonce}`);
       const sig = bs58.decode(signature);
       const pk = bs58.decode(pubkey);
       const ok = nacl.sign.detached.verify(message, sig, pk);
-      if (!ok) return fail(ws, "AUTH_PROVE", "signature verify failed");
+      if (!ok) return fail(ws, "AUTH_PROVE", "AUTH_BAD_SIGNATURE");
       s.authenticated = true;
       s.masterPubkey = pubkey;
       send(ws, { kind: "AUTH_OK", masterPubkey: pubkey });
@@ -75,7 +84,11 @@ async function handleMessage(ws: any, msg: any) {
     }
     case "FOLDER_CREATE": {
       if (!s.authenticated) return fail(ws, "FOLDER_CREATE", "AUTH_REQUIRED");
-      await createFolderWithId(msg.payload.id, msg.payload.name);
+      try {
+        await createFolderWithId(msg.payload.id, msg.payload.name);
+      } catch (e) {
+        return fail(ws, "FOLDER_CREATE", (e as Error).message || "GENERIC");
+      }
       ack(ws, "FOLDER_CREATE");
       const folders = await listFolders();
       send(ws, { kind: "FOLDERS", folders });
@@ -86,9 +99,48 @@ async function handleMessage(ws: any, msg: any) {
       send(ws, { kind: "FOLDERS", folders });
       return;
     }
+    case "FOLDER_RENAME": {
+      if (!s.authenticated) return fail(ws, "FOLDER_RENAME", "AUTH_REQUIRED");
+      try {
+        await renameFolder(msg.payload.id, msg.payload.name);
+      } catch (e) {
+        return fail(ws, "FOLDER_RENAME", (e as Error).message || "GENERIC");
+      }
+      const folders = await listFolders();
+      send(ws, { kind: "FOLDERS", folders });
+      return;
+    }
+    case "FOLDER_DELETE_PREVIEW": {
+      if (!s.authenticated) return fail(ws, "FOLDER_DELETE_PREVIEW", "AUTH_REQUIRED");
+      try {
+        const plan = await getFolderDeletePreview(msg.payload.id);
+        send(ws, { kind: "FOLDER_DELETE_PLAN", ...plan });
+      } catch (e) {
+        return fail(ws, "FOLDER_DELETE_PREVIEW", (e as Error).message || "GENERIC");
+      }
+      return;
+    }
+    case "FOLDER_DELETE": {
+      if (!s.authenticated) return fail(ws, "FOLDER_DELETE", "AUTH_REQUIRED");
+      if (s.masterPubkey !== msg.payload.masterPubkey) return fail(ws, "FOLDER_DELETE", "AUTH_PUBKEY_MISMATCH");
+      const id = msg.payload.id as string;
+      try {
+        const { signatures } = await sweepAndDeleteFolder({ id, masterPubkey: s.masterPubkey!, onProgress: (evt) => send(ws, { ...evt }) });
+        send(ws, { kind: "SWEEP_DONE", id, signatures });
+        const folders = await listFolders();
+        send(ws, { kind: "FOLDERS", folders });
+      } catch (e) {
+        return fail(ws, "FOLDER_DELETE", (e as Error).message || "SWEEP_FAILED");
+      }
+      return;
+    }
     case "WALLET_CREATE": {
       if (!s.authenticated) return fail(ws, "WALLET_CREATE", "AUTH_REQUIRED");
-      await createWalletInFolder(msg.payload.folderId);
+      try {
+        await createWalletInFolder(msg.payload.folderId);
+      } catch (e) {
+        return fail(ws, "WALLET_CREATE", (e as Error).message || "GENERIC");
+      }
       ack(ws, "WALLET_CREATE");
       const wsInFolder = await listFolderWallets(msg.payload.folderId);
       send(ws, { kind: "WALLETS", folderId: msg.payload.folderId, wallets: wsInFolder });
@@ -96,7 +148,11 @@ async function handleMessage(ws: any, msg: any) {
     }
     case "WALLET_IMPORT": {
       if (!s.authenticated) return fail(ws, "WALLET_IMPORT", "AUTH_REQUIRED");
-      await importWalletToFolder(msg.payload.folderId, msg.payload.secretBase58);
+      try {
+        await importWalletToFolder(msg.payload.folderId, msg.payload.secretBase58);
+      } catch (e) {
+        return fail(ws, "WALLET_IMPORT", (e as Error).message || "INVALID_SECRET");
+      }
       ack(ws, "WALLET_IMPORT");
       const wsInFolder = await listFolderWallets(msg.payload.folderId);
       send(ws, { kind: "WALLETS", folderId: msg.payload.folderId, wallets: wsInFolder });
@@ -118,15 +174,83 @@ async function handleMessage(ws: any, msg: any) {
       }
       return;
     }
+    case "KILL_SWITCH": {
+      if (!s.authenticated) return fail(ws, "KILL_SWITCH", "AUTH_REQUIRED");
+      setRunEnabled(!!msg.payload.enabled);
+      logger.warn("kill-switch", { enabled: getRunEnabled() });
+      send(ws, { kind: "ACK", ref: "KILL_SWITCH" });
+      return;
+    }
     case "TASK_CREATE": {
       if (!s.authenticated) return fail(ws, "TASK_CREATE", "AUTH_REQUIRED");
+      if (!getRunEnabled()) return fail(ws, "TASK_CREATE", "RUN_DISABLED");
+      if ((msg as any).meta?.masterWallet && (msg as any).meta.masterWallet !== s.masterPubkey) return fail(ws, "TASK_CREATE", "AUTH_PUBKEY_MISMATCH");
       const id = await handleTaskCreate({ payload: msg.payload });
       send(ws, { kind: "TASK_ACCEPTED", id });
+      return;
+    }
+    case "COIN_CREATE_SPL": {
+      if (!s.authenticated) return fail(ws, "COIN_CREATE_SPL", "AUTH_REQUIRED");
+      const { name, symbol, decimals, metadataUri, payerFolderId, payerWalletPubkey } = msg.payload as any;
+      const payerPubkey = payerWalletPubkey ?? s.masterPubkey!;
+      if (payerWalletPubkey && payerWalletPubkey !== s.masterPubkey) return fail(ws, "COIN_CREATE_SPL", "AUTH_PUBKEY_MISMATCH");
+      try {
+        const { mint, sig } = await createSplTokenWithMetadata({ name, symbol, decimals, metadataUri, payerPubkey });
+        send(ws, { kind: "COIN_CREATED", mint, sig } as ServerMsg);
+      } catch (e) {
+        fail(ws, "COIN_CREATE_SPL", (e as Error).message);
+      }
+      return;
+    }
+    case "COIN_PUBLISH_PUMPFUN": {
+      if (!s.authenticated) return fail(ws, "COIN_PUBLISH_PUMPFUN", "AUTH_REQUIRED");
+      const { mint, payerFolderId, payerWalletPubkey } = msg.payload as any;
+      const payerPubkey = payerWalletPubkey ?? s.masterPubkey!;
+      if (payerWalletPubkey && payerWalletPubkey !== s.masterPubkey) return fail(ws, "COIN_PUBLISH_PUMPFUN", "AUTH_PUBKEY_MISMATCH");
+      try {
+        const { sig } = await publishWithPumpFun({ mint, payerPubkey });
+        send(ws, { kind: "COIN_PUBLISHED", mint, sig } as ServerMsg);
+      } catch (e) {
+        fail(ws, "COIN_PUBLISH_PUMPFUN", (e as Error).message);
+      }
       return;
     }
   }
 }
 
 server.listen(PORT, () => console.log(`[daemon] ws on ${PORT}`));
+
+// Minimal HTTP endpoint(s)
+server.on("request", async (req, res) => {
+  try {
+    if (!req.url) { res.statusCode = 404; return res.end(); }
+    if (req.method === "GET" && req.url.startsWith("/pnl")) {
+      // Very simple PnL scaffold: aggregate fills by ca
+      // Note: For now, realized/unrealized are placeholders
+      const rows = (await db.execute(
+        // Group fills by CA and wallet; aggregate fees
+        `SELECT ca, wallet_pubkey, COUNT(*) as fills, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills GROUP BY ca, wallet_pubkey`
+      )) as any;
+      const byCa: Record<string, any> = {};
+      for (const r of rows) {
+        if (!byCa[r.ca]) byCa[r.ca] = { ca: r.ca, positions: [], totals: { fills: 0, feesLamports: 0, tipsLamports: 0 } };
+        byCa[r.ca].positions.push({ wallet: r.wallet_pubkey, fills: Number(r.fills), feesLamports: Number(r.fees), tipsLamports: Number(r.tips) });
+        byCa[r.ca].totals.fills += Number(r.fills);
+        byCa[r.ca].totals.feesLamports += Number(r.fees);
+        byCa[r.ca].totals.tipsLamports += Number(r.tips);
+      }
+      const payload = { items: Object.values(byCa) };
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(payload));
+      return;
+    }
+    res.statusCode = 404;
+    res.end();
+  } catch (e) {
+    res.statusCode = 500;
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ error: (e as Error).message }));
+  }
+});
 
 

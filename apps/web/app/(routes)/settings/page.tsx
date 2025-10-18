@@ -7,6 +7,9 @@ export default function Settings() {
   const [lastPing, setLastPing] = useState<number | null>(null);
   const [rpcOk, setRpcOk] = useState<boolean>(false);
   const [jitoOk, setJitoOk] = useState<boolean>(false);
+  const [rpcUrl, setRpcUrl] = useState<string>("");
+  const [jitoRegion, setJitoRegion] = useState<string>("");
+  const [tip, setTip] = useState<number>(0);
 
   useEffect(() => {
     // Listen via global WS events print; minimal placeholder until store wiring
@@ -17,6 +20,9 @@ export default function Settings() {
           setRpcOk(!!msg.rpcOk);
           setJitoOk(!!msg.jitoOk);
           setLastPing(msg.pingMs ?? null);
+          setRpcUrl(msg.rpcUrl ?? "");
+          setJitoRegion(msg.jitoRegion ?? "");
+          setTip(Number(msg.turboTipLamports ?? 0));
         }
       } catch {}
     };
@@ -34,6 +40,9 @@ export default function Settings() {
         <Status label="Jito" ok={jitoOk} />
         <div style={{ fontSize: 12, color: "#a1a1aa" }}>Ping: {lastPing ?? "-"} ms</div>
       </div>
+      <div style={{ fontSize: 12, color: "#a1a1aa" }}>RPC URL: {rpcUrl || "-"}</div>
+      <div style={{ fontSize: 12, color: "#a1a1aa" }}>Jito Region: {jitoRegion || "-"}</div>
+      <div style={{ fontSize: 12, color: "#a1a1aa" }}>Turbo Tip: {tip} lamports</div>
     </div>
   );
 }

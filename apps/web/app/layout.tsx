@@ -1,6 +1,7 @@
 import "./globals.css";
 import { WalletKit } from "../providers/WalletProvider";
 import Link from "next/link";
+import NotifBell from "../components/NotifBell";
 
 export const metadata = { title: "The Keymaker", description: "Multi-wallet snipe & MM" };
 
@@ -22,7 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/settings">Settings</Link>
               </nav>
             </aside>
-            <main>{children}</main>
+            <main>
+              <NotifBell />
+              {children}
+            </main>
           </div>
         </WalletKit>
       </body>

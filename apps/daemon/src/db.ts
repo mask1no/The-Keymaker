@@ -52,7 +52,13 @@ export const fills = sqliteTable("fills", {
   at: integer("at")
 });
 
-const dbFile = process.env.DB_FILE ?? "./keymaker.sqlite";
+export const tx_dedupe = sqliteTable("tx_dedupe", {
+  hash: text("hash").primaryKey(),
+  result: text("result"), // JSON: { sigs: string[], bundleId?: string }
+  created_at: integer("created_at")
+});
+
+const dbFile = process.env.DB_FILE ?? "./apps/daemon/keymaker.sqlite";
 const raw = new Database(dbFile);
 export const db = drizzle(raw);
 
@@ -63,6 +69,7 @@ export function ensureDb() {
     CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, kind TEXT, ca TEXT, folder_id TEXT, wallet_count INTEGER, params TEXT, state TEXT, created_at INTEGER, updated_at INTEGER);
     CREATE TABLE IF NOT EXISTS task_events (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT, state TEXT, info TEXT, at INTEGER);
     CREATE TABLE IF NOT EXISTS fills (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT, wallet_pubkey TEXT, ca TEXT, side TEXT, qty REAL, price REAL, sig TEXT, slot INTEGER, fee_lamports INTEGER, tip_lamports INTEGER, at INTEGER);
+    CREATE TABLE IF NOT EXISTS tx_dedupe (hash TEXT PRIMARY KEY, result TEXT, created_at INTEGER);
   `);
 }
 

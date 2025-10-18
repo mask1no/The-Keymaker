@@ -1,17 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 
-export async function createToken(_: {
-  name: string;
-  symbol: string;
-  decimals: 6 | 9;
-  metadataUri: string;
-  payer: Uint8Array;
-}): Promise<{ mint: PublicKey; sig: string }> {
-  throw new Error("pump.fun client not implemented yet");
-}
-
-export async function publishToken(_params: { mint: PublicKey; payer: Uint8Array }): Promise<{ sig: string }> {
-  throw new Error("pump.fun publish not implemented yet");
+/**
+ * Pump.fun launch seam.
+ * Keep signatures/types here so wiring JITO + pump program is isolated.
+ * Implement later with real program Ixs.
+ */
+export async function publishWithPumpFun(_params: { mint: string; payerPubkey: string }): Promise<{ sig: string }> {
+  throw new Error("PUMPFUN_NOT_IMPLEMENTED");
 }
 
 
