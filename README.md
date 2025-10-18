@@ -30,12 +30,13 @@
 - `npm run dev` — runs web (3000) and daemon (8787)
 - `npm run build` — builds both apps
 
-## Acceptance (first pass)
+## Acceptance (v0.3)
 
-- Web boots, wallet connect works (Phantom/Solflare/Backpack)
-- Daemon WS on 8787, HEALTH messages every 5s
-- Market Maker page can send `TASK_CREATE` and receive `TASK_ACCEPTED`
-- SQLite file created at `DB_FILE`, tables present
+- WS auth: Pre-auth mutator → `AUTH_REQUIRED`; after nonce sign → `AUTH_OK`.
+- Wallets: Create folder; create/import wallets; 21st → `WALLET_LIMIT_REACHED`.
+- Delete: Preview totals; delete sweeps SOL→master; `SWEEP_PROGRESS` → `SWEEP_DONE`; folder removed.
+- Notifications: Bell shows `FUND_RESULT`, `SWEEP_DONE`, coin events, `TASK_EVENT(DONE/FAIL)`, and health flips once.
+- Tasks: Create `SNIPE`/`MM` with `execMode`, wallet folder, counts, jitter/tip/CU bands; stream `PREP→BUILD→SUBMIT→CONFIRM→SETTLE→DONE/FAIL`; `TASK_LIST` returns recent.
 
 ## Security
 
