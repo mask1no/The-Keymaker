@@ -1,31 +1,28 @@
+export type ExecMode = "RPC_SPRAY" | "STEALTH_STRETCH" | "JITO_LITE";
+
 export type TaskKind = "SNIPE" | "MM";
 
 export type SnipeParams = {
-  walletFolderId: string;
-  walletCount: number;
-  maxSolPerWallet: number;
-  slippageBps: number;
-  delayMsRange: [number, number];
-  jitoTipLamports?: number;
-  region?: "NY"|"AMS"|"FRA"|"SFO"|"TOK";
+  walletFolderId: string; walletCount: number;
+  maxSolPerWallet: number; slippageBps: number;
+  execMode: ExecMode;
+  jitterMs: [number, number];
+  tipLamports?: [number, number];
+  cuPrice?: [number, number];
 };
 
 export type MMParams = {
-  walletFolderId: string;
-  walletCount: number;
-  minOrderSol: number;
-  maxOrderSol: number;
+  walletFolderId: string; walletCount: number;
+  minOrderSol: number; maxOrderSol: number;
   slippageBps: number;
-  delayMsRange: [number, number];
-  maxTxPerMin: number;
-  maxSessionSol: number;
-  jitoTipLamports?: number;
-  region?: "NY"|"AMS"|"FRA"|"SFO"|"TOK";
+  maxTxPerMin: number; maxSessionSol: number;
+  execMode: ExecMode; jitterMs: [number, number];
+  tipLamports?: [number, number]; cuPrice?: [number, number];
 };
 
 export type TaskCreateMsg = {
   kind: "TASK_CREATE";
-  payload: { mode: TaskKind; ca: string; params: SnipeParams | MMParams };
+  payload: { kind: TaskKind; ca: string; params: SnipeParams | MMParams };
   meta?: { masterWallet?: string; signedNonce?: string };
 };
 
@@ -50,7 +47,9 @@ export type ClientMsg =
   | { kind: "WALLET_IMPORT"; payload: { folderId: string; secretBase58: string } }
   | { kind: "FOLDER_WALLETS"; payload: { folderId: string } }
   | { kind: "FUND_WALLETS"; payload: { folderId: string; totalSol: number; masterPubkey: string } }
-  | { kind: "TASK_CREATE"; payload: { mode: TaskKind; ca: string; params: any }; meta?: { masterWallet?: string } }
+  | { kind: "TASK_CREATE"; payload: { kind: TaskKind; ca: string; params: any }; meta?: { masterWallet?: string } }
+  | { kind: "TASK_KILL"; payload: { id: string } }
+  | { kind: "TASK_LIST" }
   | { kind: "KILL_SWITCH"; payload: { enabled: boolean } }
   // NEW coin ops
   | { kind: "COIN_CREATE_SPL"; payload: { name: string; symbol: string; decimals: 6|9; metadataUri: string; payerFolderId: string; payerWalletPubkey?: string } }
@@ -67,6 +66,7 @@ export type ServerMsg =
   | { kind: "FUND_RESULT"; folderId: string; signatures: string[] }
   | { kind: "TASK_ACCEPTED"; id: string }
   | { kind: "TASK_EVENT"; id: string; state: string; info?: any }
+  | { kind: "TASKS"; items: Array<{ id: string; kind: TaskKind; ca: string; state: string; created_at: number; updated_at: number }> }
   | { kind: "HEALTH"; rpcOk: boolean; jitoOk: boolean; pingMs: number }
   // NEW coin ops
   | { kind: "COIN_CREATED"; mint: string; sig: string }

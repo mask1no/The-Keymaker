@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import { db, tasks, task_events, fills, tx_dedupe } from "./db";
 import { eq } from "drizzle-orm";
 import { buildSnipeTxs, buildMMPlan, submitBundle, confirmSigs } from "./solana";
-import type { SnipeParams, MMParams } from "@keymaker/types";
+import type { SnipeParams, MMParams, TaskKind } from "@keymaker/types";
 import { logger } from "@keymaker/logger";
 import { getRunEnabled, getTaskWallets } from "./state";
 
@@ -21,16 +21,20 @@ function withMintLock<T>(ca: string, fn: () => Promise<T>): Promise<T> {
   return p;
 }
 
-export async function handleTaskCreate(msg: any) {
+export function onTaskEvent(cb: (ev: any) => void) {
+  taskEvents.on("event", cb);
+  return () => taskEvents.off("event", cb);
+}
+
+export async function handleTaskCreate(kind: TaskKind, ca: string, params: any) {
   const id = uuid();
-  const { payload } = msg;
   await db.insert(tasks).values({
     id,
-    kind: payload.mode,
-    ca: payload.ca,
-    folder_id: payload.params.walletFolderId,
-    wallet_count: payload.params.walletCount ?? 0,
-    params: JSON.stringify(payload.params),
+    kind,
+    ca,
+    folder_id: params.walletFolderId,
+    wallet_count: params.walletCount ?? 0,
+    params: JSON.stringify(params),
     state: "QUEUED",
     created_at: Date.now(),
     updated_at: Date.now()

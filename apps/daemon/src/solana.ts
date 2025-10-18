@@ -3,7 +3,7 @@ import bs58 from "bs58";
 import crypto from "crypto";
 import { db, tx_dedupe } from "./db";
 import { getKeypairForPubkey } from "./secrets";
-import { submitBundleOrRpc } from "./jito";
+import { submitBundleOrRpc } from "./integrations/bundles/jito";
 import type { SnipeParams, MMParams } from "@keymaker/types";
 import { logger } from "@keymaker/logger";
 import { setTaskWallets } from "./state";

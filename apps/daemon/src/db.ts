@@ -58,6 +58,11 @@ export const tx_dedupe = sqliteTable("tx_dedupe", {
   created_at: integer("created_at")
 });
 
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value")
+});
+
 const dbFile = process.env.DB_FILE ?? "./apps/daemon/keymaker.sqlite";
 const raw = new Database(dbFile);
 export const db = drizzle(raw);
@@ -70,7 +75,19 @@ export function ensureDb() {
     CREATE TABLE IF NOT EXISTS task_events (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT, state TEXT, info TEXT, at INTEGER);
     CREATE TABLE IF NOT EXISTS fills (id INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT, wallet_pubkey TEXT, ca TEXT, side TEXT, qty REAL, price REAL, sig TEXT, slot INTEGER, fee_lamports INTEGER, tip_lamports INTEGER, at INTEGER);
     CREATE TABLE IF NOT EXISTS tx_dedupe (hash TEXT PRIMARY KEY, result TEXT, created_at INTEGER);
+    CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
   `);
+}
+
+export function getSetting(key: string): string | undefined {
+  try {
+    const r = raw.prepare("SELECT value FROM settings WHERE key = ?").get(key) as any;
+    return r?.value as string | undefined;
+  } catch { return undefined; }
+}
+
+export function setSetting(key: string, value: string) {
+  raw.prepare("INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(key, value);
 }
 
 

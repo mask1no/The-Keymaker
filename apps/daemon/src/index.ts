@@ -13,7 +13,7 @@ import { logger } from "@keymaker/logger";
 import type { ClientMsg, ServerMsg } from "@keymaker/types";
 import { createSplTokenWithMetadata } from "./coin";
 import { publishWithPumpFun } from "./pumpfun";
-import { setRunEnabled, getRunEnabled } from "./state";
+import { setRunEnabled, getRunEnabled } from "./guards";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
 const PORT = 8787;
@@ -185,8 +185,13 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       if (!s.authenticated) return fail(ws, "TASK_CREATE", "AUTH_REQUIRED");
       if (!getRunEnabled()) return fail(ws, "TASK_CREATE", "RUN_DISABLED");
       if ((msg as any).meta?.masterWallet && (msg as any).meta.masterWallet !== s.masterPubkey) return fail(ws, "TASK_CREATE", "AUTH_PUBKEY_MISMATCH");
-      const id = await handleTaskCreate({ payload: msg.payload });
+      const id = await handleTaskCreate(msg.payload.kind, msg.payload.ca, msg.payload.params);
       send(ws, { kind: "TASK_ACCEPTED", id });
+      return;
+    }
+    case "TASK_LIST": {
+      const rows = await db.execute(`SELECT id, kind, ca, state, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 200`);
+      send(ws, { kind: "TASKS", items: rows as any });
       return;
     }
     case "COIN_CREATE_SPL": {
