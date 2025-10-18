@@ -30,16 +30,16 @@
 - `npm run dev` — runs web (3000) and daemon (8787)
 - `npm run build` — builds both apps
 
-## Acceptance (v0.3)
+## Acceptance (v0.4)
 
 - WS auth: Pre-auth mutator → `AUTH_REQUIRED`; after nonce sign → `AUTH_OK`.
-- Wallets: Create folder; create/import wallets; 21st → `WALLET_LIMIT_REACHED`.
-- Delete: Preview totals; delete sweeps SOL→master; `SWEEP_PROGRESS` → `SWEEP_DONE`; folder removed.
-- Notifications: Bell shows `FUND_RESULT`, `SWEEP_DONE`, coin events, `TASK_EVENT(DONE/FAIL)`, and health flips once.
-- Tasks: Create `SNIPE`/`MM` with `execMode`, wallet folder, counts, jitter/tip/CU bands; stream `PREP→BUILD→SUBMIT→CONFIRM→SETTLE→DONE/FAIL`; `TASK_LIST` returns recent.
+- Wallets: Folders capped at 20 wallets; 21st create/import → `WALLET_LIMIT_REACHED`.
+- Delete→Sweep: Preview shows balances; delete sweeps SOL→master; emits `SWEEP_PROGRESS` then `SWEEP_DONE`; folder removed and master balance increases.
+- Notifications bell: Shows `HEALTH` flips (RPC/Jito), `TASK_EVENT(DONE|FAIL|ABORT)`, errors, funding/sweep, and coin ops. Each item links to explorer for `sig` and token `ca`.
+- Task lifecycle streaming: `PREP → BUILD → SUBMIT → CONFIRM → SETTLE → DONE/FAIL` over WS. Kill switch toggles run state; `TASK_KILL` stops within a second and emits `FAIL/TASK_CANCELLED`.
+- Sniper online: From Market Maker → SNIPE, pick a CA and a folder with ≥2 funded wallets. `execMode="RPC_SPRAY"` (default) or `"JITO_LITE"` (2–3 tx bundles with randomized tips). Example smoke: 0.005 SOL each, `slippageBps=500`, modest CU band; explorer shows signatures.
+- PNL/Fills: Minimal rows are stored per fill with qty/price best-effort via pre/post balances; `apps/web/app/(routes)/api/pnl/route.ts` proxies the daemon `/pnl` endpoint.
 
 ## Security
 
-- No private keys in the web app.
-- Daemon keystore encrypted with `KEYSTORE_PASSWORD` (temporary; move to OS keychain next).
-- Logs redact secrets; only signatures/slots/amounts are logged.
+- No private keys in web; all signing inside daemon (encrypted keystore). HEALTH pings every 5s. No new env keys beyond documented ones.

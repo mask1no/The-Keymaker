@@ -7,6 +7,7 @@ import { submitBundleOrRpc } from "./integrations/bundles/jito";
 import type { SnipeParams, MMParams } from "@keymaker/types";
 import { logger } from "@keymaker/logger";
 import { setTaskWallets } from "./state";
+import { enforceTxMax, checkAndConsumeSpend, programAllowlistCheck } from "./guards";
 
 // Jupiter v6 helpers
 async function fetchJupQuote(inputMint: string, outputMint: string, amount: number, slippageBps: number) {
@@ -57,7 +58,9 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
   const walletCount = Number(params.walletCount || 0);
   const maxSolPerWallet = Number(params.maxSolPerWallet || 0);
   const slippageBps = Number(params.slippageBps || 50);
-  const jitoTipLamports = Number(params.jitoTipLamports || 0);
+  const cuBand = params.cuPrice as [number, number] | undefined;
+  const tipBand = params.tipLamports as [number, number] | undefined;
+  const jitterBand = params.jitterMs as [number, number] | undefined;
 
   // Fetch wallets
   const ws = await db.execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
@@ -67,45 +70,45 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
 
   for (const w of ws) {
     const userPk = w.pubkey as string;
+    // per-wallet jitter
+    if (jitterBand) {
+      const [lo, hi] = jitterBand;
+      const wait = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    }
+    // caps
+    enforceTxMax(amountLamports);
     const quote = await fetchJupQuote("So11111111111111111111111111111111111111112", ca, amountLamports, slippageBps);
-    const swap = await fetchJupSwap(userPk, quote, jitoTipLamports);
+    // randomize CU price within band (microLamports)
+    let cuPriceMicro: number | undefined = undefined;
+    if (cuBand) {
+      const [lo, hi] = cuBand;
+      cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
+    }
+    const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
     const txb64 = swap.swapTransaction as string;
     const vtx = decodeSwapTx(txb64);
+    // basic allowlist check prior to signing
+    programAllowlistCheck([vtx]);
     // Attach signature
     const kp = await getKeypairForPubkey(userPk);
     if (!kp) throw new Error("PAYER_NOT_AVAILABLE");
     vtx.sign([kp]);
     out.push(vtx);
+    // consume budget only after we have a signed tx
+    checkAndConsumeSpend(amountLamports);
   }
   setTaskWallets(taskId, ws.map((r:any)=> r.pubkey as string));
-  logger.info("snipe-built", { taskId, wallets: out.length, ca, maxSolPerWallet, slippageBps, jitoTipLamports });
+  logger.info("snipe-built", { taskId, wallets: out.length, ca, maxSolPerWallet, slippageBps, cuBand, tipBand, jitterBand });
   return out;
 }
 export async function buildMMPlan(_taskId: string): Promise<VersionedTransaction[]> {
   return [];
 }
 export async function submitBundle(txs: VersionedTransaction[], tipLamports?: number) {
-  // Basic allowlist for programs in message; reject if unknown
-  const allowed = new Set<string>([
-    SystemProgram.programId.toBase58(),
-    // SPL Token
-    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-    // Metaplex Metadata
-    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
-    // Jupiter v6 (router program id may vary; allow later when integrated)
-  ]);
-  for (const t of txs) {
-    const msg = t.message;
-    const keys = msg.staticAccountKeys.map((k)=>k.toBase58());
-    // If any instruction references a program outside allowlist, reject
-    for (const ix of msg.compiledInstructions) {
-      const prog = keys[ix.programIdIndex];
-      if (!allowed.has(prog)) {
-        throw new Error("PROGRAM_NOT_ALLOWED");
-      }
-    }
-  }
-  const r = await submitBundleOrRpc(txs, tipLamports);
+  // Program allowlist
+  programAllowlistCheck(txs);
+  const r = await submitBundleOrRpc(conn, txs, tipLamports);
   logger.info("submit", { path: r.path, bundleId: r.bundleId, count: txs.length });
   return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0 };
 }

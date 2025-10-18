@@ -7,7 +7,10 @@ import { ensureDb } from "./db";
 import { db, fills } from "./db";
 import { initSolana } from "./solana";
 import { checkHealth } from "./health";
+import { startPumpfunListener } from "./integrations/listener/heliusGrpc";
+import { setListenerActive } from "./state";
 import { handleTaskCreate, taskEvents } from "./task-runner";
+import { cancelTask } from "./task-runner";
 import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder } from "./wallets";
 import { logger } from "@keymaker/logger";
 import type { ClientMsg, ServerMsg } from "@keymaker/types";
@@ -26,12 +29,16 @@ async function bootstrap() {
   const ksPassword = process.env.KEYSTORE_PASSWORD || "";
   if (!ksPassword) throw new Error("KEYSTORE_PASSWORD not set");
   await initKeystore(ksPassword);
+  // Optional GRPC listener
+  if (process.env.GRPC_ENDPOINT) {
+    try { await startPumpfunListener((_e:any)=>{}); setListenerActive(true); } catch { setListenerActive(false); }
+  }
 }
 void bootstrap();
 
 setInterval(async () => {
   const h = await checkHealth();
-  const payload = JSON.stringify({ kind: "HEALTH", ...h });
+  const payload = JSON.stringify({ kind: "HEALTH", ...h, listenerActive: require("./state").getListenerActive() });
   wss.clients.forEach((c: any) => c.readyState === 1 && c.send(payload));
 }, 5000);
 
@@ -192,6 +199,19 @@ async function handleMessage(ws: any, msg: ClientMsg) {
     case "TASK_LIST": {
       const rows = await db.execute(`SELECT id, kind, ca, state, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 200`);
       send(ws, { kind: "TASKS", items: rows as any });
+      return;
+    }
+    case "TASK_KILL": {
+      if (!s.authenticated) return fail(ws, "TASK_KILL", "AUTH_REQUIRED");
+      try {
+        const id = (msg as any).payload?.id as string;
+        if (!id) return fail(ws, "TASK_KILL", "MISSING_ID");
+        cancelTask(id);
+        await db.execute(`INSERT INTO task_events(task_id, state, info, at) VALUES(?, 'KILL', '{}', ?)`, [id, Date.now()]);
+        send(ws, { kind: "ACK", ref: "TASK_KILL" });
+      } catch (e) {
+        return fail(ws, "TASK_KILL", (e as Error).message || "GENERIC");
+      }
       return;
     }
     case "COIN_CREATE_SPL": {

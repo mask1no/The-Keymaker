@@ -1,5 +1,6 @@
 import { VersionedTransaction, SystemProgram } from "@solana/web3.js";
 import { getSetting } from "./db";
+import { getRunEnabled as getRunEnabledState, setRunEnabled as setRunEnabledState } from "./state";
 
 export function getCaps() {
   return {
@@ -13,20 +14,48 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
   const allowed = new Set<string>([
     SystemProgram.programId.toBase58(),
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // SPL Token
-    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" // Metaplex Metadata
+    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", // Metaplex Metadata
+    "ComputeBudget111111111111111111111111111111", // Compute Budget program
+    // Jupiter v6 router: allow addresses beginning with 'JUP' to accommodate main router deployments
+    // NOTE: Tighten this with explicit program IDs if desired without adding envs.
   ]);
   for (const t of txs) {
     const msg = t.message;
     const keys = msg.staticAccountKeys.map((k)=>k.toBase58());
     for (const ix of msg.compiledInstructions) {
       const prog = keys[ix.programIdIndex];
-      if (!allowed.has(prog)) throw new Error("PROGRAM_NOT_ALLOWED");
+      if (!allowed.has(prog) && !prog.startsWith("JUP")) throw new Error("PROGRAM_NOT_ALLOWED");
     }
   }
 }
 
-let RUN_ENABLED = true;
-export function setRunEnabled(b: boolean) { RUN_ENABLED = b; }
-export function getRunEnabled() { return RUN_ENABLED; }
+// Kill-switch passthroughs to unified state
+export function setRunEnabled(b: boolean) { setRunEnabledState(b); }
+export function getRunEnabled() { return getRunEnabledState(); }
+
+// --- Caps enforcement (per-tx, per-minute, per-session) ---
+const minuteSpend: Array<{ at: number; lamports: number }> = [];
+let sessionSpendLamports = 0;
+
+function pruneMinuteWindow(now: number) {
+  while (minuteSpend.length && (now - minuteSpend[0].at) > 60_000) minuteSpend.shift();
+}
+
+export function enforceTxMax(lamports: number) {
+  const { maxTxSol } = getCaps();
+  if (lamports > Math.floor(maxTxSol * 1e9)) throw new Error("MAX_TX_SOL_EXCEEDED");
+}
+
+export function checkAndConsumeSpend(lamports: number) {
+  const now = Date.now();
+  pruneMinuteWindow(now);
+  const { maxSolPerMin, maxSessionSol } = getCaps();
+  const minuteSoFar = minuteSpend.reduce((a, b) => a + b.lamports, 0);
+  if (minuteSoFar + lamports > Math.floor(maxSolPerMin * 1e9)) throw new Error("MAX_SOL_PER_MIN_EXCEEDED");
+  if (sessionSpendLamports + lamports > Math.floor(maxSessionSol * 1e9)) throw new Error("MAX_SESSION_SOL_EXCEEDED");
+  minuteSpend.push({ at: now, lamports });
+  sessionSpendLamports += lamports;
+}
+
 
 
