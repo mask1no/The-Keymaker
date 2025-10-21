@@ -3,7 +3,10 @@ export type PumpEvent = { mint: string; ca: string; slot: number; sig: string };
 export async function startPumpfunListener(onEvent: (e: PumpEvent)=>void): Promise<void> {
   // If GRPC_ENDPOINT is not set, no-op.
   const endpoint = process.env.GRPC_ENDPOINT;
-  if (!endpoint) return;
+  if (!endpoint) {
+    try { (await import("@keymaker/logger")).logger.info("listener", { op: "disabled" }); } catch {}
+    return;
+  }
   // Minimal backoff loop with dynamic import to avoid hard dep when unset
   let stop = false;
   const connect = async () => {
@@ -15,6 +18,7 @@ export async function startPumpfunListener(onEvent: (e: PumpEvent)=>void): Promi
         const client = new HeliusClient(endpoint);
         // Subscribe to program logs mentioning pump.fun create events
         const stream = client.subscribeProgramLogs({ programIds: ["5h6UNi88C5Z4HzyBbs6k8ZZrVSu2Ce279b9EcRWWQf4r"] });
+        try { (await import("../../state")).setListenerActive(true); } catch {}
         stream.on("data", (msg: any) => {
           try {
             // Parse minimal fields; users can enhance later
@@ -29,6 +33,7 @@ export async function startPumpfunListener(onEvent: (e: PumpEvent)=>void): Promi
           stream.on("end", () => resolve());
           stream.on("error", () => resolve());
         });
+        try { (await import("../../state")).setListenerActive(false); } catch {}
       } catch {
         // Backoff and reconnect
         await new Promise(r => setTimeout(r, 2000));

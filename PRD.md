@@ -1,3 +1,132 @@
+# Product Requirements Document (PRD) — The Keymaker
+
+## 1. Purpose
+A **local, web-based multi-wallet sniper and market-maker for Solana** focused on tokens created by the user via **Pump.fun** and post-launch routing via **Jupiter v6**. The system must execute multi-wallet buys safely, quickly, and with operator-grade guardrails, while keeping **all private keys and signing in a local daemon**.
+
+## 2. Users & Goals
+- **Operator (single user):** launch memecoins, seed initial volume, perform targeted multi-wallet buys, and track fills/PNL.
+- **Goals:** reliability, speed, safety (caps/kill), and auditability (fills/events persisted).
+
+## 3. Non-Goals
+- Not a hosted service.  
+- Not a key-pasting website.  
+- Not a “signals” or automatic strategy platform.  
+- Sells/MM exactOut loops are out of scope for v0.5.
+
+## 4. System Overview
+- **Web (Next.js 14)** on `http://localhost:3000` — UI, no secrets.
+- **Daemon (Node/TS WebSocket)** on `ws://localhost:8787` — auth, keystore, tx build/sign, execution, HEALTH.
+- **SQLite** for persistence: `folders`, `wallets`, `tasks`, `task_events`, `fills`, `tx_dedupe`, `settings`.
+
+## 5. Security Invariants
+- Web never handles private keys.  
+- Mutating WS calls require **nonce-signed** master wallet.  
+- **Program allowlist** enforced at submit time: System, SPL Token, Metaplex Metadata, Jupiter router (Pump.fun added only when direct IX is implemented).  
+- **Caps** (per-tx/per-minute/per-session), **kill switch**, **idempotency**, **per-mint locks** enforced in **every** submit path.  
+- **Minimal env**—everything else in Settings DB.
+
+## 6. Configuration (.env)
+- Required: `RPC_URL`, `KEYSTORE_PASSWORD`  
+- Optional: `GRPC_ENDPOINT` (Helius Yellowstone/LaserStream), `JITO_BLOCK_ENGINE`, `BIRDEYE_API_KEY`  
+- Fallbacks: no GRPC → listener disabled; no JITO → RPC fallback.
+
+## 7. Functional Requirements
+
+### 7.1 Wallets & Folders
+- Create/import wallets; **max 20 per folder** (enforced).
+- List/rename folders; list wallets per folder.
+- Delete folder → **Preview** (SOL balances, est fees) → **Sweep SOL to master** (stream progress) → **Delete** (idempotent, lock during sweep).
+
+### 7.2 Auth
+- `AUTH_CHALLENGE` → nonce; `AUTH_PROVE` (signature over nonce) → `AUTH_OK`.  
+- All mutators require authenticated session; errors: `AUTH_REQUIRED`, `AUTH_BAD_SIGNATURE`, `AUTH_PUBKEY_MISMATCH`.
+
+### 7.3 Sniper / Market Maker (v0.5 buy-only)
+- **Exec modes**:
+  - `RPC_SPRAY`: bounded parallel sends with jitter, slippage variance, compute-unit price variance.  
+  - `STEALTH_STRETCH`: spread over time with lower concurrency, heavier variance.  
+  - `JITO_LITE`: bundles of 2–3 tx, randomized tips, slot spacing; RPC fallback if no Jito.
+- **Task lifecycle**: `PREP → BUILD → SUBMIT → CONFIRM → SETTLE → DONE|FAIL`.  
+- **Parameters** (`SnipeParams` / `MMParams`): folder, walletCount, sol amounts, slippage, execMode, jitter, tip/CU bands, caps.  
+- **PNL**: record fills with qty, effective price, fees, tips; best-effort via balance deltas.
+
+### 7.4 Listener
+- Optional Helius Yellowstone/LaserStream gRPC subscription emitting Pump.fun create events with `{mint, ca, slot, sig}`; must gracefully **no-op** when unset.
+
+### 7.5 Notifications
+- Bell with unread badge; messages for `TASK_EVENT(DONE|FAIL)`, `SWEEP_DONE`, `{ERR}`, and **HEALTH state changes**; links to explorer for `sig` and mint for `ca`.
+
+## 8. WebSocket API (Canonical)
+**Auth**
+- `AUTH_CHALLENGE` → `{ kind:"AUTH_NONCE", nonce }`
+- `AUTH_PROVE { pubkey, signature, nonce }` → `{ kind:"AUTH_OK", masterPubkey }`
+
+**Folders/Wallets**
+- `FOLDER_LIST` → `{ kind:"FOLDERS", folders:[{id,name,count}] }`
+- `FOLDER_CREATE { id, name }` → `{ACK}` → `FOLDERS`
+- `FOLDER_RENAME { id, name }` → `FOLDERS`
+- `FOLDER_WALLETS { folderId }` → `{ kind:"WALLETS", folderId, wallets:[{id,pubkey,role}] }`
+- `WALLET_CREATE { folderId }` (≤20) → `WALLETS` or `{ERR:"WALLET_LIMIT_REACHED"}`
+- `WALLET_IMPORT { folderId, secretBase58 }` → `WALLETS`
+
+**Delete/Sweep**
+- `FOLDER_DELETE_PREVIEW { id }` → `{ kind:"FOLDER_DELETE_PLAN", wallets:[{pubkey,solLamports,tokens?}], estFeesLamports }`
+- `FOLDER_DELETE { id, masterPubkey }` → stream `{ kind:"SWEEP_PROGRESS", id, info:{pubkey,sig} }` then `{ kind:"SWEEP_DONE", id, signatures:[...] }`
+
+**Tasks**
+- `TASK_CREATE { kind:"SNIPE"|"MM", ca, params }` → `{ kind:"TASK_ACCEPTED", id }`
+- `TASK_LIST` → `{ kind:"TASKS", tasks:[...] }`
+- `TASK_KILL { id }` → `{ kind:"TASK_EVENT", id, state:"FAIL", info:{ error:"TASK_CANCELLED" } }`
+
+**Events**
+- `TASK_EVENT { id, state:"PREP"|"BUILD"|"SUBMIT"|"CONFIRM"|"SETTLE"|"DONE"|"FAIL", info? }`
+- `HEALTH { rpc:{ok,lagMs}, grpc:{ok}, jito:{ok}, ts }`
+- `{ kind:"ERR", error:"CODE", ref? }`
+
+## 9. Data Model (SQLite)
+- `folders(id TEXT PK, name TEXT, max_wallets INT DEFAULT 20)`
+- `wallets(id TEXT PK, folder_id TEXT, pubkey TEXT, role TEXT, created_at INT, enc_privkey TEXT DEFAULT 'keystore')`
+- `tasks(id TEXT PK, kind TEXT, ca TEXT, folder_id TEXT, wallet_count INT, params_json TEXT, state TEXT, created_at INT, updated_at INT)`
+- `task_events(id TEXT PK, task_id TEXT, state TEXT, info_json TEXT, at INT)`
+- `fills(id TEXT PK, task_id TEXT, wallet_pubkey TEXT, ca TEXT, side TEXT, qty_tokens REAL, price_sol_per_token REAL, sig TEXT, fee_lamports INT, tip_lamports INT, at INT)`
+- `tx_dedupe(hash TEXT PK, sigs_json TEXT, created_at INT)`
+- `settings(key TEXT PK, value TEXT)`
+
+**Keystore**: encrypted JSON at `KEYSTORE_FILE` (scrypt→secretbox); secrets never in SQLite.
+
+## 10. Non-Functional Requirements
+- **Performance:**  
+  - RPC_SPRAY: ≤ 200ms average build per tx; ≤ 8 concurrent sends; confirm within 15s.  
+  - JITO_LITE: bundle assemble ≤ 100ms; inclusion in next 1–2 slots typical (tips permitting).
+- **Reliability:** HEALTH degradation **pauses SUBMIT**; resume on recovery.
+- **Observability:** Structured logs with no secrets; task/fill persistence.
+
+## 11. Error Codes (canonical)
+`AUTH_REQUIRED`, `AUTH_BAD_NONCE`, `AUTH_BAD_SIGNATURE`, `AUTH_PUBKEY_MISMATCH`,  
+`WALLET_LIMIT_REACHED`, `FOLDER_BUSY`, `FOLDER_NOT_FOUND`,  
+`RPC_UNAVAILABLE`, `SWEEP_FAILED`, `TASK_INVALID_PARAMS`, `TASK_CANCELLED`,  
+`CAP_EXCEEDED`, `CONFIRM_TIMEOUT`.
+
+## 12. Acceptance (must pass)
+See README “Acceptance.” Same battery governs “done-ness.”
+
+## 13. Risks & Mitigations
+- **Fund loss from buggy sweep** → Preview+fee cushion, idempotent sends, per-wallet serialization.  
+- **Bundle inclusion volatility** → tip bands + RPC fallback; small bundles with slot spacing.  
+- **Graph clustering optics** → exec modes with jitter/variance; funding hygiene (doc later).  
+- **AI code drift** → This PRD and README are **single sources of truth**; assistants must anchor to them.
+
+## 14. Roadmap
+- Direct Pump.fun IX path (pre-AMM)  
+- Sells & MM loops (exactOut)  
+- Price feeds for PnL (Pyth/Birdeye)  
+- Reports/exports and “launch profiles”
+
+## 15. Glossary
+- **CA:** Token mint (contract address).  
+- **ExecMode:** Strategy for timing/transport of multi-wallet sends.  
+- **HEALTH:** Daemon heartbeat with RPC/GRPC/Jito state.
+
 # The Keymaker – Product Requirements Document (PRD)
 
 ## Executive Summary

@@ -1,45 +1,169 @@
-# The Keymaker — Monorepo (Web + Daemon)
+# The Keymaker
+
+**A local, web-based multi-wallet sniper and market-maker for Solana.**  
+UI runs on **http://localhost:3000** (Next.js 14).  
+Secure daemon runs on **ws://localhost:8787** (Node/TS).  
+Targets **user-created memecoins (Pump.fun)** and post-launch routing via **Jupiter v6**.  
+Signing, keys, and execution live **only in the daemon**.
+
+> ⚠️ This tool moves real funds. Start tiny and read the **Safety** section.
+
+## Quick Start
+
+```bash
+# 1) Install
+npm i
+
+# 2) Configure
+cp .env.example .env
+# set RPC_URL and KEYSTORE_PASSWORD at minimum
+# optionally set GRPC_ENDPOINT (Helius Yellowstone/LaserStream) and JITO_BLOCK_ENGINE
+
+# 3) Run
+npm run dev
+# Web:    http://localhost:3000
+# Daemon: ws://localhost:8787  (HEALTH ping every 5s)
+```
+
+## What This Is (and isn’t)
+
+* **Is:** Local dashboard to create/import wallets, group them, and execute **multi-wallet buys** on your tokens (and others) with **three execution modes**:
+
+  * `RPC_SPRAY` — parallel RPC sends with jitter/variance
+  * `STEALTH_STRETCH` — spread over time with heavier variance
+  * `JITO_LITE` — small Jito bundles (2–3 tx) with randomized tips, plus fallback to RPC
+* **Isn’t:** A hosted service; a key-pasting website; or a magic profit machine. It’s tooling.
 
 ## Architecture
 
-- `apps/web`: Next.js 14 App Router UI (port 3000)
-- `apps/daemon`: Node/TS WebSocket daemon (port 8787)
-- `packages/types`: shared TypeScript types
-- `packages/logger`: minimal structured logger
+```
+apps/
+  web/            # Next.js 14 UI (App Router)
+  daemon/         # Node/TS WebSocket server (signing + execution)
+packages/
+  types/          # Shared TypeScript types (tasks, params, events)
+  logger/         # Structured logging (redacts sensitive data)
+.github/workflows # CI (lint/build)
+```
 
-## Setup
+**Security invariants (non-negotiable):**
 
-1. `npm install`
-2. Copy `.env.example` to `.env` and set `RPC_URL`, `KEYSTORE_PASSWORD` (local only)
-3. `npm run dev` and open `http://localhost:3000`
+* Web never sees private keys; daemon signs everything.
+* All mutating WS calls require **nonce-based wallet auth** (master wallet signature).
+* Program **allowlist** enforced at submit time.
+* **Caps**, **kill switch**, **idempotency**, and **per-mint locks** guard every submit path.
 
-## Master Wallet
+## Configuration
 
-- Connect Phantom/Solflare/Backpack in UI, then click “Set as Master”.
-- The daemon performs a nonce-based signature challenge over WS to acknowledge the master wallet.
-- The web app never sees or stores private keys.
+Only these env vars are recognized:
 
-## Daemon
+```
+RPC_URL=...                    # required
+GRPC_ENDPOINT=...              # optional (Helius Yellowstone/LaserStream). Blank => listener disabled
+JITO_BLOCK_ENGINE=...          # optional. Blank => Jito disabled, RPC fallback only
+BIRDEYE_API_KEY=...            # optional (marks/PNL)
+DB_FILE=./apps/daemon/keymaker.sqlite
+KEYSTORE_FILE=./apps/daemon/keystore.json
+KEYSTORE_PASSWORD=change_me_dev_only
+MASTER_SECRET_BASE58=          # dev-only backdoor; should be blank in real use
+```
 
-- Manages encrypted keystore, RPC/Jito, tx planning, bundling, logging.
-- Emits `HEALTH` WS messages every 5s with RPC/Jito status and ping.
-- Persists SQLite DB at `DB_FILE` with tables for folders, wallets, tasks, task_events, fills.
+**Fallback behavior**
 
-## Development Scripts
+* No `GRPC_ENDPOINT` → app runs; listener off; manual CA inputs still work.
+* No `JITO_BLOCK_ENGINE` → `JITO_LITE` downgrades to RPC sends automatically.
 
-- `npm run dev` — runs web (3000) and daemon (8787)
-- `npm run build` — builds both apps
+## Features & Status
 
-## Acceptance (v0.4)
+| Area          | What it does                                                                           | Status                  |
+| ------------- | -------------------------------------------------------------------------------------- | ----------------------- |
+| Auth          | WS nonce challenge; master wallet signs message before any mutator                     | ✅                       |
+| Wallets       | Create/import; **≤20** per folder; list/rename                                         | ✅                       |
+| Delete/Sweep  | Folder delete previews balances; sweeps **SOL → master**; streams progress; idempotent | ✅                       |
+| Notifications | Bell with unread badge; task events, health flips, errors; explorer links              | ✅                       |
+| Sniper        | `RPC_SPRAY`, `STEALTH_STRETCH`, `JITO_LITE` (small bundles + tip variance)             | ✅/🚧 (*see Acceptance*) |
+| PnL/Fills     | Best-effort via pre/post balances; records qty, price, fees, tips                      | ✅/🚧                    |
+| Listener      | Helius Yellowstone/LaserStream gRPC; emits Pump.fun create events                      | ✅/🚧 (optional)         |
 
-- WS auth: Pre-auth mutator → `AUTH_REQUIRED`; after nonce sign → `AUTH_OK`.
-- Wallets: Folders capped at 20 wallets; 21st create/import → `WALLET_LIMIT_REACHED`.
-- Delete→Sweep: Preview shows balances; delete sweeps SOL→master; emits `SWEEP_PROGRESS` then `SWEEP_DONE`; folder removed and master balance increases.
-- Notifications bell: Shows `HEALTH` flips (RPC/Jito), `TASK_EVENT(DONE|FAIL|ABORT)`, errors, funding/sweep, and coin ops. Each item links to explorer for `sig` and token `ca`.
-- Task lifecycle streaming: `PREP → BUILD → SUBMIT → CONFIRM → SETTLE → DONE/FAIL` over WS. Kill switch toggles run state; `TASK_KILL` stops within a second and emits `FAIL/TASK_CANCELLED`.
-- Sniper online: From Market Maker → SNIPE, pick a CA and a folder with ≥2 funded wallets. `execMode="RPC_SPRAY"` (default) or `"JITO_LITE"` (2–3 tx bundles with randomized tips). Example smoke: 0.005 SOL each, `slippageBps=500`, modest CU band; explorer shows signatures.
-- PNL/Fills: Minimal rows are stored per fill with qty/price best-effort via pre/post balances; `apps/web/app/(routes)/api/pnl/route.ts` proxies the daemon `/pnl` endpoint.
+> ✅/🚧 = implemented but verify via **Acceptance**.
 
-## Security
+## Execution Modes
 
-- No private keys in web; all signing inside daemon (encrypted keystore). HEALTH pings every 5s. No new env keys beyond documented ones.
+* **RPC_SPRAY**: parallel sending with per-wallet **jitter**, **slippage variance**, **compute-unit price variance**.
+* **STEALTH_STRETCH**: spray across a wider window; lower concurrency + heavier randomization.
+* **JITO_LITE**: pack **2–3 signed tx**/bundle, randomize tip within band, slight slot delays. Falls back to RPC when no block engine.
+
+## Safety
+
+* **Caps** (enforced in daemon): `MAX_TX_SOL`, `MAX_SOL_PER_MIN`, `MAX_SESSION_SOL`.
+* **Kill switch**: checked before each send; stops new sends immediately.
+* **Program allowlist**: Allowed → **System**, **SPL Token**, **Metaplex Metadata**, **Jupiter router** (add Pump.fun when direct IX enabled).
+* **Idempotency**: stable hash of tx message; duplicates return prior sigs.
+* **Per-mint locks**: prevent overlapping tasks on same CA.
+
+## WebSocket API (client ↔ daemon)
+
+**Auth**
+
+* `AUTH_CHALLENGE` → `{ kind:"AUTH_NONCE", nonce }`
+* `AUTH_PROVE { pubkey, signature, nonce }` → `{ kind:"AUTH_OK", masterPubkey }`
+* Errors: `{ kind:"ERR", error:"AUTH_REQUIRED"|"AUTH_BAD_SIGNATURE"|"AUTH_PUBKEY_MISMATCH", ref? }`
+
+**Folders/Wallets**
+
+* `FOLDER_LIST` → `{ kind:"FOLDERS", folders:[{id,name,count}] }`
+* `FOLDER_CREATE { id, name }` → `{ACK}` → `FOLDERS`
+* `FOLDER_RENAME { id, name }` → `FOLDERS`
+* `FOLDER_WALLETS { folderId }` → `{ kind:"WALLETS", folderId, wallets:[{id,pubkey,role}] }`
+* `WALLET_CREATE { folderId }` (≤20) → `WALLETS` or `{ERR, error:"WALLET_LIMIT_REACHED"}`
+* `WALLET_IMPORT { folderId, secretBase58 }` → `WALLETS`
+
+**Delete/Sweep**
+
+* `FOLDER_DELETE_PREVIEW { id }` → `{ kind:"FOLDER_DELETE_PLAN", wallets:[{pubkey,solLamports,tokens:[...] }], estFeesLamports }`
+* `FOLDER_DELETE { id, masterPubkey }` → stream `{ kind:"SWEEP_PROGRESS", id, info:{pubkey,sig} }` then `{ kind:"SWEEP_DONE", id, signatures:[...] }`
+
+**Tasks**
+
+* `TASK_CREATE { kind:"SNIPE"|"MM", ca, params }` → `{ kind:"TASK_ACCEPTED", id }` then events
+* `TASK_LIST` → `{ kind:"TASKS", tasks:[...] }`
+* `TASK_KILL { id }` → `{ kind:"TASK_EVENT", id, state:"FAIL", info:{ error:"TASK_CANCELLED" } }`
+
+**Events**
+
+* `TASK_EVENT { id, state:"PREP"|"BUILD"|"SUBMIT"|"CONFIRM"|"SETTLE"|"DONE"|"FAIL", info? }`
+* `HEALTH { rpc:{ok,lagMs}, grpc:{ok}, jito:{ok}, ts }`
+* `{ kind:"ERR", error:"CODE", ref? }`
+
+## Acceptance (prove runtime)
+
+1. **Auth:** unauthenticated mutator → `AUTH_REQUIRED`; after nonce sign → `AUTH_OK`.
+2. **Wallets:** create/import up to 20; 21st → `WALLET_LIMIT_REACHED`.
+3. **Delete→Sweep:** preview, then stream `SWEEP_PROGRESS` → `SWEEP_DONE`; master SOL increases.
+4. **Listener:** with `GRPC_ENDPOINT` set, log Pump.fun create `{mint, ca, slot, sig}`; without it, app runs without crashes.
+5. **Sniper — RPC_SPRAY:** 2 wallets, `0.005 SOL`, `slippage=500bps` → `PREP→…→DONE`; two explorer sigs; fills written; notifications fired.
+6. **Sniper — JITO_LITE:** if `JITO_BLOCK_ENGINE` set, 2–3 tx bundles with tip band; confirm inclusion + time-to-confirm.
+7. **Kill & caps:** Kill stops new sends within ~1s; exceeding caps yields `{ERR:"CAP_EXCEEDED"}`.
+
+## PnL (v0.5)
+
+* Store `{ task_id, wallet_pubkey, ca, side, qty_tokens, price_sol_per_token, sig, fee_lamports, tip_lamports, at }`.
+* Effective price = `(SOL spent incl. priority fees + tip) / tokens received`.
+
+## Development Notes
+
+* Do **not** add new env keys. Knobs live in Settings (DB).
+* Do **not** move signing into `apps/web`.
+* Prefer updating existing files; do not duplicate modules.
+* When adding a feature, update this README’s **Acceptance** and **WS API** sections in the same PR.
+
+## Roadmap
+
+* Direct Pump.fun buy IX (pre-AMM)
+* Sells & MM loops via Jupiter (exactOut)
+* Price feeds (Pyth/Birdeye) backing PnL
+* Exportable run reports and “launch profiles”
+
+## License
+
+MIT

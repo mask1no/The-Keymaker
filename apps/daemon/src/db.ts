@@ -77,6 +77,16 @@ export function ensureDb() {
     CREATE TABLE IF NOT EXISTS tx_dedupe (hash TEXT PRIMARY KEY, result TEXT, created_at INTEGER);
     CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
   `);
+  // Seed sensible defaults if missing
+  const defaults: Array<[string, string]> = [
+    ["MAX_TX_SOL", "1"],
+    ["MAX_SOL_PER_MIN", "10"],
+    ["MAX_SESSION_SOL", "50"]
+  ];
+  for (const [k, v] of defaults) {
+    const r = raw.prepare("SELECT value FROM settings WHERE key = ?").get(k) as any;
+    if (!r) raw.prepare("INSERT INTO settings(key,value) VALUES(?,?)").run(k, v);
+  }
 }
 
 export function getSetting(key: string): string | undefined {

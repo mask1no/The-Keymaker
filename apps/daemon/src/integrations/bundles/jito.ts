@@ -1,5 +1,7 @@
 import { VersionedTransaction, Connection } from "@solana/web3.js";
 import { logger } from "@keymaker/logger";
+import bs58 from "bs58";
+import { getRunEnabled } from "../../guards";
 
 export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransaction[], tipLamports?: number): Promise<{ path: "jito"|"rpc"; bundleId?: string; sigs: string[] }> {
   const jitoUrl = process.env.JITO_BLOCK_ENGINE;
@@ -10,15 +12,17 @@ export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransact
       const client = searcherClient(jitoUrl);
       // split into bundles of up to 5 txs
       let bundleId: string | undefined;
+      const sigs: string[] = txs.map((t) => bs58.encode(t.signatures[0]));
       for (let i = 0; i < txs.length; i += 5) {
+        if (!getRunEnabled()) throw new Error("RUN_DISABLED");
         const chunk = txs.slice(i, i + 5);
-        const bs = chunk.map((t) => Buffer.from(t.serialize()).toString("base64"));
-        const tip = Math.max(0, Math.floor((tipLamports ?? 0) * (0.8 + Math.random() * 0.4)));
-        const bundle = await client.sendBundle(bs, { tip });
+        const bsArr = chunk.map((t) => Buffer.from(t.serialize()).toString("base64"));
+        const tip = Math.max(0, Math.floor(tipLamports ?? 0));
+        const bundle = await client.sendBundle(bsArr, { tip });
         logger.info("bundle", { op: "submit", path: "jito", bundleId: bundle.uuid, tip });
         bundleId = bundle.uuid;
       }
-      return { path: "jito", bundleId, sigs: [] };
+      return { path: "jito", bundleId, sigs };
     } catch (e) {
       logger.warn?.("jito-fallback", { error: (e as Error).message });
       // fall through to RPC
@@ -30,6 +34,7 @@ export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransact
   let idx = 0;
   await Promise.all(new Array(concurrency).fill(0).map(async () => {
     while (idx < txs.length) {
+      if (!getRunEnabled()) throw new Error("RUN_DISABLED");
       const i = idx++;
       const t = txs[i];
       const raw = Buffer.from(t.serialize());
