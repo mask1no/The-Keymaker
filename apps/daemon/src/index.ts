@@ -16,12 +16,21 @@ import { logger } from "@keymaker/logger";
 import type { ClientMsg, ServerMsg } from "@keymaker/types";
 import { createSplTokenWithMetadata } from "./coin";
 import { publishWithPumpFun } from "./pumpfun";
+import { uploadImageAndJson } from "./metadata";
 import { setRunEnabled, getRunEnabled } from "./guards";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { getSetting, setSetting } from "./db";
+import { initSolana as reinitSolana } from "./solana";
 
 const PORT = 8787;
 const server = createServer();
 const wss = new WebSocketServer({ server });
+function broadcast(msg: any) {
+  const payload = JSON.stringify(msg);
+  wss.clients.forEach((c: any) => { try { if (c.readyState === 1) c.send(payload); } catch {} });
+}
+// Expose broadcaster for optional integrations (best-effort)
+(globalThis as any).__keymaker_broadcast__ = broadcast;
 
 async function bootstrap() {
   ensureDb();
@@ -31,7 +40,10 @@ async function bootstrap() {
   await initKeystore(ksPassword);
   // Optional GRPC listener
   if (process.env.GRPC_ENDPOINT) {
-    try { await startPumpfunListener((_e:any)=>{}); setListenerActive(true); } catch { setListenerActive(false); }
+    try {
+      await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); } catch {} });
+      setListenerActive(true);
+    } catch { setListenerActive(false); }
   }
 }
 void bootstrap();
@@ -188,6 +200,45 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       send(ws, { kind: "ACK", ref: "KILL_SWITCH" });
       return;
     }
+    case "SETTINGS_GET": {
+      const settings = {
+        RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
+        GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
+        JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
+        RUN_ENABLED: getRunEnabled()
+      };
+      send(ws, { kind: "SETTINGS", settings });
+      return;
+    }
+    case "SETTINGS_SET": {
+      if (!s.authenticated) return fail(ws, "SETTINGS_SET", "AUTH_REQUIRED");
+      try {
+        const entries = (msg as any).payload?.entries as Array<{ key: string; value: string }>;
+        if (!Array.isArray(entries)) return fail(ws, "SETTINGS_SET", "BAD_PARAMS");
+        for (const { key, value } of entries) {
+          if (!key) continue;
+          setSetting(key, value);
+          if (key === "RPC_URL") { process.env.RPC_URL = value; try { reinitSolana(); } catch {} }
+          if (key === "JITO_BLOCK_ENGINE") { process.env.JITO_BLOCK_ENGINE = value; }
+          if (key === "GRPC_ENDPOINT") {
+            process.env.GRPC_ENDPOINT = value;
+            // best-effort: if set and previously blank, start listener
+            if (value) { try { await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); } catch {} }); setListenerActive(true); } catch { setListenerActive(false); } }
+          }
+        }
+        send(ws, { kind: "ACK", ref: "SETTINGS_SET" });
+        const settings = {
+          RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
+          GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
+          JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
+          RUN_ENABLED: getRunEnabled()
+        };
+        send(ws, { kind: "SETTINGS", settings });
+      } catch (e) {
+        return fail(ws, "SETTINGS_SET", (e as Error).message || "GENERIC");
+      }
+      return;
+    }
     case "TASK_CREATE": {
       if (!s.authenticated) return fail(ws, "TASK_CREATE", "AUTH_REQUIRED");
       if (!getRunEnabled()) return fail(ws, "TASK_CREATE", "RUN_DISABLED");
@@ -224,6 +275,16 @@ async function handleMessage(ws: any, msg: ClientMsg) {
         send(ws, { kind: "COIN_CREATED", mint, sig } as ServerMsg);
       } catch (e) {
         fail(ws, "COIN_CREATE_SPL", (e as Error).message);
+      }
+      return;
+    }
+    case "UPLOAD_METADATA": {
+      if (!s.authenticated) return fail(ws, "UPLOAD_METADATA", "AUTH_REQUIRED");
+      try {
+        const r = await uploadImageAndJson((msg as any).payload || {});
+        send(ws, { kind: "METADATA_UPLOADED", ...r } as any);
+      } catch (e) {
+        fail(ws, "UPLOAD_METADATA", (e as Error).message);
       }
       return;
     }
@@ -265,6 +326,23 @@ server.on("request", async (req, res) => {
         byCa[r.ca].totals.tipsLamports += Number(r.tips);
       }
       const payload = { items: Object.values(byCa) };
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(payload));
+      return;
+    }
+    if (req.method === "GET" && req.url.startsWith("/stats")) {
+      // KPIs: coins (distinct CAs), fillsToday, earningsToday (fees+tips as negative), volume24h (count), recent mints(empty placeholder)
+      const now = Date.now();
+      const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+      const dayTs = startOfDay.getTime();
+      const rowsAll = (await db.execute(`SELECT COUNT(DISTINCT ca) as coins FROM fills`)) as any;
+      const rowsToday = (await db.execute(`SELECT COUNT(1) as c, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills WHERE at >= ?`, [dayTs])) as any;
+      const rows24h = (await db.execute(`SELECT COUNT(1) as c FROM fills WHERE at >= ?`, [now - 24*3600*1000])) as any;
+      const coins = Number((rowsAll as any)[0]?.coins || 0);
+      const fillsToday = Number((rowsToday as any)[0]?.c || 0);
+      const earningsToday = -1 * (Number((rowsToday as any)[0]?.fees || 0) + Number((rowsToday as any)[0]?.tips || 0));
+      const volume24h = Number((rows24h as any)[0]?.c || 0);
+      const payload = { coins, fillsToday, earningsToday, volume24h, series: [], mints: [] };
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(payload));
       return;

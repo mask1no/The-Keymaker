@@ -7,8 +7,8 @@ export default function MarketMaker() {
   const { send } = useDaemonWS();
   const { masterWallet } = useApp();
   const [ca, setCa] = useState("");
-  const [mode, setMode] = useState<"SNIPE" | "MM">("SNIPE");
-  const [execMode, setExecMode] = useState<"RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE">("RPC_SPRAY");
+  const [mode, setMode] = useState<"SNIPE" | "SELL" | "MM">("SNIPE");
+  const [execMode, setExecMode] = useState<"RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE"|"JITO_BUNDLE">("RPC_SPRAY");
   const [walletFolderId, setWalletFolderId] = useState("default");
   const [walletCount, setWalletCount] = useState(2);
   const [maxSolPerWallet, setMaxSolPerWallet] = useState(0.005);
@@ -20,6 +20,7 @@ export default function MarketMaker() {
   const [cuMin, setCuMin] = useState(0);
   const [cuMax, setCuMax] = useState(0);
   const [log, setLog] = useState<Array<{ ts: number; state: string; info?: any }>>([]);
+  const [sellPct, setSellPct] = useState(50);
 
   useEffect(() => {
     const ws: WebSocket | undefined = (window as any).__daemon_ws__;
@@ -38,7 +39,9 @@ export default function MarketMaker() {
     const base = { execMode, jitterMs: [jitterMin, jitterMax] as [number, number], tipLamports: [tipMin, tipMax] as [number, number], cuPrice: [cuMin, cuMax] as [number, number], walletFolderId, walletCount };
     const payload = mode === "SNIPE"
       ? { kind: mode, ca, params: { ...base, maxSolPerWallet, slippageBps } }
-      : { kind: mode, ca, params: { ...base, minOrderSol: 0.01, maxOrderSol: 0.03, slippageBps, maxTxPerMin: 2, maxSessionSol: 0.02 } };
+      : mode === "MM"
+        ? { kind: mode, ca, params: { ...base, minOrderSol: 0.01, maxOrderSol: 0.03, slippageBps, maxTxPerMin: 2, maxSessionSol: 0.02 } }
+        : { kind: "SELL", ca, params: { ...base, percent: sellPct, slippageBps } };
     send({ kind: "TASK_CREATE", payload, meta: { masterWallet } });
   }
 
@@ -51,6 +54,7 @@ export default function MarketMaker() {
           <select style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} value={mode} onChange={(e) => setMode(e.target.value as any)}>
             <option value="SNIPE">Snipe</option>
             <option value="MM">Volume / MM</option>
+            <option value="SELL">Sell</option>
           </select>
           <button style={{ padding: "8px 16px", borderRadius: 12, background: "#059669" }} onClick={startTask}>
             Start Task
@@ -61,11 +65,13 @@ export default function MarketMaker() {
             <option value="RPC_SPRAY">RPC_SPRAY</option>
             <option value="STEALTH_STRETCH">STEALTH_STRETCH</option>
             <option value="JITO_LITE">JITO_LITE</option>
+            <option value="JITO_BUNDLE">JITO_BUNDLE</option>
           </select>
           <input placeholder="folder" value={walletFolderId} onChange={(e)=>setWalletFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="# wallets" value={walletCount} onChange={(e)=>setWalletCount(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" step="0.001" placeholder="max SOL/wallet" value={maxSolPerWallet} onChange={(e)=>setMaxSolPerWallet(parseFloat(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="slippage bps" value={slippageBps} onChange={(e)=>setSlippageBps(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          <input type="number" placeholder="sell %" value={sellPct} onChange={(e)=>setSellPct(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="jitter min ms" value={jitterMin} onChange={(e)=>setJitterMin(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="jitter max ms" value={jitterMax} onChange={(e)=>setJitterMax(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="tip min" value={tipMin} onChange={(e)=>setTipMin(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />

@@ -66,6 +66,8 @@ DB_FILE=./apps/daemon/keymaker.sqlite
 KEYSTORE_FILE=./apps/daemon/keystore.json
 KEYSTORE_PASSWORD=change_me_dev_only
 MASTER_SECRET_BASE58=          # dev-only backdoor; should be blank in real use
+PUMPFUN_API_BASE=              # optional (HTTP publish path). If set, COIN_PUBLISH_PUMPFUN uses POST { mint, payerPubkey }
+PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 ```
 
 **Fallback behavior**

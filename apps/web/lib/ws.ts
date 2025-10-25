@@ -42,6 +42,9 @@ export function useDaemonWS() {
           const final = msg.state === "DONE" || msg.state === "FAIL" || msg.state === "ABORT";
           pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Task ${msg.state}`, severity: final ? (msg.state === "DONE" ? "success" : "error") : "info" });
         }
+        if (msg.kind === "PUMP_EVENT") {
+          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "trade", title: "Pump.fun event", body: msg.mint, ca: msg.ca, severity: "info", sig: msg.sig });
+        }
         if (msg.kind === "ERR") {
           pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "error", title: `Error: ${msg.error}`, severity: "error" });
         }

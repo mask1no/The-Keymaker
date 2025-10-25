@@ -56,6 +56,16 @@ BIRDEYE_API_KEY=your-birdeye-api-key
 - **Required**: No (falls back to basic data)
 
 #### Error Monitoring
+#### Pump.fun Publish (Optional)
+
+```bash
+PUMPFUN_API_BASE=https://pumpfun.api/publish
+PUMPFUN_API_KEY=your-api-key-if-required
+```
+
+- Purpose: Enables COIN_PUBLISH_PUMPFUN over HTTP. When set, the daemon will POST `{ mint, payerPubkey }` to `${PUMPFUN_API_BASE}/publish` with optional bearer.
+- Required: No (falls back to not implemented; returns PUMPFUN_RPC_UNAVAILABLE)
+
 
 ```bash
 SENTRY_DSN=https://your-sentry-dsn

@@ -1,6 +1,6 @@
-export type ExecMode = "RPC_SPRAY" | "STEALTH_STRETCH" | "JITO_LITE";
+export type ExecMode = "RPC_SPRAY" | "STEALTH_STRETCH" | "JITO_LITE" | "JITO_BUNDLE";
 
-export type TaskKind = "SNIPE" | "MM";
+export type TaskKind = "SNIPE" | "SELL" | "MM";
 
 export type SnipeParams = {
   walletFolderId: string; walletCount: number;
@@ -16,6 +16,14 @@ export type MMParams = {
   minOrderSol: number; maxOrderSol: number;
   slippageBps: number;
   maxTxPerMin: number; maxSessionSol: number;
+  execMode: ExecMode; jitterMs: [number, number];
+  tipLamports?: [number, number]; cuPrice?: [number, number];
+};
+
+export type SellParams = {
+  walletFolderId: string; walletCount: number;
+  percent: number; // 1..100 of token balance
+  slippageBps: number;
   execMode: ExecMode; jitterMs: [number, number];
   tipLamports?: [number, number]; cuPrice?: [number, number];
 };
@@ -51,6 +59,9 @@ export type ClientMsg =
   | { kind: "TASK_KILL"; payload: { id: string } }
   | { kind: "TASK_LIST" }
   | { kind: "KILL_SWITCH"; payload: { enabled: boolean } }
+  | { kind: "SETTINGS_GET" }
+  | { kind: "SETTINGS_SET"; payload: { entries: Array<{ key: string; value: string }> } }
+  | { kind: "UPLOAD_METADATA"; payload: { imageUri?: string; metadataUri?: string; imageBase64?: string; name?: string; symbol?: string; description?: string; attributes?: any[] } }
   // NEW coin ops
   | { kind: "COIN_CREATE_SPL"; payload: { name: string; symbol: string; decimals: 6|9; metadataUri: string; payerFolderId: string; payerWalletPubkey?: string } }
   | { kind: "COIN_PUBLISH_PUMPFUN"; payload: { mint: string; payerFolderId: string; payerWalletPubkey?: string } };
@@ -68,9 +79,13 @@ export type ServerMsg =
   | { kind: "TASK_EVENT"; id: string; state: string; info?: any }
   | { kind: "TASKS"; items: Array<{ id: string; kind: TaskKind; ca: string; state: string; created_at: number; updated_at: number }> }
   | { kind: "HEALTH"; rpcOk: boolean; jitoOk: boolean; pingMs: number }
+  | { kind: "SETTINGS"; settings: { RPC_URL: string; GRPC_ENDPOINT: string; JITO_BLOCK_ENGINE: string; RUN_ENABLED: boolean } }
+  | { kind: "METADATA_UPLOADED"; imageUri: string; metadataUri: string }
   // NEW coin ops
   | { kind: "COIN_CREATED"; mint: string; sig: string }
   | { kind: "COIN_PUBLISHED"; mint: string; sig: string }
+  // Live activity streams
+  | { kind: "PUMP_EVENT"; mint: string; ca: string; slot: number; sig: string };
   // Folder delete preview/sweep
   | { kind: "FOLDER_DELETE_PLAN"; id: string; wallets: Array<{ pubkey: string; solLamports: number; tokens: Array<{ mint: string; amount: string }> }>; estFeesLamports: number }
   | { kind: "SWEEP_PROGRESS"; id: string; step: "SENT"|"VERIFY"|"DONE"; info?: { pubkey?: string; sig?: string } }

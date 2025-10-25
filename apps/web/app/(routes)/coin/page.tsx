@@ -9,6 +9,8 @@ export default function Coin() {
   const [symbol, setSymbol] = useState("");
   const [decimals, setDecimals] = useState<6|9>(6);
   const [uri, setUri] = useState("");
+  const [imageUri, setImageUri] = useState("");
+  const [metaUri, setMetaUri] = useState("");
   const [mint, setMint] = useState<string>("");
   const [log, setLog] = useState<string[]>([]);
   const { send, onMessage } = useDaemonWS();
@@ -32,12 +34,18 @@ export default function Coin() {
   function push(s: string) { setLog(prev => [s, ...prev].slice(0,200)); }
 
   function createSpl() {
-    if (!name || !symbol || !uri) return push("Fill name/symbol/URI");
-    send({ kind: "COIN_CREATE_SPL", payload: { name, symbol, decimals, metadataUri: uri, payerFolderId: "default" } } as any);
+    const finalUri = metaUri || uri;
+    if (!name || !symbol || !finalUri) return push("Fill name/symbol/URI");
+    send({ kind: "COIN_CREATE_SPL", payload: { name, symbol, decimals, metadataUri: finalUri, payerFolderId: "default" } } as any);
   }
   function publishPump() {
     if (!mint) return push("No mint yet.");
     send({ kind: "COIN_PUBLISH_PUMPFUN", payload: { mint, payerFolderId: "default" } } as any);
+  }
+
+  async function uploadMetadata() {
+    if (!imageUri || !uri) { push("Provide imageUri and metadataUri or both"); return; }
+    send({ kind: "UPLOAD_METADATA", payload: { imageUri, metadataUri: uri } } as any);
   }
 
   return (
@@ -64,10 +72,19 @@ export default function Coin() {
             <label className="text-sm text-zinc-400">Metadata URI</label>
             <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="https://.../metadata.json" value={uri} onChange={e=>setUri(e.target.value)} />
           </div>
+          <div className="grid gap-2">
+            <label className="text-sm text-zinc-400">Image URI (optional)</label>
+            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="https://.../image.png" value={imageUri} onChange={e=>setImageUri(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm text-zinc-400">Result metadataUri</label>
+            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="autofilled after upload" value={metaUri} onChange={e=>setMetaUri(e.target.value)} />
+          </div>
         </div>
         <div className="mt-4 flex gap-2">
           <button onClick={createSpl} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700">Create SPL</button>
           <button onClick={publishPump} className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600">Publish via pump.fun</button>
+          <button onClick={uploadMetadata} className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600">Upload metadata</button>
         </div>
         {mint && <p className="mt-3 text-sm">Mint: <span className="font-mono break-all">{mint}</span></p>}
       </div>

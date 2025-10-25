@@ -78,7 +78,8 @@ async function runTask(id: string) {
     await step(id, "SUBMIT");
     try { ensureNotCancelled(id); } catch (e) { await step(id, "FAIL", { error: (e as Error).message }); return; }
     const params = JSON.parse(row.params || "{}") as SnipeParams | MMParams;
-    const execMode = (params as any).execMode as ("RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE") | undefined;
+    let execMode = (params as any).execMode as ("RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE"|"JITO_BUNDLE") | undefined;
+    if (execMode === "JITO_BUNDLE") execMode = "JITO_LITE";
     let sigs: string[] = [];
     let bundleId = "";
     let targetSlot = 0;
@@ -123,7 +124,7 @@ async function runTask(id: string) {
       const wallet_pubkey = wallets[i] || "";
       try {
         const tx = await getConn().getTransaction(sig, { commitment: "confirmed", maxSupportedTransactionVersion: 0 } as any);
-        let qty = 0; // tokens received
+        let qty = 0; // tokens delta (BUY positive, SELL negative)
         let price = 0; // SOL per token
         let fee_lamports = 0;
         if (tx && tx.meta) {
@@ -133,17 +134,25 @@ async function runTask(id: string) {
           const post = (tx.meta.postTokenBalances || []).find((b: any) => b.mint === ca && b.owner === wallet_pubkey);
           const preUi = pre ? Number(pre.uiTokenAmount?.uiAmount || 0) : 0;
           const postUi = post ? Number(post.uiTokenAmount?.uiAmount || 0) : 0;
-          qty = Math.max(0, postUi - preUi);
-          // lamports spent by fee payer (assume wallet is fee payer)
+          qty = postUi - preUi; // can be negative on SELL
+          // lamports change for fee payer (assume wallet is fee payer)
           const preLamports = (tx.meta.preBalances || [])[0] || 0;
           const postLamports = (tx.meta.postBalances || [])[0] || 0;
-          const spent = Math.max(0, preLamports - postLamports);
-          if (qty > 0) price = (spent / 1e9) / qty;
+          const deltaLamports = postLamports - preLamports; // BUY => negative, SELL => positive
+          const absQty = Math.abs(qty);
+          if (absQty > 0) price = Math.abs((deltaLamports / 1e9) / qty); // SOL per token (positive)
         }
-        await db.insert(fills).values({ task_id: id, wallet_pubkey, ca, side: "BUY", qty, price, sig, slot: Number((tx as any)?.slot || 0), fee_lamports, tip_lamports: 0, at: Date.now() });
+        const side = qty >= 0 ? "BUY" : "SELL";
+        const qtyAbs = Math.abs(qty);
+        await db.insert(fills).values({ task_id: id, wallet_pubkey, ca, side, qty: qtyAbs, price, sig, slot: Number((tx as any)?.slot || 0), fee_lamports, tip_lamports: 0, at: Date.now() });
+        // Emit FILL event immediately after insert
+        await db.insert(task_events).values({ task_id: id, state: "FILL", info: JSON.stringify({ ca, side, sig, wallet: wallet_pubkey, qty: qtyAbs, price }), at: Date.now() });
+        taskEvents.emit("event", { id, state: "FILL", info: { ca, side, sig, wallet: wallet_pubkey, qty: qtyAbs, price } });
         logger.info("fill", { taskId: id, ca, sig, wallet: wallet_pubkey, qty, price });
       } catch (e) {
         await db.insert(fills).values({ task_id: id, wallet_pubkey, ca, side: "BUY", qty: 0, price: 0, sig, slot: 0, fee_lamports: 0, tip_lamports: 0, at: Date.now() });
+        await db.insert(task_events).values({ task_id: id, state: "FILL", info: JSON.stringify({ ca, side: "BUY", sig, wallet: wallet_pubkey, qty: 0, price: 0 }), at: Date.now() });
+        taskEvents.emit("event", { id, state: "FILL", info: { ca, side: "BUY", sig, wallet: wallet_pubkey, qty: 0, price: 0 } });
         logger.warn("fill-fallback", { taskId: id, ca, sig, wallet: wallet_pubkey, error: (e as Error).message });
       }
     }
@@ -156,7 +165,12 @@ async function runTask(id: string) {
 async function buildOrMM(id: string) {
   const r = await db.select().from(tasks).where(eq(tasks.id, id));
   const row: any = (r as any)[0];
-  return row.kind === "SNIPE" ? buildSnipeTxs(id) : buildMMPlan(id);
+  if (row.kind === "SNIPE") return buildSnipeTxs(id);
+  if (row.kind === "SELL") {
+    const { buildSellTxs } = await import("./solana");
+    return buildSellTxs(id);
+  }
+  return buildMMPlan(id);
 }
 
 async function step(id: string, state: string, info?: any) {

@@ -4,6 +4,21 @@
 
 Keymaker is a production-ready Solana trading application that handles real funds and sensitive blockchain operations. Security is our highest priority.
 
+Controls & Hardening
+
+- Keys/signing live only in the local daemon. UI never sees secrets.
+- WS nonce+signature auth for master wallet.
+- Kill switch (runtime toggle) to pause all submissions.
+- Program allowlist (System, SPL Token, Metaplex Metadata, ComputeBudget, Jupiter router ID prefix).
+- Guardrails: per-tx, per-minute, per-session caps enforced before send.
+- Health gating: RPC degraded detection; submit pauses when buffer > 4 while degraded.
+- CSP/headers hardened in Next.js (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, restrictive CSP for scripts/connect).
+
+Pump.fun HTTP (optional)
+
+- If `PUMPFUN_API_BASE` is configured, HTTP publish path is used.
+- Optional `PUMPFUN_API_KEY` bearer is server-only; no secrets flow to UI.
+
 ## Secret Management
 
 ### Environment Variables
