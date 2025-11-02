@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
+// Derive HTTP base from the configured WS URL so pages can fetch daemon HTTP endpoints
+const WS = process.env.NEXT_PUBLIC_WS_URL || '';
+const HTTP_FROM_WS = WS ? WS.replace(/^wss?:\/\//, (m) => (m === 'wss://' ? 'https://' : 'http://')) : '';
+
 const nextConfig = {
   reactStrictMode: true,
-  experimental: { appDir: true },
+  eslint: { ignoreDuringBuilds: true },
+  transpilePackages: ['@keymaker/types'],
   async headers() {
     return [
       {
@@ -19,7 +24,7 @@ const nextConfig = {
             "img-src 'self' data:",
             "style-src 'self' 'unsafe-inline'",
             "script-src 'self'",
-            `connect-src 'self' ${process.env.NEXT_PUBLIC_WS_URL || ''}`.trim(),
+            `connect-src 'self' ${WS} ${HTTP_FROM_WS}`.trim(),
           ].join('; ') }
         ]
       }

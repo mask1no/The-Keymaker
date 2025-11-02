@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useDaemonWS } from "../../../lib/ws";
+import { useApp } from "../../../lib/store";
 
 export default function Settings() {
   const { send } = useDaemonWS();
+  const { wsConnected } = useApp();
   const [lastPing, setLastPing] = useState<number | null>(null);
   const [rpcOk, setRpcOk] = useState<boolean>(false);
   const [jitoOk, setJitoOk] = useState<boolean>(false);
+  const [cluster, setCluster] = useState<string>("-");
   const [rpcUrl, setRpcUrl] = useState<string>("");
   const [grpcEndpoint, setGrpcEndpoint] = useState<string>("");
   const [jitoBlockEngine, setJitoBlockEngine] = useState<string>("");
@@ -21,6 +24,7 @@ export default function Settings() {
           setRpcOk(!!msg.rpcOk);
           setJitoOk(!!msg.jitoOk);
           setLastPing(msg.pingMs ?? null);
+          if (msg.cluster) setCluster(String(msg.cluster));
         }
         if (msg.kind === "SETTINGS") {
           setRpcUrl(msg.settings?.RPC_URL || "");
@@ -61,9 +65,11 @@ export default function Settings() {
   return (
     <div style={{ padding: 24, display: "grid", gap: 12 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600 }}>Settings</h2>
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <Status label="WS" ok={wsConnected} />
         <Status label="RPC" ok={rpcOk} />
         <Status label="Jito" ok={jitoOk} />
+        <Status label={`Solana ${cluster === '-' ? '' : cluster}`} ok={cluster === "mainnet"} />
         <div style={{ fontSize: 12, color: "#a1a1aa" }}>Ping: {lastPing ?? "-"} ms</div>
       </div>
       <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>

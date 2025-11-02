@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { drizzle } = require("drizzle-orm/better-sqlite3");
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const wallets = sqliteTable("wallets", {
@@ -65,7 +66,19 @@ export const settings = sqliteTable("settings", {
 
 const dbFile = process.env.DB_FILE ?? "./apps/daemon/keymaker.sqlite";
 const raw = new Database(dbFile);
-export const db = drizzle(raw);
+export const db = drizzle(raw) as any;
+// Provide a runtime 'execute' helper for raw SQL queries
+export function execute(sql: string, params?: unknown[]): unknown {
+  try {
+    const stmt = raw.prepare(sql);
+    // better-sqlite3 returns array for .all, single row for .get, but here we always want rows array
+    return stmt.all?.(params ?? []) ?? [];
+  } catch (e) {
+    throw e;
+  }
+}
+// attach for existing call sites expecting db.execute
+try { db.execute = execute; } catch {}
 
 export function ensureDb() {
   raw.exec(`

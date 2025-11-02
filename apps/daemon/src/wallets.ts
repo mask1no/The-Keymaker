@@ -4,6 +4,7 @@ import bs58 from "bs58";
 import fs from "fs";
 import path from "path";
 import { db, wallets, folders, tasks } from "./db";
+import { execute } from "./db";
 import { eq } from "drizzle-orm";
 import { Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { getConn } from "./solana";
@@ -264,7 +265,7 @@ export async function sweepAndDeleteFolder(params: { id: string; masterPubkey: s
   const f = (await db.select().from(folders).where(eq(folders.id, id))) as any[];
   if (!f.length) throw new Error("FOLDER_NOT_FOUND");
   // Busy check: active tasks on this folder
-  const active = await db.execute(`SELECT COUNT(1) as c FROM tasks WHERE folder_id = ? AND state NOT IN ('DONE','FAIL','ABORT')`, [id]) as any[];
+  const active = await execute(`SELECT COUNT(1) as c FROM tasks WHERE folder_id = ? AND state NOT IN ('DONE','FAIL','ABORT')`, [id]) as any[];
   const c = Number((active as any)[0]?.c || 0);
   if (c > 0) throw new Error("FOLDER_BUSY");
 
@@ -305,10 +306,10 @@ export async function sweepAndDeleteFolder(params: { id: string; masterPubkey: s
 
     // Delete from DB and keystore
     for (const w of wsInFolder) {
-      await db.execute(`DELETE FROM wallets WHERE id = ?`, [w.id]);
+      await execute(`DELETE FROM wallets WHERE id = ?`, [w.id]);
       if (keystoreCache) delete keystoreCache.wallets[w.pubkey as string];
     }
-    await db.execute(`DELETE FROM folders WHERE id = ?`, [id]);
+    await execute(`DELETE FROM folders WHERE id = ?`, [id]);
     persistKeystore(requirePassword());
     sweepProgress.set(id, { signatures });
     onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "DONE" });

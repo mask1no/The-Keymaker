@@ -2,7 +2,11 @@ import { Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransacti
 import { getConn } from "./solana";
 import { getKeypairForPubkey } from "./secrets";
 import { createInitializeMintInstruction, getMinimumBalanceForRentExemptMint, MINT_SIZE, TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createMintToInstruction } from "@solana/spl-token";
-import { createCreateMetadataAccountV3Instruction, PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+// Use runtime import to avoid compile-time coupling to specific @metaplex/mpl-token-metadata versions
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mpl: any = require("@metaplex-foundation/mpl-token-metadata");
+const createCreateMetadataAccountV3Instruction = mpl.createCreateMetadataAccountV3Instruction || mpl.createCreateMetadataAccountV2Instruction || mpl.createCreateMetadataAccountInstruction;
+const METADATA_PROGRAM_ID = mpl.PROGRAM_ID || mpl.MetadataProgram?.publicKey;
 import { logger } from "@keymaker/logger";
 
 type CreateSplParams = {
@@ -36,9 +40,10 @@ export async function createSplTokenWithMetadata(params: CreateSplParams): Promi
     payer.publicKey
   );
 
+  const programId = typeof METADATA_PROGRAM_ID?.toBase58 === "function" ? METADATA_PROGRAM_ID : new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
   const [metadataPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("metadata"), METADATA_PROGRAM_ID.toBuffer(), mint.publicKey.toBuffer()],
-    METADATA_PROGRAM_ID
+    [Buffer.from("metadata"), programId.toBuffer(), mint.publicKey.toBuffer()],
+    programId
   );
 
   const ixCreateMetadata = createCreateMetadataAccountV3Instruction(

@@ -2,9 +2,12 @@ import { Connection, VersionedTransaction, Keypair, PublicKey, TransactionMessag
 import bs58 from "bs58";
 import crypto from "crypto";
 import { db, tx_dedupe } from "./db";
+import { execute } from "./db";
 import { getKeypairForPubkey } from "./secrets";
 import { submitBundleOrRpc } from "./integrations/bundles/jito";
-import type { SnipeParams, MMParams, SellParams } from "@keymaker/types";
+type SnipeParams = any;
+type MMParams = any;
+type SellParams = any;
 import { logger } from "@keymaker/logger";
 import { setTaskWallets } from "./state";
 import { enforceTxMax, checkAndConsumeSpend, programAllowlistCheck } from "./guards";
@@ -50,7 +53,7 @@ export function getConn() { return conn; }
 
 export async function buildSnipeTxs(taskId: string): Promise<VersionedTransaction[]> {
   // Load task
-  const r = await db.execute(`SELECT * FROM tasks WHERE id = ?`, [taskId]) as any[];
+  const r = await execute(`SELECT * FROM tasks WHERE id = ?`, [taskId]) as any[];
   if (!r.length) return [];
   const row: any = r[0];
   const params = JSON.parse(row.params || "{}");
@@ -64,7 +67,7 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
   const jitterBand = params.jitterMs as [number, number] | undefined;
 
   // Fetch wallets
-  const ws = await db.execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
+  const ws = await execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
   const out: VersionedTransaction[] = [];
   const amountLamports = Math.floor(maxSolPerWallet * LAMPORTS_PER_SOL);
   if (amountLamports <= 0) return out;
@@ -104,15 +107,85 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
   return out;
 }
 export async function buildMMPlan(_taskId: string): Promise<VersionedTransaction[]> {
-  return [];
+  // Load task and parameters
+  const r = await db.execute(`SELECT * FROM tasks WHERE id = ?`, [_taskId]) as any[];
+  if (!r.length) return [];
+  const row: any = r[0];
+  const params = JSON.parse(row.params || "{}") as any;
+  const ca = row.ca as string;
+  const folderId = params.walletFolderId as string;
+  const walletCount = Number(params.walletCount || 0);
+  const minOrderSol = Math.max(0, Number((params as any).minOrderSol || 0));
+  const maxOrderSol = Math.max(minOrderSol, Number((params as any).maxOrderSol || 0));
+  const slippageBps = Number(params.slippageBps || 50);
+  const cuBand = params.cuPrice as [number, number] | undefined;
+  const jitterBand = params.jitterMs as [number, number] | undefined;
+  const maxTxPerMin = Math.max(1, Number((params as any).maxTxPerMin || 2));
+
+  // Fetch wallets for this folder
+  const ws = await db.execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
+  const out: VersionedTransaction[] = [];
+  const walletPubkeys: string[] = [];
+
+  // Determine a modest order count per wallet (burst), capped by maxTxPerMin
+  const ordersPerWallet = Math.max(1, Math.floor(maxTxPerMin / Math.max(1, ws.length)));
+
+  for (const w of ws) {
+    const userPk = w.pubkey as string;
+    for (let i = 0; i < ordersPerWallet; i++) {
+      // per-order jitter
+      if (jitterBand) {
+        const [lo, hi] = jitterBand;
+        const wait = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
+        if (wait > 0) {
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise((r) => setTimeout(r, wait));
+        }
+      }
+
+      // random order size (SOL -> lamports)
+      const sol = (minOrderSol === maxOrderSol)
+        ? minOrderSol
+        : (minOrderSol + Math.random() * Math.max(0, maxOrderSol - minOrderSol));
+      const amountLamports = Math.floor(sol * LAMPORTS_PER_SOL);
+      if (amountLamports <= 0) continue;
+
+      // caps and allowlist checks
+      enforceTxMax(amountLamports);
+      const quote = await fetchJupQuote("So11111111111111111111111111111111111111112", ca, amountLamports, slippageBps);
+
+      // randomize CU price within band (microLamports)
+      let cuPriceMicro: number | undefined = undefined;
+      if (cuBand) {
+        const [lo, hi] = cuBand;
+        cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
+      }
+      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+      const txb64 = swap.swapTransaction as string;
+      const vtx = decodeSwapTx(txb64);
+      programAllowlistCheck([vtx]);
+
+      // Sign
+      const kp = await getKeypairForPubkey(userPk);
+      if (!kp) throw new Error("PAYER_NOT_AVAILABLE");
+      vtx.sign([kp]);
+      out.push(vtx);
+      walletPubkeys.push(userPk);
+      // consume budget only after we have a signed tx
+      checkAndConsumeSpend(amountLamports);
+    }
+  }
+  setTaskWallets(_taskId, walletPubkeys);
+  logger.info("mm-built", { taskId: _taskId, ca, wallets: ws.length, orders: out.length, minOrderSol, maxOrderSol, slippageBps, cuBand, jitterBand, maxTxPerMin });
+  return out;
 }
 
 export async function buildSellTxs(taskId: string): Promise<VersionedTransaction[]> {
   // Load task
-  const r = await db.execute(`SELECT * FROM tasks WHERE id = ?`, [taskId]) as any[];
+  const r = await execute(`SELECT * FROM tasks WHERE id = ?`, [taskId]) as any[];
   if (!r.length) return [];
   const row: any = r[0];
-  const params = JSON.parse(row.params || "{}") as SellParams;
+  const params = JSON.parse(row.params || "{}") as any;
   const ca = row.ca as string;
   const folderId = params.walletFolderId as string;
   const walletCount = Number(params.walletCount || 0);
@@ -121,7 +194,7 @@ export async function buildSellTxs(taskId: string): Promise<VersionedTransaction
   const cuBand = params.cuPrice as [number, number] | undefined;
   const jitterBand = params.jitterMs as [number, number] | undefined;
 
-  const ws = await db.execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
+  const ws = await execute(`SELECT pubkey FROM wallets WHERE folder_id = ? LIMIT ?`, [folderId, walletCount]) as any[];
   const out: VersionedTransaction[] = [];
   for (const w of ws) {
     const userPk = w.pubkey as string;

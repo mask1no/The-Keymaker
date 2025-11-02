@@ -5,6 +5,7 @@ import nacl from "tweetnacl";
 import bs58 from "bs58";
 import { ensureDb } from "./db";
 import { db, fills } from "./db";
+import { execute } from "./db";
 import { initSolana } from "./solana";
 import { checkHealth } from "./health";
 import { startPumpfunListener } from "./integrations/listener/heliusGrpc";
@@ -13,7 +14,8 @@ import { handleTaskCreate, taskEvents } from "./task-runner";
 import { cancelTask } from "./task-runner";
 import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder } from "./wallets";
 import { logger } from "@keymaker/logger";
-import type { ClientMsg, ServerMsg } from "@keymaker/types";
+type ClientMsg = any;
+type ServerMsg = any;
 import { createSplTokenWithMetadata } from "./coin";
 import { publishWithPumpFun } from "./pumpfun";
 import { uploadImageAndJson } from "./metadata";
@@ -72,6 +74,13 @@ wss.on("connection", (ws) => {
       fail(ws, "GENERIC", (e as Error).message);
     }
   });
+  // Send a health snapshot immediately on connect
+  ;(async () => {
+    try {
+      const h = await checkHealth();
+      ws.send(JSON.stringify({ kind: "HEALTH", ...h, listenerActive: require("./state").getListenerActive() }));
+    } catch {}
+  })();
 });
 
 function send(ws: any, m: any) { ws.send(JSON.stringify(m)); }
@@ -248,7 +257,7 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       return;
     }
     case "TASK_LIST": {
-      const rows = await db.execute(`SELECT id, kind, ca, state, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 200`);
+      const rows = await execute(`SELECT id, kind, ca, state, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 200`);
       send(ws, { kind: "TASKS", items: rows as any });
       return;
     }
@@ -258,7 +267,7 @@ async function handleMessage(ws: any, msg: ClientMsg) {
         const id = (msg as any).payload?.id as string;
         if (!id) return fail(ws, "TASK_KILL", "MISSING_ID");
         cancelTask(id);
-        await db.execute(`INSERT INTO task_events(task_id, state, info, at) VALUES(?, 'KILL', '{}', ?)`, [id, Date.now()]);
+        await execute(`INSERT INTO task_events(task_id, state, info, at) VALUES(?, 'KILL', '{}', ?)`, [id, Date.now()]);
         send(ws, { kind: "ACK", ref: "TASK_KILL" });
       } catch (e) {
         return fail(ws, "TASK_KILL", (e as Error).message || "GENERIC");
@@ -313,7 +322,7 @@ server.on("request", async (req, res) => {
     if (req.method === "GET" && req.url.startsWith("/pnl")) {
       // Very simple PnL scaffold: aggregate fills by ca
       // Note: For now, realized/unrealized are placeholders
-      const rows = (await db.execute(
+      const rows = (await execute(
         // Group fills by CA and wallet; aggregate fees
         `SELECT ca, wallet_pubkey, COUNT(*) as fills, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills GROUP BY ca, wallet_pubkey`
       )) as any;
@@ -335,9 +344,9 @@ server.on("request", async (req, res) => {
       const now = Date.now();
       const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
       const dayTs = startOfDay.getTime();
-      const rowsAll = (await db.execute(`SELECT COUNT(DISTINCT ca) as coins FROM fills`)) as any;
-      const rowsToday = (await db.execute(`SELECT COUNT(1) as c, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills WHERE at >= ?`, [dayTs])) as any;
-      const rows24h = (await db.execute(`SELECT COUNT(1) as c FROM fills WHERE at >= ?`, [now - 24*3600*1000])) as any;
+      const rowsAll = (await execute(`SELECT COUNT(DISTINCT ca) as coins FROM fills`)) as any;
+      const rowsToday = (await execute(`SELECT COUNT(1) as c, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills WHERE at >= ?`, [dayTs])) as any;
+      const rows24h = (await execute(`SELECT COUNT(1) as c FROM fills WHERE at >= ?`, [now - 24*3600*1000])) as any;
       const coins = Number((rowsAll as any)[0]?.coins || 0);
       const fillsToday = Number((rowsToday as any)[0]?.c || 0);
       const earningsToday = -1 * (Number((rowsToday as any)[0]?.fees || 0) + Number((rowsToday as any)[0]?.tips || 0));

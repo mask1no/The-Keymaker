@@ -1,3 +1,14 @@
+node_modules
+.git
+.next
+dist
+
+.env
+apps/daemon/keymaker.sqlite
+apps/daemon/keystore.json
+
+dev.out.log
+dev.err.log
 .git
 node_modules
 .next

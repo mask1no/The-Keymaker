@@ -24,11 +24,13 @@ export default function MintCockpit() {
   useEffect(() => {
     const off = onMessage((msg: ServerMsg | any) => {
       if ((msg as any).kind === "PUMP_EVENT" && (msg as any).ca === ca) {
-        setActivity((a) => [{ kind: "PUMP_EVENT", ts: Date.now(), sig: msg.sig, slot: Number(msg.slot||0) }, ...a].slice(0, 500));
+        const item: ActivityItem = { kind: "PUMP_EVENT", ts: Date.now(), sig: String((msg as any).sig || ""), slot: Number((msg as any).slot || 0) };
+        setActivity((a): ActivityItem[] => [item, ...a].slice(0, 500));
       }
       if ((msg as any).kind === "TASK_EVENT" && (msg as any).state === "FILL" && (msg as any).info?.ca === ca) {
         const info = (msg as any).info || {};
-        setActivity((a) => [{ kind: "FILL", ts: Date.now(), sig: info.sig, side: info.side || "BUY", wallet: info.wallet, qty: info.qty, price: info.price }, ...a].slice(0, 500));
+        const fill: ActivityItem = { kind: "FILL", ts: Date.now(), sig: String(info.sig || ""), side: (info.side || "BUY") as ("BUY"|"SELL"), wallet: info.wallet, qty: info.qty, price: info.price };
+        setActivity((a): ActivityItem[] => [fill, ...a].slice(0, 500));
       }
       if ((msg as any).kind === "TASKS") {
         const items = (msg as any).items || [];

@@ -27,14 +27,10 @@ export async function startPumpfunListener(onEvent: (e: PumpEvent)=>void): Promi
             const mint = String(msg.mint || "");
             const ca = mint; // alias
             if (mint) onEvent({ mint, ca, slot, sig });
-            // Broadcast over WS if available (best-effort dynamic import)
-            try {
-              const { default: modHttp } = await import("http");
-              // no direct access to server; rely on global broadcaster set by index.ts if present
-              const g: any = globalThis as any;
-              const broadcast = g.__keymaker_broadcast__ as ((m: any) => void) | undefined;
-              broadcast?.({ kind: "PUMP_EVENT", ca, mint, slot, sig });
-            } catch {}
+            // Broadcast over WS if available
+            const g: any = globalThis as any;
+            const broadcast = g.__keymaker_broadcast__ as ((m: any) => void) | undefined;
+            broadcast?.({ kind: "PUMP_EVENT", ca, mint, slot, sig });
           } catch { /* ignore malformed */ }
         });
         await new Promise<void>((resolve, reject) => {

@@ -25,6 +25,22 @@ npm run dev
 # Daemon: ws://localhost:8787  (HEALTH ping every 5s)
 ```
 
+### 10‑Minute First Trade (Local)
+
+1) Prepare env (root `.env`): set `KEYSTORE_PASSWORD`, a reliable `RPC_URL`, and `MASTER_SECRET_BASE58` matching the wallet you connect in the UI (dev-only).
+2) Start locally:
+   - `npm run dev`
+   - Web: `http://localhost:3000`, Daemon WS: `ws://localhost:8787`
+3) In the UI → Wallets:
+   - Create folder `default`
+   - Create 2 wallets inside
+   - Fund the folder with `0.02 SOL` total (master funds are required)
+4) Open `/coin/[mint]` for your token CA:
+   - Wallets: `2` • Max SOL/Wallet: `0.005` • Slippage: `500 bps`
+   - Click “Buy 50%” → watch live TASK_EVENT and explorer sigs
+5) Click “Sell 100%” to exit; open PnL to see fills aggregate by CA.
+
+
 ## What This Is (and isn’t)
 
 * **Is:** Local dashboard to create/import wallets, group them, and execute **multi-wallet buys** on your tokens (and others) with **three execution modes**:
@@ -102,6 +118,7 @@ PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 * **Program allowlist**: Allowed → **System**, **SPL Token**, **Metaplex Metadata**, **Jupiter router** (add Pump.fun when direct IX enabled).
 * **Idempotency**: stable hash of tx message; duplicates return prior sigs.
 * **Per-mint locks**: prevent overlapping tasks on same CA.
+* **Dev-only master secret**: `MASTER_SECRET_BASE58` is for local testing only. Leave blank for real use.
 
 ## WebSocket API (client ↔ daemon)
 
@@ -146,6 +163,16 @@ PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 5. **Sniper — RPC_SPRAY:** 2 wallets, `0.005 SOL`, `slippage=500bps` → `PREP→…→DONE`; two explorer sigs; fills written; notifications fired.
 6. **Sniper — JITO_LITE:** if `JITO_BLOCK_ENGINE` set, 2–3 tx bundles with tip band; confirm inclusion + time-to-confirm.
 7. **Kill & caps:** Kill stops new sends within ~1s; exceeding caps yields `{ERR:"CAP_EXCEEDED"}`.
+
+### MVP Acceptance Checklist
+
+- Auth handshake required for any mutating action (folders/wallets/tasks).
+- Create/import wallets (limit 20 per folder), list/rename folders.
+- Fund folder from master; delete+sweep returns SOL to master.
+- Snipe: 2-wallet buy completes; explorer sigs visible; notifications fire.
+- Sell: 2-wallet sell completes; PnL aggregates fills by CA.
+- Optional: Jito-lite path used when `JITO_BLOCK_ENGINE` is set.
+- Optional: Pump.fun publish via HTTP works when `PUMPFUN_API_BASE` is set.
 
 ## PnL (v0.5)
 

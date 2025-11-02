@@ -85,9 +85,9 @@ export type ServerMsg =
   | { kind: "COIN_CREATED"; mint: string; sig: string }
   | { kind: "COIN_PUBLISHED"; mint: string; sig: string }
   // Live activity streams
-  | { kind: "PUMP_EVENT"; mint: string; ca: string; slot: number; sig: string };
+  | { kind: "PUMP_EVENT"; mint: string; ca: string; slot: number; sig: string }
   // Folder delete preview/sweep
-  | { kind: "FOLDER_DELETE_PLAN"; id: string; wallets: Array<{ pubkey: string; solLamports: number; tokens: Array<{ mint: string; amount: string }> }>; estFeesLamports: number }
+  | { kind: "FOLDER_DELETE_PLAN"; id: string; wallets: { pubkey: string; solLamports: number; tokens: { mint: string; amount: string }[] }[]; estFeesLamports: number }
   | { kind: "SWEEP_PROGRESS"; id: string; step: "SENT"|"VERIFY"|"DONE"; info?: { pubkey?: string; sig?: string } }
   | { kind: "SWEEP_DONE"; id: string; signatures: string[] };
 
