@@ -31,7 +31,7 @@ async function fetchJupSwap(userPublicKey: string, quoteResponse: any, computeUn
       quoteResponse,
       userPublicKey,
       wrapAndUnwrapSol: true,
-      computeUnitPriceMicroLamports,
+      computeUnitPriceMicroLamports: computeUnitPriceMicroLamports ?? 1000,
       asLegacyTransaction: false
     })
   });
@@ -89,9 +89,18 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
       const [lo, hi] = cuBand;
       cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
     }
-    const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
-    const txb64 = swap.swapTransaction as string;
-    const vtx = decodeSwapTx(txb64);
+    let vtx: VersionedTransaction;
+    try {
+      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+      const txb64 = swap.swapTransaction as string;
+      vtx = decodeSwapTx(txb64);
+    } catch (e) {
+      // retry once at +10–20% CU
+      const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+      const swap2 = await fetchJupSwap(userPk, quote, bump);
+      const txb64_2 = swap2.swapTransaction as string;
+      vtx = decodeSwapTx(txb64_2);
+    }
     // basic allowlist check prior to signing
     programAllowlistCheck([vtx]);
     // Attach signature
@@ -160,9 +169,17 @@ export async function buildMMPlan(_taskId: string): Promise<VersionedTransaction
         const [lo, hi] = cuBand;
         cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
       }
-      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
-      const txb64 = swap.swapTransaction as string;
-      const vtx = decodeSwapTx(txb64);
+      let vtx: VersionedTransaction;
+      try {
+        const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+        const txb64 = swap.swapTransaction as string;
+        vtx = decodeSwapTx(txb64);
+      } catch (e) {
+        const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+        const swap2 = await fetchJupSwap(userPk, quote, bump);
+        const txb64_2 = swap2.swapTransaction as string;
+        vtx = decodeSwapTx(txb64_2);
+      }
       programAllowlistCheck([vtx]);
 
       // Sign
@@ -226,8 +243,15 @@ export async function buildSellTxs(taskId: string): Promise<VersionedTransaction
     const quote = await fetchJupQuote(ca, "So11111111111111111111111111111111111111112", Number(tokenAmountRaw), slippageBps);
     let cuPriceMicro: number | undefined = undefined;
     if (cuBand) { const [lo, hi] = cuBand; cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo)); }
-    const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
-    const vtx = decodeSwapTx(swap.swapTransaction as string);
+    let vtx: VersionedTransaction;
+    try {
+      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+      vtx = decodeSwapTx(swap.swapTransaction as string);
+    } catch (e) {
+      const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+      const swap2 = await fetchJupSwap(userPk, quote, bump);
+      vtx = decodeSwapTx(swap2.swapTransaction as string);
+    }
     programAllowlistCheck([vtx]);
     const kp = await getKeypairForPubkey(userPk);
     if (!kp) throw new Error("PAYER_NOT_AVAILABLE");
@@ -238,19 +262,22 @@ export async function buildSellTxs(taskId: string): Promise<VersionedTransaction
   logger.info("sell-built", { taskId, wallets: out.length, ca, percent, slippageBps });
   return out;
 }
-export async function submitBundle(txs: VersionedTransaction[], tipLamports?: number) {
+export async function submitBundle(
+  txs: VersionedTransaction[],
+  tipLamports?: number,
+  opts?: { forcePath?: "rpc"|"jito"; rpcConcurrency?: number; retry?: { attempts: number; delaysMs: number[] } }
+) {
   // Program allowlist
   programAllowlistCheck(txs);
   // Health gating: if RPC degraded, pause submit if more than 4 buffered txs
   if (getRpcDegraded() && txs.length > 4) {
     throw new Error("RPC_DEGRADED");
   }
-  const r = await submitBundleOrRpc(conn, txs, tipLamports);
+  const r = await submitBundleOrRpc(conn, txs, tipLamports, opts);
   logger.info("submit", { path: r.path, bundleId: r.bundleId, count: txs.length });
-  return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0 };
+  return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0, path: r.path, tipLamportsUsed: r.tipLamportsUsed ?? 0 } as any;
 }
-export async function confirmSigs(sigs: string[]) {
-  const timeoutMs = 30_000;
+export async function confirmSigs(sigs: string[], timeoutMs: number = 30_000) {
   const t0 = Date.now();
   const pending = new Set(sigs);
   while (pending.size && (Date.now() - t0) < timeoutMs) {

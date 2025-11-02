@@ -10,6 +10,19 @@ export function useDaemonWS() {
   const { publicKey, signMessage } = useWallet();
   const ref = useRef<WebSocket | null>(null);
   const listeners = useRef<((msg: any)=>void)[]>([]);
+  const dedup = useRef<Map<string, number>>(new Map());
+  function shouldNotify(key: string, ttlMs = 5000) {
+    const now = Date.now();
+    const prev = dedup.current.get(key) || 0;
+    if (now - prev < ttlMs) return false;
+    dedup.current.set(key, now);
+    // Garbage collect
+    if (dedup.current.size > 500) {
+      const entries = [...dedup.current.entries()].sort((a,b)=>a[1]-b[1]).slice(-400);
+      dedup.current = new Map(entries);
+    }
+    return true;
+  }
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8787";
     const ws = new WebSocket(url);
@@ -27,26 +40,33 @@ export function useDaemonWS() {
         if (msg.kind === "ERR" && msg.error === "AUTH_REQUIRED") { console.warn("auth required"); }
         // Notifications mapping
         if (msg.kind === "FUND_RESULT") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Funded folder`, body: `${msg.signatures.length} txs`, severity: "success" });
+          const key = `FUND_RESULT:${msg.folderId}:${msg.signatures?.length||0}`;
+          if (shouldNotify(key)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Funded folder`, body: `${msg.signatures.length} txs`, severity: "success" });
         }
         if (msg.kind === "SWEEP_DONE") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Sweep complete`, body: `${msg.signatures.length} sigs`, severity: "success" });
+          const key = `SWEEP_DONE:${msg.id}:${msg.signatures?.length||0}`;
+          if (shouldNotify(key)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Sweep complete`, body: `${msg.signatures.length} sigs`, severity: "success" });
         }
         if (msg.kind === "COIN_CREATED") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "coin", title: `SPL created`, body: msg.mint, severity: "success", ca: msg.mint, sig: msg.sig });
+          const key = `COIN_CREATED:${msg.mint}:${msg.sig}`;
+          if (shouldNotify(key, 10000)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "coin", title: `SPL created`, body: msg.mint, severity: "success", ca: msg.mint, sig: msg.sig });
         }
         if (msg.kind === "COIN_PUBLISHED") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "coin", title: `Pump.fun published`, body: msg.mint, severity: "success", ca: msg.mint, sig: msg.sig });
+          const key = `COIN_PUBLISHED:${msg.mint}:${msg.sig}`;
+          if (shouldNotify(key, 10000)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "coin", title: `Pump.fun published`, body: msg.mint, severity: "success", ca: msg.mint, sig: msg.sig });
         }
         if (msg.kind === "TASK_EVENT") {
           const final = msg.state === "DONE" || msg.state === "FAIL" || msg.state === "ABORT";
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Task ${msg.state}`, severity: final ? (msg.state === "DONE" ? "success" : "error") : "info" });
+          const key = `TASK_EVENT:${msg.id}:${msg.state}`;
+          if (shouldNotify(key)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Task ${msg.state}`, severity: final ? (msg.state === "DONE" ? "success" : "error") : "info" });
         }
         if (msg.kind === "PUMP_EVENT") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "trade", title: "Pump.fun event", body: msg.mint, ca: msg.ca, severity: "info", sig: msg.sig });
+          const key = `PUMP_EVENT:${msg.ca}:${msg.sig}`;
+          if (shouldNotify(key, 10000)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "trade", title: "Pump.fun event", body: msg.mint, ca: msg.ca, severity: "info", sig: msg.sig });
         }
         if (msg.kind === "ERR") {
-          pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "error", title: `Error: ${msg.error}`, severity: "error" });
+          const key = `ERR:${msg.ref||""}:${msg.error}`;
+          if (shouldNotify(key)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "error", title: `Error: ${msg.error}`, severity: "error" });
         }
         if (msg.kind === "HEALTH") {
           const prev = lastHealth.current;

@@ -1,4 +1,17 @@
-:root { color-scheme: dark; }
+:root{
+  --bg:#0b0b0f; --panel:#11121a; --card:#141626;
+  --accent:#8854ff; --text:#eaeaf2; --muted:#9aa0b4;
+  --success:#22c55e; --warn:#f59e0b; --danger:#ef4444; --ring:#6d28d9;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* focus ring baseline */
+:where(button, a, input, textarea, [tabindex])
+{ outline-color: var(--ring); outline-offset: 2px; }
 

@@ -21,6 +21,17 @@ export default function MarketMaker() {
   const [cuMax, setCuMax] = useState(0);
   const [log, setLog] = useState<Array<{ ts: number; state: string; info?: any }>>([]);
   const [sellPct, setSellPct] = useState(50);
+  const [jitoOk, setJitoOk] = useState<boolean>(false);
+
+  useEffect(() => {
+    const ws: WebSocket | undefined = (window as any).__daemon_ws__;
+    if (!ws) return;
+    const onMsg = (e: MessageEvent) => {
+      try { const m = JSON.parse(e.data); if (m.kind === "HEALTH") setJitoOk(!!m.jitoOk); } catch {}
+    };
+    ws.addEventListener("message", onMsg);
+    return () => ws.removeEventListener("message", onMsg);
+  }, []);
 
   useEffect(() => {
     const ws: WebSocket | undefined = (window as any).__daemon_ws__;
@@ -64,8 +75,8 @@ export default function MarketMaker() {
           <select value={execMode} onChange={(e)=>setExecMode(e.target.value as any)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }}>
             <option value="RPC_SPRAY">RPC_SPRAY</option>
             <option value="STEALTH_STRETCH">STEALTH_STRETCH</option>
-            <option value="JITO_LITE">JITO_LITE</option>
-            <option value="JITO_BUNDLE">JITO_BUNDLE</option>
+            {jitoOk && <option value="JITO_LITE">JITO_LITE</option>}
+            {jitoOk && <option value="JITO_BUNDLE">JITO_BUNDLE</option>}
           </select>
           <input placeholder="folder" value={walletFolderId} onChange={(e)=>setWalletFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="# wallets" value={walletCount} onChange={(e)=>setWalletCount(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />

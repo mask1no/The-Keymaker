@@ -1,6 +1,7 @@
 import { VersionedTransaction, SystemProgram } from "@solana/web3.js";
 import { getSetting } from "./db";
 import { getRunEnabled as getRunEnabledState, setRunEnabled as setRunEnabledState } from "./state";
+import { logger } from "@keymaker/logger";
 
 export function getCaps() {
   return {
@@ -15,16 +16,19 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
     SystemProgram.programId.toBase58(),
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // SPL Token
     "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", // Metaplex Metadata
-    "ComputeBudget111111111111111111111111111111", // Compute Budget program
-    // Jupiter v6 router: allow addresses beginning with 'JUP' to accommodate main router deployments
-    // NOTE: Tighten this with explicit program IDs if desired without adding envs.
+    "ComputeBudget111111111111111111111111111111", // Compute Budget
   ]);
+  const strictJup = (process.env.JUP_ROUTER_PROGRAM || process.env.JUP_ROUTER || "").trim();
+  let warnedLoose = false;
   for (const t of txs) {
     const msg = t.message;
     const keys = msg.staticAccountKeys.map((k)=>k.toBase58());
     for (const ix of msg.compiledInstructions) {
       const prog = keys[ix.programIdIndex];
-      if (!allowed.has(prog) && !prog.startsWith("JUP")) throw new Error("PROGRAM_NOT_ALLOWED");
+      if (allowed.has(prog)) continue;
+      const isJup = strictJup ? (prog === strictJup) : prog.startsWith("JUP");
+      if (!isJup) throw new Error("PROGRAM_NOT_ALLOWED");
+      if (!strictJup && !warnedLoose) { warnedLoose = true; try { logger.warn("allowlist", { jup: "loose", msg: "JUP* accepted; set JUP_ROUTER_PROGRAM for strict match" }); } catch {} }
     }
   }
 }

@@ -2,10 +2,16 @@ import { VersionedTransaction, Connection } from "@solana/web3.js";
 import { logger } from "@keymaker/logger";
 import bs58 from "bs58";
 import { getRunEnabled } from "../../guards";
+import { incrementRpcErrorStreak, resetRpcErrorStreak, getRpcErrorStreak, getRpcDegraded } from "../../state";
 
-export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransaction[], tipLamports?: number): Promise<{ path: "jito"|"rpc"; bundleId?: string; sigs: string[] }> {
+export async function submitBundleOrRpc(
+  conn: Connection,
+  txs: VersionedTransaction[],
+  tipLamports?: number,
+  opts?: { forcePath?: "rpc"|"jito"; rpcConcurrency?: number; retry?: { attempts: number; delaysMs: number[] } }
+): Promise<{ path: "jito"|"rpc"; bundleId?: string; sigs: string[]; tipLamportsUsed?: number }> {
   const jitoUrl = process.env.JITO_BLOCK_ENGINE;
-  if (jitoUrl) {
+  if ((opts?.forcePath === "jito") || (jitoUrl && opts?.forcePath !== "rpc")) {
     try {
       const mod = await import("@jito-foundation/jito-js");
       const { searcherClient } = mod as any;
@@ -22,15 +28,19 @@ export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransact
         logger.info("bundle", { op: "submit", path: "jito", bundleId: bundle.uuid, tip });
         bundleId = bundle.uuid;
       }
-      return { path: "jito", bundleId, sigs };
+      resetRpcErrorStreak();
+      return { path: "jito", bundleId, sigs, tipLamportsUsed: Math.max(0, Math.floor(tipLamports ?? 0)) };
     } catch (e) {
       logger.warn?.("jito-fallback", { error: (e as Error).message });
       // fall through to RPC
     }
   }
   // RPC fallback with modest concurrency
+  if (getRpcDegraded() && getRpcErrorStreak() >= 3) throw new Error("RPC_DEGRADED");
   const sigs: string[] = [];
-  const concurrency = 4;
+  const concurrency = opts?.rpcConcurrency ?? 4;
+  const attempts = Math.max(1, opts?.retry?.attempts ?? 1);
+  const delays = opts?.retry?.delaysMs ?? [];
   let idx = 0;
   await Promise.all(new Array(concurrency).fill(0).map(async () => {
     while (idx < txs.length) {
@@ -38,12 +48,26 @@ export async function submitBundleOrRpc(conn: Connection, txs: VersionedTransact
       const i = idx++;
       const t = txs[i];
       const raw = Buffer.from(t.serialize());
-      const sig = await conn.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
-      sigs.push(sig);
+      let lastErr: any;
+      for (let a = 0; a <= attempts; a++) {
+        try {
+          const sig = await conn.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+          sigs.push(sig);
+          resetRpcErrorStreak();
+          lastErr = undefined;
+          break;
+        } catch (e) {
+          lastErr = e;
+          incrementRpcErrorStreak();
+          const d = delays[a];
+          if (d) await new Promise(r => setTimeout(r, d));
+        }
+      }
+      if (lastErr) throw lastErr;
     }
   }));
   logger.info("rpc-send", { op: "submit", path: "rpc", count: txs.length });
-  return { path: "rpc", sigs };
+  return { path: "rpc", sigs, tipLamportsUsed: 0 };
 }
 
 export async function confirmAll(conn: Connection, sigs: string[], timeoutMs: number = 15000) {

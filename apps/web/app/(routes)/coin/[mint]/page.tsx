@@ -48,8 +48,26 @@ export default function MintCockpit() {
 
   useEffect(() => {
     // initial load of tasks for this CA
-    send({ kind: "TASK_LIST" } as any);
+    send({ kind: "TASK_LIST", payload: { ca } } as any);
   }, [send, ca]);
+
+  // Positions polling (wallet balances)
+  const [positions, setPositions] = useState<Array<{ pubkey: string; solLamports: number; tokenUi: number; lastFillTs: number }>>([]);
+  const [posErr, setPosErr] = useState<string | null>(null);
+  useEffect(() => {
+    let dead = false; let id: any;
+    async function load() {
+      try {
+        const base = process.env.NEXT_PUBLIC_WS_URL?.replace(/^ws/, "http") || "http://localhost:8787";
+        const res = await fetch(`${base}/positions?ca=${encodeURIComponent(ca)}&folder=${encodeURIComponent(folderId)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const j = await res.json();
+        if (!dead) setPositions(j);
+      } catch (e:any) { if (!dead) setPosErr(e.message); }
+    }
+    load(); id = setInterval(load, 4000);
+    return () => { dead = true; clearInterval(id); };
+  }, [ca, folderId]);
 
   function startSnipe(pct: number) {
     const params = {
@@ -166,6 +184,19 @@ export default function MintCockpit() {
                 <div className="flex items-center gap-2">
                   <button onClick={()=>send({ kind: "TASK_KILL", payload: { id: t.id } } as any)} className="px-2 py-1 rounded bg-red-700 hover:bg-red-800">Kill</button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4">
+          <h3 className="font-medium mb-2">Positions</h3>
+          {posErr && <div className="text-xs text-red-400">{posErr}</div>}
+          <div className="grid gap-2 text-xs">
+            {positions.length === 0 && <div className="text-zinc-400">No wallets or no balances.</div>}
+            {positions.map((p)=> (
+              <div key={p.pubkey} className="flex items-center justify-between border border-zinc-800 rounded-xl px-3 py-2">
+                <div className="font-mono text-zinc-300">{p.pubkey.slice(0,4)}…{p.pubkey.slice(-4)}</div>
+                <div className="text-zinc-400">SOL: {(p.solLamports/1e9).toFixed(4)} • Token: {p.tokenUi.toFixed(4)} • Last: {p.lastFillTs? new Date(p.lastFillTs).toLocaleTimeString():"-"}</div>
               </div>
             ))}
           </div>

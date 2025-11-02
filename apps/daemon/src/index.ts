@@ -6,7 +6,7 @@ import bs58 from "bs58";
 import { ensureDb } from "./db";
 import { db, fills } from "./db";
 import { execute } from "./db";
-import { initSolana } from "./solana";
+import { initSolana, getConn } from "./solana";
 import { checkHealth } from "./health";
 import { startPumpfunListener } from "./integrations/listener/heliusGrpc";
 import { setListenerActive } from "./state";
@@ -34,6 +34,9 @@ function broadcast(msg: any) {
 // Expose broadcaster for optional integrations (best-effort)
 (globalThis as any).__keymaker_broadcast__ = broadcast;
 
+// CA inspect cache (20s TTL)
+const caInspectCache = new Map<string, { until: number; value: any }>();
+
 async function bootstrap() {
   ensureDb();
   initSolana();
@@ -55,6 +58,20 @@ setInterval(async () => {
   const payload = JSON.stringify({ kind: "HEALTH", ...h, listenerActive: require("./state").getListenerActive() });
   wss.clients.forEach((c: any) => c.readyState === 1 && c.send(payload));
 }, 5000);
+
+// One-shot health transition signals
+let __lastRpcOk: boolean | undefined = undefined;
+setInterval(async () => {
+  try {
+    const h = await checkHealth();
+    if (__lastRpcOk !== undefined && __lastRpcOk !== h.rpcOk) {
+      const state = h.rpcOk ? "RECOVERED" : "DEGRADED";
+      const payload = JSON.stringify({ kind: "HEALTH_STATE", state, at: Date.now() });
+      wss.clients.forEach((c: any) => c.readyState === 1 && c.send(payload));
+    }
+    __lastRpcOk = h.rpcOk;
+  } catch {}
+}, 3000);
 
 type Session = { nonce?: string; masterPubkey?: string; authenticated?: boolean };
 const sessions = new WeakMap<any, Session>();
@@ -257,7 +274,14 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       return;
     }
     case "TASK_LIST": {
-      const rows = await execute(`SELECT id, kind, ca, state, created_at, updated_at FROM tasks ORDER BY created_at DESC LIMIT 200`);
+      const ca = (msg as any)?.payload?.ca as string | undefined;
+      const rows = await execute(
+        `SELECT t.id, t.kind, t.ca, t.state, t.created_at, t.updated_at,
+                (SELECT e.state FROM task_events e WHERE e.task_id = t.id ORDER BY e.at DESC LIMIT 1) as last_event
+           FROM tasks t ${ca ? "WHERE t.ca = ?" : ""}
+           ORDER BY t.created_at DESC LIMIT 200`,
+        ca ? [ca] : []
+      );
       send(ws, { kind: "TASKS", items: rows as any });
       return;
     }
@@ -310,6 +334,134 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       }
       return;
     }
+    case "CA_INSPECT": {
+      try {
+        const ca = String((msg as any)?.payload?.ca || "");
+        try { new PublicKey(ca); } catch { return fail(ws, "CA_INSPECT", "BAD_MINT"); }
+        const now = Date.now();
+        const cached = caInspectCache.get(ca);
+        if (cached && cached.until > now) { send(ws, { kind: "CA_STATUS", ...cached.value }); return; }
+        // Load mint info (decimals best-effort)
+        let decimals: number | undefined;
+        try {
+          const acc = await getConn().getParsedAccountInfo(new PublicKey(ca));
+          const parsed: any = (acc as any)?.value?.data?.parsed;
+          decimals = Number(parsed?.info?.decimals);
+        } catch {}
+        // Tiny Jupiter quote to detect routing readiness
+        let ammReady = false;
+        try {
+          const base = process.env.JUP_API_BASE || "https://quote-api.jup.ag/v6";
+          const url = `${base}/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=${encodeURIComponent(ca)}&amount=100000&slippageBps=50&onlyDirectRoutes=false`;
+          const r = await fetch(url);
+          if (r.ok) {
+            const j: any = await r.json();
+            ammReady = Array.isArray(j?.data) ? j.data.length > 0 : !!j?.routePlan?.length;
+          }
+        } catch {}
+        const value = { kind: "CA_STATUS", ca, ammReady, decimals };
+        caInspectCache.set(ca, { until: now + 20_000, value });
+        send(ws, value as any);
+      } catch (e) {
+        fail(ws, "CA_INSPECT", (e as Error).message || "INSPECT_FAIL");
+      }
+      return;
+    }
+    case "MARKET_ORDER": {
+      if (!s.authenticated) return fail(ws, "MARKET_ORDER", "AUTH_REQUIRED");
+      const p = (msg as any)?.payload || {};
+      const ca = String(p.ca || "");
+      const side = String(p.side || "BUY").toUpperCase();
+      const folderId = String(p.folderId || "");
+      const walletMode = String(p.walletMode || "ONE");
+      const amountSol = Number(p.amountSol || 0);
+      const amountTokens = Number(p.amountTokens || 0);
+      const percentTokens = Number(p.percentTokens || 0);
+      const slippageBps = Number(p.slippageBps || 50);
+      try {
+        try { new PublicKey(ca); } catch { return fail(ws, "MARKET_ORDER", "BAD_MINT"); }
+        // Figure out wallets to act on
+        const wsInFolder = await execute(`SELECT pubkey FROM wallets WHERE folder_id = ?`, [folderId]) as any[];
+        const wallets: string[] = walletMode === "ONE" ? [String(wsInFolder[0]?.pubkey || s.masterPubkey || "")] : wsInFolder.map((w:any)=> String(w.pubkey));
+        if (!wallets.length) return fail(ws, "MARKET_ORDER", "NO_WALLETS");
+        // Per-wallet sequential execution for simplicity
+        for (const userPk of wallets) {
+          send(ws, { kind: "ORDER_EVENT", state: "PREP", walletPubkey: userPk });
+          try {
+            let vtxBase64: string | null = null;
+            if (side === "BUY") {
+              const base = process.env.JUP_API_BASE || "https://quote-api.jup.ag/v6";
+              const amountLamports = Math.floor(amountSol * 1e9);
+              const qUrl = `${base}/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=${encodeURIComponent(ca)}&amount=${amountLamports}&slippageBps=${slippageBps}`;
+              const qRes = await fetch(qUrl);
+              if (!qRes.ok) throw new Error("JUP_QUOTE_FAIL");
+              const quote = await qRes.json();
+              const sRes = await fetch(`${base}/swap`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quoteResponse: quote, userPublicKey: userPk, wrapAndUnwrapSol: true, asLegacyTransaction: false }) });
+              if (!sRes.ok) throw new Error("JUP_SWAP_FAIL");
+              const sJ = await sRes.json();
+              vtxBase64 = String(sJ.swapTransaction || "");
+            } else {
+              // SELL: exact-in token amount or percentTokens
+              let tokensInAtomic = 0n;
+              if (amountTokens > 0) {
+                // Fetch decimals to convert
+                let decimals = 6;
+                try {
+                  const acc = await getConn().getParsedAccountInfo(new PublicKey(ca));
+                  const parsed: any = (acc as any)?.value?.data?.parsed;
+                  decimals = Number(parsed?.info?.decimals || 6);
+                } catch {}
+                tokensInAtomic = BigInt(Math.floor(amountTokens * 10 ** decimals));
+              } else if (percentTokens > 0) {
+                // Fetch token balance and take percent
+                try {
+                  const owner = new PublicKey(userPk);
+                  const accs = await getConn().getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(ca) });
+                  const info: any = accs.value[0]?.account?.data?.parsed?.info?.tokenAmount;
+                  if (info) {
+                    const rawStr = info.amount as string;
+                    const raw = BigInt(rawStr);
+                    tokensInAtomic = (raw * BigInt(Math.floor(percentTokens))) / BigInt(100);
+                  }
+                } catch {}
+              }
+              if (tokensInAtomic <= 0n) throw new Error("NO_TOKENS");
+              const base = process.env.JUP_API_BASE || "https://quote-api.jup.ag/v6";
+              const qUrl = `${base}/quote?inputMint=${encodeURIComponent(ca)}&outputMint=So11111111111111111111111111111111111111112&amount=${tokensInAtomic.toString()}&slippageBps=${slippageBps}`;
+              const qRes = await fetch(qUrl);
+              if (!qRes.ok) throw new Error("JUP_QUOTE_FAIL");
+              const quote = await qRes.json();
+              const sRes = await fetch(`${base}/swap`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quoteResponse: quote, userPublicKey: userPk, wrapAndUnwrapSol: true, asLegacyTransaction: false }) });
+              if (!sRes.ok) throw new Error("JUP_SWAP_FAIL");
+              const sJ = await sRes.json();
+              vtxBase64 = String(sJ.swapTransaction || "");
+            }
+            if (!vtxBase64) throw new Error("BUILD_FAIL");
+            send(ws, { kind: "ORDER_EVENT", state: "BUILD", walletPubkey: userPk });
+            // Deserialize, allowlist, sign, submit
+            const buf = Buffer.from(vtxBase64, "base64");
+            const { VersionedTransaction } = await import("@solana/web3.js");
+            const vtx = VersionedTransaction.deserialize(buf);
+            try { (await import("./guards")).programAllowlistCheck([vtx]); } catch {}
+            const kp = await (await import("./secrets")).getKeypairForPubkey(userPk);
+            if (!kp) throw new Error("PAYER_NOT_AVAILABLE");
+            vtx.sign([kp]);
+            send(ws, { kind: "ORDER_EVENT", state: "SUBMIT", walletPubkey: userPk });
+            const { submitBundle } = await import("./solana");
+            const r = await submitBundle([vtx]);
+            const sig = String((r.sigs || [])[0] || "");
+            send(ws, { kind: "ORDER_EVENT", state: "CONFIRM", walletPubkey: userPk, sig });
+            try { await (await import("./solana")).confirmSigs(r.sigs); } catch {}
+            send(ws, { kind: "ORDER_EVENT", state: "DONE", walletPubkey: userPk, sig });
+          } catch (e) {
+            send(ws, { kind: "ORDER_EVENT", state: "FAIL", walletPubkey: userPk, error: (e as Error).message || "GENERIC" });
+          }
+        }
+      } catch (e) {
+        return fail(ws, "MARKET_ORDER", (e as Error).message || "GENERIC");
+      }
+      return;
+    }
   }
 }
 
@@ -319,6 +471,42 @@ server.listen(PORT, () => console.log(`[daemon] ws on ${PORT}`));
 server.on("request", async (req, res) => {
   try {
     if (!req.url) { res.statusCode = 404; return res.end(); }
+    if (req.method === "GET" && req.url.startsWith("/positions")) {
+      const u = new URL(req.url, "http://localhost");
+      const ca = String(u.searchParams.get("ca") || "");
+      const folderId = String(u.searchParams.get("folder") || "");
+      if (!ca || !folderId) { res.statusCode = 400; return res.end(JSON.stringify({ error: "BAD_PARAMS" })); }
+      try {
+        const wsInFolder = await execute(`SELECT pubkey FROM wallets WHERE folder_id = ?`, [folderId]) as any[];
+        const out: any[] = [];
+        for (const w of wsInFolder) {
+          const pubkey = String(w.pubkey);
+          let solLamports = 0;
+          let tokenUi = 0;
+          let lastFillTs = 0;
+          try { solLamports = await getConn().getBalance(new PublicKey(pubkey)); } catch {}
+          try {
+            const owner = new PublicKey(pubkey);
+            const accs = await getConn().getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(ca) });
+            const info: any = accs.value[0]?.account?.data?.parsed?.info?.tokenAmount;
+            if (info) tokenUi = Number(info.uiAmount || 0);
+          } catch {}
+          try {
+            const r = await execute(`SELECT MAX(at) as at FROM fills WHERE ca = ? AND wallet_pubkey = ?`, [ca, pubkey]) as any[];
+            lastFillTs = Number((r[0] || {}).at || 0);
+          } catch {}
+          out.push({ pubkey, solLamports, tokenUi, lastFillTs });
+        }
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify(out));
+        return;
+      } catch (e) {
+        res.statusCode = 500;
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({ error: (e as Error).message }));
+        return;
+      }
+    }
     if (req.method === "GET" && req.url.startsWith("/pnl")) {
       // Very simple PnL scaffold: aggregate fills by ca
       // Note: For now, realized/unrealized are placeholders
@@ -340,18 +528,36 @@ server.on("request", async (req, res) => {
       return;
     }
     if (req.method === "GET" && req.url.startsWith("/stats")) {
-      // KPIs: coins (distinct CAs), fillsToday, earningsToday (fees+tips as negative), volume24h (count), recent mints(empty placeholder)
+      // KPIs: coins (distinct CAs), fillsToday, earningsToday (fees+tips), volume24h (count)
       const now = Date.now();
       const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
       const dayTs = startOfDay.getTime();
       const rowsAll = (await execute(`SELECT COUNT(DISTINCT ca) as coins FROM fills`)) as any;
       const rowsToday = (await execute(`SELECT COUNT(1) as c, COALESCE(SUM(fee_lamports),0) as fees, COALESCE(SUM(tip_lamports),0) as tips FROM fills WHERE at >= ?`, [dayTs])) as any;
       const rows24h = (await execute(`SELECT COUNT(1) as c FROM fills WHERE at >= ?`, [now - 24*3600*1000])) as any;
+      const recent = (await execute(`SELECT ca, at FROM fills WHERE at >= ? ORDER BY at DESC LIMIT 1000`, [now - 2*3600*1000])) as any[];
       const coins = Number((rowsAll as any)[0]?.coins || 0);
       const fillsToday = Number((rowsToday as any)[0]?.c || 0);
       const earningsToday = -1 * (Number((rowsToday as any)[0]?.fees || 0) + Number((rowsToday as any)[0]?.tips || 0));
       const volume24h = Number((rows24h as any)[0]?.c || 0);
-      const payload = { coins, fillsToday, earningsToday, volume24h, series: [], mints: [] };
+      // Build two short sparklines over last 60 minutes in 12 buckets (5m)
+      const buckets = 12;
+      const windowMs = 60 * 60 * 1000;
+      const bucketMs = Math.floor(windowMs / buckets);
+      const volumeSeries = new Array(buckets).fill(0);
+      const coinSeries = new Array(buckets).fill(0);
+      const seenByBucket: Array<Set<string>> = new Array(buckets).fill(0).map(()=> new Set<string>());
+      for (const r of recent) {
+        const dt = now - Number(r.at || 0);
+        if (dt < 0 || dt > windowMs) continue;
+        const idx = Math.max(0, Math.min(buckets - 1, Math.floor((windowMs - dt) / bucketMs)));
+        volumeSeries[idx] += 1;
+        seenByBucket[idx].add(String(r.ca));
+      }
+      for (let i = 0; i < buckets; i++) coinSeries[i] = seenByBucket[i].size;
+      // Minimal recent mints list (latest distinct CAs)
+      const mints = Array.from(new Set(recent.map((r:any)=> String(r.ca)))).slice(0, 10);
+      const payload = { coins, fillsToday, earningsToday, volume24h, series: { volume: volumeSeries, coins: coinSeries }, mints };
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(payload));
       return;
