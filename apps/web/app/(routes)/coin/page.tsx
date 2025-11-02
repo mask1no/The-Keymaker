@@ -5,9 +5,6 @@ import type { ServerMsg } from "@keymaker/types";
 import { useEffect } from "react";
 
 export default function Coin() {
-  const [name, setName] = useState("");
-  const [symbol, setSymbol] = useState("");
-  const [decimals, setDecimals] = useState<6|9>(6);
   const [uri, setUri] = useState("");
   const [imageUri, setImageUri] = useState("");
   const [metaUri, setMetaUri] = useState("");
@@ -44,11 +41,6 @@ export default function Coin() {
 
   function push(s: string) { setLog(prev => [s, ...prev].slice(0,200)); }
 
-  function createSpl() {
-    const finalUri = metaUri || uri;
-    if (!name || !symbol || !finalUri) return push("Fill name/symbol/URI");
-    send({ kind: "COIN_CREATE_SPL", payload: { name, symbol, decimals, metadataUri: finalUri, payerFolderId: "default" } } as any);
-  }
   function publishPump() {
     if (!mint) return push("No mint yet.");
     send({ kind: "COIN_PUBLISH_PUMPFUN", payload: { mint, payerFolderId: "default" } } as any);
@@ -70,39 +62,23 @@ export default function Coin() {
 
       {tab === "Coin" && (
       <div className="p-4 rounded-2xl bg-[var(--card)] border border-zinc-800 shadow-card">
-        <h2 className="text-xl font-semibold mb-3">Create SPL Memecoin</h2>
+        <h2 className="text-xl font-semibold mb-3">Pump.fun</h2>
+        <p className="text-sm text-zinc-400 mb-3">Create/publish memecoins via Pump.fun. This build currently supports publishing an existing mint via the official HTTP path when configured.</p>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Name</label>
-            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={name} onChange={e=>setName(e.target.value)} />
+            <label className="text-sm text-zinc-400">Mint (CA)</label>
+            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="Paste existing mint address" value={mint} onChange={e=>setMint(e.target.value)} />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Symbol</label>
-            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={symbol} onChange={e=>setSymbol(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Decimals</label>
-            <select className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={decimals} onChange={e=>setDecimals(Number(e.target.value) as any)}>
-              <option value={6}>6</option>
-              <option value={9}>9</option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Metadata URI</label>
-            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="https://.../metadata.json" value={uri} onChange={e=>setUri(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Image URI (optional)</label>
-            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="https://.../image.png" value={imageUri} onChange={e=>setImageUri(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm text-zinc-400">Result metadataUri</label>
-            <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="autofilled after upload" value={metaUri} onChange={e=>setMetaUri(e.target.value)} />
+            <label className="text-sm text-zinc-400">Metadata (optional)</label>
+            <div className="grid gap-2">
+              <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="metadataUri (https://...)" value={uri} onChange={e=>setUri(e.target.value)} />
+              <input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" placeholder="imageUri (https://...)" value={imageUri} onChange={e=>setImageUri(e.target.value)} />
+            </div>
           </div>
         </div>
         <div className="mt-4 flex gap-2">
-          <button onClick={createSpl} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700">Create SPL</button>
-          <button onClick={publishPump} className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600">Publish via pump.fun</button>
+          <button onClick={publishPump} className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600">Publish on Pump.fun</button>
           <button onClick={uploadMetadata} className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600">Upload metadata</button>
         </div>
         {mint && <p className="mt-3 text-sm">Mint: <span className="font-mono break-all">{mint}</span></p>}
