@@ -132,7 +132,8 @@ async function runTask(id: string) {
       }));
     } else {
       // RPC_SPRAY default path
-      const r = await submitBundle(txs, undefined, { forcePath: "rpc", rpcConcurrency: 6, retry: { attempts: 2, delaysMs: [300, 900] } });
+      const rpcConc = Math.max(1, Number((params as any).rpcConcurrency ?? 6));
+      const r = await submitBundle(txs, undefined, { forcePath: "rpc", rpcConcurrency: rpcConc, retry: { attempts: 2, delaysMs: [300, 900] } });
       sigs = r.sigs;
       bundleId = r.bundleId || "";
       targetSlot = r.targetSlot || 0;

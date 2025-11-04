@@ -22,6 +22,7 @@ export default function MarketMaker() {
   const [log, setLog] = useState<Array<{ ts: number; state: string; info?: any }>>([]);
   const [sellPct, setSellPct] = useState(50);
   const [jitoOk, setJitoOk] = useState<boolean>(false);
+  const [rpcConcurrency, setRpcConcurrency] = useState(6);
 
   useEffect(() => {
     const ws: WebSocket | undefined = (window as any).__daemon_ws__;
@@ -47,7 +48,7 @@ export default function MarketMaker() {
   }, []);
 
   function startTask() {
-    const base = { execMode, jitterMs: [jitterMin, jitterMax] as [number, number], tipLamports: [tipMin, tipMax] as [number, number], cuPrice: [cuMin, cuMax] as [number, number], walletFolderId, walletCount };
+    const base = { execMode, jitterMs: [jitterMin, jitterMax] as [number, number], tipLamports: [tipMin, tipMax] as [number, number], cuPrice: [cuMin, cuMax] as [number, number], walletFolderId, walletCount, rpcConcurrency };
     const payload = mode === "SNIPE"
       ? { kind: mode, ca, params: { ...base, maxSolPerWallet, slippageBps } }
       : mode === "MM"
@@ -89,6 +90,9 @@ export default function MarketMaker() {
           <input type="number" placeholder="tip max" value={tipMax} onChange={(e)=>setTipMax(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="cu min" value={cuMin} onChange={(e)=>setCuMin(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="cu max" value={cuMax} onChange={(e)=>setCuMax(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          {(execMode === "RPC_SPRAY" || execMode === "STEALTH_STRETCH") && (
+            <input type="number" min={1} placeholder="rpc concurrency" value={rpcConcurrency} onChange={(e)=>setRpcConcurrency(parseInt(e.target.value||"1"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          )}
         </div>
       </div>
       <div style={{ padding: 16, borderRadius: 16, background: "#18181b", border: "1px solid #27272a" }}>
