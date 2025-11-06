@@ -1,0 +1,22 @@
+Server-only signing (no keys in web):
+- apps/web relies on useDaemonWS and does not sign or store secrets.
+- apps/daemon handles all signing/submission. Secrets loaded via keystore only.
+
+Guardrails:
+- Jito opt-in: jitoOk derived from HEALTH; Jito modes hidden in UI when unset.
+- Defaults injected on TASK_CREATE from settings; prevents unsafe zero values.
+- Idempotency: task-runner hashes serialized txs; duplicates return prior sigs.
+- Kill switch + caps enforced before submit.
+- Program allowlist invoked before submit.
+
+Security headers:
+- next.config.js sets CSP, XFO DENY, X-CTO, HSTS, referrer-policy, permissions.
+
+No DB schema changes:
+- All flags via settings table; new settings accessed with getSetting/setSetting.
+
+Artifacts:
+- Acceptance checklist in audit/ACCEPTANCE-CHECKLIST.md
+- Env samples in apps/web/env.sample and apps/daemon/env.sample
+- .gitignore/.dockerignore exclude sqlite and keystore
+

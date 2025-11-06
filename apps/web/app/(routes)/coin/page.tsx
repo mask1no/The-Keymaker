@@ -22,6 +22,17 @@ export default function Coin() {
   const [execMode, setExecMode] = useState<"RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE"|"JITO_BUNDLE">("RPC_SPRAY");
   const [jitter, setJitter] = useState<[number, number]>([50,150]);
   const { send, onMessage } = useDaemonWS();
+  const [launchPlatform, setLaunchPlatform] = useState<string>("");
+  const [jitoOk, setJitoOk] = useState<boolean>(false);
+
+  function launchpadUrl(mint:string, platform:string) {
+    switch ((platform||"none").toLowerCase()) {
+      case "axiom": return `https://axiom.trade/token/${mint}`;
+      case "gmgn": return `https://gmgn.ai/sol/token/${mint}`;
+      case "photon": return `https://photon-sol.tinyastro.io/en/lp/${mint}`;
+      default: return "";
+    }
+  }
 
   useEffect(() => {
     const off = onMessage((msg: ServerMsg) => {
@@ -33,11 +44,19 @@ export default function Coin() {
       if ((msg as any).kind === "COIN_PUBLISHED") {
         const m = msg as any;
         push(`Pump.fun published: ${m.mint}  sig=${m.sig}`);
+        const url = launchpadUrl(m.mint, launchPlatform);
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
       }
+      if ((msg as any).kind === "SETTINGS") {
+        setLaunchPlatform(String((msg as any).settings?.LAUNCH_PLATFORM || ""));
+      }
+      if ((msg as any).kind === "HEALTH") { setJitoOk(!!(msg as any).jitoOk); }
       if ((msg as any).kind === "ERR") push(`Error: ${(msg as any).error}`);
     });
     return off;
   }, [onMessage]);
+
+  useEffect(() => { send({ kind: "SETTINGS_GET" } as any); }, [send]);
 
   function push(s: string) { setLog(prev => [s, ...prev].slice(0,200)); }
 
@@ -91,7 +110,7 @@ export default function Coin() {
           <div className="grid md:grid-cols-3 gap-3">
             <div className="grid gap-1"><label className="text-xs text-zinc-400">Folder</label><input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={folderId} onChange={e=>setFolderId(e.target.value)} /></div>
             <div className="grid gap-1"><label className="text-xs text-zinc-400">Wallets</label><input type="number" className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={walletCount} onChange={e=>setWalletCount(parseInt(e.target.value||"0"))} /></div>
-            <div className="grid gap-1"><label className="text-xs text-zinc-400">Exec</label><select className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={execMode} onChange={e=>setExecMode(e.target.value as any)}><option>RPC_SPRAY</option><option>STEALTH_STRETCH</option><option>JITO_LITE</option><option>JITO_BUNDLE</option></select></div>
+            <div className="grid gap-1"><label className="text-xs text-zinc-400">Exec</label><select className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={execMode} onChange={e=>setExecMode(e.target.value as any)}><option>RPC_SPRAY</option><option>STEALTH_STRETCH</option>{jitoOk && <option>JITO_LITE</option>}{jitoOk && <option>JITO_BUNDLE</option>}</select></div>
             <div className="grid gap-1"><label className="text-xs text-zinc-400">Min SOL</label><input type="number" step="0.001" className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={minOrderSol} onChange={e=>setMinOrderSol(parseFloat(e.target.value||"0"))} /></div>
             <div className="grid gap-1"><label className="text-xs text-zinc-400">Max SOL</label><input type="number" step="0.001" className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={maxOrderSol} onChange={e=>setMaxOrderSol(parseFloat(e.target.value||"0"))} /></div>
             <div className="grid gap-1"><label className="text-xs text-zinc-400">Slippage</label><input type="number" className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={slippageBps} onChange={e=>setSlippageBps(parseInt(e.target.value||"0"))} /></div>

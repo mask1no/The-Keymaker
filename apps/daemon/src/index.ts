@@ -12,7 +12,7 @@ import { startPumpfunListener } from "./integrations/listener/heliusGrpc";
 import { setListenerActive } from "./state";
 import { handleTaskCreate, taskEvents } from "./task-runner";
 import { cancelTask } from "./task-runner";
-import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder } from "./wallets";
+import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder, sweepFolderToMaster } from "./wallets";
 import { logger } from "@keymaker/logger";
 type ClientMsg = any;
 type ServerMsg = any;
@@ -179,6 +179,20 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       }
       return;
     }
+    case "FOLDER_SOL_SWEEP": {
+      if (!s.authenticated) return fail(ws, "FOLDER_SOL_SWEEP", "AUTH_REQUIRED");
+      const id = String((msg as any)?.payload?.id || "");
+      const master = String((msg as any)?.payload?.masterPubkey || "");
+      if (!id || !master) return fail(ws, "FOLDER_SOL_SWEEP", "BAD_PARAMS");
+      if (s.masterPubkey !== master) return fail(ws, "FOLDER_SOL_SWEEP", "AUTH_PUBKEY_MISMATCH");
+      try {
+        const { signatures } = await sweepFolderToMaster({ id, masterPubkey: master, onProgress: (evt)=>send(ws, evt) });
+        send(ws, { kind: "SWEEP_DONE", id, signatures });
+      } catch (e) {
+        return fail(ws, "FOLDER_SOL_SWEEP", (e as Error).message || "SWEEP_FAILED");
+      }
+      return;
+    }
     case "WALLET_CREATE": {
       if (!s.authenticated) return fail(ws, "WALLET_CREATE", "AUTH_REQUIRED");
       try {
@@ -231,7 +245,12 @@ async function handleMessage(ws: any, msg: ClientMsg) {
         RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
         GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
         JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
-        RUN_ENABLED: getRunEnabled()
+        RUN_ENABLED: getRunEnabled(),
+        LAUNCH_PLATFORM: getSetting("LAUNCH_PLATFORM") || "",
+        DEFAULT_SLIPPAGE_BPS: getSetting("DEFAULT_SLIPPAGE_BPS") || "",
+        DEFAULT_CU_PRICE_MICRO: getSetting("DEFAULT_CU_PRICE_MICRO") || "",
+        DEFAULT_JITO_TIP_BUY_LAMPORTS: getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "",
+        DEFAULT_JITO_TIP_SELL_LAMPORTS: getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || "",
       };
       send(ws, { kind: "SETTINGS", settings });
       return;
@@ -257,7 +276,12 @@ async function handleMessage(ws: any, msg: ClientMsg) {
           RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
           GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
           JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
-          RUN_ENABLED: getRunEnabled()
+          RUN_ENABLED: getRunEnabled(),
+          LAUNCH_PLATFORM: getSetting("LAUNCH_PLATFORM") || "",
+          DEFAULT_SLIPPAGE_BPS: getSetting("DEFAULT_SLIPPAGE_BPS") || "",
+          DEFAULT_CU_PRICE_MICRO: getSetting("DEFAULT_CU_PRICE_MICRO") || "",
+          DEFAULT_JITO_TIP_BUY_LAMPORTS: getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "",
+          DEFAULT_JITO_TIP_SELL_LAMPORTS: getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || "",
         };
         send(ws, { kind: "SETTINGS", settings });
       } catch (e) {
@@ -269,8 +293,34 @@ async function handleMessage(ws: any, msg: ClientMsg) {
       if (!s.authenticated) return fail(ws, "TASK_CREATE", "AUTH_REQUIRED");
       if (!getRunEnabled()) return fail(ws, "TASK_CREATE", "RUN_DISABLED");
       if ((msg as any).meta?.masterWallet && (msg as any).meta.masterWallet !== s.masterPubkey) return fail(ws, "TASK_CREATE", "AUTH_PUBKEY_MISMATCH");
+      const rawParams = (msg as any)?.payload?.params;
+      const p = rawParams ? { ...rawParams } : {};
+      const sdefs = {
+        SLIP: Number(getSetting("DEFAULT_SLIPPAGE_BPS") || 500),
+        CU: Number(getSetting("DEFAULT_CU_PRICE_MICRO") || 1000),
+        TIP_BUY: Number(getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || 0),
+        TIP_SELL: Number(getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || 0),
+      };
+      if (p.slippageBps == null) p.slippageBps = sdefs.SLIP;
+      if (!p.cuPrice && sdefs.CU > 0) p.cuPrice = [sdefs.CU, sdefs.CU];
+      if (!p.tipLamports) { const tip = ((msg as any).payload?.kind === "SELL") ? sdefs.TIP_SELL : sdefs.TIP_BUY; p.tipLamports = [tip, tip]; }
+      (msg as any).payload.params = p;
       const id = await handleTaskCreate(msg.payload.kind, msg.payload.ca, msg.payload.params);
       send(ws, { kind: "TASK_ACCEPTED", id });
+      return;
+    }
+    case "FOLDER_CREATE_BULK": {
+      if (!s.authenticated) return fail(ws, "FOLDER_CREATE_BULK", "AUTH_REQUIRED");
+      const { id, name, color, count } = (msg as any).payload || {};
+      if (!id || !name) return fail(ws, "FOLDER_CREATE_BULK", "BAD_PARAMS");
+      try {
+        await createFolderWithId(id, name);
+        if (color) setSetting(`FOLDER_COLOR:${id}`, String(color));
+        const n = Math.max(0, Math.min(20, Number(count || 0)));
+        for (let i = 0; i < n; i++) { try { await createWalletInFolder(id); } catch {} }
+      } catch (e) { return fail(ws, "FOLDER_CREATE_BULK", (e as Error).message); }
+      const folders = await listFolders();
+      send(ws, { kind: "FOLDERS", folders });
       return;
     }
     case "TASK_LIST": {
@@ -471,6 +521,48 @@ server.listen(PORT, () => console.log(`[daemon] ws on ${PORT}`));
 server.on("request", async (req, res) => {
   try {
     if (!req.url) { res.statusCode = 404; return res.end(); }
+    if (req.method === "GET" && req.url === "/health") {
+      try {
+        const h = await checkHealth();
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify(h));
+      } catch (e) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: (e as Error).message }));
+      }
+      return;
+    }
+    if (req.method === "GET" && req.url === "/settings") {
+      const settings = {
+        RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
+        GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
+        JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
+        RUN_ENABLED: getRunEnabled(),
+        LAUNCH_PLATFORM: getSetting("LAUNCH_PLATFORM") || "",
+        DEFAULT_SLIPPAGE_BPS: getSetting("DEFAULT_SLIPPAGE_BPS") || "",
+        DEFAULT_CU_PRICE_MICRO: getSetting("DEFAULT_CU_PRICE_MICRO") || "",
+        DEFAULT_JITO_TIP_BUY_LAMPORTS: getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "",
+        DEFAULT_JITO_TIP_SELL_LAMPORTS: getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || "",
+      };
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(settings));
+      return;
+    }
+    if (req.method === "GET" && req.url.startsWith("/folders")) {
+      const folders = await listFolders();
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ folders }));
+      return;
+    }
+    if (req.method === "GET" && req.url.startsWith("/wallets")) {
+      const u = new URL(req.url, "http://localhost");
+      const folderId = String(u.searchParams.get("folderId") || u.searchParams.get("folder") || "");
+      if (!folderId) { res.statusCode = 400; return res.end(JSON.stringify({ error: "BAD_PARAMS" })); }
+      const wsInFolder = await listFolderWallets(folderId);
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ folderId, wallets: wsInFolder }));
+      return;
+    }
     if (req.method === "GET" && req.url.startsWith("/positions")) {
       const u = new URL(req.url, "http://localhost");
       const ca = String(u.searchParams.get("ca") || "");

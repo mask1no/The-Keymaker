@@ -1,8 +1,7 @@
 import "./globals.css";
 import { WalletKit } from "../providers/WalletProvider";
 import Link from "next/link";
-import NotifBell from "../components/NotifBell";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import TopBar from "../components/TopBar";
 
 export const metadata = { title: "The Keymaker", description: "Multi-wallet snipe & MM" };
 
@@ -25,10 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </nav>
             </aside>
             <main>
-              <div style={{ position: "fixed", right: 16, top: 12, display: "flex", gap: 8, alignItems: "center", zIndex: 1000 }}>
-                <WalletMultiButton />
-                <NotifBell />
-              </div>
+              <TopBar />
               {children}
             </main>
           </div>

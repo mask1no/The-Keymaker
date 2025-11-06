@@ -22,6 +22,7 @@ export default function Wallets() {
     const off = onMessage((m) => {
       if (m.kind === "FOLDERS") setFolders(m.folders);
       if (m.kind === "WALLETS") setFolderWallets(m.folderId, m.wallets);
+      if (m.kind === "FUND_RESULT") alert(`Funded folder ${m.folderId}: ${m.signatures.length} txs`);
       if (m.kind === "FOLDER_DELETE_PLAN") setDeletePlan(m);
     });
     send({ kind: "FOLDER_LIST" });

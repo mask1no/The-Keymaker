@@ -60,6 +60,14 @@ export function useDaemonWS() {
           const key = `TASK_EVENT:${msg.id}:${msg.state}`;
           if (shouldNotify(key)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: `Task ${msg.state}`, severity: final ? (msg.state === "DONE" ? "success" : "error") : "info" });
         }
+        if (msg.kind === "TASK_EVENT" && msg.state === "FILL" && msg.info?.sig) {
+          const side = (msg.info.side || "BUY").toUpperCase();
+          if (shouldNotify(`FILL:${msg.info.sig}`, 10000)) pushNotif({
+            id: crypto.randomUUID(), ts: Date.now(), kind: "trade",
+            title: `${side} fill`, body: `${(msg.info.qty||0)} @ ${(msg.info.price||0)}`,
+            ca: msg.info.ca, sig: msg.info.sig, severity: "success"
+          });
+        }
         if (msg.kind === "PUMP_EVENT") {
           const key = `PUMP_EVENT:${msg.ca}:${msg.sig}`;
           if (shouldNotify(key, 10000)) pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "trade", title: "Pump.fun event", body: msg.mint, ca: msg.ca, severity: "info", sig: msg.sig });

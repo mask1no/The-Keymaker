@@ -12,15 +12,18 @@ Signing, keys, and execution live **only in the daemon**.
 
 ```bash
 # 1) Install
-npm i
+pnpm i
 
 # 2) Configure
-cp .env.example .env
-# set RPC_URL and KEYSTORE_PASSWORD at minimum
-# optionally set GRPC_ENDPOINT (Helius Yellowstone/LaserStream) and JITO_BLOCK_ENGINE
+# Web env
+copy apps/web/env.sample apps/web/.env.local
+# Daemon env
+copy apps/daemon/env.sample apps/daemon/.env.local
+# Set KEYSTORE_PASSWORD and RPC_URL at minimum; optionally set GRPC_ENDPOINT and JITO_BLOCK_ENGINE
 
-# 3) Run
-npm run dev
+# 3) Build (optional) and Run
+pnpm -r build
+pnpm dev
 # Web:    http://localhost:3000
 # Daemon: ws://localhost:8787  (HEALTH ping every 5s)
 ```

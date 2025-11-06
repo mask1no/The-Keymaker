@@ -10,7 +10,7 @@ export default function NotifBell() {
       <button onClick={()=>setOpen(v=>!v)} style={{ position: "relative", padding: "8px 10px", borderRadius: 10, background: "#18181b", border: "1px solid #27272a" }}>
         <span style={{ marginRight: 6 }}>🔔</span>
         {unreadCount > 0 && (
-          <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "white", borderRadius: 999, padding: "2px 6px", fontSize: 10 }}>{unreadCount}</span>
+          <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "white", border: "2px solid #111113", borderRadius: 999, padding: "2px 6px", fontSize: 10 }}>{unreadCount}</span>
         )}
       </button>
       {open && (

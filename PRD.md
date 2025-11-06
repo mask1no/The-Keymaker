@@ -56,6 +56,10 @@ A **local, web-based multi-wallet sniper and market-maker for Solana** focused o
 ### 7.5 Notifications
 - Bell with unread badge; messages for `TASK_EVENT(DONE|FAIL)`, `SWEEP_DONE`, `{ERR}`, and **HEALTH state changes**; links to explorer for `sig` and mint for `ca`.
 
+### 7.6 Top Actions & Launchpad
+- Top-right actions: Folders (bulk-create), Presets (Dev/Volume), Fast Sell (100% latest CA), Return SOL (sweep folder back to master).
+- On coin publish, auto-open launchpad per `LAUNCH_PLATFORM` (Axiom/GMGN/Photon).
+
 ## 8. WebSocket API (Canonical)
 **Auth**
 - `AUTH_CHALLENGE` → `{ kind:"AUTH_NONCE", nonce }`

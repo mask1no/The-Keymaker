@@ -1,4 +1,6 @@
 import Database from "better-sqlite3";
+import path from "path";
+import fs from "fs";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { drizzle } = require("drizzle-orm/better-sqlite3");
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
@@ -64,7 +66,8 @@ export const settings = sqliteTable("settings", {
   value: text("value")
 });
 
-const dbFile = process.env.DB_FILE ?? "./apps/daemon/keymaker.sqlite";
+const dbFile = process.env.DB_FILE ?? path.resolve(__dirname, "../keymaker.sqlite");
+try { fs.mkdirSync(path.dirname(dbFile), { recursive: true }); } catch {}
 const raw = new Database(dbFile);
 export const db = drizzle(raw) as any;
 // Provide a runtime 'execute' helper for raw SQL queries

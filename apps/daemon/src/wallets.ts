@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { getConn } from "./solana";
 import { logger } from "@keymaker/logger";
+import { getKeypairForPubkey } from "./secrets";
 
 function requirePassword(): string {
   const pass = process.env.KEYSTORE_PASSWORD;
@@ -32,7 +33,7 @@ type Keystore = {
 let keystoreCache: { wallets: Record<string, { secretBase58: string; createdAt: number; folderId: string; role: string }> } | null = null;
 let keystoreSalt: Uint8Array | null = null;
 let keystoreNonce: Uint8Array | null = null;
-let keystorePath = process.env.KEYSTORE_FILE || path.resolve("./apps/daemon/keystore.json");
+let keystorePath = process.env.KEYSTORE_FILE || path.resolve(__dirname, "../keystore.json");
 
 export async function initKeystore(password: string) {
   await sodium.ready;
@@ -317,5 +318,29 @@ export async function sweepAndDeleteFolder(params: { id: string; masterPubkey: s
   } finally {
     folderSweepLock.delete(id);
   }
+}
+
+export async function sweepFolderToMaster(params: { id: string; masterPubkey: string; onProgress?: (ev:{ kind:"SWEEP_PROGRESS"; id:string; step:"SENT"|"VERIFY"|"DONE"; info?:{ pubkey?:string; sig?:string } })=>void }): Promise<{ signatures: string[] }> {
+  const { id, masterPubkey, onProgress } = params;
+  const wsInFolder = await db.select().from(wallets).where(eq(wallets.folder_id, id)) as any[];
+  if (!wsInFolder.length) return { signatures: [] };
+  const conn = getConn();
+  const master = new PublicKey(masterPubkey);
+  const signatures: string[] = [];
+  for (const w of wsInFolder) {
+    const fromPubkey = new PublicKey(w.pubkey as string);
+    let bal = 0;
+    try { bal = await conn.getBalance(fromPubkey, "confirmed"); } catch { throw new Error("RPC_UNAVAILABLE"); }
+    const sendable = bal - 5000;
+    if (sendable <= 5000) continue;
+    const tx = new Transaction().add(SystemProgram.transfer({ fromPubkey, toPubkey: master, lamports: sendable }));
+    const kp = await getKeypairForPubkey(fromPubkey.toBase58());
+    if (!kp) continue;
+    const sig = await conn.sendTransaction(tx, [kp], { skipPreflight: true, maxRetries: 3 });
+    signatures.push(sig);
+    onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "SENT", info: { pubkey: fromPubkey.toBase58(), sig } });
+  }
+  onProgress?.({ kind: "SWEEP_PROGRESS", id, step: "DONE" });
+  return { signatures };
 }
 

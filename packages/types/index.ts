@@ -69,30 +69,6 @@ export type ClientMsg =
   | { kind: "MARKET_ORDER"; payload: { ca: string; side: "BUY"|"SELL"; folderId: string; walletMode: "ONE"|"ALL"; amountSol?: number; amountTokens?: number; percentTokens?: number; slippageBps?: number } };
 
 // Outgoing daemon -> web
-export type ServerMsg =
-  | { kind: "AUTH_NONCE"; nonce: string }
-  | { kind: "AUTH_OK"; masterPubkey: string }
-  | { kind: "ERR"; error: string; ref?: string }
-  | { kind: "ACK"; ref: string }
-  | { kind: "FOLDERS"; folders: Array<{ id: string; name: string; count: number }> }
-  | { kind: "WALLETS"; folderId: string; wallets: Array<{ id: string; pubkey: string; role: string }> }
-  | { kind: "FUND_RESULT"; folderId: string; signatures: string[] }
-  | { kind: "TASK_ACCEPTED"; id: string }
-  | { kind: "TASK_EVENT"; id: string; state: string; info?: any }
-  | { kind: "TASKS"; items: Array<{ id: string; kind: TaskKind; ca: string; state: string; created_at: number; updated_at: number; last_event?: string }> }
-  | { kind: "HEALTH"; rpcOk: boolean; jitoOk: boolean; pingMs: number }
-  | { kind: "SETTINGS"; settings: { RPC_URL: string; GRPC_ENDPOINT: string; JITO_BLOCK_ENGINE: string; RUN_ENABLED: boolean } }
-  | { kind: "METADATA_UPLOADED"; imageUri: string; metadataUri: string }
-  // NEW coin ops
-  | { kind: "COIN_CREATED"; mint: string; sig: string }
-  | { kind: "COIN_PUBLISHED"; mint: string; sig: string }
-  | { kind: "CA_STATUS"; ca: string; ammReady: boolean; decimals?: number; name?: string; symbol?: string }
-  | { kind: "ORDER_EVENT"; state: "PREP"|"BUILD"|"SUBMIT"|"CONFIRM"|"DONE"|"FAIL"; walletPubkey: string; sig?: string; error?: string }
-  // Live activity streams
-  | { kind: "PUMP_EVENT"; mint: string; ca: string; slot: number; sig: string }
-  // Folder delete preview/sweep
-  | { kind: "FOLDER_DELETE_PLAN"; id: string; wallets: { pubkey: string; solLamports: number; tokens: { mint: string; amount: string }[] }[]; estFeesLamports: number }
-  | { kind: "SWEEP_PROGRESS"; id: string; step: "SENT"|"VERIFY"|"DONE"; info?: { pubkey?: string; sig?: string } }
-  | { kind: "SWEEP_DONE"; id: string; signatures: string[] };
+export type ServerMsg = { kind: string; [k: string]: any };
 
 
