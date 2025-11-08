@@ -77,6 +77,10 @@ packages/
 Only these env vars are recognized:
 
 ```
+# Environment file precedence
+# - Daemon: loads apps/daemon/.env.local first, then apps/daemon/.env (fallback)
+# - Web (Next.js): loads apps/web/.env.local
+
 RPC_URL=...                    # required
 GRPC_ENDPOINT=...              # optional (Helius Yellowstone/LaserStream). Blank => listener disabled
 JITO_BLOCK_ENGINE=...          # optional. Blank => Jito disabled, RPC fallback only

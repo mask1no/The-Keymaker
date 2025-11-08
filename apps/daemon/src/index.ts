@@ -1,4 +1,14 @@
-import "dotenv/config";
+// Load env: prefer apps/daemon/.env.local, then fallback to apps/daemon/.env
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
+try {
+  const envLocal = path.resolve(__dirname, "../.env.local");
+  const envFile = path.resolve(__dirname, "../.env");
+  if (fs.existsSync(envLocal)) dotenv.config({ path: envLocal });
+  else if (fs.existsSync(envFile)) dotenv.config({ path: envFile });
+  else dotenv.config(); // fallback to default resolution if present
+} catch {}
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import nacl from "tweetnacl";
