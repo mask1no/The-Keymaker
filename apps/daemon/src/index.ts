@@ -24,14 +24,14 @@ import { handleTaskCreate, taskEvents } from "./task-runner";
 import { cancelTask } from "./task-runner";
 import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder, sweepFolderToMaster } from "./wallets";
 import { logger } from "@keymaker/logger";
+import { getSetting, setSetting } from "./db";
+import { getRunEnabled, setRunEnabled } from "./guards";
 type ClientMsg = any;
 type ServerMsg = any;
 import { createSplTokenWithMetadata } from "./coin";
 import { publishWithPumpFun } from "./pumpfun";
 import { uploadImageAndJson } from "./metadata";
-import { setRunEnabled, getRunEnabled } from "./guards";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { getSetting, setSetting } from "./db";
 import { initSolana as reinitSolana } from "./solana";
 
 const PORT = 8787;
@@ -47,6 +47,75 @@ function broadcast(msg: any) {
 // CA inspect cache (20s TTL)
 const caInspectCache = new Map<string, { until: number; value: any }>();
 
+// Auto-snipe dedupe (per-CA with TTL)
+const recentAutoSnipes = new Map<string, number>();
+function shouldAutoSnipe(ca: string): boolean {
+  const ttlMs = Math.max(5, Number(getSetting("AUTOSNIPE_DEDUP_SEC") || "60")) * 1000;
+  const now = Date.now();
+  const until = recentAutoSnipes.get(ca) || 0;
+  if (now < until) return false;
+  recentAutoSnipes.set(ca, now + ttlMs);
+  return true;
+}
+
+async function onPumpEventStrategy(e: any) {
+  try {
+    const enabled = String(getSetting("AUTOSNIPE_ENABLED") || "").toLowerCase();
+    if (!(enabled === "1" || enabled === "true" || enabled === "yes")) return;
+    if (!getRunEnabled()) return;
+    const ca = String(e?.ca || e?.mint || "");
+    if (!ca) return;
+    if (!shouldAutoSnipe(ca)) return;
+    // Optional blacklist
+    const blacklist = (getSetting("AUTOSNIPE_BLACKLIST") || "").split(/[,\s]+/g).filter(Boolean);
+    if (blacklist.includes(ca)) return;
+    // Optional Jupiter quote gating (risk/route availability)
+    const requireJup = String(getSetting("AUTOSNIPE_REQUIRE_JUP") || "").toLowerCase();
+    if (requireJup === "1" || requireJup === "true") {
+      try {
+        const base = process.env.JUP_API_BASE || "https://quote-api.jup.ag/v6";
+        // Quote for 0.001 SOL -> CA
+        const url = `${base}/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=${encodeURIComponent(ca)}&amount=${Math.floor(0.001*1e9)}&slippageBps=500`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+      } catch {
+        return;
+      }
+    }
+    // Build params from settings
+    const folderId = getSetting("AUTOSNIPE_FOLDER_ID") || "";
+    const walletCount = Math.max(1, Math.min(20, Number(getSetting("AUTOSNIPE_WALLET_COUNT") || "3")));
+    const buySol = Math.max(0.001, Number(getSetting("AUTOSNIPE_BUY_SOL") || "0.01"));
+    const slippageBps = Math.max(1, Number(getSetting("AUTOSNIPE_SLIPPAGE_BPS") || getSetting("DEFAULT_SLIPPAGE_BPS") || "500"));
+    const execMode = (getSetting("AUTOSNIPE_EXEC_MODE") || "JITO_BUNDLE") as any;
+    const jitterMin = Math.max(0, Number(getSetting("AUTOSNIPE_JITTER_MIN_MS") || "20"));
+    const jitterMax = Math.max(jitterMin, Number(getSetting("AUTOSNIPE_JITTER_MAX_MS") || "120"));
+    const cuMin = Math.max(0, Number(getSetting("AUTOSNIPE_CU_MIN") || getSetting("DEFAULT_CU_PRICE_MICRO") || "800"));
+    const cuMax = Math.max(cuMin, Number(getSetting("AUTOSNIPE_CU_MAX") || "1500"));
+    const tipMin = Math.max(0, Number(getSetting("AUTOSNIPE_TIP_MIN") || getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "0"));
+    const tipMax = Math.max(tipMin, Number(getSetting("AUTOSNIPE_TIP_MAX") || "0"));
+    if (!folderId) {
+      try { logger.warn("autosnipe-skip", { reason: "missing-folder", ca }); } catch {}
+      return;
+    }
+    const params = {
+      walletFolderId: folderId,
+      walletCount,
+      maxSolPerWallet: buySol,
+      slippageBps,
+      execMode,
+      jitterMs: [jitterMin, jitterMax] as [number, number],
+      cuPrice: [cuMin, cuMax] as [number, number],
+      tipLamports: [tipMin, tipMax] as [number, number]
+    };
+    const id = await handleTaskCreate("SNIPE", ca, params);
+    try { logger.info("autosnipe", { id, ca, walletCount, buySol, execMode }); } catch {}
+    broadcast({ kind: "TASK_EVENT", id, state: "QUEUED", info: { ca, auto: true } });
+  } catch (err) {
+    try { logger.error("autosnipe-error", { err: (err as Error).message }); } catch {}
+  }
+}
+
 async function bootstrap() {
   ensureDb();
   initSolana();
@@ -56,7 +125,7 @@ async function bootstrap() {
   // Optional GRPC listener
   if (process.env.GRPC_ENDPOINT) {
     try {
-      await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); } catch {} });
+      await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); onPumpEventStrategy(e); } catch {} });
       setListenerActive(true);
     } catch { setListenerActive(false); }
   }
@@ -274,16 +343,18 @@ async function handleMessage(ws: any, msg: ClientMsg) {
           if (!key) continue;
           setSetting(key, value);
           if (key === "RPC_URL") { process.env.RPC_URL = value; try { reinitSolana(); } catch {} }
+          if (key === "RPC_URLS") { process.env.RPC_URLS = value; try { reinitSolana(); } catch {} }
           if (key === "JITO_BLOCK_ENGINE") { process.env.JITO_BLOCK_ENGINE = value; }
           if (key === "GRPC_ENDPOINT") {
             process.env.GRPC_ENDPOINT = value;
             // best-effort: if set and previously blank, start listener
-            if (value) { try { await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); } catch {} }); setListenerActive(true); } catch { setListenerActive(false); } }
+            if (value) { try { await startPumpfunListener((e:any)=>{ try { broadcast({ kind: "PUMP_EVENT", ...e }); onPumpEventStrategy(e); } catch {} }); setListenerActive(true); } catch { setListenerActive(false); } }
           }
         }
         send(ws, { kind: "ACK", ref: "SETTINGS_SET" });
         const settings = {
           RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
+          RPC_URLS: process.env.RPC_URLS || getSetting("RPC_URLS") || "",
           GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
           JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
           RUN_ENABLED: getRunEnabled(),
@@ -292,6 +363,18 @@ async function handleMessage(ws: any, msg: ClientMsg) {
           DEFAULT_CU_PRICE_MICRO: getSetting("DEFAULT_CU_PRICE_MICRO") || "",
           DEFAULT_JITO_TIP_BUY_LAMPORTS: getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "",
           DEFAULT_JITO_TIP_SELL_LAMPORTS: getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || "",
+          AUTOSNIPE_ENABLED: getSetting("AUTOSNIPE_ENABLED") || "",
+          AUTOSNIPE_FOLDER_ID: getSetting("AUTOSNIPE_FOLDER_ID") || "",
+          AUTOSNIPE_WALLET_COUNT: getSetting("AUTOSNIPE_WALLET_COUNT") || "",
+          AUTOSNIPE_BUY_SOL: getSetting("AUTOSNIPE_BUY_SOL") || "",
+          AUTOSNIPE_SLIPPAGE_BPS: getSetting("AUTOSNIPE_SLIPPAGE_BPS") || "",
+          AUTOSNIPE_EXEC_MODE: getSetting("AUTOSNIPE_EXEC_MODE") || "",
+          AUTOSNIPE_JITTER_MIN_MS: getSetting("AUTOSNIPE_JITTER_MIN_MS") || "",
+          AUTOSNIPE_JITTER_MAX_MS: getSetting("AUTOSNIPE_JITTER_MAX_MS") || "",
+          AUTOSNIPE_CU_MIN: getSetting("AUTOSNIPE_CU_MIN") || "",
+          AUTOSNIPE_CU_MAX: getSetting("AUTOSNIPE_CU_MAX") || "",
+          AUTOSNIPE_TIP_MIN: getSetting("AUTOSNIPE_TIP_MIN") || "",
+          AUTOSNIPE_TIP_MAX: getSetting("AUTOSNIPE_TIP_MAX") || "",
         };
         send(ws, { kind: "SETTINGS", settings });
       } catch (e) {

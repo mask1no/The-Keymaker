@@ -79,6 +79,24 @@ export default function TopActions() {
     setOpen(null);
   }
 
+  async function runSellLadder() {
+    if (!masterWallet) return alert("Authenticate master wallet first");
+    const fid = folderId || await ensureFolderForRun(0);
+    if (!fid) return alert("Pick a folder");
+    const ca = await getLatestCA();
+    if (!ca) return alert("No recent CA found");
+    const steps = [25, 50, 100];
+    steps.forEach((pct, idx) => {
+      setTimeout(() => {
+        send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca, params: {
+          walletFolderId: fid, walletCount: 20, percent: pct, slippageBps: 300,
+          execMode: "RPC_SPRAY", jitterMs: [50,150], cuPrice: [800,1400]
+        } }, meta: { masterWallet } } as any);
+      }, idx * 1500);
+    });
+    setOpen(null);
+  }
+
   function requestReturnSol() {
     if (!folderId) return alert("Pick a folder");
     if (!masterWallet) return alert("Authenticate master wallet first");
@@ -148,7 +166,10 @@ export default function TopActions() {
           {open === "fastsell" && (
             <div className="grid gap-3">
               <div className="text-sm text-zinc-300">Sell 100% of the latest CA across this folder.</div>
-              <button onClick={runFastSell} className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500">Sell All</button>
+              <div className="flex gap-2">
+                <button onClick={runFastSell} className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500">Sell All</button>
+                <button onClick={runSellLadder} className="px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500">Sell Ladder 25/50/100</button>
+              </div>
             </div>
           )}
 

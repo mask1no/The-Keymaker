@@ -81,7 +81,8 @@ Only these env vars are recognized:
 # - Daemon: loads apps/daemon/.env.local first, then apps/daemon/.env (fallback)
 # - Web (Next.js): loads apps/web/.env.local
 
-RPC_URL=...                    # required
+RPC_URL=...                    # required (primary)
+RPC_URLS=...                   # optional (comma/space-separated fanout list)
 GRPC_ENDPOINT=...              # optional (Helius Yellowstone/LaserStream). Blank => listener disabled
 JITO_BLOCK_ENGINE=...          # optional. Blank => Jito disabled, RPC fallback only
 BIRDEYE_API_KEY=...            # optional (marks/PNL)
@@ -91,6 +92,21 @@ KEYSTORE_PASSWORD=change_me_dev_only
 MASTER_SECRET_BASE58=          # dev-only backdoor; should be blank in real use
 PUMPFUN_API_BASE=              # optional (HTTP publish path). If set, COIN_PUBLISH_PUMPFUN uses POST { mint, payerPubkey }
 PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
+
+# Auto-snipe (listener → strategy)
+AUTOSNIPE_ENABLED=0
+AUTOSNIPE_FOLDER_ID=
+AUTOSNIPE_WALLET_COUNT=3
+AUTOSNIPE_BUY_SOL=0.01
+AUTOSNIPE_SLIPPAGE_BPS=500
+AUTOSNIPE_EXEC_MODE=JITO_BUNDLE
+AUTOSNIPE_JITTER_MIN_MS=20
+AUTOSNIPE_JITTER_MAX_MS=120
+AUTOSNIPE_CU_MIN=800
+AUTOSNIPE_CU_MAX=1500
+AUTOSNIPE_TIP_MIN=0
+AUTOSNIPE_TIP_MAX=0
+AUTOSNIPE_DEDUP_SEC=60
 ```
 
 **Fallback behavior**
@@ -107,8 +123,12 @@ PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 | Delete/Sweep  | Folder delete previews balances; sweeps **SOL → master**; streams progress; idempotent | ✅                       |
 | Notifications | Bell with unread badge; task events, health flips, errors; explorer links              | ✅                       |
 | Sniper        | `RPC_SPRAY`, `STEALTH_STRETCH`, `JITO_LITE` (small bundles + tip variance)             | ✅/🚧 (*see Acceptance*) |
+| Auto‑snipe    | Helius gRPC Pump.fun events → strategy → SNIPE tasks (filters + dedupe)                 | ✅ (configurable)        |
+| RPC fanout    | Multiple endpoints with hedged send + pooled confirms                                   | ✅                       |
 | PnL/Fills     | Best-effort via pre/post balances; records qty, price, fees, tips                      | ✅/🚧                    |
 | Listener      | Helius Yellowstone/LaserStream gRPC; emits Pump.fun create events                      | ✅/🚧 (optional)         |
+| Exits         | Fast Sell All; Sell Ladder 25/50/100                                                    | ✅                       |
+| Security      | CSP headers; keystore/db/logs ignored in VCS                                            | ✅                       |
 
 > ✅/🚧 = implemented but verify via **Acceptance**.
 
@@ -126,6 +146,7 @@ PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 * **Idempotency**: stable hash of tx message; duplicates return prior sigs.
 * **Per-mint locks**: prevent overlapping tasks on same CA.
 * **Dev-only master secret**: `MASTER_SECRET_BASE58` is for local testing only. Leave blank for real use.
+* **CSP**: strict default-src 'self'; WS/HTTP target derived from NEXT_PUBLIC_WS_URL.
 
 ## WebSocket API (client ↔ daemon)
 

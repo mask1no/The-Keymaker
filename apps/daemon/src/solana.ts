@@ -12,6 +12,7 @@ import { logger } from "@keymaker/logger";
 import { setTaskWallets } from "./state";
 import { enforceTxMax, checkAndConsumeSpend, programAllowlistCheck } from "./guards";
 import { getRpcDegraded } from "./state";
+import { getPrimaryConn, initRpcPool, hedgedGetSignatureStatus } from "./rpc";
 
 // Jupiter v6 helpers
 async function fetchJupQuote(inputMint: string, outputMint: string, amount: number, slippageBps: number) {
@@ -44,12 +45,10 @@ function decodeSwapTx(base64Tx: string): VersionedTransaction {
   return VersionedTransaction.deserialize(buf);
 }
 
-let conn: Connection;
 export function initSolana() {
-  const url = process.env.RPC_URL || "https://api.mainnet-beta.solana.com";
-  conn = new Connection(url, { commitment: "confirmed" });
+  initRpcPool();
 }
-export function getConn() { return conn; }
+export function getConn() { return getPrimaryConn(); }
 
 export async function buildSnipeTxs(taskId: string): Promise<VersionedTransaction[]> {
   // Load task
@@ -228,7 +227,7 @@ export async function buildSellTxs(taskId: string): Promise<VersionedTransaction
     let tokenAmountRaw = 0n;
     let decimals = 6;
     try {
-      const accs = await conn.getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(ca) });
+      const accs = await getConn().getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(ca) });
       const info: any = accs.value[0]?.account?.data?.parsed?.info?.tokenAmount;
       if (info) {
         decimals = Number(info.decimals || 6);
@@ -273,7 +272,7 @@ export async function submitBundle(
   if (getRpcDegraded() && txs.length > 4) {
     throw new Error("RPC_DEGRADED");
   }
-  const r = await submitBundleOrRpc(conn, txs, tipLamports, opts);
+  const r = await submitBundleOrRpc(getConn(), txs, tipLamports, opts);
   logger.info("submit", { path: r.path, bundleId: r.bundleId, count: txs.length });
   return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0, path: r.path, tipLamportsUsed: r.tipLamportsUsed ?? 0 } as any;
 }
@@ -281,14 +280,10 @@ export async function confirmSigs(sigs: string[], timeoutMs: number = 30_000) {
   const t0 = Date.now();
   const pending = new Set(sigs);
   while (pending.size && (Date.now() - t0) < timeoutMs) {
-    const results = await Promise.allSettled(
-      [...pending].map(async (sig) => {
-        const r = await conn.getSignatureStatus(sig, { searchTransactionHistory: true });
-        if (r && r.value && (r.value.confirmationStatus === "confirmed" || r.value.confirmationStatus === "finalized")) {
-          pending.delete(sig);
-        }
-      })
-    );
+    await Promise.all([...pending].map(async (sig) => {
+      const status = await hedgedGetSignatureStatus(sig, 2000);
+      if (status === "confirmed" || status === "finalized") pending.delete(sig);
+    }));
     await new Promise((r) => setTimeout(r, 1000));
   }
   if (pending.size) throw new Error("CONFIRM_TIMEOUT");

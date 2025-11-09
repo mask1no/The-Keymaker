@@ -1,4 +1,25 @@
 ﻿node_modules/
+pnpm-lock.yaml
+.turbo/
+.next/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+
+# Daemon runtime artifacts
+apps/daemon/keymaker.sqlite
+apps/daemon/keymaker.ndjson
+apps/daemon/keystore.json
+apps/daemon/apps/daemon/keymaker.sqlite
+apps/daemon/apps/daemon/keymaker.ndjson
+apps/daemon/apps/daemon/keystore.json
+
+# Logs
+*.log
+
+node_modules/
 .next/
 dist/
 

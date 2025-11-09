@@ -1,4 +1,5 @@
 import { getConn } from "./solana";
+import { getRpcPool, getPrimaryConn } from "./rpc";
 import { getRunEnabled, getListenerActive, setRpcDegraded, getRpcDegraded } from "./state";
 
 function detectClusterFromUrl(url: string | undefined): "mainnet"|"devnet"|"testnet"|"unknown" {
@@ -18,13 +19,17 @@ export async function checkHealth() {
     const jitoEnabled = !!process.env.JITO_BLOCK_ENGINE;
     const degraded = pingMs > 2000;
     setRpcDegraded(degraded);
-    const cluster = detectClusterFromUrl(process.env.RPC_URL);
-    return { rpcOk: !!slot && !degraded, jitoOk: jitoEnabled, pingMs, rpcUrl: process.env.RPC_URL, cluster, listenerActive: getListenerActive(), runEnabled: getRunEnabled() } as any;
+    const pool = getRpcPool();
+    const primaryUrl = (getPrimaryConn() as any)?._rpcEndpoint || process.env.RPC_URL;
+    const cluster = detectClusterFromUrl(primaryUrl);
+    return { rpcOk: !!slot && !degraded, jitoOk: jitoEnabled, pingMs, rpcUrl: primaryUrl, rpcPoolSize: pool.length, cluster, listenerActive: getListenerActive(), runEnabled: getRunEnabled() } as any;
   } catch {
     const jitoEnabled = !!process.env.JITO_BLOCK_ENGINE;
     setRpcDegraded(true);
-    const cluster = detectClusterFromUrl(process.env.RPC_URL);
-    return { rpcOk: false, jitoOk: jitoEnabled, pingMs: -1, rpcUrl: process.env.RPC_URL, cluster, listenerActive: getListenerActive(), runEnabled: getRunEnabled() } as any;
+    const pool = getRpcPool();
+    const primaryUrl = (getPrimaryConn() as any)?._rpcEndpoint || process.env.RPC_URL;
+    const cluster = detectClusterFromUrl(primaryUrl);
+    return { rpcOk: false, jitoOk: jitoEnabled, pingMs: -1, rpcUrl: primaryUrl, rpcPoolSize: pool.length, cluster, listenerActive: getListenerActive(), runEnabled: getRunEnabled() } as any;
   }
 }
 

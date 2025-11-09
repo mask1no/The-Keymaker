@@ -3,6 +3,7 @@ import { logger } from "@keymaker/logger";
 import bs58 from "bs58";
 import { getRunEnabled } from "../../guards";
 import { incrementRpcErrorStreak, resetRpcErrorStreak, getRpcErrorStreak, getRpcDegraded } from "../../state";
+import { hedgedSendRawTransaction } from "../../rpc";
 
 export async function submitBundleOrRpc(
   conn: Connection,
@@ -23,10 +24,26 @@ export async function submitBundleOrRpc(
         if (!getRunEnabled()) throw new Error("RUN_DISABLED");
         const chunk = txs.slice(i, i + 5);
         const bsArr = chunk.map((t) => Buffer.from(t.serialize()).toString("base64"));
-        const tip = Math.max(0, Math.floor(tipLamports ?? 0));
-        const bundle = await client.sendBundle(bsArr, { tip });
-        logger.info("bundle", { op: "submit", path: "jito", bundleId: bundle.uuid, tip });
-        bundleId = bundle.uuid;
+        const baseTip = Math.max(0, Math.floor(tipLamports ?? 0));
+        const attempts = Math.max(1, opts?.retry?.attempts ?? 1);
+        const delays = opts?.retry?.delaysMs ?? [];
+        let sent = false;
+        let tipUsed = baseTip;
+        for (let a = 0; a < attempts; a++) {
+          try {
+            const tip = Math.floor(baseTip * (a === 0 ? 1 : (1 + 0.25 * a)));
+            tipUsed = tip;
+            const bundle = await client.sendBundle(bsArr, { tip });
+            logger.info("bundle", { op: "submit", path: "jito", bundleId: bundle.uuid, tip });
+            bundleId = bundle.uuid;
+            sent = true;
+            break;
+          } catch (err) {
+            const d = delays[a];
+            if (d) await new Promise((r) => setTimeout(r, d));
+          }
+        }
+        if (!sent) throw new Error("JITO_BUNDLE_FAIL");
       }
       resetRpcErrorStreak();
       return { path: "jito", bundleId, sigs, tipLamportsUsed: Math.max(0, Math.floor(tipLamports ?? 0)) };
@@ -51,7 +68,7 @@ export async function submitBundleOrRpc(
       let lastErr: any;
       for (let a = 0; a <= attempts; a++) {
         try {
-          const sig = await conn.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+          const sig = await hedgedSendRawTransaction(raw, { skipPreflight: true, maxRetries: 3, hedgeFanout: 2, staggerMs: 50 });
           sigs.push(sig);
           resetRpcErrorStreak();
           lastErr = undefined;
