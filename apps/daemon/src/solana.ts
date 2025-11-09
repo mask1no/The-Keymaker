@@ -13,6 +13,8 @@ import { setTaskWallets } from "./state";
 import { enforceTxMax, checkAndConsumeSpend, programAllowlistCheck } from "./guards";
 import { getRpcDegraded } from "./state";
 import { getPrimaryConn, initRpcPool, hedgedGetSignatureStatus } from "./rpc";
+import { buildBuyTxViaPumpPortal, buildSellTxViaPumpPortal } from "./integrations/pumpportal";
+import { getSetting } from "./db";
 
 // Jupiter v6 helpers
 async function fetchJupQuote(inputMint: string, outputMint: string, amount: number, slippageBps: number) {
@@ -81,7 +83,6 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
     }
     // caps
     enforceTxMax(amountLamports);
-    const quote = await fetchJupQuote("So11111111111111111111111111111111111111112", ca, amountLamports, slippageBps);
     // randomize CU price within band (microLamports)
     let cuPriceMicro: number | undefined = undefined;
     if (cuBand) {
@@ -89,16 +90,36 @@ export async function buildSnipeTxs(taskId: string): Promise<VersionedTransactio
       cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo));
     }
     let vtx: VersionedTransaction;
-    try {
-      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
-      const txb64 = swap.swapTransaction as string;
-      vtx = decodeSwapTx(txb64);
-    } catch (e) {
-      // retry once at +10–20% CU
-      const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
-      const swap2 = await fetchJupSwap(userPk, quote, bump);
-      const txb64_2 = swap2.swapTransaction as string;
-      vtx = decodeSwapTx(txb64_2);
+    const preferPump = !!(getSetting("PUMP_PORTAL_BASE") || process.env.PUMP_PORTAL_BASE);
+    if (preferPump) {
+      try {
+        vtx = await buildBuyTxViaPumpPortal({ walletPubkey: userPk, ca, solInLamports: amountLamports, slippageBps, priorityFeeMicroLamports: cuPriceMicro });
+      } catch {
+        // fallback to Jupiter
+        const quote = await fetchJupQuote("So11111111111111111111111111111111111111112", ca, amountLamports, slippageBps);
+        try {
+          const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+          const txb64 = swap.swapTransaction as string;
+          vtx = decodeSwapTx(txb64);
+        } catch {
+          const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+          const swap2 = await fetchJupSwap(userPk, quote, bump);
+          const txb64_2 = swap2.swapTransaction as string;
+          vtx = decodeSwapTx(txb64_2);
+        }
+      }
+    } else {
+      const quote = await fetchJupQuote("So11111111111111111111111111111111111111112", ca, amountLamports, slippageBps);
+      try {
+        const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+        const txb64 = swap.swapTransaction as string;
+        vtx = decodeSwapTx(txb64);
+      } catch {
+        const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+        const swap2 = await fetchJupSwap(userPk, quote, bump);
+        const txb64_2 = swap2.swapTransaction as string;
+        vtx = decodeSwapTx(txb64_2);
+      }
     }
     // basic allowlist check prior to signing
     programAllowlistCheck([vtx]);
@@ -237,19 +258,35 @@ export async function buildSellTxs(taskId: string): Promise<VersionedTransaction
       }
     } catch {}
     if (tokenAmountRaw <= 0n) continue;
-    // Build quote amount in base units of CA (output = SOL)
     // Jupiter expects inputMint=CA, outputMint=SOL, amount in atomics
-    const quote = await fetchJupQuote(ca, "So11111111111111111111111111111111111111112", Number(tokenAmountRaw), slippageBps);
     let cuPriceMicro: number | undefined = undefined;
     if (cuBand) { const [lo, hi] = cuBand; cuPriceMicro = Math.floor(lo + Math.random() * Math.max(0, hi - lo)); }
     let vtx: VersionedTransaction;
-    try {
-      const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
-      vtx = decodeSwapTx(swap.swapTransaction as string);
-    } catch (e) {
-      const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
-      const swap2 = await fetchJupSwap(userPk, quote, bump);
-      vtx = decodeSwapTx(swap2.swapTransaction as string);
+    const preferPump = !!(getSetting("PUMP_PORTAL_BASE") || process.env.PUMP_PORTAL_BASE);
+    if (preferPump) {
+      try {
+        vtx = await buildSellTxViaPumpPortal({ walletPubkey: userPk, ca, amountTokens: tokenAmountRaw, slippageBps, priorityFeeMicroLamports: cuPriceMicro });
+      } catch {
+        const quote = await fetchJupQuote(ca, "So11111111111111111111111111111111111111112", Number(tokenAmountRaw), slippageBps);
+        try {
+          const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+          vtx = decodeSwapTx(swap.swapTransaction as string);
+        } catch {
+          const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+          const swap2 = await fetchJupSwap(userPk, quote, bump);
+          vtx = decodeSwapTx(swap2.swapTransaction as string);
+        }
+      }
+    } else {
+      const quote = await fetchJupQuote(ca, "So11111111111111111111111111111111111111112", Number(tokenAmountRaw), slippageBps);
+      try {
+        const swap = await fetchJupSwap(userPk, quote, cuPriceMicro);
+        vtx = decodeSwapTx(swap.swapTransaction as string);
+      } catch {
+        const bump = Math.floor((cuPriceMicro ?? 1000) * (1.1 + Math.random() * 0.1));
+        const swap2 = await fetchJupSwap(userPk, quote, bump);
+        vtx = decodeSwapTx(swap2.swapTransaction as string);
+      }
     }
     programAllowlistCheck([vtx]);
     const kp = await getKeypairForPubkey(userPk);

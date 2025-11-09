@@ -33,6 +33,7 @@ import { publishWithPumpFun } from "./pumpfun";
 import { uploadImageAndJson } from "./metadata";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { initSolana as reinitSolana } from "./solana";
+import { maybeStartWatcherForTask } from "./watchers";
 
 const PORT = 8787;
 const server = createServer();
@@ -161,6 +162,7 @@ wss.on("connection", (ws) => {
     ws.send(JSON.stringify({ kind: "TASK_EVENT", ...evt }));
   };
   taskEvents.on("event", onTask);
+  taskEvents.on("event", (ev: any) => { try { if (ev?.state === "DONE" && ev?.id) { void maybeStartWatcherForTask(ev.id); } } catch {} });
   ws.on("close", () => taskEvents.off("event", onTask));
   ws.on("message", async (data) => {
     try {

@@ -33,6 +33,11 @@ export default function Settings() {
   const [autoCuMax, setAutoCuMax] = useState<string>("1500");
   const [autoTipMin, setAutoTipMin] = useState<string>("0");
   const [autoTipMax, setAutoTipMax] = useState<string>("0");
+  // PumpPortal + TP/SL
+  const [pumpBase, setPumpBase] = useState<string>("");
+  const [pumpAuth, setPumpAuth] = useState<string>("");
+  const [tpBps, setTpBps] = useState<string>("");
+  const [slBps, setSlBps] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -69,6 +74,11 @@ export default function Settings() {
           setAutoCuMax(String(msg.settings?.AUTOSNIPE_CU_MAX || "1500"));
           setAutoTipMin(String(msg.settings?.AUTOSNIPE_TIP_MIN || "0"));
           setAutoTipMax(String(msg.settings?.AUTOSNIPE_TIP_MAX || "0"));
+          // PumpPortal + TP/SL
+          setPumpBase(msg.settings?.PUMP_PORTAL_BASE || "");
+          setPumpAuth(msg.settings?.PUMP_PORTAL_AUTH || "");
+          setTpBps(String(msg.settings?.TPSL_TP_BPS || ""));
+          setSlBps(String(msg.settings?.TPSL_SL_BPS || ""));
         }
       } catch {}
     };
@@ -105,6 +115,11 @@ export default function Settings() {
         { key: "AUTOSNIPE_CU_MAX", value: autoCuMax },
         { key: "AUTOSNIPE_TIP_MIN", value: autoTipMin },
         { key: "AUTOSNIPE_TIP_MAX", value: autoTipMax },
+        // PumpPortal + TP/SL
+        { key: "PUMP_PORTAL_BASE", value: pumpBase },
+        { key: "PUMP_PORTAL_AUTH", value: pumpAuth },
+        { key: "TPSL_TP_BPS", value: tpBps },
+        { key: "TPSL_SL_BPS", value: slBps },
       ] } } as any);
     } finally {
       setSaving(false);
@@ -124,6 +139,32 @@ export default function Settings() {
       <h2 style={{ fontSize: 18, fontWeight: 600 }}>Settings</h2>
       <div style={{ fontSize: 12, color: "#9aa0b4" }}>
         Manual RPC controls: update RPC URL to switch clusters/providers; Jito Block Engine enables Jito modes; Helius gRPC enables live listener. Defaults below are injected on task create.
+      </div>
+      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #3f3f46" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Direct Pump.fun (PumpPortal)</h3>
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
+          <div className="grid gap-1">
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Base</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpBase} onChange={(e)=>setPumpBase(e.target.value)} />
+          </div>
+          <div className="grid gap-1">
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Auth (optional)</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpAuth} onChange={(e)=>setPumpAuth(e.target.value)} />
+          </div>
+        </div>
+      </div>
+      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #3f3f46" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>TP/SL Defaults</h3>
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
+          <div className="grid gap-1">
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>Take Profit (+bps)</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={tpBps} onChange={(e)=>setTpBps(e.target.value)} />
+          </div>
+          <div className="grid gap-1">
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>Stop Loss (-bps)</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={slBps} onChange={(e)=>setSlBps(e.target.value)} />
+          </div>
+        </div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <Status label="WS" ok={wsConnected} />

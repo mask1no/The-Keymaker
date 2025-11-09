@@ -17,6 +17,7 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // SPL Token
     "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", // Metaplex Metadata
     "ComputeBudget111111111111111111111111111111", // Compute Budget
+    "5h6UNi88C5Z4HzyBbs6k8ZZrVSu2Ce279b9EcRWWQf4r", // Pump.fun (listener programId; allow when direct route used)
   ]);
   const strictJup = (process.env.JUP_ROUTER_PROGRAM || process.env.JUP_ROUTER || "").trim();
   let warnedLoose = false;

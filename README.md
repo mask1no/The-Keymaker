@@ -92,6 +92,8 @@ KEYSTORE_PASSWORD=change_me_dev_only
 MASTER_SECRET_BASE58=          # dev-only backdoor; should be blank in real use
 PUMPFUN_API_BASE=              # optional (HTTP publish path). If set, COIN_PUBLISH_PUMPFUN uses POST { mint, payerPubkey }
 PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
+PUMP_PORTAL_BASE=              # optional. If set, prefers direct Pump.fun route (PumpPortal) for buy/sell
+PUMP_PORTAL_AUTH=              # optional auth header value (e.g., 'Bearer <token>')
 
 # Auto-snipe (listener → strategy)
 AUTOSNIPE_ENABLED=0
@@ -125,6 +127,7 @@ AUTOSNIPE_DEDUP_SEC=60
 | Sniper        | `RPC_SPRAY`, `STEALTH_STRETCH`, `JITO_LITE` (small bundles + tip variance)             | ✅/🚧 (*see Acceptance*) |
 | Auto‑snipe    | Helius gRPC Pump.fun events → strategy → SNIPE tasks (filters + dedupe)                 | ✅ (configurable)        |
 | RPC fanout    | Multiple endpoints with hedged send + pooled confirms                                   | ✅                       |
+| Pump.fun (direct) | Prefer PumpPortal base for buy/sell; fallback to Jupiter                               | ✅                       |
 | PnL/Fills     | Best-effort via pre/post balances; records qty, price, fees, tips                      | ✅/🚧                    |
 | Listener      | Helius Yellowstone/LaserStream gRPC; emits Pump.fun create events                      | ✅/🚧 (optional)         |
 | Exits         | Fast Sell All; Sell Ladder 25/50/100                                                    | ✅                       |
@@ -143,6 +146,7 @@ AUTOSNIPE_DEDUP_SEC=60
 * **Caps** (enforced in daemon): `MAX_TX_SOL`, `MAX_SOL_PER_MIN`, `MAX_SESSION_SOL`.
 * **Kill switch**: checked before each send; stops new sends immediately.
 * **Program allowlist**: Allowed → **System**, **SPL Token**, **Metaplex Metadata**, **Jupiter router** (add Pump.fun when direct IX enabled).
+* **Pump.fun direct**: When `PUMP_PORTAL_BASE` is set, buy/sell txs are constructed via PumpPortal and still signed locally in the daemon.
 * **Idempotency**: stable hash of tx message; duplicates return prior sigs.
 * **Per-mint locks**: prevent overlapping tasks on same CA.
 * **Dev-only master secret**: `MASTER_SECRET_BASE58` is for local testing only. Leave blank for real use.
