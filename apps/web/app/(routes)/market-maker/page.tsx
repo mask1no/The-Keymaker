@@ -4,12 +4,12 @@ import { useApp } from "../../../lib/store";
 import { useEffect, useState } from "react";
 
 export default function MarketMaker() {
-  const { send } = useDaemonWS();
-  const { masterWallet } = useApp();
+  const { send, onMessage } = useDaemonWS();
+  const { masterWallet, folders, setFolders } = useApp();
   const [ca, setCa] = useState("");
   const [mode, setMode] = useState<"SNIPE" | "SELL" | "MM">("SNIPE");
   const [execMode, setExecMode] = useState<"RPC_SPRAY"|"STEALTH_STRETCH"|"JITO_LITE"|"JITO_BUNDLE">("RPC_SPRAY");
-  const [walletFolderId, setWalletFolderId] = useState("default");
+  const [walletFolderId, setWalletFolderId] = useState("");
   const [walletCount, setWalletCount] = useState(2);
   const [maxSolPerWallet, setMaxSolPerWallet] = useState(0.005);
   const [slippageBps, setSlippageBps] = useState(500);
@@ -25,13 +25,12 @@ export default function MarketMaker() {
   const [rpcConcurrency, setRpcConcurrency] = useState(6);
 
   useEffect(() => {
-    const ws: WebSocket | undefined = (window as any).__daemon_ws__;
-    if (!ws) return;
-    const onMsg = (e: MessageEvent) => {
-      try { const m = JSON.parse(e.data); if (m.kind === "HEALTH") setJitoOk(!!m.jitoOk); } catch {}
-    };
-    ws.addEventListener("message", onMsg);
-    return () => ws.removeEventListener("message", onMsg);
+    const off = onMessage((m:any)=>{
+      if (m.kind === "HEALTH") setJitoOk(!!m.jitoOk);
+      if (m.kind === "FOLDERS") setFolders(m.folders || []);
+    });
+    send({ kind: "FOLDER_LIST" } as any);
+    return off;
   }, []);
 
   useEffect(() => {
@@ -79,7 +78,10 @@ export default function MarketMaker() {
             {jitoOk && <option value="JITO_LITE">JITO_LITE</option>}
             {jitoOk && <option value="JITO_BUNDLE">JITO_BUNDLE</option>}
           </select>
-          <input placeholder="folder" value={walletFolderId} onChange={(e)=>setWalletFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          <select value={walletFolderId} onChange={(e)=>setWalletFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }}>
+            <option value="">Folder…</option>
+            {folders.map((f:any)=>(<option key={f.id} value={f.id}>{f.name} ({f.count})</option>))}
+          </select>
           <input type="number" placeholder="# wallets" value={walletCount} onChange={(e)=>setWalletCount(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" step="0.001" placeholder="max SOL/wallet" value={maxSolPerWallet} onChange={(e)=>setMaxSolPerWallet(parseFloat(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <input type="number" placeholder="slippage bps" value={slippageBps} onChange={(e)=>setSlippageBps(parseInt(e.target.value||"0"))} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />

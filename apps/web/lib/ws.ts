@@ -9,6 +9,9 @@ export function useDaemonWS() {
   const lastHealth = useRef<{ rpcOk?: boolean; jitoOk?: boolean }>({});
   const { publicKey, signMessage } = useWallet();
   const ref = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<any>(null);
+  const backoffRef = useRef<number>(500);
+  const sendQueue = useRef<any[]>([]);
   const listeners = useRef<((msg: any)=>void)[]>([]);
   const dedup = useRef<Map<string, number>>(new Map());
   function shouldNotify(key: string, ttlMs = 5000) {
@@ -24,14 +27,36 @@ export function useDaemonWS() {
     return true;
   }
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8787";
-    const ws = new WebSocket(url);
-    ref.current = ws;
-    (window as any).__daemon_ws__ = ws;
-    ws.onopen = () => setWsConnected(true);
-    ws.onclose = () => setWsConnected(false);
-    ws.onerror = () => setWsConnected(false);
-    ws.onmessage = (ev) => {
+    function connect() {
+      const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8787";
+      try {
+        const ws = new WebSocket(url);
+        ref.current = ws;
+        if (process.env.NODE_ENV !== "production") {
+          (window as any).__daemon_ws__ = ws;
+        }
+        ws.onopen = () => {
+          setWsConnected(true);
+          // flush queued messages
+          const pending = [...sendQueue.current];
+          sendQueue.current = [];
+          for (const m of pending) {
+            try { ws.send(JSON.stringify(m)); } catch {}
+          }
+          // reset backoff
+          backoffRef.current = 500;
+          // request auth challenge
+          try { ws.send(JSON.stringify({ kind: "AUTH_CHALLENGE" })); } catch {}
+        };
+        ws.onclose = () => {
+          setWsConnected(false);
+          scheduleReconnect();
+        };
+        ws.onerror = () => {
+          setWsConnected(false);
+          scheduleReconnect();
+        };
+        ws.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data);
         console.log("[daemon-ws]", msg);
@@ -88,12 +113,38 @@ export function useDaemonWS() {
         }
         listeners.current.forEach((fn)=>{ try { fn(msg); } catch {} });
       } catch {}
+        };
+      } catch {
+        scheduleReconnect();
+      }
+    }
+    function scheduleReconnect() {
+      if (reconnectTimer.current) return;
+      const delay = Math.min(5000, backoffRef.current);
+      reconnectTimer.current = setTimeout(() => {
+        reconnectTimer.current = null;
+        backoffRef.current = Math.min(5000, Math.floor(backoffRef.current * 1.5) + 100);
+        connect();
+      }, delay);
+    }
+    connect();
+    return () => {
+      try { ref.current?.close(); } catch {}
+      if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
     };
-    // request nonce on connect
-    ws.addEventListener("open", () => { ws.send(JSON.stringify({ kind: "AUTH_CHALLENGE" })); });
-    return () => ws.close();
   }, [setWsConnected, setMasterWallet]);
-  function send(msg: unknown) { ref.current?.send(JSON.stringify(msg)); }
+  function send(msg: unknown) {
+    const ws = ref.current;
+    const payload = msg as any;
+    if (ws && ws.readyState === 1) {
+      try { ws.send(JSON.stringify(payload)); } catch {}
+    } else {
+      // queue for when connected
+      sendQueue.current.push(payload);
+      // cap queue
+      if (sendQueue.current.length > 200) sendQueue.current = sendQueue.current.slice(-200);
+    }
+  }
   function onMessage(fn: (msg: any)=>void) { listeners.current.push(fn); return () => { listeners.current = listeners.current.filter(f=>f!==fn); }; }
   async function proveAuth(nonce: string) {
     try {

@@ -89,6 +89,13 @@ export async function createFolderWithId(id: string, name: string) {
   return { id, name };
 }
 
+export function generateFolderIdFromName(name: string): string {
+  const base = (name || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const suffix = Math.random().toString(36).slice(2, 6);
+  const id = base ? `${base}-${suffix}` : `auto-${Date.now()}`;
+  return id.slice(0, 48);
+}
+
 export async function listFolders(): Promise<Array<{ id: string; name: string; count: number }>> {
   const fs = (await db.select().from(folders)) as any[];
   const out: Array<{ id: string; name: string; count: number }> = [];

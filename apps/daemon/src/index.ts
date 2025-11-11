@@ -22,7 +22,7 @@ import { startPumpfunListener } from "./integrations/listener/heliusGrpc";
 import { setListenerActive } from "./state";
 import { handleTaskCreate, taskEvents } from "./task-runner";
 import { cancelTask } from "./task-runner";
-import { initKeystore, createFolderWithId, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder, sweepFolderToMaster } from "./wallets";
+import { initKeystore, createFolderWithId, generateFolderIdFromName, listFolders, createWalletInFolder, importWalletToFolder, listWallets as listFolderWallets, fundFolderFromMaster, renameFolder, getFolderDeletePreview, sweepAndDeleteFolder, sweepFolderToMaster } from "./wallets";
 import { logger } from "@keymaker/logger";
 import { getSetting, setSetting } from "./db";
 import { getRunEnabled, setRunEnabled } from "./guards";
@@ -211,7 +211,11 @@ async function handleMessage(ws: any, msg: ClientMsg) {
     case "FOLDER_CREATE": {
       if (!s.authenticated) return fail(ws, "FOLDER_CREATE", "AUTH_REQUIRED");
       try {
-        await createFolderWithId(msg.payload.id, msg.payload.name);
+        const name = String((msg as any)?.payload?.name || "").trim();
+        let id = String((msg as any)?.payload?.id || "").trim();
+        if (!name && !id) return fail(ws, "FOLDER_CREATE", "BAD_PARAMS");
+        if (!id) id = generateFolderIdFromName(name || "auto");
+        await createFolderWithId(id, name || id);
       } catch (e) {
         return fail(ws, "FOLDER_CREATE", (e as Error).message || "GENERIC");
       }
@@ -616,6 +620,17 @@ server.listen(PORT, () => console.log(`[daemon] ws on ${PORT}`));
 server.on("request", async (req, res) => {
   try {
     if (!req.url) { res.statusCode = 404; return res.end(); }
+    // Optional HTTP token gate
+    const token = process.env.DAEMON_HTTP_TOKEN;
+    const isPublicPath = req.method === "GET" && (req.url === "/health");
+    if (token && !isPublicPath) {
+      const provided = (req.headers["x-keymaker-auth"] || req.headers["x-keymaker-token"] || "") as string;
+      if (!provided || provided !== token) {
+        res.statusCode = 401;
+        res.setHeader("content-type", "application/json");
+        return res.end(JSON.stringify({ error: "UNAUTHORIZED" }));
+      }
+    }
     if (req.method === "GET" && req.url === "/health") {
       try {
         const h = await checkHealth();

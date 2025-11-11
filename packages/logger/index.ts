@@ -1,7 +1,9 @@
 type Level = "debug" | "info" | "warn" | "error";
 import fs from "fs";
+import path from "path";
 
-const LOG_FILE = process.env.LOG_FILE || "./apps/daemon/keymaker.ndjson";
+// Default to writing in the current working directory to avoid nested paths like apps/daemon/apps/daemon/...
+const LOG_FILE = process.env.LOG_FILE || path.resolve(process.cwd(), "./keymaker.ndjson");
 let stream: fs.WriteStream | null = null;
 try {
   stream = fs.createWriteStream(LOG_FILE, { flags: "a" });

@@ -9,7 +9,6 @@ export default function Wallets() {
   const { publicKey } = useWallet();
   const { masterWallet, folders, walletsByFolder, setFolders, setFolderWallets } = useApp();
   const { send, onMessage } = useDaemonWS();
-  const [folderId, setFolderId] = useState("");
   const [folderName, setFolderName] = useState("");
   const [importSecret, setImportSecret] = useState("");
   const [fundAmount, setFundAmount] = useState("0.01");
@@ -30,9 +29,9 @@ export default function Wallets() {
   }, [onMessage, send, setFolders, setFolderWallets]);
 
   function createFolder() {
-    if (!folderId || !folderName) return;
-    send({ kind: "FOLDER_CREATE", payload: { id: folderId, name: folderName } });
-    setFolderId(""); setFolderName("");
+    if (!folderName) return;
+    send({ kind: "FOLDER_CREATE", payload: { name: folderName } });
+    setFolderName("");
   }
   function createWallet(fid: string) { send({ kind: "WALLET_CREATE", payload: { folderId: fid } }); }
   function importWallet(fid: string) { if (!importSecret) return; send({ kind: "WALLET_IMPORT", payload: { folderId: fid, secretBase58: importSecret } }); setImportSecret(""); }
@@ -72,8 +71,7 @@ export default function Wallets() {
       <div style={{ padding: 16, borderRadius: 16, background: "#18181b", border: "1px solid #27272a" }}>
         <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Create Folder</h3>
         <div style={{ display: "flex", gap: 8 }}>
-          <input placeholder="id" value={folderId} onChange={(e)=>setFolderId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
-          <input placeholder="name" value={folderName} onChange={(e)=>setFolderName(e.target.value)} style={{ padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
+          <input placeholder="Folder name" value={folderName} onChange={(e)=>setFolderName(e.target.value)} style={{ flex: 1, padding: "8px 12px", borderRadius: 12, background: "#27272a", border: "1px solid #3f3f46" }} />
           <button style={{ padding: "8px 12px", borderRadius: 12, background: "#059669" }} onClick={createFolder}>Create</button>
         </div>
       </div>

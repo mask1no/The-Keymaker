@@ -19,7 +19,9 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
     "ComputeBudget111111111111111111111111111111", // Compute Budget
     "5h6UNi88C5Z4HzyBbs6k8ZZrVSu2Ce279b9EcRWWQf4r", // Pump.fun (listener programId; allow when direct route used)
   ]);
-  const strictJup = (process.env.JUP_ROUTER_PROGRAM || process.env.JUP_ROUTER || "").trim();
+  // Strict Jupiter router allowlist (comma-separated)
+  const strictList = (process.env.JUP_ROUTER_PROGRAMS || process.env.JUP_ROUTER_PROGRAM || process.env.JUP_ROUTER || "").trim();
+  const strictRouters = strictList ? new Set(strictList.split(/[,\s]+/g).filter(Boolean)) : null;
   let warnedLoose = false;
   for (const t of txs) {
     const msg = t.message;
@@ -27,9 +29,9 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
     for (const ix of msg.compiledInstructions) {
       const prog = keys[ix.programIdIndex];
       if (allowed.has(prog)) continue;
-      const isJup = strictJup ? (prog === strictJup) : prog.startsWith("JUP");
+      const isJup = strictRouters ? strictRouters.has(prog) : prog.startsWith("JUP");
       if (!isJup) throw new Error("PROGRAM_NOT_ALLOWED");
-      if (!strictJup && !warnedLoose) { warnedLoose = true; try { logger.warn("allowlist", { jup: "loose", msg: "JUP* accepted; set JUP_ROUTER_PROGRAM for strict match" }); } catch {} }
+      if (!strictRouters && !warnedLoose) { warnedLoose = true; try { logger.warn("allowlist", { jup: "loose", msg: "JUP* accepted; set JUP_ROUTER_PROGRAMS for strict match" }); } catch {} }
     }
   }
 }

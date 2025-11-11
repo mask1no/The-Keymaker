@@ -1,6 +1,7 @@
 const fs = require('fs');
+const path = require('path');
 
-const LOG_FILE = process.env.LOG_FILE || "./apps/daemon/keymaker.ndjson";
+const LOG_FILE = process.env.LOG_FILE || path.resolve(process.cwd(), "./keymaker.ndjson");
 let stream = null;
 try {
   stream = fs.createWriteStream(LOG_FILE, { flags: 'a' });

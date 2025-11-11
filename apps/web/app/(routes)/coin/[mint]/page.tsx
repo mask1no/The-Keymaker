@@ -58,8 +58,7 @@ export default function MintCockpit() {
     let dead = false; let id: any;
     async function load() {
       try {
-        const base = process.env.NEXT_PUBLIC_WS_URL?.replace(/^ws/, "http") || "http://localhost:8787";
-        const res = await fetch(`${base}/positions?ca=${encodeURIComponent(ca)}&folder=${encodeURIComponent(folderId)}`);
+        const res = await fetch(`/api/positions?ca=${encodeURIComponent(ca)}&folder=${encodeURIComponent(folderId)}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const j = await res.json();
         if (!dead) setPositions(j);

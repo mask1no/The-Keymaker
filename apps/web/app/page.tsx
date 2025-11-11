@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { BentoGrid, StatCard, PanelCard } from "../components/Bento";
+import { useEffect, useMemo, useState } from "react";
+import Sparkline from "../components/Sparkline";
 
 export default function Home() {
   const [stats, setStats] = useState<any>({ coins: 0, fillsToday: 0, earningsToday: 0, volume24h: 0, mints: [], series: { volume: [], coins: [] } });
@@ -8,8 +8,7 @@ export default function Home() {
     let dead = false;
     async function load() {
       try {
-        const base = process.env.NEXT_PUBLIC_WS_URL?.replace(/^ws/, "http") || "http://localhost:8787";
-        const res = await fetch(`${base}/stats`, { cache: "no-store" });
+        const res = await fetch(`/api/stats`, { cache: "no-store" });
         const j = await res.json();
         if (!dead) setStats(j);
       } catch {}
@@ -18,19 +17,75 @@ export default function Home() {
     return () => { dead = true; clearInterval(id); };
   }, []);
 
+  const now = useMemo(() => new Date(), []);
+  const dateStr = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
   return (
-    <main className="p-6 grid gap-4">
-      <BentoGrid cols={12} gap={12}>
-        <StatCard title="Volume (24h)" value={stats.volume24h} hint="fills in last 24h" icon="Σ" span={3} />
-        <StatCard title="Coins (all time)" value={stats.coins} hint="distinct CAs" icon="◎" span={3} />
-        <StatCard title="Fills today" value={stats.fillsToday} hint="since 00:00" icon="↕" span={3} />
-        <StatCard title="Earnings today" value={(stats.earningsToday/1e9).toFixed(4)+" SOL"} hint="-(fees+tips)" icon="±" span={3} />
-        <div style={{ gridColumn: "span 12 / span 12" }}>
-          <PanelCard title="Wallet Groups" right={<a href="/wallets" className="pill" style={{ padding: "6px 10px", fontSize: 12 }}>Open Wallets</a>}>
-            <div style={{ fontSize: 12, color: "#9aa0b4" }}>Manage folders and wallets from the Wallets page. Recent coins: {stats.mints?.slice(0,5).join(", ")||"—"}</div>
-          </PanelCard>
+    <div className="grid gap-6">
+      {/* Hero */}
+      <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-[#221a3a] via-[#1a1030] to-[#0f0f16] p-6 shadow-card">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">Good {now.getHours() < 12 ? "morning" : now.getHours() < 18 ? "afternoon" : "evening"}.</div>
+            <div className="text-zinc-400 mt-1">{dateStr}</div>
+          </div>
+          <div className="hidden md:block">
+            <Sparkline data={Array.isArray(stats?.series?.coins) ? stats.series.coins : []} width={320} height={80} />
+          </div>
         </div>
-      </BentoGrid>
-    </main>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Kpi title="Volume (24h)" value={stats.volume24h} hint="fills" series={stats?.series?.volume||[]} />
+        <Kpi title="Coins (all time)" value={stats.coins} hint="distinct CAs" series={stats?.series?.coins||[]} />
+        <Kpi title="Fills today" value={stats.fillsToday} hint="since 00:00" series={stats?.series?.volume||[]} />
+        <Kpi title="Earnings today" value={`${(stats.earningsToday/1e9).toFixed(4)} SOL`} hint="-(fees+tips)" series={stats?.series?.coins||[]} />
+      </div>
+
+      {/* Wallet Groups CTA */}
+      <div className="rounded-2xl border border-zinc-800 bg-[#13131a] p-5 flex items-center justify-between">
+        <div className="text-sm text-zinc-300">
+          Manage folders and wallets from the Wallets page. Recent coins: {stats.mints?.slice(0,5).join(", ")||"—"}
+        </div>
+        <a href="/wallets" className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm">Open Wallets</a>
+      </div>
+
+      {/* Mint History */}
+      <div className="grid gap-3">
+        <div className="text-lg font-semibold">Mint History</div>
+        <div className="grid md:grid-cols-2 gap-3">
+          {(stats.mints || []).slice(0, 6).map((m: string, i: number) => (
+            <a key={m+":"+i} href={`https://dexscreener.com/solana/${encodeURIComponent(m)}`} target="_blank" rel="noreferrer"
+               className="rounded-xl border border-zinc-800 bg-[#121217] p-4 flex items-center justify-between hover:border-zinc-700 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[var(--accent)]/20 border border-[var(--accent)]/30 grid place-items-center text-[var(--accent)]">◎</div>
+                <div className="text-sm">
+                  <div className="font-medium">CA</div>
+                  <div className="text-zinc-400 font-mono">{m.slice(0,6)}…{m.slice(-6)}</div>
+                </div>
+              </div>
+              <span className="px-2 py-1 rounded-lg bg-zinc-800 text-zinc-200 text-xs">View</span>
+            </a>
+          ))}
+          {(!stats.mints || stats.mints.length === 0) && (
+            <div className="text-sm text-zinc-400">No recent mints.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Kpi({ title, value, hint, series }: { title: string; value: any; hint?: string; series: number[] }) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-[#13131a] p-4">
+      <div className="text-sm text-zinc-400">{title}</div>
+      <div className="mt-1 text-2xl font-semibold">{value ?? 0}</div>
+      {hint && <div className="text-xs text-zinc-500">{hint}</div>}
+      <div className="mt-3">
+        <Sparkline data={Array.isArray(series) ? series : []} width={280} height={54} />
+      </div>
+    </div>
   );
 }

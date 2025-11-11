@@ -4,7 +4,7 @@ import { useDaemonWS } from "../../../lib/ws";
 import { useApp } from "../../../lib/store";
 
 export default function Settings() {
-  const { send } = useDaemonWS();
+  const { send, onMessage } = useDaemonWS();
   const { wsConnected } = useApp();
   const [lastPing, setLastPing] = useState<number | null>(null);
   const [rpcOk, setRpcOk] = useState<boolean>(false);
@@ -41,9 +41,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fn = (e: MessageEvent) => {
+    const off = onMessage((msg: any) => {
       try {
-        const msg = JSON.parse(e.data);
         if (msg.kind === "HEALTH") {
           setRpcOk(!!msg.rpcOk);
           setJitoOk(!!msg.jitoOk);
@@ -81,13 +80,14 @@ export default function Settings() {
           setSlBps(String(msg.settings?.TPSL_SL_BPS || ""));
         }
       } catch {}
-    };
-    const ws: any = (window as any).__daemon_ws__;
-    if (ws) ws.addEventListener("message", fn);
-    // request current settings on mount
-    send({ kind: "SETTINGS_GET" } as any);
-    return () => { if (ws) ws.removeEventListener("message", fn); };
-  }, [send]);
+    });
+    return off;
+  }, [onMessage]);
+
+  // Request settings whenever the socket connects (and on mount via queue)
+  useEffect(() => {
+    if (wsConnected) send({ kind: "SETTINGS_GET" } as any);
+  }, [wsConnected, send]);
 
   async function save() {
     try {

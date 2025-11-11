@@ -19,7 +19,16 @@ export function initRpcPool(): void {
   const urls = sanitizeUrls([...fromSetting, ...fromEnv, single]);
   rpcPool = urls.map((u) => new Connection(u, { commitment: "confirmed" }));
   primaryIndex = 0;
-  try { logger.info("rpc-pool", { size: rpcPool.length, urls }); } catch {}
+  try {
+    const masked = urls.map((u) => {
+      try {
+        const url = new URL(u);
+        url.search = ""; // drop query (api keys)
+        return url.toString();
+      } catch { return u.replace(/\?.*$/, ""); }
+    });
+    logger.info("rpc-pool", { size: rpcPool.length, urls: masked });
+  } catch {}
 }
 
 export function getRpcPool(): Connection[] {

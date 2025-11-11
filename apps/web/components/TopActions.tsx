@@ -43,10 +43,16 @@ export default function TopActions() {
 
   async function ensureFolderForRun(sniperWallets:number): Promise<string> {
     if (folderId) return folderId;
-    const id = `auto-${Date.now()}`;
     if (!autoCreate) return "";
-    send({ kind: "FOLDER_CREATE_BULK", payload: { id, name: "Auto", color: folderColor, count: Math.max(0, Math.min(20, sniperWallets)) } } as any);
+    // Create a simple folder named "Auto"
+    send({ kind: "FOLDER_CREATE", payload: { name: "Auto" } } as any);
     await new Promise(r => setTimeout(r, 400));
+    // Refresh and pick the most recent folder named Auto
+    send({ kind: "FOLDER_LIST" } as any);
+    await new Promise(r => setTimeout(r, 200));
+    // naive: choose first with name "Auto"
+    const auto = folders.find(f=>f.name === "Auto");
+    const id = auto?.id || "";
     setFolderId(id);
     return id;
   }
