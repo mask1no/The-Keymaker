@@ -15,6 +15,9 @@ export function programAllowlistCheck(txs: VersionedTransaction[]) {
   const allowed = new Set<string>([
     SystemProgram.programId.toBase58(),
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // SPL Token
+    "TokenzQdGejX7L7ime3bQZ9rW5xE62LF8SyTBB9M4hzy", // SPL Token-2022
+    "ATokenGPvRZ2h9GzWxW8TnsPs9f7dK7zj7mtSxgZ9f9q", // Associated Token Account
+    "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr", // Memo
     "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", // Metaplex Metadata
     "ComputeBudget111111111111111111111111111111", // Compute Budget
     "5h6UNi88C5Z4HzyBbs6k8ZZrVSu2Ce279b9EcRWWQf4r", // Pump.fun (listener programId; allow when direct route used)

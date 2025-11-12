@@ -14,28 +14,35 @@ export async function submitBundleOrRpc(
   const jitoUrl = process.env.JITO_BLOCK_ENGINE;
   if ((opts?.forcePath === "jito") || (jitoUrl && opts?.forcePath !== "rpc")) {
     try {
-      const mod = await import("@jito-foundation/jito-js");
-      const { searcherClient } = mod as any;
-      const client = searcherClient(jitoUrl);
-      // split into bundles of up to 5 txs
+      // JSON-RPC sendBundle using base58 signed transactions
+      const endpoint = `${jitoUrl!.replace(/\/+$/, "")}/api/v1/bundles`;
       let bundleId: string | undefined;
       const sigs: string[] = txs.map((t) => bs58.encode(t.signatures[0]));
+      const attempts = Math.max(1, opts?.retry?.attempts ?? 1);
+      const delays = opts?.retry?.delaysMs ?? [];
       for (let i = 0; i < txs.length; i += 5) {
         if (!getRunEnabled()) throw new Error("RUN_DISABLED");
         const chunk = txs.slice(i, i + 5);
-        const bsArr = chunk.map((t) => Buffer.from(t.serialize()).toString("base64"));
-        const baseTip = Math.max(0, Math.floor(tipLamports ?? 0));
-        const attempts = Math.max(1, opts?.retry?.attempts ?? 1);
-        const delays = opts?.retry?.delaysMs ?? [];
+        const base58Arr = chunk.map((t) => bs58.encode(Buffer.from(t.serialize())));
         let sent = false;
-        let tipUsed = baseTip;
         for (let a = 0; a < attempts; a++) {
           try {
-            const tip = Math.floor(baseTip * (a === 0 ? 1 : (1 + 0.25 * a)));
-            tipUsed = tip;
-            const bundle = await client.sendBundle(bsArr, { tip });
-            logger.info("bundle", { op: "submit", path: "jito", bundleId: bundle.uuid, tip });
-            bundleId = bundle.uuid;
+            const body = {
+              jsonrpc: "2.0",
+              id: 1,
+              method: "sendBundle",
+              params: [base58Arr]
+            };
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error(`JITO_HTTP_${res.status}`);
+            const j = await res.json();
+            const result = j?.result;
+            bundleId = typeof result === "string" ? result : (result?.bundleId || result?.uuid || bundleId);
+            logger.info("bundle", { op: "submit", path: "jito", bundleId });
             sent = true;
             break;
           } catch (err) {
