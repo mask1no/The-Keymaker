@@ -1,6 +1,6 @@
 import { VersionedTransaction } from "@solana/web3.js";
 import { logger } from "@keymaker/logger";
-import { getSetting } from "../../src/db";
+import { getSetting } from "../db";
 
 function getBase(): string | null {
   const fromEnv = process.env.PUMP_PORTAL_BASE?.trim();
