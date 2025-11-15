@@ -137,7 +137,7 @@ setInterval(async () => {
   const h = await checkHealth();
   const payload = JSON.stringify({ kind: "HEALTH", ...h, listenerActive: require("./state").getListenerActive() });
   wss.clients.forEach((c: any) => c.readyState === 1 && c.send(payload));
-}, 5000);
+}, 2000);
 
 // One-shot health transition signals
 let __lastRpcOk: boolean | undefined = undefined;
@@ -151,7 +151,7 @@ setInterval(async () => {
     }
     __lastRpcOk = h.rpcOk;
   } catch {}
-}, 3000);
+}, 2000);
 
 type Session = { nonce?: string; masterPubkey?: string; authenticated?: boolean };
 const sessions = new WeakMap<any, Session>();
@@ -328,6 +328,7 @@ async function handleMessage(ws: any, msg: ClientMsg) {
     case "SETTINGS_GET": {
       const settings = {
         RPC_URL: process.env.RPC_URL || getSetting("RPC_URL") || "",
+        RPC_URLS: process.env.RPC_URLS || getSetting("RPC_URLS") || "",
         GRPC_ENDPOINT: process.env.GRPC_ENDPOINT || getSetting("GRPC_ENDPOINT") || "",
         JITO_BLOCK_ENGINE: process.env.JITO_BLOCK_ENGINE || getSetting("JITO_BLOCK_ENGINE") || "",
         RUN_ENABLED: getRunEnabled(),
@@ -336,6 +337,9 @@ async function handleMessage(ws: any, msg: ClientMsg) {
         DEFAULT_CU_PRICE_MICRO: getSetting("DEFAULT_CU_PRICE_MICRO") || "",
         DEFAULT_JITO_TIP_BUY_LAMPORTS: getSetting("DEFAULT_JITO_TIP_BUY_LAMPORTS") || "",
         DEFAULT_JITO_TIP_SELL_LAMPORTS: getSetting("DEFAULT_JITO_TIP_SELL_LAMPORTS") || "",
+        // Env-only PumpPortal visibility (not settable here)
+        PUMP_PORTAL_BASE: process.env.PUMP_PORTAL_BASE || "",
+        PUMP_PORTAL_AUTH: process.env.PUMP_PORTAL_AUTH || ""
       };
       send(ws, { kind: "SETTINGS", settings });
       return;
@@ -347,6 +351,8 @@ async function handleMessage(ws: any, msg: ClientMsg) {
         if (!Array.isArray(entries)) return fail(ws, "SETTINGS_SET", "BAD_PARAMS");
         for (const { key, value } of entries) {
           if (!key) continue;
+          // Env-only keys are ignored intentionally
+          if (key === "PUMP_PORTAL_BASE" || key === "PUMP_PORTAL_AUTH") continue;
           setSetting(key, value);
           if (key === "RPC_URL") { process.env.RPC_URL = value; try { reinitSolana(); } catch {} }
           if (key === "RPC_URLS") { process.env.RPC_URLS = value; try { reinitSolana(); } catch {} }

@@ -21,22 +21,22 @@ export default function Home() {
   const dateStr = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
   return (
-    <div className="grid gap-6">
+    <div className="mx-auto grid max-w-7xl gap-6">
       {/* Hero */}
       <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-[#221a3a] via-[#1a1030] to-[#0f0f16] p-6 shadow-card">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-3xl font-bold">Good {now.getHours() < 12 ? "morning" : now.getHours() < 18 ? "afternoon" : "evening"}.</div>
             <div className="text-zinc-400 mt-1">{dateStr}</div>
           </div>
           <div className="hidden md:block">
-            <Sparkline data={Array.isArray(stats?.series?.coins) ? stats.series.coins : []} width={320} height={80} />
+            <Sparkline data={Array.isArray(stats?.series?.coins) ? stats.series.coins : []} width={360} height={80} />
           </div>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Kpi title="Volume (24h)" value={stats.volume24h} hint="fills" series={stats?.series?.volume||[]} />
         <Kpi title="Coins (all time)" value={stats.coins} hint="distinct CAs" series={stats?.series?.coins||[]} />
         <Kpi title="Fills today" value={stats.fillsToday} hint="since 00:00" series={stats?.series?.volume||[]} />
@@ -44,7 +44,7 @@ export default function Home() {
       </div>
 
       {/* Wallet Groups CTA */}
-      <div className="rounded-2xl border border-zinc-800 bg-[#13131a] p-5 flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-[#13131a] p-5">
         <div className="text-sm text-zinc-300">
           Manage folders and wallets from the Wallets page. Recent coins: {stats.mints?.slice(0,5).join(", ")||"—"}
         </div>
@@ -54,7 +54,7 @@ export default function Home() {
       {/* Mint History */}
       <div className="grid gap-3">
         <div className="text-lg font-semibold">Mint History</div>
-        <div className="grid md:grid-cols-2 gap-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {(stats.mints || []).slice(0, 6).map((m: string, i: number) => (
             <a key={m+":"+i} href={`https://dexscreener.com/solana/${encodeURIComponent(m)}`} target="_blank" rel="noreferrer"
                className="rounded-xl border border-zinc-800 bg-[#121217] p-4 flex items-center justify-between hover:border-zinc-700 transition-colors">

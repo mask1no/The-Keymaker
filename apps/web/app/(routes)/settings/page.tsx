@@ -56,10 +56,10 @@ export default function Settings() {
           setJitoBlockEngine(msg.settings?.JITO_BLOCK_ENGINE || "");
           setRunEnabled(!!msg.settings?.RUN_ENABLED);
           setLaunchPlatform(msg.settings?.LAUNCH_PLATFORM || "");
-          setDefSlipBps(String(msg.settings?.DEFAULT_SLIPPAGE_BPS || ""));
-          setDefCuPrice(String(msg.settings?.DEFAULT_CU_PRICE_MICRO || ""));
-          setDefTipBuy(String(msg.settings?.DEFAULT_JITO_TIP_BUY_LAMPORTS || ""));
-          setDefTipSell(String(msg.settings?.DEFAULT_JITO_TIP_SELL_LAMPORTS || ""));
+          setDefSlipBps(String(msg.settings?.DEFAULT_SLIPPAGE_BPS || 500));
+          setDefCuPrice(String(msg.settings?.DEFAULT_CU_PRICE_MICRO || 1000));
+          setDefTipBuy(String(msg.settings?.DEFAULT_JITO_TIP_BUY_LAMPORTS || 0));
+          setDefTipSell(String(msg.settings?.DEFAULT_JITO_TIP_SELL_LAMPORTS || 0));
           // autosnipe
           setAutoEnabled((msg.settings?.AUTOSNIPE_ENABLED || "") === "1");
           setAutoFolder(msg.settings?.AUTOSNIPE_FOLDER_ID || "");
@@ -115,9 +115,7 @@ export default function Settings() {
         { key: "AUTOSNIPE_CU_MAX", value: autoCuMax },
         { key: "AUTOSNIPE_TIP_MIN", value: autoTipMin },
         { key: "AUTOSNIPE_TIP_MAX", value: autoTipMax },
-        // PumpPortal + TP/SL
-        { key: "PUMP_PORTAL_BASE", value: pumpBase },
-        { key: "PUMP_PORTAL_AUTH", value: pumpAuth },
+        // TP/SL (PumpPortal is env-only; read-only in UI)
         { key: "TPSL_TP_BPS", value: tpBps },
         { key: "TPSL_SL_BPS", value: slBps },
       ] } } as any);
@@ -144,14 +142,15 @@ export default function Settings() {
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Direct Pump.fun (PumpPortal)</h3>
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
           <div className="grid gap-1">
-            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Base</label>
-            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpBase} onChange={(e)=>setPumpBase(e.target.value)} />
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Base (env)</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpBase} disabled />
           </div>
           <div className="grid gap-1">
-            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Auth (optional)</label>
-            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpAuth} onChange={(e)=>setPumpAuth(e.target.value)} />
+            <label className="text-xs" style={{ color: "#a1a1aa" }}>PumpPortal Auth (env)</label>
+            <input className="px-3 py-2 rounded-xl" style={{ background: "#27272a", border: "1px solid #3f3f46" }} value={pumpAuth} disabled />
           </div>
         </div>
+        <div style={{ marginTop: 8, fontSize: 12, color: "#a1a1aa" }}>Configure via apps/daemon/.env.local only.</div>
       </div>
       <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #3f3f46" }}>
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>TP/SL Defaults</h3>

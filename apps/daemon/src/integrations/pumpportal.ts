@@ -1,11 +1,9 @@
 import { VersionedTransaction } from "@solana/web3.js";
 import { logger } from "@keymaker/logger";
-import { getSetting } from "../db";
 
 function getBase(): string | null {
   const fromEnv = process.env.PUMP_PORTAL_BASE?.trim();
-  const fromDb = (getSetting("PUMP_PORTAL_BASE") || "").trim();
-  const base = fromEnv || fromDb;
+  const base = fromEnv;
   return base ? base.replace(/\/$/, "") : null;
 }
 
@@ -50,7 +48,7 @@ export async function buildBuyTxViaPumpPortal(params: {
 }): Promise<VersionedTransaction> {
   const base = getBase();
   if (!base) throw new Error("PUMPPORTAL_NOT_CONFIGURED");
-  const authHeader = (getSetting("PUMP_PORTAL_AUTH") || process.env.PUMP_PORTAL_AUTH || "").trim();
+  const authHeader = (process.env.PUMP_PORTAL_AUTH || "").trim();
   const headers = authHeader ? { authorization: authHeader } : undefined;
   // Try common endpoints: /trade then /swap
   const payload = {
@@ -88,7 +86,7 @@ export async function buildSellTxViaPumpPortal(params: {
 }): Promise<VersionedTransaction> {
   const base = getBase();
   if (!base) throw new Error("PUMPPORTAL_NOT_CONFIGURED");
-  const authHeader = (getSetting("PUMP_PORTAL_AUTH") || process.env.PUMP_PORTAL_AUTH || "").trim();
+  const authHeader = (process.env.PUMP_PORTAL_AUTH || "").trim();
   const headers = authHeader ? { authorization: authHeader } : undefined;
   const payload = {
     side: "sell",

@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDaemonWS } from "@/lib/ws";
 import type { ServerMsg } from "@keymaker/types";
-import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useApp } from "@/lib/store";
 
 export default function Coin() {
   const [uri, setUri] = useState("");
@@ -10,7 +11,7 @@ export default function Coin() {
   const [metaUri, setMetaUri] = useState("");
   const [mint, setMint] = useState<string>("");
   const [log, setLog] = useState<string[]>([]);
-  const [tab, setTab] = useState<"Coin"|"Volume"|"Buy"|"Sell"|"Comment">("Coin");
+  const [tab, setTab] = useState<"Coin"|"Volume"|"Buy"|"Sell"|"Return SOL">("Coin");
   // Shared params
   const [folderId, setFolderId] = useState("default");
   const [walletCount, setWalletCount] = useState(2);
@@ -24,6 +25,15 @@ export default function Coin() {
   const { send, onMessage } = useDaemonWS();
   const [launchPlatform, setLaunchPlatform] = useState<string>("");
   const [jitoOk, setJitoOk] = useState<boolean>(false);
+  const search = useSearchParams();
+  const { masterWallet } = useApp();
+
+  useEffect(() => {
+    const t = (search.get("tab") || "").toUpperCase();
+    if (t === "COIN" || t === "VOLUME" || t === "BUY" || t === "SELL" || t === "RETURN SOL") {
+      setTab(t as any);
+    }
+  }, [search]);
 
   function launchpadUrl(mint:string, platform:string) {
     switch ((platform||"none").toLowerCase()) {
@@ -74,7 +84,7 @@ export default function Coin() {
     <div className="p-6 grid gap-4">
       {/* Tabs */}
       <div className="flex gap-2">
-        {(["Coin","Volume","Buy","Sell","Comment"] as const).map(t => (
+        {(["Coin","Volume","Buy","Sell","Return SOL"] as const).map(t => (
           <button key={t} onClick={()=>setTab(t)} className={`px-3 py-1.5 rounded-xl text-sm ${tab===t?"bg-[var(--accent)] text-white":"bg-zinc-800 text-zinc-200"}`}>{t}</button>
         ))}
       </div>
@@ -141,7 +151,7 @@ export default function Coin() {
               <button key={p} onClick={()=>{
                 if (!mint) return push("No mint yet");
                 const params = { execMode, jitterMs: jitter, tipLamports: [0,0] as [number,number], cuPrice: [0,0] as [number,number], walletFolderId: folderId, walletCount, maxSolPerWallet: (p/100)*maxSolPerWallet, slippageBps } as any;
-                send({ kind: "TASK_CREATE", payload: { kind: "SNIPE", ca: mint, params } } as any);
+                send({ kind: "TASK_CREATE", payload: { kind: "SNIPE", ca: mint, params }, meta: { masterWallet } } as any);
               }} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm">BUY {p}%</button>
             ))}
           </div>
@@ -161,15 +171,30 @@ export default function Coin() {
               <button key={p} onClick={()=>{
                 if (!mint) return push("No mint yet");
                 const params = { execMode, jitterMs: jitter, tipLamports: [0,0] as [number,number], cuPrice: [0,0] as [number,number], walletFolderId: folderId, walletCount, percent: p, slippageBps } as any;
-                send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca: mint, params } } as any);
+                send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca: mint, params }, meta: { masterWallet } } as any);
               }} className="px-3 py-1.5 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-sm">SELL {p}%</button>
             ))}
           </div>
         </div>
       )}
 
-      {tab === "Comment" && (
-        <div className="p-4 rounded-2xl bg-[var(--card)] border border-zinc-800 shadow-card text-sm text-muted">Placeholder</div>
+      {tab === "Return SOL" && (
+        <div className="p-4 rounded-2xl bg-[var(--card)] border border-zinc-800 shadow-card">
+          <h3 className="font-medium mb-3">Return SOL</h3>
+          <div className="grid md:grid-cols-3 gap-3 mb-3">
+            <div className="grid gap-1"><label className="text-xs text-zinc-400">Folder</label><input className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700" value={folderId} onChange={e=>setFolderId(e.target.value)} /></div>
+          </div>
+          <button
+            onClick={()=>{
+              if (!masterWallet) return push("Authenticate master wallet first");
+              send({ kind: "FOLDER_SOL_SWEEP", payload: { id: folderId, masterPubkey: masterWallet } } as any);
+              push(`Requested SOL sweep for folder ${folderId}`);
+            }}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500"
+          >
+            Return SOL
+          </button>
+        </div>
       )}
 
       <div className="p-4 rounded-2xl bg-[var(--card)] border border-zinc-800 shadow-card">

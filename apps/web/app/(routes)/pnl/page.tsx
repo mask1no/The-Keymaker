@@ -11,8 +11,7 @@ export default function PnL() {
     async function load() {
       try {
         setLoading(true);
-        const base = process.env.NEXT_PUBLIC_WS_URL?.replace(/^ws/, "http") || "http://localhost:8787";
-        const res = await fetch(`${base}/pnl`);
+        const res = await fetch(`/api/pnl`, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const j = await res.json();
         if (!dead) setItems(j.items || []);
