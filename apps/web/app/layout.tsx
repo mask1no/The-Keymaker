@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AsideNavClient />
             <main className="relative">
               <TopBar />
-              <div className="p-6 max-w-7xl mx-auto w-full">{children}</div>
+              <div className="p-6 pt-16 max-w-7xl mx-auto w-full">{children}</div>
             </main>
           </div>
         </WalletKit>

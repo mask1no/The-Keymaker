@@ -18,7 +18,7 @@ export default function Home() {
   }, []);
 
   const now = useMemo(() => new Date(), []);
-  const dateStr = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6">
@@ -43,13 +43,7 @@ export default function Home() {
         <Kpi title="Earnings today" value={`${(stats.earningsToday/1e9).toFixed(4)} SOL`} hint="-(fees+tips)" series={stats?.series?.coins||[]} />
       </div>
 
-      {/* Wallet Groups CTA */}
-      <div className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-[#13131a] p-5">
-        <div className="text-sm text-zinc-300">
-          Manage folders and wallets from the Wallets page. Recent coins: {stats.mints?.slice(0,5).join(", ")||"—"}
-        </div>
-        <a href="/wallets" className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm">Open Wallets</a>
-      </div>
+      {/* Wallets CTA removed (folders live under /wallets) */}
 
       {/* Mint History */}
       <div className="grid gap-3">
