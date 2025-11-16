@@ -30,9 +30,9 @@ pnpm dev
 
 ### 10‑Minute First Trade (Local)
 
-1) Prepare env (root `.env`): set `KEYSTORE_PASSWORD`, a reliable `RPC_URL`, and `MASTER_SECRET_BASE58` matching the wallet you connect in the UI (dev-only).
+1) Prepare env: in `apps/daemon/.env.local`, set `KEYSTORE_PASSWORD`, a reliable `RPC_URL`, and `MASTER_SECRET_BASE58` that matches the wallet you connect in the UI (dev-only). In `apps/web/.env.local`, ensure `NEXT_PUBLIC_WS_URL` points to your daemon if not using the default.
 2) Start locally:
-   - `npm run dev`
+   - `pnpm dev`
    - Web: `http://localhost:3000`, Daemon WS: `ws://localhost:8787`
 3) In the UI → Wallets:
    - Create folder `default`
@@ -62,7 +62,6 @@ apps/
 packages/
   types/          # Shared TypeScript types (tasks, params, events)
   logger/         # Structured logging (redacts sensitive data)
-.github/workflows # CI (lint/build)
 ```
 
 **Security invariants (non-negotiable):**
@@ -94,27 +93,32 @@ PUMPFUN_API_BASE=              # optional (HTTP publish path). If set, COIN_PUBL
 PUMPFUN_API_KEY=               # optional bearer for Pump.fun HTTP if required
 PUMP_PORTAL_BASE=              # optional. If set, prefers direct Pump.fun route (PumpPortal) for buy/sell
 PUMP_PORTAL_AUTH=              # optional auth header value (e.g., 'Bearer <token>')
+DAEMON_HTTP_TOKEN=             # optional. If set, daemon HTTP endpoints require 'x-keymaker-auth' header
+JUP_ROUTER_PROGRAMS=           # optional comma-separated strict allowlist of Jupiter router program IDs
 
-# Auto-snipe (listener → strategy)
-AUTOSNIPE_ENABLED=0
-AUTOSNIPE_FOLDER_ID=
-AUTOSNIPE_WALLET_COUNT=3
-AUTOSNIPE_BUY_SOL=0.01
-AUTOSNIPE_SLIPPAGE_BPS=500
-AUTOSNIPE_EXEC_MODE=JITO_BUNDLE
-AUTOSNIPE_JITTER_MIN_MS=20
-AUTOSNIPE_JITTER_MAX_MS=120
-AUTOSNIPE_CU_MIN=800
-AUTOSNIPE_CU_MAX=1500
-AUTOSNIPE_TIP_MIN=0
-AUTOSNIPE_TIP_MAX=0
-AUTOSNIPE_DEDUP_SEC=60
+# Defaults (can also be adjusted in Settings UI)
+DEFAULT_SLIPPAGE_BPS=500
+DEFAULT_CU_PRICE_MICRO=1000
+DEFAULT_JITO_TIP_BUY_LAMPORTS=0
+DEFAULT_JITO_TIP_SELL_LAMPORTS=0
+
+# Web (client) env
+NEXT_PUBLIC_WS_URL=ws://localhost:8787
+NEXT_PUBLIC_DEFAULT_RPC=https://api.mainnet-beta.solana.com
 ```
+
+Settings (in-app, persisted in DB; configurable under Settings page):
+- AUTOSNIPE_ENABLED, AUTOSNIPE_FOLDER_ID, AUTOSNIPE_WALLET_COUNT, AUTOSNIPE_BUY_SOL
+- AUTOSNIPE_SLIPPAGE_BPS, AUTOSNIPE_EXEC_MODE, AUTOSNIPE_JITTER_MIN_MS, AUTOSNIPE_JITTER_MAX_MS
+- AUTOSNIPE_CU_MIN, AUTOSNIPE_CU_MAX, AUTOSNIPE_TIP_MIN, AUTOSNIPE_TIP_MAX, AUTOSNIPE_DEDUP_SEC
+- TPSL_TP_BPS, TPSL_SL_BPS
+- DEFAULT_SLIPPAGE_BPS, DEFAULT_CU_PRICE_MICRO, DEFAULT_JITO_TIP_BUY_LAMPORTS, DEFAULT_JITO_TIP_SELL_LAMPORTS
 
 **Fallback behavior**
 
 * No `GRPC_ENDPOINT` → app runs; listener off; manual CA inputs still work.
 * No `JITO_BLOCK_ENGINE` → `JITO_LITE` downgrades to RPC sends automatically.
+* `DAEMON_HTTP_TOKEN` unset → daemon HTTP endpoints are accessible without token (local dev only).
 
 ## Features & Status
 
@@ -140,6 +144,7 @@ AUTOSNIPE_DEDUP_SEC=60
 * **RPC_SPRAY**: parallel sending with per-wallet **jitter**, **slippage variance**, **compute-unit price variance**.
 * **STEALTH_STRETCH**: spray across a wider window; lower concurrency + heavier randomization.
 * **JITO_LITE**: pack **2–3 signed tx**/bundle, randomize tip within band, slight slot delays. Falls back to RPC when no block engine.
+* Optional: **JITO_DIRECT** and **JITO_BUNDLE** (small bundles) are available for advanced/auto modes.
 
 ## Safety
 
@@ -150,7 +155,8 @@ AUTOSNIPE_DEDUP_SEC=60
 * **Idempotency**: stable hash of tx message; duplicates return prior sigs.
 * **Per-mint locks**: prevent overlapping tasks on same CA.
 * **Dev-only master secret**: `MASTER_SECRET_BASE58` is for local testing only. Leave blank for real use.
-* **CSP**: strict default-src 'self'; WS/HTTP target derived from NEXT_PUBLIC_WS_URL.
+* **HTTP token**: if `DAEMON_HTTP_TOKEN` is set, all daemon HTTP endpoints require the matching `x-keymaker-auth` header (Web proxy forwards it).
+* **CSP**: strict default-src 'self'; WS/HTTP target derived from `NEXT_PUBLIC_WS_URL`.
 
 ## WebSocket API (client ↔ daemon)
 

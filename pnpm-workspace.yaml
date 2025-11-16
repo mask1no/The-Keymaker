@@ -2,19 +2,6 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - '-'
-  - '3'
-  - b
-  - better-sqlite3
-  - e
-  - i
-  - l
-  - q
-  - r
-  - s
-  - t
-
 pnpm:
   onlyBuiltDependencies:
     - better-sqlite3
