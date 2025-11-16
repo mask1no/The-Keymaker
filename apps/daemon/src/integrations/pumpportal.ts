@@ -32,7 +32,7 @@ async function post(ep: string, body: any) {
 
 export async function buildBuyTxViaPumpPortal(p: {
   walletPubkey: string; ca: string; solInLamports: number; slippageBps: number; priorityFeeMicroLamports?: number;
-}: Promise<VersionedTransaction>) {
+}): Promise<VersionedTransaction> {
   const payload = {
     side: "buy",
     mint: p.ca,

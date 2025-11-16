@@ -34,7 +34,7 @@ export default function MarketMaker() {
         },
       },
       meta: { masterWallet },
-    } as any);
+    });
   }
 
   return (

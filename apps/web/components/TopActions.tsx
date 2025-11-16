@@ -17,7 +17,7 @@ export default function TopActions() {
     send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca, params: {
       walletFolderId: folderId, walletCount: count, percent: 100, slippageBps,
       execMode: "RPC_SPRAY", jitterMs: [50,150]
-    }}, meta: { masterWallet } } as any);
+    }}, meta: { masterWallet } });
     pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: "Fast Sell", body: `CA ${ca}`, severity: "info" });
     setOpen(false);
   }
@@ -42,7 +42,7 @@ export default function TopActions() {
                      className="w-full px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700"
                      placeholder="folder id" />
             </div>
-            <a href="/wallets" className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Folders</a>
+            <button onClick={() => (location.href = "/wallets")} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Folders</button>
             <button onClick={() => alert("Presets coming soon")} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Presets</button>
             <button onClick={fastSell} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Fast Sell</button>
             <button onClick={returnSol} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Return SOL</button>

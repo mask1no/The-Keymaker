@@ -27,3 +27,8 @@ export async function hedgedSendRawTransaction(rawConn: Connection, raw: Buffer 
   try { return await rawConn.sendRawTransaction(raw, opts); }
   catch { rotate(); return await getPrimaryConn().sendRawTransaction(raw, opts); }
 }
+
+export function getRpcPool(): Connection[] {
+  if (!pool.length) initRpcPool();
+  return pool;
+}
