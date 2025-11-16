@@ -22,7 +22,10 @@ export default function AsideNavClient() {
             <Link
               key={l.href}
               href={l.href}
-              className={`px-3 py-2 rounded-xl transition-colors ${active ? "bg-zinc-800 text-white" : "text-zinc-300 hover:bg-zinc-900"}`}
+              className={[
+                "flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors",
+                active ? "bg-zinc-900 border-zinc-700 text-white" : "bg-transparent border-transparent text-zinc-300 hover:bg-zinc-900 hover:border-zinc-700"
+              ].join(" ")}
             >
               {l.label}
             </Link>

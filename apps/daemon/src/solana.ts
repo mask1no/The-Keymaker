@@ -12,9 +12,10 @@ import { logger } from "@keymaker/logger";
 import { setTaskWallets } from "./state";
 import { enforceTxMax, checkAndConsumeSpend, programAllowlistCheck } from "./guards";
 import { getRpcDegraded } from "./state";
-import { getPrimaryConn, initRpcPool, hedgedGetSignatureStatus } from "./rpc";
+import { getPrimaryConn, initRpcPool } from "./rpc";
 import { buildBuyTxViaPumpPortal, buildSellTxViaPumpPortal } from "./integrations/pumpportal";
 import { getSetting } from "./db";
+import { confirmAll } from "./integrations/bundles/jito";
 
 // Jupiter v6 helpers
 async function fetchJupQuote(inputMint: string, outputMint: string, amount: number, slippageBps: number) {
@@ -314,16 +315,7 @@ export async function submitBundle(
   return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0, path: r.path, tipLamportsUsed: r.tipLamportsUsed ?? 0 } as any;
 }
 export async function confirmSigs(sigs: string[], timeoutMs: number = 30_000) {
-  const t0 = Date.now();
-  const pending = new Set(sigs);
-  while (pending.size && (Date.now() - t0) < timeoutMs) {
-    await Promise.all([...pending].map(async (sig) => {
-      const status = await hedgedGetSignatureStatus(sig, 2000);
-      if (status === "confirmed" || status === "finalized") pending.delete(sig);
-    }));
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-  if (pending.size) throw new Error("CONFIRM_TIMEOUT");
+  await confirmAll(getConn(), sigs, timeoutMs);
 }
 
 

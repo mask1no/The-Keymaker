@@ -1,44 +1,54 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDaemonWS } from "@/lib/ws";
 import { useApp } from "@/lib/store";
-import { useRouter } from "next/navigation";
 
 export default function TopActions() {
-  const { send, onMessage } = useDaemonWS();
-  const { masterWallet } = useApp();
+  const { send } = useDaemonWS();
+  const { pushNotif, masterWallet } = useApp();
+  const [open, setOpen] = useState(false);
   const [folderId, setFolderId] = useState("");
-  const [folders, setFolders] = useState<Array<{ id: string; name: string; count: number }>>([]);
-  const router = useRouter();
 
-  useEffect(() => {
-    const off = onMessage((m: any) => { if (m.kind === "FOLDERS") setFolders(m.folders || []); });
-    send({ kind: "FOLDER_LIST" } as any);
-    return off;
-  }, [onMessage, send]);
+  function fastSell() {
+    const ca = prompt("Sell 100% by CA:");
+    const count = Number(prompt("Wallets (1..20):") || "5");
+    const slippageBps = Number(prompt("Slippage bps (e.g. 300 = 3%):") || "300");
+    if (!ca || !folderId) return;
+    send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca, params: {
+      walletFolderId: folderId, walletCount: count, percent: 100, slippageBps,
+      execMode: "RPC_SPRAY", jitterMs: [50,150]
+    }}, meta: { masterWallet } } as any);
+    pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: "Fast Sell", body: `CA ${ca}`, severity: "info" });
+    setOpen(false);
+  }
 
-  function go(path: string) { router.push(path); }
-
-  function requestReturnSol() {
-    const fid = folderId || (folders[0]?.id || "");
-    if (!fid) return alert("Pick a folder");
-    if (!masterWallet) return alert("Authenticate master wallet first");
-    send({ kind: "FOLDER_SOL_SWEEP", payload: { id: fid, masterPubkey: masterWallet } } as any);
+  function returnSol() {
+    if (!folderId) return alert("Pick a folder first");
+    send({ kind: "FOLDER_SOL_SWEEP", payload: { id: folderId, masterPubkey: masterWallet } } as any);
+    setOpen(false);
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <button onClick={()=>go("/coin?tab=Coin")} className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-sm">Coin</button>
-      <button onClick={()=>go("/coin?tab=Volume")} className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-sm">Volume</button>
-      <button onClick={()=>go("/coin?tab=Buy")} className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-sm">Buy</button>
-      <button onClick={()=>go("/coin?tab=Sell")} className="px-3 py-1.5 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-sm">Sell</button>
-      <div className="flex items-center gap-2">
-        <select value={folderId} onChange={e=>setFolderId(e.target.value)} className="px-2 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-sm">
-          <option value="">Folder…</option>
-          {folders.map(f => <option key={f.id} value={f.id}>{f.name} ({f.count})</option>)}
-        </select>
-        <button onClick={requestReturnSol} className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm">Return SOL</button>
-      </div>
+    <div className="relative">
+      <button onClick={() => setOpen((v) => !v)} className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700">
+        Actions ▾
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl p-2">
+          <div className="grid gap-2">
+            <div>
+              <div className="text-xs text-zinc-400 mb-1">Folder</div>
+              <input value={folderId} onChange={(e) => setFolderId(e.target.value)}
+                     className="w-full px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700"
+                     placeholder="folder id" />
+            </div>
+            <a href="/wallets" className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Folders</a>
+            <button onClick={() => alert("Presets coming soon")} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Presets</button>
+            <button onClick={fastSell} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Fast Sell</button>
+            <button onClick={returnSol} className="w-full text-left px-3 py-2 hover:bg-zinc-800 rounded-xl">Return SOL</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
