@@ -14,6 +14,20 @@ export default function MarketMaker() {
   const [tipLamports, setTipLamports] = useState(50_000);
   const [jMin, setJMin] = useState(10);
   const [jMax, setJMax] = useState(35);
+  const [log, setLog] = useState<string[]>([]);
+  const { onMessage } = useDaemonWS();
+
+  function push(s: string) { setLog((prev)=> [s, ...prev].slice(0, 200)); }
+
+  // Subscribe to task events for quick feedback
+  React.useEffect(() => {
+    const off = onMessage((m: any) => {
+      if (m?.kind === "TASK_ACCEPTED") push(`Accepted task ${m.id}`);
+      if (m?.kind === "TASK_EVENT") push(`Task ${m.id} → ${m.state}`);
+      if (m?.kind === "FILL") push(`Fill ${m.sig || ""}`);
+    });
+    return off;
+  }, [onMessage]);
 
   function bundle() {
     if (!ca || !folderId) return;
@@ -35,6 +49,7 @@ export default function MarketMaker() {
       },
       meta: { masterWallet },
     });
+    push(`SNIPE started for ${ca} • folder ${folderId} • wallets ${wc}`);
   }
 
   return (
@@ -81,6 +96,13 @@ export default function MarketMaker() {
       <div className="flex gap-3">
         <button onClick={bundle} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500">Bundle via Jito-lite</button>
         <a href="/wallets" className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-center">Manage wallets</a>
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        <div className="text-sm text-zinc-400">Activity</div>
+        <div className="text-xs font-mono border border-zinc-800 rounded-xl p-3 max-h-[240px] overflow-auto bg-zinc-950/60">
+          {log.length === 0 ? <div className="text-zinc-500">No events yet.</div> : log.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
       </div>
     </div>
   );

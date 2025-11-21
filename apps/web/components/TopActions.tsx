@@ -11,19 +11,25 @@ export default function TopActions() {
 
   function fastSell() {
     const ca = prompt("Sell 100% by CA:");
-    const count = Number(prompt("Wallets (1..20):") || "5");
     const slippageBps = Number(prompt("Slippage bps (e.g. 300 = 3%):") || "300");
-    if (!ca || !folderId) return;
-    send({ kind: "TASK_CREATE", payload: { kind: "SELL", ca, params: {
-      walletFolderId: folderId, walletCount: count, percent: 100, slippageBps,
-      execMode: "RPC_SPRAY", jitterMs: [50,150]
-    }}, meta: { masterWallet } });
-    pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: "Fast Sell", body: `CA ${ca}`, severity: "info" });
+    if (!ca) return;
+    if (!folderId) { alert("Pick a folder first"); return; }
+    if (!masterWallet) { alert("Connect wallet first"); return; }
+    // Use daemon MARKET_ORDER for 100% sell across folder wallets
+    send({ kind: "MARKET_ORDER", payload: {
+      ca,
+      side: "SELL",
+      folderId,
+      percentTokens: 100,
+      slippageBps
+    }} as any);
+    pushNotif({ id: crypto.randomUUID(), ts: Date.now(), kind: "task", title: "Fast Sell", body: `CA ${ca} • folder ${folderId}`, severity: "info" });
     setOpen(false);
   }
 
   function returnSol() {
-    if (!folderId) return alert("Pick a folder first");
+    if (!folderId) { alert("Pick a folder first"); return; }
+    if (!masterWallet) { alert("Connect wallet first"); return; }
     send({ kind: "FOLDER_SOL_SWEEP", payload: { id: folderId, masterPubkey: masterWallet } } as any);
     setOpen(false);
   }
