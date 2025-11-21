@@ -310,7 +310,7 @@ export async function submitBundle(
   if (getRpcDegraded() && txs.length > 4) {
     throw new Error("RPC_DEGRADED");
   }
-  const r = await submitBundleOrRpc(getConn(), txs, tipLamports);
+  const r = await submitBundleOrRpc(getConn(), txs, tipLamports, { forcePath: opts?.forcePath });
   logger.info("submit", { path: r.path, bundleId: r.bundleId, count: txs.length });
   return { sigs: r.sigs, bundleId: r.bundleId ?? "", targetSlot: 0, path: r.path, tipLamportsUsed: r.tipLamportsUsed ?? 0 } as any;
 }

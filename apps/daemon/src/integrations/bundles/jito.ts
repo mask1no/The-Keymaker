@@ -6,11 +6,14 @@ import { hedgedSendRawTransaction } from "../../rpc";
 export async function submitBundleOrRpc(
   conn: Connection,
   txs: VersionedTransaction[],
-  tipLamports?: number
+  tipLamports?: number,
+  opts?: { forcePath?: "jito" | "rpc" }
 ): Promise<{ path: "jito" | "rpc"; bundleId?: string; sigs: string[]; tipLamportsUsed?: number }> {
   const endpoint = (process.env.JITO_BLOCK_ENGINE || "").replace(/\/$/, "");
-  const wantJito = !!endpoint;
-  if (wantJito) {
+  const force = opts?.forcePath;
+  const tryJito = force === "jito" || (force !== "rpc" && !!endpoint);
+
+  if (tryJito) {
     try {
       const payload = txs.map((tx) => bs58.encode(tx.serialize()));
       const res = await fetch(`${endpoint}/api/v1/bundles`, {
