@@ -17,7 +17,7 @@ type AppState = {
     body?: string;
     ca?: string;
     sig?: string;
-    severity?: "info"|"warn"|"error"|"success";
+    severity?: "info"|"success"|"warning"|"error";
     read?: boolean;
   }>;
   unreadCount: number;

@@ -1,11 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useDaemonWS } from "@/lib/ws";
 import type { ServerMsg } from "@keymaker/types";
 import { useSearchParams } from "next/navigation";
 import { useApp } from "@/lib/store";
 
 export default function Coin() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-zinc-400">Loading…</div>}>
+      <CoinInner />
+    </Suspense>
+  );
+}
+
+function CoinInner() {
   const [uri, setUri] = useState("");
   const [imageUri, setImageUri] = useState("");
   const [metaUri, setMetaUri] = useState("");

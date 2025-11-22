@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDaemonWS } from "@/lib/ws";
 import { useApp } from "@/lib/store";
 
@@ -20,7 +20,7 @@ export default function MarketMaker() {
   function push(s: string) { setLog((prev)=> [s, ...prev].slice(0, 200)); }
 
   // Subscribe to task events for quick feedback
-  React.useEffect(() => {
+  useEffect(() => {
     const off = onMessage((m: any) => {
       if (m?.kind === "TASK_ACCEPTED") push(`Accepted task ${m.id}`);
       if (m?.kind === "TASK_EVENT") push(`Task ${m.id} → ${m.state}`);
